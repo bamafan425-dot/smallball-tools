@@ -1,5 +1,17 @@
 (Renamed from the Tournament Kit in 0.8.0. Your settings and queue carry over: remove the old Tournament Kit in chrome://extensions before loading this one.)
 
+⚡ SMOOTHER WATCHING (0.10.0)
+  ▶ Watch the next   One button at the top of the panel fills the free tiles from the queue and starts the
+                     countdown (or, mid-broadcast, plays them on the free tiles straight away).
+  Auto next          On to start: when a tile's game reaches its final (and sits there 20 seconds), it's marked
+                     watched and the next game in the queue takes that tile. Leave it running and it works through
+                     the queue on its own.
+  Queue first        The queue sits at the top of the panel. ＋ Tile (or ▶ Play while live) puts one game on a
+                     tile; ⤒ moves a game to the front.
+  Your clubs         Your own clubs (from the site's club picker) with Follow and Games buttons: no typing numbers.
+  On a watch page    "📺＋ Add this game to the Broadcast" sits next to the Broadcast button.
+  Paste links        The Add games box takes game numbers or watch links.
+
 📻 NEW RADIO DEFAULTS (0.9.5)
   Fresh installs start on Play-by-play, every pitch called, score updates every half, situation now and
   then, Nonstop (no dead air), and Mack down the middle. Settings you've already changed stay yours.
