@@ -1,5 +1,6 @@
 // PlayerOptimizer III by Jon2s, built into the SmallBall Club Kit with his blessing.
-// The one change: it runs only while it is switched on in the Club Kit's ⚙ Features (on to start).
+// Club Kit changes: it runs only while switched on in the kit's ⚙ Features (on to start), and the squad-table
+// name match handles the site's name tags (see "Club Kit fix" below).
 if ((() => { try { return JSON.parse(localStorage.getItem("sbx-features") || "{}").optimizer !== false; } catch (_) { return true; } })())
 (() => {
   let cachedTeamData = null;
@@ -123,7 +124,10 @@ if ((() => { try { return JSON.parse(localStorage.getItem("sbx-features") || "{}
 
     if (targetSpecs.length === 0) return;
 
-    const playerMap = new Map(roster.map((p) => [p.name.trim(), p]));
+    // Club Kit fix: the site's name cell also holds a small tag (like "L"), and some names end in stars, so
+    // match on the bold name text with the stars dropped.
+    const nameKey = (t) => String(t || "").trim().replace(/\*+$/, "");
+    const playerMap = new Map(roster.map((p) => [nameKey(p.name), p]));
 
     dataRows.forEach((row) => {
       const nativeCells = Array.from(row.children).filter(
@@ -131,7 +135,7 @@ if ((() => { try { return JSON.parse(localStorage.getItem("sbx-features") || "{}
       );
 
       const matchedPlayer = nativeCells
-        .map((cell) => playerMap.get(cell.textContent.trim()))
+        .map((cell) => playerMap.get(nameKey((cell.querySelector("b") || cell).textContent)) || playerMap.get(nameKey(cell.textContent)))
         .find(Boolean);
 
       if (!matchedPlayer) return;
