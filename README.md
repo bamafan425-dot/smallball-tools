@@ -1,12 +1,14 @@
 # ⚾ SmallBall Tools
 
+🌐 **Website: https://bamafan425-dot.github.io/smallball-tools/**
+
 Free, community-made tools for [SmallBall Baseball](https://play.smallball.com), by **Slip** (slipnsliders · Discord: tetonbush).
 
 Everything here is **read-only on SmallBall**: no tool ever plays, trains, changes lineups or saves anything for you. Your data stays in your own browser.
 
 | Tool | What it is | Get it |
 |---|---|---|
-| 🧢 **[Club Kit](club-kit/)** | Browser extension: club dashboard and quick tabs, stadium records, season views, training checks, box scores, stadium skins, 📻 SmallBall Radio and more. Phone edition included. | [Download](https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip) · [Website](https://bamafan425-dot.github.io/smallball-tools/) |
+| 🧢 **[Club Kit](club-kit/)** | Browser extension: club dashboard and quick tabs, stadium records, season views, training checks, box scores, stadium skins, 📻 SmallBall Radio and more. Phone edition included. | [Download](https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip) · [Website](https://bamafan425-dot.github.io/smallball-tools/club-kit/) |
 | 📺 **[Broadcast Kit](broadcast-kit/)** | Watch up to four games at once with a synced start, no spoilers, a play-by-play booth, the radio and Stream Mode (SBSN) for OBS. | [Download](https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Broadcast-Kit.zip) |
 | 🏆 **[Tournament Kit](tournament-kit/)** | Run brackets for SmallBall tournaments. | [Download](https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Tournament-Kit.zip) |
 | ⛰️ **[Hold the Hill](hold-the-hill/)** | King-of-the-Hill BigLeague ladder: Google Sheet + Form + Apps Script, Discord webhooks, a live Hill Board and a play-money sportsbook. | [Join on Discord](https://discord.gg/DH6KxXHgR) |

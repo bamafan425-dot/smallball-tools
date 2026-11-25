@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmallBall Club Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE occasion: a landing page for a fan-made add-on, confident and a little ballpark
+   IDEA the SmallBall club page itself: navy pinstripes, a red stitch seam, tier-coloured stars
+   PICTURE the real club dashboard screenshot, large, as the hero
+   COLOUR night navy ground, near-white ink, stitch red, star gold, club blue for actions
+   TYPE Barlow Condensed 800 display + Barlow text
+   LAYOUT laptop: title and download on the left third, dashboard picture two-thirds right; phone: title, picture, button */
+:root{color-scheme:dark;--bg:#0f1626;--bg2:#141d33;--panel:#17213a;--edge:#2b3a5c;--ink:#e9edf6;--muted:#a3aec6;--red:#c8102e;--gold:#facc15;--blue:#2f6bf0}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 1px,transparent 1px 14px)}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+.seam{height:10px;background:linear-gradient(#3a0d17,#3a0d17);position:relative}
+.seam::after{content:"";position:absolute;left:0;right:0;top:4px;height:3px;background:repeating-linear-gradient(90deg,var(--red) 0 12px,transparent 12px 20px)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(5vw,16px);padding-right:max(5vw,16px)}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;font:800 24px/1 "Barlow Condensed",sans-serif;text-transform:uppercase}
+.stars{display:inline-flex;gap:1px;font-size:15px;line-height:1}
+.stars i{font-style:normal}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 17px/1 Barlow,sans-serif;padding:14px 22px;border-radius:999px;text-decoration:none;border:2px solid transparent;white-space:nowrap}
+.btn.go{background:var(--blue);color:#fff}
+.btn.go:hover{background:#4a80ff}
+.btn.line{border-color:var(--edge);color:var(--ink)}
+.btn.line:hover{border-color:var(--blue)}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:clamp(24px,4vw,56px);align-items:center;padding-block:clamp(24px,4vw,56px) clamp(36px,5vw,72px)}
+h1{font:800 clamp(44px,4.4vw,80px)/.95 "Barlow Condensed",sans-serif;letter-spacing:-.01em;margin:10px 0 18px;text-transform:uppercase}
+h1 span{display:block;color:var(--gold)}
+h1 span.w{color:inherit}
+.lede{font-size:19px;color:var(--muted);margin:0 0 26px;max-width:30ch}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.note{font-size:14px;color:var(--muted);margin:0}
+.shot{background:#0b1120;border:1px solid var(--edge);border-radius:14px;padding:8px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.shot img{border-radius:9px;width:100%;height:auto}
+.band{padding-block:clamp(40px,6vw,84px);border-top:1px solid #1d2842}
+.band.alt{background:rgba(20,29,51,.7)}
+h2{font:800 clamp(34px,4vw,52px)/1 "Barlow Condensed",sans-serif;text-transform:uppercase;margin:0 0 12px;letter-spacing:-.005em}
+.feat{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,56px);align-items:center}
+.feat.flip{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
+.feat.flip .txt{order:2}
+.txt p{color:var(--muted);margin:0 0 14px;max-width:46ch}
+.txt ul{margin:0;padding:0;list-style:none}
+.txt li{padding:8px 0 8px 22px;position:relative;border-top:1px solid #23304e}
+.txt li::before{content:"";position:absolute;left:2px;top:17px;width:9px;height:9px;border-radius:50%;background:var(--dot,var(--gold))}
+.tiers{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px;margin-top:18px}
+.tiers div{text-align:center;font-size:13px;color:var(--muted)}
+.tiers b{display:block;font-size:26px;line-height:1.1}
+.more{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:20px 22px}
+.card h3{font:800 24px/1.1 "Barlow Condensed",sans-serif;text-transform:uppercase;margin:0 0 6px}
+.card p{margin:0;color:var(--muted);font-size:16px}
+.get{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;padding:12px 0;border-top:1px solid #23304e}
+ol.steps li::before{content:counter(s);width:40px;height:40px;border-radius:50%;background:var(--blue);color:#fff;font:800 20px/40px "Barlow Condensed",sans-serif;text-align:center}
+ol.steps b{display:block}
+ol.steps span{color:var(--muted);font-size:16px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:#0b1120;border:1px solid var(--edge);border-radius:6px;padding:1px 6px;overflow-wrap:anywhere}
+.fair{border-left:4px solid var(--gold)}
+.release{margin:8px 0 28px;padding:22px 24px;border-radius:16px;background:linear-gradient(0deg,rgba(250,204,21,.07),rgba(250,204,21,.07)),var(--panel);border:2px solid var(--gold)}
+.release .rtop{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.release h2{margin:0;font-size:clamp(26px,3.4vw,38px);flex:1 1 auto}
+.release .tag{background:var(--gold);color:#111;font:800 13px/1 Barlow,sans-serif;text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-radius:999px}
+.release ul{margin:14px 0 8px;padding-left:20px}.release li{margin:6px 0;color:var(--muted)}.release li b{color:var(--ink)}.release a{color:var(--gold)}.release .btn{color:#fff}
+.release .more-link{font-weight:700}
+.stack .txt{max-width:820px;margin-bottom:22px}.stack .txt ul{columns:2;column-gap:36px}.stack .txt li{break-inside:avoid}@media(max-width:800px){.stack .txt ul{columns:1}}
+.stack .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}@media(max-width:900px){.stack .pair{grid-template-columns:1fr}}
+ul.log{list-style:none;margin:0;padding:0}ul.log li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;padding:12px 0;border-top:1px solid #23304e}ul.log li:first-child{border-top:0}
+ul.log b{font:800 20px/1.2 "Barlow Condensed",sans-serif;color:var(--gold)}ul.log span{color:var(--muted);font-size:16px;min-width:0;overflow-wrap:anywhere}
+.more.two{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:900px){.more.two{grid-template-columns:minmax(0,1fr)}}ul.log em{font-style:normal;font-weight:700;color:var(--ink)}
+footer{padding-block:28px 40px;color:var(--muted);font-size:15px;display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;border-top:1px solid #1d2842}
+@media(max-width:900px){.hero,.feat,.feat.flip,.get{grid-template-columns:minmax(0,1fr)}.feat.flip .txt{order:0}.more{grid-template-columns:minmax(0,1fr)}.lede{max-width:none}}
+@media(max-width:600px){.tiers{grid-template-columns:repeat(6,minmax(0,1fr))}.btn{padding:13px 18px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="seam" aria-hidden="true"></div>
+<div class="wrap">
+  <nav>
+    <div class="brand"><a href="../" style="text-decoration:none;font:600 15px Barlow,sans-serif;color:var(--muted);text-transform:none;margin-right:6px" title="All SmallBall Tools">← All tools</a><span class="stars" id="navstars" aria-hidden="true"></span>SmallBall Club Kit</div>
+    <a class="btn line" id="nav-download" href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.25.2</a>
+  </nav>
+  <aside class="release" aria-label="New in version 1.25.2">
+    <div class="rtop"><span class="tag">New today</span><h2>Version 1.25.2 is out</h2><a class="btn go" href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.25.2</a></div>
+    <ul>
+      <li><b>New: 📻 SmallBall Radio.</b> Watching a game in SmallBall's player? Press 📻 Radio at the bottom left and Mack and Dewey call it out loud: every play, the score at every change of inning, stories, trivia and a guest in the booth. No spoilers, no dead air.</li>
+      <li><b>New: ⛰️ Report to Hold the Hill.</b> BigLeague games on your club's page get a Report button that opens the Hold the Hill form with the game and score already filled in.</li>
+      <li><b>New: 📰 Box scores.</b> Every game in the game lists shows its number and a Box score button next to Watch: line score, both batting orders, the pitchers, highlights and Copy for Discord. 🔒 until the report airs, with a "Box score ready" alert.</li>
+      <li><b>New: Spoiler guards.</b> In ⚙, hide an airing game's score behind its countdown, and freeze club records and standings until the report airs.</li>
+      <li><b>New: 🏟 Skins button.</b> Stadium skins have their own window: a green button at the bottom left opens a card for every park, with its paint size and your skin.</li>
+      <li><b>New: Game countdown.</b> Timed games are here, so each club's tab and card now count down to when it can play again (⏳5:42), on the server's clock, and turn to ✓ ready at zero. Optional chime in ⚙.</li>
+      <li><b>New: Hide scores on the air.</b> Turn it on in ⚙ and a game that's still airing shows its countdown instead of its score in the game list and the live bar. Click to peek.</li>
+      <li><b>New: Stadium skins are back.</b> Old SmallBall lore returns. Click 🏟 Skins and give any park your own picture and the game player shows it whenever a game is at that park. Skins stay in your browser. Making one? Grab the free <a href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Skin-Maker-Stencils.zip" target="_blank" rel="noopener">Skin Maker Stencil Pack</a>: a guide and a see-through overlay for all 12 parks, lined up with the game's own field.</li>
+      <li><b>New: Tabs are cards.</b> Each quick tab is its club's card, minimized, with star tier, ⚡ when ready to train and ⚠ for a warning. Click to drop the card open; double-click for the full team page. Three across, in their own full-width row.</li>
+      <li><b>New: Passive chip.</b> Every card shows <b>Passive ON</b> or <b>Passive off</b>, warns when the starters are out of TP, and takes you straight to SmallBall's Passive Training switch.</li>
+      <li><b>New: Lineup check.</b> An amber warning when a weak man is pitching and a much better arm is on the bench or in the field.</li>
+      <li><b>New: Live games bar control.</b> Stack, Row or Hide SmallBall's live games bar so it stops pushing the page down.</li>
+      <li><b>New: Trimmed phone edition.</b> Club cards, the season clock and big ▶ Play and Training buttons. <a href="#phone">How to set it up</a>.</li>
+    </ul>
+    <a class="more-link" href="#phone">See the phone edition</a> · <a class="more-link" href="#new">All release notes</a>
+  </aside>
+  <section class="hero">
+    <div>
+      <h1><span class="w">SmallBall</span><span>Club Kit</span></h1>
+      <p class="lede">A free make-over for play.smallball.com. Your clubs, your stars and your records, on every page.</p>
+      <div class="cta">
+        <a class="btn go" id="hero-download" href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download the Club Kit</a>
+        <a class="btn line" href="#get">How to install</a>
+      </div>
+      <p class="note">Chrome, Edge or Brave · 110 KB · read-only</p>
+    </div>
+    <figure class="shot" style="margin:0"><img src="img/01-dashboard-and-tabs.jpg?v=4" alt="The club dashboard on the SmallBall season page: quick tabs for three clubs and a card for each with star rating, Junior status, TP bar and records. Teton Sliders shows a custom club logo." width="1096" height="636"></figure>
+  </section>
+</div>
+
+<section class="band alt" id="new">
+  <div class="wrap">
+    <h2>What's new</h2>
+    <p class="lede" style="margin-bottom:18px;max-width:760px">The latest releases, newest first. Grab 1.25.2 from the button up top or the steps below.</p>
+    <div class="card" style="padding:6px 22px">
+      <ul class="log">
+        <li><b>1.25.2</b><span><em>Moved:</em> the Club Kit now lives on GitHub. Downloads, the phone script and the Skin Maker Stencil Pack all come from there, and this page is its new home.</span></li>
+        <li><b>1.25.1</b><span><em>New:</em> radio booth settings. Score updates at every change of half-inning (or every full inning), situation updates (inning, outs and score) before every batter or now and then, a Dead air setting (Some quiet, Steady or Nonstop), and Mack as a home-team homer or down the middle. The booth now fills the quiet between plays, and "How the show goes" lays out the broadcast.</span></li>
+        <li><b>1.25.0</b><span><em>New:</em> 📻 SmallBall Radio in the site's own game player. A Radio button at the bottom left (above 🏟 Skins) turns on Mack Ramsey and Dewey Seeds, who call the game you're watching out loud, in step with the picture. Same booth as the Broadcast Kit, sharing its settings.</span></li>
+        <li><b>1.24.0</b><span><em>New:</em> ⛰️ Report to Hold the Hill. On your club's page, BigLeague games get a Report button that opens the Hold the Hill form with the game ID and both scores already filled in. Just press Submit.</span></li>
+        <li><b>1.23.1</b><span><em>New:</em> 📰 box scores. SmallBall has no box score page, so every game in the game lists now shows its game number and a Box score button next to Watch: line score with R/H/E, both batting orders, the pitchers, the highlights, and Copy for Discord. Spoiler-safe: 🔒 until the report airs, and a "Box score ready" toast (plus an optional chime or desktop notification) tells you when.</span></li>
+        <li><b>1.22.1</b><span><em>Fix:</em> the game countdown only counts down for games a club started. A club that was challenged can still play, so it gets no countdown (its score stays hidden and its record frozen while it airs, if those are on).</span></li>
+        <li><b>1.22.0</b><span><em>New:</em> freeze records and stats while a game is on the air. A club's W-L and runs, its BigLeague and Pro League rows, and the Club Kit's own cards read as they did before first pitch until the report airs. Off to start: turn it on in ⚙, ideally with "Hide scores".</span></li>
+        <li><b>1.21.0</b><span><em>New:</em> stadium skins get their own window. A green 🏟 Skins button at the bottom left (above the Broadcast and Tournament buttons, if you have them) opens a card for every park with its size and your skin.</span></li>
+        <li><b>1.20.0</b><span><em>New:</em> hide the score of a game that's still on the air. In the game list and the live bar its score turns into its countdown (⏳ 4:12); click to peek, and it comes back when the report airs. Off to start: turn it on in ⚙.</span></li>
+        <li><b>1.19.0</b><span><em>New:</em> a game countdown for timed games. Each club's tab shows ⏳ and the time until its last game has aired and it can play again, the card says "Next game in 5:42" above ▶ Play, and both turn to ✓ ready at zero. Optional chime in ⚙.</span></li>
+        <li><b>1.18.1</b><span><em>New:</em> a free Skin Maker Stencil Pack, with a labelled guide and a see-through overlay for every park, drawn from the game's own layout. Skins now fit each park's true size: most are 800×600, but Home field, Homerun stadium, Letterbox Park and Jurassic Park are a little different. <a href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Skin-Maker-Stencils.zip" rel="noopener">Download the stencil pack</a>.</span></li>
+        <li><b>1.18.0</b><span><em>New:</em> stadium skins are back. In ⚙ → Stadium skins, give any park your own picture and the game player shows it whenever a game is at that park. Skins stay in your browser; you bring your own.</span></li>
+        <li><b>1.17.7</b><span><em>Fixed:</em> the Passive chip updates as soon as you flip SmallBall's Passive Training switch, no page refresh needed.</span></li>
+        <li><b>1.17.6</b><span><em>Changed:</em> club cards start closed on every page, Team pages included. Click a tab to open its card.</span></li>
+        <li><b>1.17.5</b><span><em>New:</em> every club card shows <b>Passive ON</b> or <b>Passive off</b>. Click it to jump straight to SmallBall's Passive Training switch (it lives in Settings at the bottom of each club's page); the kit scrolls there and flashes it, and you flip it yourself.</span></li>
+        <li><b>1.17.4</b><span><em>Changed:</em> opening a club now always starts its squad on Skills. The Good matches switch stays as you left it across clubs and visits.</span></li>
+        <li><b>1.17.3</b><span><em>Changed:</em> each quick tab is now the header of its club card, and the card drops down attached to the tab. The tabs have their own full-width row under SmallBall's header, three equal columns across.</span></li>
+        <li><b>1.17.1</b><span><em>New:</em> a Stack / Row / Hide switch for SmallBall's live games bar, so several live games sit in one scrolling line or fold away instead of stacking down the page.</span></li>
+        <li><b>1.17.0</b><span><em>New:</em> quick tabs and club cards are one thing. Each tab is its club's card, minimized, with its star tier, ⚡ when ready to train and ⚠ for a warning. Click a tab to open or close its card; double-click for the full team page. Cards start open on Team pages and minimized everywhere else.</span></li>
+        <li><b>1.16.0</b><span><em>New:</em> a <b>Passive ON</b> chip on the dashboard cards of clubs with Passive Training switched on, with a warning when the starters are out of TP and games aren't training them.</span></li>
+        <li><b>1.15.3</b><span><em>Changed:</em> on a computer, quick tabs sit three to a row with the ⚙ beside them, so six clubs stack 3 and 3 instead of running off the screen.</span></li>
+        <li><b>1.15.1</b><span><em>Changed:</em> the dashboard on a computer shows at most three club cards across (two on a narrow window, one on a phone).</span></li>
+        <li><b>1.15.0</b><span><em>New:</em> a trimmed phone edition: club cards, quick tabs and the season clock only, with big <b>▶ Play</b> and <b>Training</b> buttons on every card. <em>New:</em> the same Play and Training buttons on the computer's dashboard cards.</span></li>
+        <li><b>1.14.5</b><span><em>New:</em> lineup check on the dashboard cards: an amber warning when a weak man is pitching and a much better pitcher is on the bench or playing the field. Training the bench can move bench men into the lineup, and club stars follow the nine who start.</span></li>
+        <li><b>1.14.4</b><span><em>New:</em> the Skill board shows each man's change in the last 24 hours as a small green + or amber − badge on every skill.</span></li>
+        <li><b>1.14.3</b><span><em>Fixed:</em> team notes picked up a stray blue edge from the site's styles; small wording fixes in Pitching and Compare.</span></li>
+        <li><b>1.14.2</b><span><em>New:</em> Training opens with a Skill board (every man and skill as a color grid, last session outlined, TP for each man) and ends with Skill progress charts. Built for brand-new clubs: no games needed.</span></li>
+        <li><b>1.14.1</b><span><em>New:</em> Training sessions show even without enough games: "Gains only" cards with TP used, skill points bought and each man's before → after. The game checks fill in after 3 games on each side.</span></li>
+        <li><b>1.14.0</b><span><em>New:</em> Training Effectiveness: TP used, skill points per 100 TP, and a check on every stat the trained skill should move, before vs after. <em>New:</em> Team notes on every club page.</span></li>
+        <li><b>1.13.2</b><span><em>New:</em> Good matches only now reaches the squad's Stats columns too: with the switch on they show this season's good-match numbers (in green) instead of the site's career totals, and switch back when it's off.</span></li>
+        <li><b>1.13.1</b><span><em>Fix:</em> on club pages the squad buttons, TP column and player grades went missing in 1.13.0. A bug in the new Good matches switch stopped them loading. Each part of the kit now runs on its own, so one problem can't take the others down.</span></li>
+        <li><b>1.13.0</b><span><em>New:</em> Training Recap. A Training button (your own clubs) lists every training session found in the box scores, newest first: a name like "Catching Quick Train", bars for each man's trained skill (before, gained, faded since), and win %, runs and the stat that skill drives over the same number of games before and after.</span></li>
+        <li><b>1.12.0</b><span><em>New:</em> Good matches only. One switch on the dashboard, the games heading and the squad heading makes every tool count only games between clubs with the same star rating.</span></li>
+        <li><b>1.11.0</b><span><em>New:</em> Compare. A fifth squad button puts two ranges side by side (since last training, the training before, last 24 hours, 3/7/10 days and the days before, last 25 games, this season, or custom dates): win %, runs for and against, each batter's AVG/OBP/SLG/HR/K% and each pitcher's RA/9, WHIP, K/9 and BB/9, with changes in green or red. On your own clubs it finds each training in the box scores and shows each man's skill change. Box scores are now saved once and shared by Pitching and Compare.</span></li>
+        <li><b>1.10.0</b><span><em>New:</em> Pitching stats. A fourth squad button shows each pitcher's season line, worked out from the public box scores: G, W–L, IP, runs allowed per 9, WHIP, H/9, BB/9, K/9, HR/9, strikeouts, complete games, shutouts and pitches per game. Works on any club's page.</span></li>
+        <li><b>1.9.3</b><span><em>Fix:</em> sorting the squad table by a column now sorts that column. The kit's TP column had shifted the site's columns, so headers sorted the wrong data. TP now sits at the end of the row.</span></li>
+        <li><b>1.9.2</b><span><em>Fix:</em> the gear menu shows your clubs in the order the tabs and dashboard use, numbered, with arrows to move them.</span></li>
+        <li><b>1.9.1</b><span><em>Fix:</em> the phone script runs inside the page, so Safari loads it reliably.</span></li>
+        <li><b>1.9.0</b><span><em>New:</em> the phone edition, plus a phone layout for everything.</span></li>
+        <li><b>1.8.4</b><span><em>Fix:</em> skill stars in the squad table show their level colours, and each row gets its colour stripe.</span></li>
+        <li><b>1.8.3</b><span><em>New:</em> mood faces. <em>Fix:</em> the Skills and Stats views no longer mix the two (the stats' own TP column, triple plays, confused the split).</span></li>
+        <li><b>1.8.2</b><span><em>New:</em> Skills, Stats and All buttons on the squad.</span></li>
+        <li><b>1.8.1</b><span><em>New:</em> the Overall star row becomes one coloured number, so the table is narrower.</span></li>
+        <li><b>1.8.0</b><span><em>New:</em> TP column for each man, ready-to-train alerts in the tab title, season clock, tier watch, player grade colours, and switches to turn any feature off. <em>Fix:</em> the dashboard now always shows the clubs you picked.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap feat">
+    <div class="txt">
+      <h2>Your clubs at a glance</h2>
+      <p>A card for each of your clubs sits at the top of every page. Fold it away with one click when you want the room.</p>
+      <ul>
+        <li style="--dot:#ec4899">Star rating, coloured by level, with the men's average</li>
+        <li style="--dot:#22c55e">Junior-league status: are you on track to climb?</li>
+        <li style="--dot:#dc2626">TP bar, plus roughly when to train the bench and the full team, with a ⚡ when they're ready</li>
+        <li style="--dot:#f59e0b">Tier watch: how many stars until your club moves up (or down) a star tier</li>
+        <li style="--dot:#fbbf24">Lineup check: a warning if a weak man is pitching while a real pitcher sits</li>
+        <li style="--dot:#3b82f6">Good-match and BigLeague records, today, streak, last 10</li>
+        <li style="--dot:#a3e635">A season clock: when the current season closes</li>
+      </ul>
+      <div class="tiers" id="tiers" aria-label="Star colours from 0 to 10"></div>
+    </div>
+    <div class="shot"><img src="img/01-dashboard.jpg?v=1" alt="Club dashboard cards for three clubs: star ratings, tier watch, Junior status, TP bar with when to train the bench and full team, records and the last ten games, under a season clock and the Good matches only switch" width="1540" height="700"></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap feat flip">
+    <div class="txt">
+      <h2>Your record in every stadium</h2>
+      <p>Open your club's page and every stadium card shows how you've done there: home and away, win percentage and runs a game. The parks you don't own get cards too, even at 0–0.</p>
+      <ul>
+        <li style="--dot:#14b8a6">This season or all seasons</li>
+        <li style="--dot:#8b5cf6">All games or good matches only</li>
+        <li style="--dot:#facc15">Other parks as cards, a compact list, or hidden</li>
+      </ul>
+    </div>
+    <div style="display:grid;gap:18px"><div class="shot"><img src="img/04-stadium-records-cards.jpg?v=3" alt="Stadium cards with a record on each, including Jurassic Park 49-14-5 at home" width="1096" height="425"></div><div class="shot"><img src="img/05-stadium-records-list.jpg?v=3" alt="Stadiums you don't own shown as a compact list with records" width="1096" height="234"></div></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap feat">
+    <div class="txt">
+      <h2>Your season, three ways</h2>
+      <p>The long "This season's games" list gets three views: <b>Summary</b>, <b>Last 10</b> or the <b>Full season</b>. The kit remembers your pick.</p>
+      <p>The summary sums up games, record and win percentage, good matches, today, runs a game, streak and the last ten, plus the clubs you've played most and your record against each.</p>
+    </div>
+    <div style="display:grid;gap:18px">
+      <div class="shot"><img src="img/06-games-summary.jpg?v=3" alt="Season summary with record, streak, last ten and most-played opponents" width="1096" height="218"></div>
+      <div class="shot"><img src="img/07-games-last10.jpg?v=3" alt="Last 10 view: the summary above the ten most recent games" width="1096" height="633"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap feat flip">
+    <div class="txt">
+      <h2>Your squad, sharpened</h2>
+      <p>The squad table gets <b>Skills</b>, <b>Stats</b> and <b>All</b> buttons, so ratings and batting numbers stop fighting for room.</p>
+      <ul>
+        <li style="--dot:#8b5cf6">Every skill star coloured by level, the same colours as club stars</li>
+        <li style="--dot:#2563eb">The long Overall star row becomes one coloured number</li>
+        <li style="--dot:#ca8a04">On your own clubs: each man's TP bar and when he'll be full</li>
+        <li style="--dot:#dc2626">Click any column header to sort, high to low or low to high</li>
+        <li style="--dot:#16a34a">Mood gets a face: 😄 🙂 😐 🙁 😣</li>
+        <li style="--dot:#facc15">A Pitching view: every pitcher's season line, on any club</li>
+        <li style="--dot:#22c55e">A Compare view: two date ranges side by side, to see how training helped</li>
+        <li style="--dot:#16a34a">Training on your own clubs: a Skill board and a report on every session (below)</li>
+      </ul>
+    </div>
+    <div class="shot"><img src="img/08-squad-skills.jpg?v=5" alt="The squad table in Skills view, sorted by Overall: coloured overall numbers, skill stars coloured by level, mood faces and each man's TP bar with when he'll be full" width="1096" height="588"></div>
+  </div>
+</section>
+
+<section class="band" id="training">
+  <div class="wrap stack">
+    <div class="txt">
+      <h2>Did that training work?</h2>
+      <p>The <b>Training</b> button on your own clubs gives every session a report card: what it cost, what it bought, and whether it showed up in games.</p>
+      <ul>
+        <li style="--dot:#16a34a">TP used and skill points gained, with points per 100 TP</li>
+        <li style="--dot:#2563eb">Each skill checked against the stats it should move: Catching → errors and outs, Bat Power → homers and extra-base hits, Contact → strikeouts and average, and so on</li>
+        <li style="--dot:#facc15">Before vs after over the same number of games, with a plain verdict: Showing, Leaning, No clear change or Too early</li>
+        <li style="--dot:#dc2626">It only says Showing once a change beats normal game-to-game swing, so one hot week can't fool you</li>
+        <li style="--dot:#a3e635">Quick Trains are spotted too, from the TP they drain</li>
+      </ul>
+    </div>
+    <div class="shot"><img src="img/10-training-effectiveness.jpg?v=1" alt="A Catching Quick Train report: about 1,200 TP for 159 skill points, 3 of 4 checks moving the right way. Errors per chance fell from .054 to .032 (Showing) and club errors per game from 2.04 to 1.08 (Showing)" width="1540" height="569"></div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap feat flip">
+    <div class="txt">
+      <h2>Brand-new club? Still the full picture</h2>
+      <p>No games yet, no problem. Training opens with a <b>Skill board</b>: every man and every skill as a color grid, starters first, with the last session's skills outlined, a small + or − on every skill for the last 24 hours, and each man's TP alongside.</p>
+      <ul>
+        <li style="--dot:#2563eb">Colors scale to the club's best skill, so a young club's strengths still stand out</li>
+        <li style="--dot:#16a34a">Sessions show their gains right away; the game checks fill in once games are played</li>
+        <li style="--dot:#facc15">Missed a session? The site's own record of it still shows: the skill, about when, and about how much TP</li>
+        <li style="--dot:#8b5cf6">Skill progress charts track the club's average in each skill as it grows</li>
+      </ul>
+    </div>
+    <div style="display:grid;gap:18px">
+      <div class="shot"><img src="img/13-skill-board.jpg?v=1" alt="Skill board for a new 2-star club: a grid of twelve men by seven skills, pitching outlined as the last session, TP bars on the right" width="800" height="619"></div>
+      <div class="shot"><img src="img/14-new-club-session.jpg?v=1" alt="A Pitching training card for a new club: about 1,200 TP across 12 men, with each man's pitching now" width="1540" height="654"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap stack">
+    <div class="txt">
+      <h2>Pitching lines and side-by-side ranges</h2>
+      <p><b>Pitching</b> shows every pitcher's season, on any club: games, won–lost, innings, runs allowed per 9, WHIP, hits, walks, strikeouts and homers per 9, complete games and shutouts. SmallBall's pages don't show these.</p>
+      <p><b>Compare</b> puts two ranges side by side, like since your last training vs the one before, the last 7 days vs the 7 before, or any dates you pick, for the club, every batter and every pitcher.</p>
+    </div>
+    <div style="display:grid;gap:18px">
+      <div class="shot"><img src="img/11-pitching.jpg?v=1" alt="Pitching view: two pitchers' season lines with RA/9, WHIP, K/9 and more" width="1540" height="272"></div>
+      <div class="shot"><img src="img/12-compare.jpg?v=1" alt="Compare view: the training before that vs since last training, with win %, runs and each batter's AVG, OBP, SLG, HR and K% changes in green or red" width="1422" height="840"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap stack">
+    <div class="txt">
+      <h2>Team notes</h2>
+      <p>A sticky-note board on every club page, yours and your rivals'. Lineup ideas, who to train next, opponents to watch.</p>
+      <ul>
+        <li style="--dot:#facc15">Saves as you type, separately for each club</li>
+        <li style="--dot:#16a34a">Pin a note to the front, change its color, or copy them all</li>
+        <li style="--dot:#2563eb">Kept in your browser, just for you</li>
+      </ul>
+    </div>
+    <div class="shot"><img src="img/15-team-notes.jpg?v=1" alt="Team notes board with three colored sticky notes: a pinned training plan, a lineup idea and an opponent to watch" width="1540" height="364"></div>
+  </div>
+</section>
+
+<section class="band" id="radio">
+  <div class="wrap stack">
+    <div class="txt">
+      <h2>📻 SmallBall Radio</h2>
+      <p>Turn on the radio for any game you watch in SmallBall's own player. Mack Ramsey calls it (a shameless homer for the home club) and Dewey Seeds brings the color, with a guest who walks in after the first half.</p>
+      <ul>
+        <li style="--dot:#ef4444">Every hit, walk, strikeout and run the moment the player shows it, and the score at every change of inning</li>
+        <li style="--dot:#facc15">Stories from the old days, SmallBall Trivia, Around the BigLeague and the seventh-inning stretch on the organ</li>
+        <li style="--dot:#16a34a">No spoilers and no dead air: the booth only talks about what's on screen, and fills the quiet between plays</li>
+        <li style="--dot:#2563eb">Pick the voices, the guests, how chatty it gets and how often you hear the score. Your browser's own speech; nothing is sent anywhere</li>
+      </ul>
+    </div>
+    <div class="shot" style="max-width:600px;background:#0b1220;border:1px solid #334155;border-radius:14px;padding:16px 18px;color:#e5e7eb;font-size:14px;line-height:1.45">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><b style="font-size:16px">📻 SmallBall Radio</b><span style="opacity:.6;font-size:12.5px">Usual Suspects at Leming Satellites</span></div>
+      <div style="background:#b91c1c;border:1px solid #ef4444;border-radius:10px;padding:9px;text-align:center;font-weight:800">📻 On the air · click to turn off</div>
+      <div style="margin:10px 0;padding:8px 10px;border-radius:8px;background:#111a2e"><b style="color:#fca5a5">Mack:</b> Middle of the 4th: Leming Satellites three, Usual Suspects two.</div>
+      <div style="margin:0 0 10px;padding:8px 10px;border-radius:8px;background:#111a2e"><b style="color:#fca5a5">Dewey:</b> I tried to keep score with a pencil today. I'm on my third pencil and it's the second inning.</div>
+      <div style="display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:12.5px;opacity:.85">
+        <span>Score updates</span><span>Every half · Every inning · Off</span>
+        <span>Situation</span><span>Now and then · Every batter · Off</span>
+        <span>Dead air</span><span>Some quiet · <b>Steady</b> · Nonstop</span>
+        <span>Mack</span><span><b>Home-team homer</b> · Down the middle</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <h2>And the little things</h2>
+    <div class="more">
+      <div class="card"><h3>Quick tabs</h3><p>Big one-click buttons for your clubs beside the selector, each with its ID. The gear picks which clubs show, in your order.</p></div>
+      <div class="card"><h3>Your own logos</h3><p>Add any image on your club page. It's fitted to the same square and shown on your tabs, cards and club header. Only you see it.</p></div>
+      <div class="card"><h3>Readable selector</h3><p>The club dropdown follows your theme, so it's never white on white, and lists the clubs you use most at the top.</p></div>
+      <div class="card"><h3>Ready alerts</h3><p>When a club's bench or full team is full of TP, your browser tab's title starts with ⚡, so you can spot it from any tab.</p></div>
+      <div class="card"><h3>Turn anything off</h3><p>The gear menu lists every feature with a switch. Untick what you don't want and the page reloads without it.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="phone">
+  <div class="wrap">
+    <h2>On your phone</h2>
+    <p class="lede" style="margin-bottom:18px;max-width:760px">Phone browsers can't load extensions, so the Club Kit also comes as one script file that a free app runs for you. The phone edition is built for a quick look: just the big picture, no heavy lifting.</p>
+    <div class="phone-wrap" style="display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:28px;align-items:start;margin-bottom:22px">
+      <div class="shot" style="max-width:300px"><img src="img/16-phone.jpg?v=1" alt="The phone edition: quick tabs, the season clock and a card for each club with stars, TP and train times, Good matches, Today and Streak, and big Play and Training buttons" width="780" height="1690"></div>
+      <ul style="margin:0">
+        <li style="--dot:#16a34a">A card for each of your clubs: stars and tier, Junior status, a TP bar with when to train the bench and full team, Good matches, today's games and the streak</li>
+        <li style="--dot:#2563eb"><b>▶ Play</b> picks that club and opens SmallBall's Games page. You choose the opponent and press Play there</li>
+        <li style="--dot:#facc15"><b>Training</b> opens that club's training page on SmallBall</li>
+        <li style="--dot:#dc2626">The lineup check and the "ready to train" alert, so nothing slips by</li>
+        <li style="--dot:#8b5cf6">Quick tabs and the season clock. The box-score tools stay on the computer</li>
+      </ul>
+    </div>
+    <style>@media(max-width:760px){.phone-wrap{grid-template-columns:1fr!important}.phone-wrap .shot{margin:0 auto}}</style>
+    <div class="more two">
+      <div class="card"><h3>iPhone, in Safari</h3><ol style="margin:0;padding-left:20px;color:var(--muted)"><li>Install <b>Userscripts</b> from the App Store (free) and open it once.</li><li>Settings &rarr; Apps &rarr; Safari &rarr; Extensions &rarr; Userscripts: on.</li><li>Save the <a href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.user.js" target="_blank" rel="noopener">phone script</a> into the Userscripts folder in Files. The name must end in <code>.user.js</code>.</li><li>On play.smallball.com tap <b>aA</b> &rarr; Userscripts &rarr; Always Allow on This Website, then reload.</li></ol></div>
+      <div class="card"><h3>Android, in Firefox</h3><ol style="margin:0;padding-left:20px;color:var(--muted)"><li>Install <b>Firefox</b>, then add <b>Tampermonkey</b> from its add-ons menu.</li><li>Download the <a href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.user.js" target="_blank" rel="noopener">phone script</a>.</li><li>Tampermonkey dashboard &rarr; Utilities &rarr; Import from file, and pick it.</li><li>Open play.smallball.com in Firefox.</li></ol></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="get">
+  <div class="wrap get">
+    <div>
+      <h2>Get it</h2>
+      <ol class="steps">
+        <li><div><b><a href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download the zip</a></b><span>Or DM slipnsliders on Discord for the latest version.</span></div></li>
+        <li><div><b>Unzip it</b><span>Somewhere you'll keep it. The folder holds manifest.json.</span></div></li>
+        <li><div><b>Open <code>chrome://extensions</code></b><span>Turn on Developer mode, top right.</span></div></li>
+        <li><div><b>Load unpacked</b><span>Pick the folder, then refresh play.smallball.com.</span></div></li>
+      </ol>
+    </div>
+    <div class="card fair">
+      <h3>Plays fair</h3>
+      <p style="margin-bottom:12px">It's read-only. It never plays games, trains, changes lineups or saves anything for you. It only reads your own clubs' pages, the same ones you can open yourself.</p>
+      <p style="margin-bottom:18px">Logos and settings stay in your browser. Nothing is sent anywhere.</p>
+      <a class="btn go" id="get-download" href="https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.25.2</a>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <footer>
+    <span>SmallBall Club Kit · a fan-made add-on, not affiliated with SmallBall</span>
+    <span>Questions or updates: DM <b>slipnsliders</b> on Discord</span>
+  </footer>
+</div>
+<div class="seam" aria-hidden="true"></div>
+<script>
+{
+  const T = ["#6b7280","#a16207","#cbd5e1","#a3e635","#16a34a","#06b6d4","#2563eb","#8b5cf6","#ec4899","#dc2626","#facc15"];
+  const nav = document.getElementById("navstars");
+  if (nav) nav.innerHTML = T.slice(1).map((c) => `<i style="color:${c}">★</i>`).join("");
+  const t = document.getElementById("tiers");
+  if (t) t.innerHTML = T.map((c, i) => `<div><b style="color:${c}">★</b>${i}</div>`).join("");
+}
+</script>
+</body>
+</html>

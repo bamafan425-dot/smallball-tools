@@ -1,7 +1,7 @@
 # 🧢 SmallBall Club Kit
 
 A free make-over for play.smallball.com: your clubs, your stars and your records, on every page.
-Website with screenshots: **https://bamafan425-dot.github.io/smallball-tools/**
+Website with screenshots: **https://bamafan425-dot.github.io/smallball-tools/club-kit/**
 
 - `extension/` is the browser extension (Chrome, Edge, Brave). `extension/README.txt` has the full feature guide.
 - `phone/SmallBall-Club-Kit.user.js` is the phone edition (Safari + Userscripts on iPhone, Firefox + Tampermonkey on Android).
