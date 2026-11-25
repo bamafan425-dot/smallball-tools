@@ -107,7 +107,7 @@
   // Every line has a shelf life. A stale line is skipped, and a big play cuts a joke off, so the booth stays
   // with the pitch instead of drifting behind it. Speech is the browser's own; nothing is sent anywhere.
   const RKEY = "tk-radio-v1";
-  const RDEF = { on: false, style: "show", quips: "some", updates: "half", air: "steady", sit: "some", lean: "homer", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "some", guests: { quiz: true, qb: true, obvious: true } };
+  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true } };
   let R; try { R = Object.assign({}, RDEF, JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (_) { R = Object.assign({}, RDEF); }
   R.guests = Object.assign({}, RDEF.guests, R.guests || {});
   if (R.pitches === "auto") R.pitches = "some";            // 0.8: the booth is a show now; the old Auto becomes Some

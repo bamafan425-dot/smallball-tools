@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.26.0
+// @version      1.26.1
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle

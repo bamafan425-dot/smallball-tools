@@ -1,5 +1,9 @@
 (Renamed from the Tournament Kit in 0.8.0. Your settings and queue carry over: remove the old Tournament Kit in chrome://extensions before loading this one.)
 
+📻 NEW RADIO DEFAULTS (0.9.5)
+  Fresh installs start on Play-by-play, every pitch called, score updates every half, situation now and
+  then, Nonstop (no dead air), and Mack down the middle. Settings you've already changed stay yours.
+
 📻 RADIO UPDATES (0.9.4)
   Score updates at every change of half-inning (or after each full inning), read straight off the
   scoreboard. No more dead air: between plays the booth keeps talking (the situation, who's hot, the pitch
@@ -65,7 +69,7 @@ USING IT
   "Bottom 3rd" breaks, ready to paste into Discord. Restart together starts those games' transcripts over.
 
 📻 THE SHOW (0.8)
-  The booth is entertainment first now. Booth style "The show" (the default) calls the highlights (hits,
+  The booth is entertainment first now. Booth style "The show" calls the highlights (hits,
   runs, homers, big strikeouts), a pitch now and then and every full count, skips most routine outs, and
   fills the game with quips and stories. Between half-innings it runs segments:
     after the 2nd, 4th and 8th   a SmallBall story, a little two-man bit from the old days

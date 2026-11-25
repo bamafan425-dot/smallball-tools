@@ -2,9 +2,9 @@
 
 | Download | Version |
 |---|---|
-| 🧢 **SmallBall-Club-Kit.zip** (Chrome, Edge, Brave) | 1.26.0 |
-| 📱 **SmallBall-Club-Kit.user.js** (phone edition) | 1.26.0 |
-| 📺 **SmallBall-Broadcast-Kit.zip** | 0.9.4 |
+| 🧢 **SmallBall-Club-Kit.zip** (Chrome, Edge, Brave) | 1.26.1 |
+| 📱 **SmallBall-Club-Kit.user.js** (phone edition) | 1.26.1 |
+| 📺 **SmallBall-Broadcast-Kit.zip** | 0.9.5 |
 | 🏆 **SmallBall-Tournament-Kit.zip** | 1.1.1 |
 | ⛰️ **HoldTheHill.gs** (Apps Script) | 3.5 |
 
