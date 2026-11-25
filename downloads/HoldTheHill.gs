@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -68,6 +68,7 @@ const DEFAULTS = {
   SEASON_START: ['2026-11-27 00:00', 'When the season opens, Mountain time (YYYY-MM-DD HH:MM). Clubs can register before this; charges and Brawl points start here.'],
   SEASON_END: ['2026-12-23 23:59', 'When the season ends, Mountain time (YYYY-MM-DD HH:MM). New charges lock then; charges already made can still be played and reported.'],
   FORM_LINK: ['https://tinyurl.com/holdthehillsb', 'Link to the Hill form, shown as a button on the Hill Board'],
+  BOARD_LINK: ['', 'Link to the live Hill Board for Discord posts (a short link is nice). Blank = the web app link, found on its own'],
   BOOK_WEBHOOK_URL: ['', 'Optional: a webhook for a #sportsbook channel. Bets and the daily odds board post there instead of the main feed'],
   BOOK_ODDS_EVERY_HOURS: [1, 'How often the odds board posts to the sportsbook channel, in hours (only when something changed)'],
   NUDGES: ['TRUE', 'Callouts that nudge idle clubs to charge (TRUE/FALSE)'],
@@ -456,7 +457,7 @@ function awardsText_(final) {
     return w.icon + ' **' + (w.key === 'ace' ? 'Season ' + C.SEASON + ' Ace' : w.name) + '**: ' + (x ? esc_(x.name) + ' (*' + esc_(x.club) + '*) · ' + x.value : '*nobody*');
   });
   return (final ? '# 🏆 HOLD THE HILL · SEASON ' + C.SEASON + ' AWARDS\n' : '🏆 **Season ' + C.SEASON + ' award race**\n') +
-    lines.join('\n') + (C.PRIZES ? '\n\n🎁 Prizes: ' + esc_(C.PRIZES) : '');
+    lines.join('\n') + (C.PRIZES ? '\n\n🎁 Prizes: ' + esc_(C.PRIZES) : '') + linksLine_(C);
 }
 
 // Called hourly. At the buzzer: lock charges and say so. Once every charge in flight is settled and aired
@@ -612,34 +613,95 @@ function post_(content, where) {
   snapshotBoard_();   // the Hill Board shows what Discord has been told
   let C;
   try { C = cfg_(); } catch (e) { return; }
-  const url = (where === 'book' && norm_(C.BOOK_WEBHOOK_URL)) || (where === 'talk' && norm_(C.TALK_WEBHOOK_URL)) || (where === 'help' && norm_(C.HELP_WEBHOOK_URL)) || norm_(C.DISCORD_WEBHOOK_URL);
+  const url = webhookFor_(C, where);
   if (!url) { log_('system', 'Discord (no webhook set)', content); return; }
   const chunks = [];
   let s = content;
   while (s.length > 1900) { const cut = s.lastIndexOf('\n', 1900); const at = cut > 0 ? cut : 1900; chunks.push(s.slice(0, at)); s = s.slice(at); }
   chunks.push(s);
-  const name = where === 'book' ? 'Hill Sportsbook' : where === 'talk' ? 'The Hill Heckler' : where === 'help' ? 'Hill Help' : 'Hold the Hill';
+  const name = senderFor_(where);
+  chunks.forEach(function (chunk) {
+    try {
+      const code = sendChunk_(url, name, chunk);
+      if (code === 429 || code >= 500 || code === 0) queueRetry_(chunk, where, code);   // Discord is blocking us for a bit: try again in a minute
+    } catch (e) { queueRetry_(chunk, where, 0); }
+  });
+}
+// One message to one webhook. Returns the HTTP code (0 = it never got there).
+function sendChunk_(url, name, chunk) {
   const send = function (text) {
     return UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
       payload: JSON.stringify({ content: text, username: name, allowed_mentions: { parse: ['users'] } }) });
   };
-  chunks.forEach(function (chunk) {
-    try {
-      let res = send(chunk), code = res.getResponseCode();
-      for (let tries = 0; code === 429 && tries < 3; tries++) {   // Discord says slow down: wait and retry
-        let wait = 1.5; try { wait = Number(JSON.parse(res.getContentText()).retry_after) || 1.5; } catch (e) { }
-        Utilities.sleep(Math.min(10, wait + 0.25) * 1000);
-        res = send(chunk); code = res.getResponseCode();
-      }
-      if (code >= 400 && code !== 429) {   // Discord didn't like the formatting: send a plain version
-        const plain = chunk.replace(/\[([^\]]*)\]\(<?([^)>]+)>?\)/g, '$1 $2').replace(/`/g, '');
-        if (plain !== chunk) { res = send(plain); code = res.getResponseCode(); }
-      }
-      if (code >= 300) log_('system', 'Discord error ' + code, res.getContentText() + ' · ' + chunk.slice(0, 120));
-    } catch (e) { log_('system', 'Discord error', String(e)); }
+  let res, code;
+  try { res = send(chunk); code = res.getResponseCode(); } catch (e) { log_('system', 'Discord error', String(e)); return 0; }
+  // 429 from Discord itself says how long to wait. "error code: 1015" is Cloudflare blocking Google's servers for a
+  // few minutes: waiting a second won't help, so that one goes straight to the retry queue.
+  for (let tries = 0; code === 429 && tries < 2 && !/1015/.test(res.getContentText()); tries++) {
+    let wait = 1.5; try { wait = Number(JSON.parse(res.getContentText()).retry_after) || 1.5; } catch (e) { }
+    Utilities.sleep(Math.min(8, wait + 0.25) * 1000);
+    res = send(chunk); code = res.getResponseCode();
+  }
+  if (code >= 400 && code !== 429 && code < 500) {   // Discord didn't like the formatting: send a plain version
+    const plain = chunk.replace(/\[([^\]]*)\]\(<?([^)>]+)>?\)/g, '$1 $2').replace(/`/g, '');
+    if (plain !== chunk) { res = send(plain); code = res.getResponseCode(); }
+  }
+  if (code >= 300) log_('system', 'Discord error ' + code + (code === 429 || code >= 500 ? ' (will retry)' : ''), String(res.getContentText()).slice(0, 80) + ' · ' + chunk.slice(0, 120));
+  return code;
+}
+function webhookFor_(C, where) {
+  return (where === 'book' && norm_(C.BOOK_WEBHOOK_URL)) || (where === 'talk' && norm_(C.TALK_WEBHOOK_URL)) || (where === 'help' && norm_(C.HELP_WEBHOOK_URL)) || norm_(C.DISCORD_WEBHOOK_URL);
+}
+function senderFor_(where) { return where === 'book' ? 'Hill Sportsbook' : where === 'talk' ? 'The Hill Heckler' : where === 'help' ? 'Hill Help' : 'Hold the Hill'; }
+// Blocked posts wait here and go out on the next minute's check, backing off up to 10 minutes, for up to 6 hours.
+function queueRetry_(chunk, where, code) {
+  const props = PropertiesService.getScriptProperties();
+  let q = []; try { q = JSON.parse(props.getProperty('RETRY_POSTS') || '[]'); } catch (e) { q = []; }
+  q.push({ text: chunk, where: where || '', n: 0, first: Date.now(), at: Date.now() + 60000 });
+  props.setProperty('RETRY_POSTS', JSON.stringify(q.slice(-40)));
+}
+function flushRetries_() {
+  const props = PropertiesService.getScriptProperties();
+  let q = []; try { q = JSON.parse(props.getProperty('RETRY_POSTS') || '[]'); } catch (e) { q = []; }
+  if (!q.length) return;
+  const C = cfg_(), t = Date.now(), keep = [];
+  let sent = 0, blocked = false;
+  q.forEach(function (x) {
+    if (blocked || x.at > t || sent >= 5) { keep.push(x); return; }
+    const url = webhookFor_(C, x.where); if (!url) return;
+    const code = sendChunk_(url, senderFor_(x.where), x.text);
+    if (code >= 200 && code < 300) { sent++; log_('system', 'Discord retry sent', x.text.slice(0, 120)); return; }
+    if (code === 429 || code >= 500 || code === 0) {
+      blocked = true;   // still blocked: leave the rest for later, in order
+      if (t - x.first > 6 * 3600e3) { log_('system', 'Discord gave up', x.text.slice(0, 300)); return; }
+      x.n++; x.at = t + Math.min(10, Math.pow(2, x.n)) * 60000; keep.push(x); return;
+    }
+    // any other error: Discord refused this message for good (already logged)
+  });
+  props.setProperty('RETRY_POSTS', JSON.stringify(keep));
+}
+
+// The last result, posted again (for when Discord dropped it).
+function adminRepostLast() {
+  withUi_(function () {
+    const ms = readTable_(SHEETS.MATCHES).rows; if (!ms.length) return 'No results yet.';
+    const m = ms[ms.length - 1];
+    post_('🔁 **Result** (posting again): **' + esc_(m.Winner) + '** over **' + esc_(m.Loser) + '**' + (m.WinnerRuns !== '' ? ', ' + m.WinnerRuns + '–' + m.LoserRuns : '') +
+      (m.GameID ? ' · game `' + m.GameID + '`' : '') + '\n> ' + esc_(m.Outcome) + (num_(m.Points) ? ' · +' + num_(m.Points) + ' pts' : '') + '\n\n' + standingsText_());
+    return 'Posted ' + m.MatchID + ' to the feed again.';
   });
 }
 
+// 📊 Live board · 📝 form: the footer on the big posts (results, standings, a new Ace, the season opening, callouts).
+function linksLine_(C) {
+  C = C || cfg_();
+  let board = norm_(C.BOARD_LINK || '');
+  if (!board) try { board = ScriptApp.getService().getUrl() || ''; } catch (e) { board = ''; }
+  const form = norm_(C.FORM_LINK || ''), bits = [];
+  if (board) bits.push('📊 [Live Hill Board](<' + board + '>)');
+  if (form) bits.push('📝 [Hill form](<' + form + '>): charge, report, bet');
+  return bits.length ? '\n' + bits.join(' · ') : '';
+}
 function standingsText_() {
   const C = cfg_();
   const pt = players_();
@@ -664,7 +726,7 @@ function standingsText_() {
     s += p.Rank + '. ' + esc_(p.Discord) + ' · *' + esc_(p.Club) + '* (' + num_(p.Wins) + '-' + num_(p.Losses) + ')\n';
   });
   if (lad.length > C.LADDER_POST_SIZE) s += '…and ' + (lad.length - C.LADDER_POST_SIZE) + ' more on the ladder\n';
-  return s;
+  return s + linksLine_(C);
 }
 
 function notifyReject_(sub, msg) {
@@ -1252,6 +1314,7 @@ function flushPosts() {
       try { autoDetect_(); } catch (err) { log_('system', 'ERROR (auto-detect)', String(err && err.stack || err)); }
       try { settleChallengerReports_(); } catch (err) { log_('system', 'ERROR (settle)', String(err && err.stack || err)); }
     }
+    try { flushRetries_(); } catch (err) { log_('system', 'ERROR (retries)', String(err && err.stack || err)); }
     let q = []; try { q = JSON.parse(props.getProperty('POST_QUEUE') || '[]'); } catch (e) { q = []; }
     const due = q.filter(function (x) { return x.at <= t; });
     if (due.length) {
@@ -1469,6 +1532,7 @@ function onOpen() {
     .addItem('Post standings to Discord', 'adminPostStandings')
     .addItem('Post the award race to Discord', 'adminPostAwardRace')
     .addItem('🔄 Check SmallBall now (find games, post results)', 'adminCheckNow')
+    .addItem('🔁 Re-post the last result to Discord', 'adminRepostLast')
     .addItem('📣 Send callouts now', 'adminNudgeNow')
     .addItem('🧪 Test callouts (everyone, ignores the rules)', 'adminNudgeTest')
     .addItem('🧹 Reset for launch (wipe all results)', 'adminResetForLaunch')
@@ -2143,7 +2207,7 @@ function nudgeTick_(force, test) {
     last[e] = t;
   });
   if (!test) props.setProperty('NUDGED', JSON.stringify(last));
-  if (out.length) post_((test ? '🧪 *Test run: ignore* · ' : '') + '📣 **CALLOUTS**\n' + out.join('\n') + '\n-# Charge on the Hill form: ' + norm_(C.FORM_LINK || ''), 'talk');
+  if (out.length) post_((test ? '🧪 *Test run: ignore* · ' : '') + '📣 **CALLOUTS**\n' + out.join('\n') + linksLine_(C), 'talk');
   return out.length ? out.length + ' callout(s) posted' + (norm_(C.TALK_WEBHOOK_URL) ? ' in the trash-talk channel.' : ' in the main feed (TALK_WEBHOOK_URL is empty).')
     : 'Nobody was due: every club has charged within ' + idleH + ' hours, is in an open charge, was called out in the last day, or has no one in reach.';
 }
@@ -2395,7 +2459,7 @@ function oddsBoardText_(C) {
     const top = Object.keys(br.bank).sort(function (a, b) { return br.bank[b] - br.bank[a]; }).slice(0, 5);
     if (top.length) t += '\n**💰 Bankrolls**\n' + top.map(function (e, i) { return (i + 1) + '. ' + esc_(byE[e] || '?') + ' · ' + br.bank[e] + ' BB'; }).join('\n');
   } catch (e) { }
-  return t;
+  return t + linksLine_(C);
 }
 function oddsBoardTick_() {
   const C = cfg_();

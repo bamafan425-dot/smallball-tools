@@ -6,7 +6,7 @@
 | 📱 **SmallBall-Club-Kit.user.js** (phone edition) | 1.25.2 |
 | 📺 **SmallBall-Broadcast-Kit.zip** | 0.9.4 |
 | 🏆 **SmallBall-Tournament-Kit.zip** | 1.1.1 |
-| ⛰️ **HoldTheHill.gs** (Apps Script) | 3.4 |
+| ⛰️ **HoldTheHill.gs** (Apps Script) | 3.5 |
 
 **New in Club Kit 1.25:** 📻 SmallBall Radio in the site's own game player. Mack and Dewey call the game out loud, with score updates at every change of inning, situation updates, stories, trivia and a guest in the booth. No spoilers, no dead air.
 
