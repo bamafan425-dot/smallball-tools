@@ -4,7 +4,6 @@ A little make-over for play.smallball.com. Everything stays in your own browser.
 🧪 PLAYEROPTIMIZER III BY JON2S (new in 1.26.0, computer editions)
   Jon2s's lineup optimizer, built in with his blessing. Open one of your clubs and scroll to LINEUP:
   AUTO-OPTIMIZE (blue, next to Save) suggests positions and a 1-9 batting order, with the reasons.
-  It also adds exact skill numbers (P#, C#, T#…) next to the squad table's skill columns.
   It fills in the form only: review it, then press Save yourself. Turn it off in ⚙ under Features.
   His own notes are in PlayerOptimizer-III-README.txt. Thanks, Jon2s! 🙌
 

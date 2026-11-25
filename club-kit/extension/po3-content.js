@@ -1,6 +1,6 @@
 // PlayerOptimizer III by Jon2s, built into the SmallBall Club Kit with his blessing.
 // Club Kit changes: it runs only while switched on in the kit's ⚙ Features (on to start), and the squad-table
-// name match handles the site's name tags (see "Club Kit fix" below).
+// skill-number columns are left out (the lineup optimizer is unchanged).
 if ((() => { try { return JSON.parse(localStorage.getItem("sbx-features") || "{}").optimizer !== false; } catch (_) { return true; } })())
 (() => {
   let cachedTeamData = null;
@@ -14,7 +14,6 @@ if ((() => { try { return JSON.parse(localStorage.getItem("sbx-features") || "{}
     document.getElementById("sb-summary-banner")?.remove();
 
     cachedTeamData = payload;
-    syncSquadSkillColumns(payload.roster);
 
     if (!payload.mine) {
       document.getElementById("sb-optimizer-bar")?.remove();
@@ -26,147 +25,11 @@ if ((() => { try { return JSON.parse(localStorage.getItem("sbx-features") || "{}
 
   const observer = new MutationObserver(() => {
     if (suppressInjection || !cachedTeamData) return;
-    syncSquadSkillColumns(cachedTeamData.roster);
     if (cachedTeamData.mine) mountControls();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // Helper to cleanly strip injected cells before SmallBall runs a native column sort
-  function stripInjectedCols(tableContainer) {
-    if (!tableContainer) return;
-    tableContainer.querySelectorAll(".sb-injected-col").forEach((el) => el.remove());
-  }
-
-  // 2. Insert/sync exact numeric columns right after P, C, T, R, BS, BP, BC without breaking native sort
-  function syncSquadSkillColumns(roster) {
-    if (!Array.isArray(roster) || roster.length === 0) return;
-
-    const colMap = {
-      P:  { label: "P#",  key: "pitch_skill" },
-      C:  { label: "C#",  key: "catch_skill" },
-      T:  { label: "T#",  key: "pass_power" },
-      R:  { label: "R#",  key: "run_speed" },
-      BS: { label: "BS#", key: "swing_skill" },
-      BP: { label: "BP#", key: "swing_power" },
-      BC: { label: "BC#", key: "contact_odds" },
-    };
-
-    const allRows = Array.from(document.querySelectorAll("tr, [role='row']"));
-    const headerRow = allRows.find((row) => {
-      const cells = Array.from(row.children)
-        .filter((c) => !c.classList.contains("sb-injected-col"))
-        .map((c) => c.textContent.replace(/[*▴▾▲▼]/g, "").trim().toUpperCase());
-      return cells.includes("OVERALL") && cells.includes("MOOD") && cells.includes("P");
-    });
-
-    if (!headerRow) return;
-
-    const tableContainer = headerRow.closest("table") || headerRow.parentElement;
-    if (!tableContainer) return;
-
-    const dataRows = Array.from(tableContainer.querySelectorAll("tr, [role='row']")).filter(
-      (row) => row !== headerRow && row.children.length >= 10
-    );
-    if (dataRows.length === 0) return;
-
-    if (headerRow.dataset.sbSortHooked !== "true") {
-      headerRow.addEventListener(
-        "pointerdown",
-        (e) => {
-          const clickedCell = e.target.closest("th, td, [role='columnheader']");
-          if (!clickedCell) return;
-
-          suppressInjection = true;
-          const prevNativeHeader = clickedCell.classList.contains("sb-injected-col")
-            ? clickedCell.previousElementSibling
-            : null;
-
-          stripInjectedCols(tableContainer);
-
-          if (prevNativeHeader) {
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            prevNativeHeader.click();
-          }
-
-          setTimeout(() => {
-            suppressInjection = false;
-            if (cachedTeamData) syncSquadSkillColumns(cachedTeamData.roster);
-          }, 50);
-        },
-        true
-      );
-      headerRow.dataset.sbSortHooked = "true";
-    }
-
-    const nativeHeaderCells = Array.from(headerRow.children).filter(
-      (c) => !c.classList.contains("sb-injected-col")
-    );
-
-    const targetSpecs = [];
-    nativeHeaderCells.forEach((cell, nativeIdx) => {
-      const cleanLabel = cell.textContent.replace(/[*▴▾▲▼]/g, "").trim().toUpperCase();
-      if (!colMap[cleanLabel]) return;
-
-      targetSpecs.push({ nativeIdx, ...colMap[cleanLabel] });
-
-      const nextEl = cell.nextElementSibling;
-      if (!nextEl || !nextEl.classList.contains("sb-injected-col")) {
-        const newTh = document.createElement(cell.tagName.toLowerCase());
-        newTh.className = "sb-injected-col";
-        newTh.textContent = colMap[cleanLabel].label;
-        newTh.title = `Sort by ${colMap[cleanLabel].key}`;
-        newTh.style.cssText =
-          "padding: 4px 5px; font-size: 11px; font-weight: 800; color: #1d4ed8; background: #eff6ff; text-align: center; white-space: nowrap; cursor: pointer;";
-        cell.insertAdjacentElement("afterend", newTh);
-      }
-    });
-
-    if (targetSpecs.length === 0) return;
-
-    // Club Kit fix: the site's name cell also holds a small tag (like "L"), and some names end in stars, so
-    // match on the bold name text with the stars dropped.
-    const nameKey = (t) => String(t || "").trim().replace(/\*+$/, "");
-    const playerMap = new Map(roster.map((p) => [nameKey(p.name), p]));
-
-    dataRows.forEach((row) => {
-      const nativeCells = Array.from(row.children).filter(
-        (c) => !c.classList.contains("sb-injected-col")
-      );
-
-      const matchedPlayer = nativeCells
-        .map((cell) => playerMap.get(nameKey((cell.querySelector("b") || cell).textContent)) || playerMap.get(nameKey(cell.textContent)))
-        .find(Boolean);
-
-      if (!matchedPlayer) return;
-
-      targetSpecs.forEach(({ nativeIdx, key }) => {
-        const targetCell = nativeCells[nativeIdx];
-        if (!targetCell) return;
-
-        const rawVal = matchedPlayer[key];
-        const displayVal =
-          typeof rawVal === "number"
-            ? Number.isInteger(rawVal)
-              ? String(rawVal)
-              : rawVal.toFixed(2)
-            : "—";
-
-        let injectedTd = targetCell.nextElementSibling;
-        if (!injectedTd || !injectedTd.classList.contains("sb-injected-col")) {
-          injectedTd = document.createElement(targetCell.tagName.toLowerCase());
-          injectedTd.className = "sb-injected-col";
-          injectedTd.style.cssText =
-            "padding: 4px 5px; font-size: 12px; font-weight: 700; color: #1e3a8a; background: #f8fafc; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap;";
-          targetCell.insertAdjacentElement("afterend", injectedTd);
-        }
-
-        if (injectedTd.textContent !== displayVal) {
-          injectedTd.textContent = displayVal;
-        }
-      });
-    });
-  }
+  // Club Kit: the squad-table skill-number columns (and their sort hooks) are left out; the kit has its own squad view.
 
   // 3. Inject AUTO-OPTIMIZE button next to the SAVE button
   function mountControls() {
