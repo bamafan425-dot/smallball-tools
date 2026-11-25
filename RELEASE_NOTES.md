@@ -1,4 +1,4 @@
-## ⚾ SmallBall Tools · first GitHub release
+## ⚾ SmallBall ToolKits
 
 | Download | Version |
 |---|---|

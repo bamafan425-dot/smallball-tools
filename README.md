@@ -1,4 +1,4 @@
-# ⚾ SmallBall Tools
+# ⚾ SmallBall ToolKits
 
 🌐 **Website: https://bamafan425-dot.github.io/smallball-tools/**
 
