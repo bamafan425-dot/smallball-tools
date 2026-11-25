@@ -3,6 +3,13 @@
   "name": "SmallBall Club Kit",
   "version": "1.25.2",
   "description": "Quick club tabs, a readable club selector, your own club logos, a club dashboard, stadium records and SmallBall Radio for play.smallball.com. Read-only: it never plays, trains or saves for you.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "smallball-club-kit@slipnsliders",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  },
   "permissions": ["storage"],
   "content_scripts": [
     { "matches": ["https://play.smallball.com/*"], "js": ["freeze.js"], "run_at": "document_start", "world": "MAIN" },
