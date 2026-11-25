@@ -39,7 +39,7 @@
     ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["games", "Season games views"],
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
-    ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"],
+    ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
     ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
   ];
   let FEAT = {}; try { FEAT = JSON.parse(localStorage.getItem("sbx-features") || "{}"); } catch (_) {}
@@ -122,6 +122,10 @@
       }
     }
     L.snap = { at: now, tp, sk };
+    // "Last trained" as seen at each read. The site's trainer moves it; a Quick Train doesn't. That's how
+    // the kit tells the two apart (one reading every 20 minutes at most, plus every change, last 300).
+    const lt = Date.parse(d.last_trained_at || 0) || 0, O = L.lto || (L.lto = []), lo = O[O.length - 1];
+    if (!lo || lo[1] !== lt || now - lo[0] > 20 * 6e4) { O.push([now, lt]); if (O.length > 300) O.splice(0, O.length - 300); }
     // Club average of each skill over time, for the progress charts (one point every 3 hours at most,
     // plus one whenever skills change).
     const ids = Object.keys(sk), avg = SK.map((_, i) => ids.length ? Math.round(ids.reduce((a, id) => a + sk[id][i], 0) / ids.length * 10) / 10 : 0);
@@ -2034,6 +2038,18 @@
     for (const [id, t, r] of ts) { if (Math.abs(t - mid) > 2 * 36e5) continue; const v = Math.min(max, r * (t - lastT)); spent[id] = Math.round(v); total += v; }
     return { total: Math.round(total), spent, trained: d.trained, est: true };
   }
+  // Trainer or Quick Train? The trainer moves the club's "last trained" time; a Quick Train never does.
+  // "qt": the kit saw "last trained" sitting before the session at a reading after it. "trainer": it moved
+  // into the session's window. "": the kit wasn't watching closely enough to say.
+  function sessionKind(team, e) {
+    const from = (e.log ? e.log.from : e.from) - 36e5, to = (e.log ? e.log.to : e.to) + 36e5;
+    const O = ((tpLogAll()[team] || {}).lto || []).slice();
+    const d = PROF[team] && PROF[team].data; if (d) O.push([Date.parse(d.server_time || "") || PROF[team].at || Date.now(), Date.parse(d.last_trained_at || 0) || 0]);
+    if (O.some(([, lt]) => lt && lt >= from && lt <= to)) return "trainer";
+    const after = O.filter(([at]) => at >= to - 36e5).sort((a, b) => a[0] - b[0])[0];
+    if (after && after[1] < from) return "qt";
+    return "";
+  }
   const FX_MIN = 3;
   // Each man's skills right now, from the club page.
   function profSkills(team) {
@@ -2154,7 +2170,9 @@
       html += EV.slice().reverse().map((e, idx, arr) => {
         const gains = Object.entries(e.gains).sort((a, b) => b[1] - a[1]);
         const total = gains.reduce((a, x) => a + x[1], 0), [main, mainGain] = gains[0];
-        const kind = mainGain / total >= 0.7 ? `${SK_NAME[main]} Quick Train` : `Training: ${gains.slice(0, 2).map(([k]) => SK_NAME[k]).join(" and ")}`;
+        const how = sessionKind(team, e), focus = gains.filter(([, v], i) => i === 0 || v / total >= 0.2).slice(0, 2).map(([k]) => SK_NAME[k]).join(" and ");
+        const kind = how === "qt" ? `⚡ Quick Train: ${focus}` : how === "trainer" ? `🏋️ Trainer: ${focus}` : `Training: ${focus}`;
+        const kindTip = how === "qt" ? "A Quick Train: the club's \"last trained\" time didn't move." : how === "trainer" ? "The site's trainer: the club's \"last trained\" time moved to this session." : "Trainer or Quick Train? The kit can't tell for this one: it didn't read the club right before and after. It tells them apart from sessions it sees from now on.";
         const before = e.log ? e.log.before : cardAt(team, desc, (g) => g.f <= e.from), after = e.log ? e.log.after : cardAt(team, asc, (g) => g.f >= e.to);
         const nextEv = arr[idx - 1], prevEv = arr[idx + 1];
         const afterGames = L.filter((g) => g.f >= e.to && (!nextEv || g.f < nextEv.from));
@@ -2212,7 +2230,7 @@
           }).join("")}</div><p class="sbx-muted">${n} games before vs ${n} after (${TA.rec} → ${TB.rec}). Opponents change from game to game, so the checks only call a change once it's bigger than normal swing; "Leaning" means the right direction but not proven yet.</p>`
           : `<p class="sbx-muted">${!afterGames.length ? "No games since this session yet." : !beforeGames.length ? "No games before this session to compare with." : `Only ${afterGames.length} game${afterGames.length === 1 ? "" : "s"} since this session.`} The game checks fill in once there are ${FX_MIN} games on each side.</p>`;
         const other = gains.filter(([k]) => !keys.includes(k)).map(([k, v]) => `${SK_NAME[k]} +${v}`).join(" · ");
-        return `<section class="rc-card"><header><span class="tag">${esc(kind)}</span><span class="when">${e.log ? `${e.log.total ? "≈ " : "between " + t(e.log.from) + " and "}${t(e.log.total ? e.at || e.from : e.log.to)}` : `${t(e.from)} – ${t(e.to)}`}</span></header>
+        return `<section class="rc-card"><header><span class="tag" title="${esc(kindTip)}">${esc(kind)}</span><span class="when">${e.log ? `${e.log.total ? "≈ " : "between " + t(e.log.from) + " and "}${t(e.log.total ? e.at || e.from : e.log.to)}` : `${t(e.from)} – ${t(e.to)}`}</span></header>
           <div class="rc-head"><span>${tpTxt} across ${e.men} ${e.men === 1 ? "man" : "men"}</span>${pay}</div>
           ${sections}${other ? `<p class="sbx-muted">Also: ${esc(other)}</p>` : ""}
           ${tiles}</section>`;
