@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "SmallBall Tournament Kit",
+  "version": "1.1.1",
+  "description": "Run a SmallBall tournament from a Google Form sign-up: eight bracket formats, series and seeding options, results read from the real games, hand-off to the Broadcast Kit. Read-only on SmallBall.",
+  "background": { "service_worker": "background.js" },
+  "host_permissions": ["https://docs.google.com/*", "https://*.googleusercontent.com/*"],
+  "content_scripts": [{ "matches": ["https://play.smallball.com/*"], "js": ["tourney.js"], "run_at": "document_idle" }]
+}

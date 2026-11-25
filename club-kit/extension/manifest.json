@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "SmallBall Club Kit",
+  "version": "1.25.1",
+  "description": "Quick club tabs, a readable club selector, your own club logos, a club dashboard, stadium records and SmallBall Radio for play.smallball.com. Read-only: it never plays, trains or saves for you.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    { "matches": ["https://play.smallball.com/*"], "js": ["freeze.js"], "run_at": "document_start", "world": "MAIN" },
+    { "matches": ["https://play.smallball.com/*"], "js": ["freeze.js", "kit.js"], "run_at": "document_idle" },
+    { "matches": ["https://play.smallball.com/*"], "js": ["radio.js"], "run_at": "document_idle" },
+    { "matches": ["https://play.smallball.com/training*"], "js": ["skins.js"], "run_at": "document_start", "world": "MAIN", "all_frames": true }
+  ]
+}
