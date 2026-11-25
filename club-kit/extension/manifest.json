@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SmallBall Club Kit",
-  "version": "1.25.2",
+  "version": "1.25.3",
   "description": "Quick club tabs, a readable club selector, your own club logos, a club dashboard, stadium records and SmallBall Radio for play.smallball.com. Read-only: it never plays, trains or saves for you.",
   "permissions": ["storage"],
   "content_scripts": [
