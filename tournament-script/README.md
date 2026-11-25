@@ -3,6 +3,7 @@
 A Google Sheet + Form + Apps Script that runs a SmallBall tournament **on its own**, even when the organizer is away:
 
 - **Sign-ups** on a Google Form it makes for you. Bad entries get a red ❌ in Discord with the reason.
+- **Returning players sign up with a blank form:** the form knows them by their Google sign-in and fills in their Discord, ID, owner name, club and stars from last time (or from your Hold the Hill sheet).
 - **The bracket** is drawn when sign-ups close: double or single elimination, seeded by sign-up order, stars or a random draw.
 - **Waves:** matches open at fixed times (every 60 minutes by default) and owners get @tagged with their opponent's club ID.
 - **Results find themselves:** the script reads SmallBall's public game list every minute, finds the game between the two clubs, and posts the result **once the game has aired** (no spoilers), with a watch link while it airs.

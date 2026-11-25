@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v1.0) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v1.1: returning players can sign up with a blank form) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -33,11 +33,15 @@ const DEFAULTS = {
   FORM_LINK: ['', 'Short link to the sign-up form (filled in by setup; swap in a tinyurl if you like)'],
   BOARD_LINK: ['', 'Link to the live bracket for Discord posts. Blank = the web app link, found on its own'],
   PRIZES: ['SmallBall Tickets and pictures of dogs', 'Shown on the bracket and the champion post'],
+  HILL_SHEET_ID: ['', 'Optional: the Hold the Hill spreadsheet ID (the long code in its link). Hill players can then sign up with a blank form'],
   FORM_ID: ['', '(set by setup)'],
   TZ: ['America/Denver', 'Time zone for the times above'],
 };
-const SHEETS = { CONFIG: 'Config', ENTRANTS: 'Entrants', MATCHES: 'Matches', LOG: 'Log', STATE: 'State', BOARD: 'Board' };
+const SHEETS = { CONFIG: 'Config', ROSTER: 'Roster', ENTRANTS: 'Entrants', MATCHES: 'Matches', LOG: 'Log', STATE: 'State', BOARD: 'Board' };
 const ENTRANT_COLS = ['Email', 'Discord', 'DiscordID', 'Owner', 'Club', 'ClubID', 'Stars', 'Joined', 'Status', 'Seed'];
+// Everyone who has ever signed up here (it comes along when you copy this Sheet for the next tournament).
+const ROSTER_COLS = ['Email', 'Discord', 'DiscordID', 'Owner', 'Club', 'ClubID', 'Stars', 'LastSeen'];
+const FORM_DESC = 'Played before, or on Hold the Hill? Just submit: leave the boxes blank and we fill them in from your record (your Google sign-in tells us who you are). Fill in only what\'s new, like a different club.\n\nOne club per owner. BigLeague games only. Read-only: the tournament reads SmallBall\'s public game list and never plays or saves anything for you.';
 const Q = {
   DISCORD: 'Discord username',
   DISCORD_ID: 'Discord user ID (optional: lets the bracket @tag you when your match opens)',
@@ -210,12 +214,41 @@ function readSubmission_(e) {
   out.clubId = pick(Q.CLUB_ID).replace(/[^\d]/g, ''); out.stars = pick(Q.STARS);
   return out;
 }
+// What we already know about this Google account: this Sheet's Roster first, then the Hold the Hill sheet.
+function knownPerson_(email, C) {
+  const out = {};
+  const take = (r) => { if (!r) return; ['Discord', 'DiscordID', 'Owner', 'Club', 'ClubID', 'Stars'].forEach((k) => { if (out[k] === undefined && norm_(r[k]) !== '') out[k] = norm_(r[k]); }); };
+  try { take(readTable_(SHEETS.ROSTER, ROSTER_COLS).rows.find((r) => lc_(r.Email) === email)); } catch (e) { }
+  if (norm_(C.HILL_SHEET_ID)) try {
+    const hs = SpreadsheetApp.openById(norm_(C.HILL_SHEET_ID)), grab = (name) => { const sh = hs.getSheetByName(name); if (!sh) return []; const v = sh.getDataRange().getValues(), h = v[0].map(norm_); return v.slice(1).map((row) => { const o = {}; h.forEach((k, j) => { o[k] = row[j]; }); return o; }); };
+    const p = grab('Players').find((r) => lc_(r.Email) === email);
+    if (p) { take({ Discord: p.Discord, DiscordID: p.DiscordID, Owner: p.OwnerID, Club: p.Club, ClubID: p.ClubID });
+      const st = grab('Stars').find((r) => norm_(r.ClubID) === norm_(p.ClubID)); if (st) take({ Stars: st.Stars }); }
+  } catch (e) { log_('system', 'Hill sheet not readable', String(e.message || e)); }
+  return out;
+}
+function remember_(rec) {
+  const rt = readTable_(SHEETS.ROSTER, ROSTER_COLS), row = rt.rows.find((r) => lc_(r.Email) === rec.Email);
+  const v = { Email: rec.Email, Discord: rec.Discord, DiscordID: rec.DiscordID, Owner: rec.Owner, Club: rec.Club, ClubID: rec.ClubID, Stars: rec.Stars, LastSeen: now_() };
+  if (row) { Object.assign(row, v); writeRow_(rt, row); } else appendRow_(rt, v);
+}
 function register_(sub) {
   const C = cfg_(), t = Date.now();
+  // Blank boxes are filled in from what we know about this Google account.
+  if (sub.email) {
+    const k = knownPerson_(sub.email, C), was = [];
+    if (!sub.discord && k.Discord) { sub.discord = k.Discord; was.push('Discord'); }
+    if (!sub.discordId && k.DiscordID) { sub.discordId = k.DiscordID.replace(/[^\d]/g, ''); was.push('Discord ID'); }
+    if (!sub.owner && k.Owner) { sub.owner = k.Owner; was.push('owner name'); }
+    if (!sub.clubId && k.ClubID) { sub.clubId = k.ClubID.replace(/[^\d]/g, ''); if (!sub.club && k.Club) sub.club = k.Club; was.push('club'); }
+    if (!sub.club && k.Club && sub.clubId === norm_(k.ClubID)) sub.club = k.Club;
+    if (sub.stars === '' && k.Stars !== undefined && sub.clubId === norm_(k.ClubID)) sub.stars = k.Stars;
+    sub.filled = was;
+  }
   if (stateGet_()) fail_('Sign-ups are closed: the bracket has been drawn.');
   if (when_(C.SIGNUP_CLOSE, C) && t >= when_(C.SIGNUP_CLOSE, C)) fail_('Sign-ups closed ' + fmtT_(when_(C.SIGNUP_CLOSE, C), C) + '.');
   if (!sub.email) fail_('The form needs your Google sign-in (email) so you can update your entry.');
-  if (!sub.discord || !sub.club || !sub.clubId) fail_('Discord username, club name and club ID are all required.');
+  if (!sub.discord || !sub.club || !sub.clubId) fail_('We need your ' + [!sub.discord && 'Discord username', !sub.club && 'club name', !sub.clubId && 'club ID'].filter(Boolean).join(', ') + '. We didn\'t have ' + (!sub.discord && !sub.club && !sub.clubId ? 'you' : 'that') + ' on record yet, so fill it in once and next time a blank form is enough.');
   const stars = sub.stars === '' ? '' : Number(sub.stars);
   if (stars !== '' && (isNaN(stars) || stars < 0 || stars > 10)) fail_('Club stars must be a number from 0 to 10.');
   if (stars !== '' && (stars < Number(C.MIN_STARS || 0) || stars > Number(C.MAX_STARS || 10))) fail_('This tournament is for ' + C.MIN_STARS + '–' + C.MAX_STARS + '★ clubs.');
@@ -229,12 +262,14 @@ function register_(sub) {
   let rows = null; try { rows = clubGames_(sub.clubId); } catch (e) { rows = null; }
   if (rows && !rows.length) fail_('SmallBall shows no games at all for club ID ' + sub.clubId + '. Check the number on your club page.');
   const rec = { Email: sub.email, Discord: sub.discord, DiscordID: sub.discordId || '', Owner: sub.owner, Club: sub.club, ClubID: sub.clubId, Stars: stars, Status: 'In' };
-  if (mine) { Object.assign(mine, rec); writeRow_(et, mine); log_(sub.email, 'Updated', sub.club + ' (' + sub.clubId + ')'); post_('✏️ ' + tag_(mine) + ' updated their entry: ' + clubTxt_(mine) + '.'); }
+  try { remember_(rec); } catch (e) { }
+  const fromRecord = sub.filled && sub.filled.length ? ' *(filled in from your record: ' + sub.filled.join(', ') + ')*' : '';
+  if (mine) { Object.assign(mine, rec); writeRow_(et, mine); log_(sub.email, 'Updated', sub.club + ' (' + sub.clubId + ')'); post_('✏️ ' + tag_(mine) + ' updated their entry: ' + clubTxt_(mine) + '.' + fromRecord); }
   else {
     rec.Joined = now_(); appendRow_(et, rec);
     const n = active.length + 1;
     log_(sub.email, 'Signed up', sub.club + ' (' + sub.clubId + ') #' + n);
-    post_('🆕 ' + tag_(rec) + ' signs up with ' + clubTxt_(rec) + '. **' + n + '** club' + (n === 1 ? '' : 's') + ' in for the **' + esc_(C.TOURNEY_NAME) + '**.' +
+    post_('🆕 ' + tag_(rec) + ' signs up with ' + clubTxt_(rec) + '. **' + n + '** club' + (n === 1 ? '' : 's') + ' in for the **' + esc_(C.TOURNEY_NAME) + '**.' + fromRecord +
       (when_(C.SIGNUP_CLOSE, C) ? '\n-# Sign-ups close ' + ts_(when_(C.SIGNUP_CLOSE, C)) + ' (' + tsR_(when_(C.SIGNUP_CLOSE, C)) + ').' : '') + linksLine_(C));
   }
   snapshot_();
@@ -610,25 +645,28 @@ function setup() {
   Object.keys(DEFAULTS).forEach((k) => { if (!have[k]) sh.appendRow([k, DEFAULTS[k][0], DEFAULTS[k][1]]); });
   sheet_(SHEETS.ENTRANTS, ENTRANT_COLS).getRange('C:C').setNumberFormat('@');
   [SHEETS.MATCHES, SHEETS.LOG, SHEETS.STATE, SHEETS.BOARD].forEach((n) => sheet_(n, n === SHEETS.LOG ? ['Time', 'Actor', 'Action', 'Details'] : null));
+  sheet_(SHEETS.ROSTER, ROSTER_COLS).getRange('C:C').setNumberFormat('@');
   CFG_CACHE = null; const C = cfg_();
   // The sign-up form
   let form = null;
   try { if (norm_(C.FORM_ID)) form = FormApp.openById(norm_(C.FORM_ID)); } catch (e) { form = null; }
   if (!form) {
     form = FormApp.create(norm_(C.TOURNEY_NAME) + ' · sign-up');
-    form.setDescription('One club per owner. BigLeague games only. Read-only: the tournament reads SmallBall\'s public game list and never plays or saves anything for you.')
+    form.setDescription(FORM_DESC)
       .setCollectEmail(true).setAllowResponseEdits(true).setLimitOneResponsePerUser(false)
       .setConfirmationMessage('Got it! Watch the tournament channel in Discord: your sign-up shows there within a minute (or a red ❌ if something needs fixing).');
-    form.addTextItem().setTitle(Q.DISCORD).setRequired(true);
+    form.addTextItem().setTitle(Q.DISCORD);
     form.addTextItem().setTitle(Q.DISCORD_ID).setHelpText('Discord → Settings → Advanced → Developer Mode on, then right-click your name → Copy User ID. A long number. Optional.');
-    form.addTextItem().setTitle(Q.OWNER).setRequired(true);
-    form.addTextItem().setTitle(Q.CLUB).setRequired(true);
-    form.addTextItem().setTitle(Q.CLUB_ID).setRequired(true).setHelpText('The number on your club page.');
+    form.addTextItem().setTitle(Q.OWNER);
+    form.addTextItem().setTitle(Q.CLUB);
+    form.addTextItem().setTitle(Q.CLUB_ID).setHelpText('The number on your club page.');
     form.addTextItem().setTitle(Q.STARS).setHelpText('Optional, for seeding and the bracket.');
     try { form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId()); } catch (e) { }
     setCfg_('FORM_ID', form.getId());
     if (!norm_(C.FORM_LINK)) setCfg_('FORM_LINK', form.getPublishedUrl());
   }
+  // Returning players: every box optional (blank = from your record). Also brings an older form up to date.
+  try { form.setDescription(FORM_DESC).setCollectEmail(true); form.getItems(FormApp.ItemType.TEXT).forEach((it) => it.asTextItem().setRequired(false)); } catch (e) { }
   // Triggers: the form, and the one-minute clock
   ScriptApp.getProjectTriggers().forEach((t) => { if (['onTourneyFormSubmit', 'tick'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('onTourneyFormSubmit').forForm(form).onFormSubmit().create();
