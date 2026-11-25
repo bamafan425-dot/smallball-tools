@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.25.1
+// @version      1.25.2
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -897,7 +897,7 @@ const SBX_MOBILE = true;
 
   // 🏟 Skins: stadium skins in their own window, opened from a launcher at the bottom left (stacked above
   // the Broadcast and Tournament Kit buttons when those are installed). Computer editions only.
-  const STENCILS = "https://drive.google.com/uc?export=download&id=1DPUVjEit504YStYKYo3mqhhN5JgQDXiC";
+  const STENCILS = "https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Skin-Maker-Stencils.zip";
   function openSkins() {
     if (MOBILE) return;
     let ov = document.getElementById("sbx-skins"); if (ov) { ov.remove(); return; }
