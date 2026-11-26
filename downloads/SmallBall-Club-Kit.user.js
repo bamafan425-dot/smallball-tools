@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.30.0
+// @version      1.31.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -151,7 +151,7 @@ const SBX_MOBILE = true;
   const FEATURES = [
     ["tabs", "Quick tabs"], ["selector", "Club selector: readable, recent first"], ["logos", "Club logos"],
     ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"],
-    ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["games", "Season games views"],
+    ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
     ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
@@ -161,7 +161,7 @@ const SBX_MOBILE = true;
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const MOBILE_KEEP = ["achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
   const on = (f) => (MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
@@ -488,6 +488,13 @@ const SBX_MOBILE = true;
       .sbx-gsum .chips i.w { background: rgba(22,163,74,.22); color: #16a34a; }
       .sbx-gsum .chips i.l { background: rgba(220,38,38,.18); color: #dc2626; }
       .sbx-gsum .chips i.t { background: rgba(127,127,127,.2); }
+      .sbx-hide { display: none !important; }
+      .sbx-medal { margin-top: 6px; font-size: 12px; line-height: 1.35; opacity: .92; }
+      .sbx-medal .bar { height: 4px; border-radius: 2px; background: rgba(127,127,127,.25); margin-top: 3px; overflow: hidden; }
+      .sbx-medal .bar i { display: block; height: 100%; background: #e0a04a; }
+      .sbx-tour { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 2px 0 10px; font-size: 13px; }
+      .sbx-tour button { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(127,127,127,.45); background: transparent; color: inherit; cursor: pointer; }
+      .sbx-movednote { font-size: 12px; opacity: .7; margin: 2px 0 12px; }
       .sbx-park-list { margin: 10px 0 14px; padding: 10px 12px; border: 1px solid rgba(127,127,127,.3); border-radius: 10px; font-size: 13px; }
       .sbx-park-list .hd { font-weight: 800; margin-bottom: 4px; }
       .sbx-park-list .ln { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px solid rgba(127,127,127,.18); font-variant-numeric: tabular-nums; }
@@ -2788,6 +2795,90 @@ const SBX_MOBILE = true;
     if (PR.rows && grid.dataset.sbxPainted !== `${team}|${PR.scope}|${PR.kind}|${PR.others}|${PR.rows.length}`) paintParks(team);
   }
 
+  // 6b. Tidy the commish's Achievements section (his drawing, rearranged; nothing is recalculated):
+  //     - his Stadiums wall: each park's medal and "next" goal go onto the stadium cards above, and the wall folds away
+  //     - Country tour: only countries you've played, best first, with a one-line summary and "Show all"
+  //     - Earned badges move to the top of the section
+  //     If his layout changes and something isn't found, that part is left alone.
+  const TOUR_ALL = "sbx-tour-all";
+  function achParts() {
+    const h = [...document.querySelectorAll("main h2")].find((x) => /^achievements/i.test(x.textContent.trim()));
+    if (!h) return null;
+    const P = { h, prog: null, parkH: null, parkWall: null, tourH: null, tourWall: null, earnH: null, earned: null };
+    for (let n = h.nextElementSibling; n && n.tagName !== "H2"; n = n.nextElementSibling) {
+      const t = n.textContent.trim().toLowerCase();
+      if (n.tagName === "H3") { if (/^stadiums/.test(t)) P.parkH = n; else if (/^country tour/.test(t)) P.tourH = n; else if (/^earned/.test(t)) P.earnH = n; continue; }
+      if (n.querySelector(".achnext") || n.classList.contains("achnext")) P.prog = n;
+      else if (n.classList.contains("parkwall")) { if (P.tourH) P.tourWall = n; else if (P.parkH) P.parkWall = n; }
+      else if (n.classList.contains("achs") && P.earnH) P.earned = n;
+    }
+    return P;
+  }
+  function pwInfo(pw) {
+    const body = pw.querySelector(".pw-body") || pw, txt = body.innerText || body.textContent || "";
+    const name = ((body.querySelector("b, strong, h4, .pw-name") || {}).textContent || txt.split("\n")[0] || "").trim();
+    const m = txt.match(/(\d+)\s+wins?\s*·\s*(\d+)\s+games?/i);
+    const nx = txt.match(/next:\s*([^\n]+)/i);
+    const medal = /gold/.test(pw.className) || /🥇/.test(txt) ? "🥇" : /silver/.test(pw.className) || /🥈/.test(txt) ? "🥈" : /bronze/.test(pw.className) || /🥉/.test(txt) ? "🥉" : "";
+    const goal = nx ? (nx[1].match(/(\d+)\s+wins?/) || [])[1] : null;
+    return { pw, name, wins: m ? Number(m[1]) : 0, games: m ? Number(m[2]) : 0, next: nx ? nx[1].trim() : "", medal, goal: goal ? Number(goal) : (nx && /first win/i.test(nx[1]) ? 1 : 0) };
+  }
+  function medalHtml(x) {
+    const pct = x.goal ? Math.min(100, Math.round(100 * x.wins / x.goal)) : 100;
+    return `<div class="sbx-medal" title="From the Achievements section: official wins in this stadium, all seasons">${x.medal ? x.medal + " " : "🏅 "}<b>${x.wins}</b> official win${x.wins === 1 ? "" : "s"} all-time${x.next ? " · next: " + esc(x.next) : ""}<div class="bar"><i style="width:${pct}%"></i></div></div>`;
+  }
+  function mountAchTidy() {
+    const P = achParts();
+    if (!P) return;
+    // 1. Earned badges first
+    if (P.earnH && P.earned && P.h.nextElementSibling !== P.earnH) {
+      P.h.insertAdjacentElement("afterend", P.earned);
+      P.h.insertAdjacentElement("afterend", P.earnH);
+    }
+    // 2. Stadium medals onto the stadium cards
+    if (P.parkWall) {
+      const info = {};
+      P.parkWall.querySelectorAll(".pw").forEach((pw) => { const x = pwInfo(pw); if (x.name) info[x.name.toLowerCase()] = x; });
+      let hit = 0;
+      document.querySelectorAll("main .parks .park").forEach((card) => {
+        const nameEl = card.querySelector(".pk-body b, .pk-body strong, b, strong");
+        const x = nameEl && info[nameEl.textContent.trim().toLowerCase()];
+        if (!x) return;
+        hit++;
+        const sig = `${x.wins}|${x.games}|${x.next}|${x.medal}`;
+        const old = card.querySelector(".sbx-medal");
+        if (old && old.dataset.sig === sig) return;
+        old?.remove();
+        const body = card.querySelector(".pk-body") || card, btn = body.querySelector("button");
+        if (btn) btn.insertAdjacentHTML("beforebegin", medalHtml(x)); else body.insertAdjacentHTML("beforeend", medalHtml(x));
+        card.querySelector(".sbx-medal").dataset.sig = sig;
+      });
+      if (hit && !P.parkWall.classList.contains("sbx-hide")) {
+        P.parkWall.classList.add("sbx-hide"); P.parkH?.classList.add("sbx-hide");
+        P.parkWall.insertAdjacentHTML("afterend", `<div class="sbx-movednote">🏟️ Stadium medals are on your stadium cards in the Stadiums section above (Club Kit).</div>`);
+      }
+    }
+    // 3. Country tour: where you've played, best first
+    if (P.tourWall) {
+      const cards = [...P.tourWall.querySelectorAll(".pw")].map(pwInfo);
+      const played = cards.filter((x) => x.games > 0).sort((a, b) => b.wins - a.wins || b.games - a.games);
+      let all = false; try { all = localStorage.getItem(TOUR_ALL) === "1"; } catch (_) {}
+      cards.forEach((x) => { x.pw.style.order = x.games ? String(-(x.wins * 1000 + x.games)) : "0"; x.pw.classList.toggle("sbx-hide", !all && !x.games); });
+      const glob = P.prog ? [...P.prog.querySelectorAll(".an")].find((a) => /globetrotter/i.test(a.textContent)) : null;
+      const gm = glob && glob.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+      const beaten = played.filter((x) => x.wins > 0).length;
+      const sig = `${played.length}|${beaten}|${cards.length}|${all}|${gm ? gm[0] : ""}`;
+      let bar = P.tourWall.previousElementSibling;
+      if (!bar || !bar.classList.contains("sbx-tour")) { bar = document.createElement("div"); bar.className = "sbx-tour"; P.tourWall.insertAdjacentElement("beforebegin", bar); }
+      if (bar.dataset.sig !== sig) {
+        bar.dataset.sig = sig;
+        bar.innerHTML = `<span>🌍 <b>${played.length}</b> of ${cards.length} countries played · <b>${beaten}</b> beaten${gm ? ` · Globetrotter ${gm[1]}/${gm[2]}` : ""}</span>` +
+          `<button type="button">${all ? "Only where you've played" : `Show all ${cards.length}`}</button>`;
+        bar.querySelector("button").onclick = () => { try { localStorage.setItem(TOUR_ALL, all ? "0" : "1"); } catch (_) {} bar.dataset.sig = ""; mountAchTidy(); };
+      }
+    }
+  }
+
   // 7. Fold the long "This season's games" list on club pages. Starts folded, with a summary in its place;
   //    remembers your choice.
   const GAMES_OPEN = "sbx-games-open";
@@ -3084,6 +3175,7 @@ const SBX_MOBILE = true;
       if (on("dash")) safe(mountDash);
       if (on("logos")) safe(decorate);
       if (on("parks")) safe(mountParkRecords);
+      if (on("achtidy")) safe(mountAchTidy);
       if (on("games")) safe(mountGamesFold);
       if (on("livebar")) safe(mountLiveCtl);
       safe(mountSquad);
