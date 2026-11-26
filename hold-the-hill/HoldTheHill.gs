@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.12: tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -101,17 +101,20 @@ const DEFAULTS = {
   BOOK_POST_BETS: ['TRUE', 'Post each bet in Discord (TRUE/FALSE)'],
   WAGER_ON: ['TRUE', 'Head-to-head wagers on (TRUE/FALSE). Needs the sportsbook on'],
   BET_MAX_PCT: [4.2, 'Most you can put on one sportsbook bet, as a % of your Brawl Bucks right now'],
+  BET_MAX_FLAT: [250, 'And never more than this many Brawl Bucks on one bet or wager (a commish-OK big wager can go past it)'],
+  SHOP_WEBHOOK_URL: ['', 'Discord webhook for the 🛒 shop channel (purchases, items used, refunds). Blank = they post in the sportsbook channel'],
+  PAID_GAMES_PER_DAY: [3, 'Only this many Hill games a day pay Brawl Bucks per player (stops marathon farming)'],
   WAGER_MAX_PCT: [4.2, 'Most either side can put on one head-to-head wager, as a % of their Brawl Bucks right now'],
   WAGER_BIG_PCT: [10, 'With the commish\'s OK (menu: 🤝 Allow a big wager), a head-to-head wager can go up to this %'],
   WAGER_OFFER_HOURS: [24, 'Hours a wager offer stays open for the other player to accept'],
   WAGER_PLAY_HOURS: [48, 'Hours after a wager is accepted to play the game that settles it (else everyone is refunded)'],
   ITEMS_ON: ['FALSE', 'Brawl Bucks items shop on (TRUE/FALSE). Needs the sportsbook on. The 🛒 menu item turns it on'],
-  ITEM_PRICES: ['knuckles:300,eraser:250,jump:200,jumpplus:300,rain:150', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump, Ladder Jump+, Rain Delay'],
+  ITEM_PRICES: ['knuckles:250,eraser:200,jump:150,jumpplus:300,rain:100', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump, Ladder Jump+, Rain Delay'],
   ITEM_ACE_X: [2, 'The Ace pays this many times the price for an item'],
   ITEM_COOLDOWN_HOURS: [24, 'Hours between items for each player'],
-  PLAY_BUCKS: ['played:10,win:50,charge:15', 'Brawl Bucks for a Hill game: both clubs get played, the winner also gets win, the challenger also gets charge'],
-  STREAK_BUCKS: ['day:20,step:10,max:150', 'Daily 🔥 Hill streak pay: day = any day you play a Hill game; +step more for each day in a row (day 2 +10, day 3 +20 …), up to max extra a day'],
-  STREAK_MILESTONES: ['3:50,5:100,7:200,10:300,14:500,21:750,30:1000', 'One-time streak bonuses: days:BB'],
+  PLAY_BUCKS: ['played:10,win:25,charge:10', 'Brawl Bucks for a Hill game: both clubs get played, the winner also gets win, the challenger also gets charge'],
+  STREAK_BUCKS: ['day:15,step:5,max:40', 'Daily 🔥 Hill streak pay: day = any day you play a Hill game; +step more for each day in a row (day 2 +5, day 3 +10 …), up to max extra a day'],
+  STREAK_MILESTONES: ['3:25,7:75,14:150,21:250,28:400', 'One-time streak bonuses: days:BB'],
   STATE_LAST_STREAK_DAY: ['', 'Managed by script'],
   WAGER_KINDS: ['big', 'Game types that can settle a wager, comma separated: big, pro, exhibition'],
   PRIZES: ['SmallBall Tickets and pictures of dogs', 'Shown on the board and in the awards post'],
@@ -331,7 +334,8 @@ const AWARDS = [
   { key: 'brawler', icon: '🥊', name: 'Brawler', what: 'Most charges thrown, win or lose' },
   { key: 'giant', icon: '🗡️', name: 'Giant Killer', what: 'Biggest star-gap upset of the season' },
   { key: 'bush', icon: '🌱', name: 'Best of the Bush', what: 'Most Brawl points among lower-star clubs' },
-  { key: 'sharp', icon: '💰', name: 'The Sharp', what: 'Biggest Brawl Bucks bankroll (sportsbook)' },
+  { key: 'sharp', icon: '💰', name: 'The Sharp', what: 'Most Brawl Bucks won betting the sportsbook' },
+  { key: 'grinder', icon: '🔥', name: 'The Grinder', what: 'Longest 🔥 Hill streak (days in a row with a Hill game)' },
   { key: 'hustler', icon: '🤝', name: 'The Hustler', what: 'Most Brawl Bucks won head-to-head (wagers)' },
 ];
 
@@ -472,12 +476,20 @@ function awards_() {
     const bk = bankrolls_(C);
     const sh = Object.keys(bk.bank).filter(function (e) { return byEmail[e]; }).map(function (e) { return { email: e, v: bk.bank[e] }; })
       .sort(function (a, b) { return b.v - a.v; });
-    out.sharp = sh.length ? Object.assign(nm(sh[0].email), { value: sh[0].v + ' BB' }) : null;
+    // The Sharp: sportsbook winnings only (activity pay, items and wagers don't count)
+    const prof = {}; readTable_(SHEETS.BETS).rows.forEach(function (x) { if (String(x.Season) === season && (x.Status === 'Won' || x.Status === 'Lost')) { const e = lc_(x.Email); prof[e] = (prof[e] || 0) + num_(x.Profit); } });
+    const sp = Object.keys(prof).filter(function (e) { return byEmail[e] && prof[e] > 0; }).map(function (e) { return { email: e, v: prof[e] }; }).sort(function (a, b) { return b.v - a.v; });
+    out.sharp = sp.length ? Object.assign(nm(sp[0].email), { value: '+' + sp[0].v + ' BB betting' }) : null;
     out.bookTable = sh.slice(0, 5).map(function (x) { return Object.assign(nm(x.email), { bank: x.v }); });
     const hu = Object.keys(bk.hustle || {}).filter(function (e) { return byEmail[e] && bk.hustle[e] > 0; }).map(function (e) { return { email: e, v: bk.hustle[e] }; })
       .sort(function (a, b) { return b.v - a.v; });
     out.hustler = hu.length ? Object.assign(nm(hu[0].email), { value: '+' + hu[0].v + ' BB head-to-head' }) : null;
   } catch (e) { out.sharp = null; out.bookTable = []; out.hustler = null; }
+  try {
+    const sk = streakTable_(C).t.rows.filter(function (r) { return String(r.Season) === season && byEmail[lc_(r.Email)] && num_(r.Best) > 1; })
+      .sort(function (a, b) { return num_(b.Best) - num_(a.Best) || num_(b.Streak) - num_(a.Streak); });
+    out.grinder = sk.length ? Object.assign(nm(sk[0].Email), { value: num_(sk[0].Best) + ' days in a row' }) : null;
+  } catch (e) { out.grinder = null; }
   try {
     const ups = readTable_(SHEETS.PAYOUTS).rows.filter(function (x) { return String(x.Season) === season && /^Upset/.test(String(x.Spot)); });
     let gk = null; ups.forEach(function (x) { if (!gk || num_(x.Pts) > num_(gk.Pts)) gk = x; });
@@ -692,9 +704,10 @@ function sendChunk_(url, name, chunk) {
   return code;
 }
 function webhookFor_(C, where) {
+  if (where === 'shop') return norm_(C.SHOP_WEBHOOK_URL) || norm_(C.BOOK_WEBHOOK_URL) || norm_(C.DISCORD_WEBHOOK_URL);
   return (where === 'book' && norm_(C.BOOK_WEBHOOK_URL)) || (where === 'talk' && norm_(C.TALK_WEBHOOK_URL)) || (where === 'help' && norm_(C.HELP_WEBHOOK_URL)) || norm_(C.DISCORD_WEBHOOK_URL);
 }
-function senderFor_(where) { return where === 'book' ? 'Hill Sportsbook' : where === 'talk' ? 'The Hill Heckler' : where === 'help' ? 'Hill Help' : 'Hold the Hill'; }
+function senderFor_(where) { return where === 'shop' ? 'Hill Shop' : where === 'book' ? 'Hill Sportsbook' : where === 'talk' ? 'The Hill Heckler' : where === 'help' ? 'Hill Help' : 'Hold the Hill'; }
 // Blocked posts wait here and go out on the next minute's check, backing off up to 10 minutes, for up to 6 hours.
 function queueRetry_(chunk, where, code) {
   const props = PropertiesService.getScriptProperties();
@@ -1436,7 +1449,7 @@ const ITEMS = {
 const itemLabel_ = (k) => ITEMS[k].icon + ' ' + ITEMS[k].name;
 function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && bookOn_(C); }
 function itemPrices_(C) {
-  const out = { knuckles: 300, eraser: 250, jump: 200, jumpplus: 300, rain: 150 };
+  const out = { knuckles: 250, eraser: 200, jump: 150, jumpplus: 300, rain: 100 };
   norm_(C.ITEM_PRICES).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
   return out;
 }
@@ -1490,9 +1503,9 @@ function doShop_(sub, C) {
   const ace = ace_(pt), isAce = ace === me;
   const price = buyItem_(C, me, key, isAce), inv = inventory_(C), n = holds_(inv, me.Email, key);
   log_(sub.email, 'Item bought', key + ' for ' + price);
-  postBook_('🛒 ' + who_(me) + ' buys ' + itemLabel_(key) + ' for **' + price + ' BB**' + (isAce ? ' (Ace price)' : '') + '. Holding ' + n + '.' +
+  post_('🛒 ' + who_(me) + ' buys ' + itemLabel_(key) + ' for **' + price + ' BB**' + (isAce ? ' (Ace price)' : '') + '. Holding ' + n + '.' +
     (key === 'knuckles' ? '\n-# 🥊 Brass Knuckles go on by themselves at the next charge against them: the challenger needs 1 more run.' :
-      key === 'rain' ? '\n-# 🌧️ The Rain Delay kicks in by itself the first day they miss, and the 🔥 streak lives on.' : '\n-# They pick it on the charge form when they charge.'));
+      key === 'rain' ? '\n-# 🌧️ The Rain Delay kicks in by itself the first day they miss, and the 🔥 streak lives on.' : '\n-# They pick it on the charge form when they charge.'), 'shop');
 }
 // At charge time: work out which items are in play and what the challenger needs. Throws for a bad pick.
 // Returns { need, notes: [...], used: [[player, key, bought]], post: '...' }.
@@ -1522,33 +1535,53 @@ function chargeItems_(C, me, opp, type, gap, need, pick) {
   if (pick === 'jump') { out.notes.push('🪜 ' + me.Discord); out.post.push('🪜 ' + esc_(me.Discord) + ' uses a **Ladder Jump** to reach ' + gap + ' spots up.'); }
   return out;
 }
-function useItems_(C, used, cid) { used.forEach(function (u) { itemRow_(C, u[0], u[1], 'Used', '', cid, u[2] ? 'Bought on the spot' : ''); }); }
+function useItems_(C, used, cid) {
+  used.forEach(function (u) { itemRow_(C, u[0], u[1], 'Used', '', cid, u[2] ? 'Bought on the spot' : ''); });
+  if (used.length) try { post_('🎯 ' + cid + ': ' + used.map(function (u) { return esc_(u[0].Discord) + ' ' + (u[2] ? 'buys and uses' : 'uses') + ' ' + itemLabel_(u[1]) + (u[2] ? ' (' + priceFor_(C, u[1], false) + ' BB)' : ''); }).join(' · ') + '.', 'shop'); } catch (e) { }
+}
 // A voided charge gives its items back.
 function refundItems_(C, c) {
   try {
     const pt = players_(), rows = readTable_(SHEETS.ITEMS).rows.filter(function (x) { return x.ChallengeID === c.ID; });
     const back = rows.filter(function (x) { return x.Action === 'Used' && !rows.some(function (y) { return y.Action === 'Refunded' && y.Item === x.Item && lc_(y.Email) === lc_(x.Email); }); });
     back.forEach(function (x) { const p = findBy_(pt, x.Email); if (p) itemRow_(C, p, x.Item, 'Refunded', '', c.ID, 'Charge voided'); });
+    if (back.length) try { post_('↩️ ' + c.ID + ' was voided: ' + back.map(function (x) { return esc_(x.Player) + ' gets ' + itemLabel_(x.Item) + ' back'; }).join(' · ') + '.', 'shop'); } catch (e) { }
     return back.length ? '🛒 Items used on it go back to their owners.' : '';
   } catch (e) { return ''; }
 }
 // Brawl Bucks for playing: every Hill game pays both clubs, the winner gets more.
 function playBucks_(C) {
-  const out = { played: 10, win: 50, charge: 15 };
+  const out = { played: 10, win: 25, charge: 10 };
   norm_(C.PLAY_BUCKS).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
   return out;
 }
+function gamesToday_(C, email) {
+  const season = String(C.SEASON), day = denverDay_(now_()); let n = 0;
+  readTable_(SHEETS.MATCHES).rows.forEach(function (m) {
+    if (String(m.Season) !== season || !m.Date || denverDay_(new Date(m.Date)) !== day) return;
+    if (lc_(m.WinnerEmail) === lc_(email) || (lc_(m.Source) !== 'forfeit' && lc_(m.LoserEmail) === lc_(email))) n++;
+  });
+  return n;
+}
 function payPlay_(C, c, W, L, tie) {
   if (!itemsOn_(C)) return '';   // launches with the shop
+  // Only the first PAID_GAMES_PER_DAY Hill games a day pay each player (this game is already in Matches)
+  const maxDay = Number(C.PAID_GAMES_PER_DAY) || 3, capped = [];
+  const okW = gamesToday_(C, W.Email) <= maxDay, okL = !L || gamesToday_(C, L.Email) <= maxDay;
+  if (!okW) capped.push(W.Discord); if (L && !okL) capped.push(L.Discord);
+  if (!okW && !okL) return '-# 💵 No Brawl Bucks for this one: ' + capped.map(esc_).join(' and ') + ' already got paid for ' + maxDay + ' Hill games today.';
+  const L0 = L; if (!okL) L = null;
+  const note = capped.length ? ' (' + capped.map(esc_).join(', ') + ': ' + maxDay + ' paid games today already)' : '';
+  if (!okW) { const pb0 = playBucks_(C), chg0 = c.Type !== 'Revenge' && lc_(L0.Email) === lc_(c.Challenger) ? pb0.charge : 0; ledger_(C, L0, pb0.played + chg0, 'Played ' + c.ID); return '💵 +' + (pb0.played + chg0) + ' BB to ' + esc_(L0.Discord) + ' for playing' + note + '.'; }
   const pb = playBucks_(C);
   if (!pb.played && !pb.win) return '';
   // The challenger also gets the charge bonus for picking the fight (ladder and title charges, not revenge)
   const chg = c.Type !== 'Revenge' && pb.charge ? pb.charge : 0, isCh = function (p) { return p && lc_(p.Email) === lc_(c.Challenger); };
   const amt = function (p, base) { return base + (isCh(p) ? chg : 0); };
-  const tail = chg ? ' (incl. +' + chg + ' for the charge)' : '';
-  if (tie) { ledger_(C, W, amt(W, pb.played), 'Played ' + c.ID); ledger_(C, L, amt(L, pb.played), 'Played ' + c.ID); return '💵 +' + pb.played + ' BB each for playing' + (chg ? ', +' + chg + ' more to the challenger' : '') + '.'; }
+  const tail = chg && (isCh(W) || isCh(L)) ? ' (incl. +' + chg + ' for the charge)' : '';
+  if (tie) { ledger_(C, W, amt(W, pb.played), 'Played ' + c.ID); if (L) ledger_(C, L, amt(L, pb.played), 'Played ' + c.ID); return '💵 +' + pb.played + ' BB ' + (L ? 'each ' : 'to ' + esc_(W.Discord) + ' ') + 'for playing' + (chg ? ', +' + chg + ' more to the challenger' : '') + note + '.'; }
   ledger_(C, W, amt(W, pb.played + pb.win), 'Won ' + c.ID); if (L && amt(L, pb.played)) ledger_(C, L, amt(L, pb.played), 'Played ' + c.ID);
-  return '💵 +' + amt(W, pb.played + pb.win) + ' BB to ' + esc_(W.Discord) + (L && amt(L, pb.played) ? ', +' + amt(L, pb.played) + ' BB to ' + esc_(L.Discord) : '') + ' for playing' + tail + '.';
+  return '💵 +' + amt(W, pb.played + pb.win) + ' BB to ' + esc_(W.Discord) + (L && amt(L, pb.played) ? ', +' + amt(L, pb.played) + ' BB to ' + esc_(L.Discord) : '') + ' for playing' + tail + note + '.';
 }
 function itemBoard_(C) {
   const pt = players_(), inv = inventory_(C), p = itemPrices_(C), holders = [];
@@ -1624,7 +1657,7 @@ function adminAddItems() {
 // Missed a day? The streak ends, unless you hold a 🌧️ Rain Delay (used up by itself) or you're the Ace: the Ace
 // can't charge anybody, so the Ace's streak waits (no pay, no break) until someone charges.
 function kv_(raw, base) { const out = Object.assign({}, base); norm_(raw).split(/[\s,]+/).forEach(function (x) { const m = /^(\w+):(\d+)$/.exec(x); if (m) out[m[1]] = Number(m[2]); }); return out; }
-function streakCfg_(C) { return kv_(C.STREAK_BUCKS, { day: 20, step: 10, max: 150 }); }
+function streakCfg_(C) { return kv_(C.STREAK_BUCKS, { day: 15, step: 5, max: 40 }); }
 function milestones_(C) { const m = kv_(C.STREAK_MILESTONES, {}), out = {}; Object.keys(m).forEach(function (k) { if (/^\d+$/.test(k)) out[Number(k)] = m[k]; }); return out; }
 function streakPay_(C, n) {
   const S = streakCfg_(C), ms = milestones_(C);
@@ -2219,7 +2252,7 @@ function doBet_(sub, C) {
   const me = activeMe_(pt, sub.email);
   const label = norm_(sub.f[Q.BET]);
   const stake = Math.floor(Number(norm_(sub.f[Q.STAKE]).replace(/[^\d]/g, '')));
-  if (stake >= 1) { const cap = betCap_(C, me.Email); if (stake > cap) fail_('The most you can bet right now is **' + cap + ' BB** (' + pctOf_(C.BET_MAX_PCT, 4.2) + '% of your Brawl Bucks). Bet that or less.'); }
+  if (stake >= 1) { const cap = betCap_(C, me.Email); if (stake > cap) fail_('The most you can bet right now is **' + cap + ' BB** (' + pctOf_(C.BET_MAX_PCT, 4.2) + '% of your Brawl Bucks, ' + flat_(C) + ' BB max). Bet that or less.'); }
   if (/^🔮 /.test(label)) {
     if (doPotBet_(sub, C, me, label, stake)) return;
     fail_('Those matchup odds have moved since you loaded the form. Reload it and pick again.');
@@ -2672,13 +2705,14 @@ function wagerOn_(C) { return bookOn_(C) && lc_(C.WAGER_ON) !== 'false'; }
 function pctOf_(v, d) { const n = Number(v); return n > 0 ? n : d; }
 // The most someone can stake right now: a % of their free Brawl Bucks (never under 5, never over what they have).
 function stakeCap_(C, email, pct) { const have = bankOf_(bankrolls_(C), email); return Math.max(0, Math.min(have, Math.max(5, Math.floor(have * pct / 100)))); }
-function betCap_(C, email) { return stakeCap_(C, email, pctOf_(C.BET_MAX_PCT, 4.2)); }
+const flat_ = (C) => pctOf_(C.BET_MAX_FLAT, 250);
+function betCap_(C, email) { return Math.min(flat_(C), stakeCap_(C, email, pctOf_(C.BET_MAX_PCT, 4.2))); }
 // Big wagers: the commish gives a player a one-time OK (24 hours) to go up to WAGER_BIG_PCT on their next wager.
 function bigOk_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('BIG_WAGER_OK') || '{}'); } catch (e) { return {}; } }
 function hasBigOk_(email) { const o = bigOk_(), t = o[lc_(email)]; return !!t && t > now_().getTime(); }
 function useBigOk_(email) { const o = bigOk_(); delete o[lc_(email)]; PropertiesService.getScriptProperties().setProperty('BIG_WAGER_OK', JSON.stringify(o)); }
-function wagerCap_(C, email) { return stakeCap_(C, email, hasBigOk_(email) ? pctOf_(C.WAGER_BIG_PCT, 10) : pctOf_(C.WAGER_MAX_PCT, 4.2)); }
-function wagerNormalCap_(C, email) { return stakeCap_(C, email, pctOf_(C.WAGER_MAX_PCT, 4.2)); }
+function wagerNormalCap_(C, email) { return Math.min(flat_(C), stakeCap_(C, email, pctOf_(C.WAGER_MAX_PCT, 4.2))); }
+function wagerCap_(C, email) { return hasBigOk_(email) ? stakeCap_(C, email, pctOf_(C.WAGER_BIG_PCT, 10)) : wagerNormalCap_(C, email); }
 function wagerMax_(C) { return pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks'; }
 function adminBigWager() {
   withUi_(function (ui) {
