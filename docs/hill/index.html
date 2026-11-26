@@ -70,6 +70,20 @@ h2{font-size:28px;margin:24px 0 10px;display:flex;align-items:center;gap:12px}h2
 .shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:6px}.shop div{background:rgba(244,235,217,.06);border-left:3px solid #ffd166;padding:6px 10px}
 .shop b{float:right;color:#ffd166;font-family:'Bebas Neue',Impact,sans-serif;font-size:20px;font-weight:400}.shop small{display:block;opacity:.7;font-size:12px}
 .note{font-size:13px;opacity:.72;margin:6px 0}
+body{background-color:#0E1B33;background-image:repeating-linear-gradient(90deg,rgba(244,235,217,.022) 0 1px,transparent 1px 26px),radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:auto,4px 4px}
+.cup{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 2px,transparent 2px 7px),linear-gradient(180deg,rgba(255,209,102,.16),rgba(244,235,217,.04))}
+.cup .r{padding:6px 10px;border-bottom:0}.cup .r:nth-child(odd){background:rgba(8,16,32,.38)}.cup .r:nth-child(even){background:rgba(244,235,217,.06)}
+.cup .r:hover{background:rgba(255,209,102,.16)}
+.cup .r.hd,.cup .r.hd:hover{background:none;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.6;padding-bottom:2px}.cup .r.hd b{background:none;color:inherit;font-weight:500}
+.r.ml{grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr) 74px !important}
+.r.ml b{text-align:center;background:rgba(0,0,0,.28);border:1px solid rgba(244,235,217,.12);padding:1px 0;font-family:'Bebas Neue',Impact,sans-serif;font-weight:400;font-size:19px;letter-spacing:.03em}
+.fv,.cup .r.ml b.fv{color:#ffd166}.dg,.cup .r.ml b.dg{color:#86efac}
+.cup .r.ml.hd b{background:none;border:0;font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.12em;color:inherit}
+.wal tr:nth-child(even) td{background:rgba(244,235,217,.055)}.wal tr:nth-child(odd) td{background:rgba(8,16,32,.3)}.wal tr:first-child td{background:none}.wal tr:hover td{background:rgba(255,209,102,.13)}
+.wal{border:1px solid rgba(244,235,217,.1)}
+.shop div{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 7px)}.shop div:nth-child(even){background-color:rgba(244,235,217,.1)}
+.ln:nth-child(even){background:linear-gradient(90deg,rgba(134,239,172,.12),rgba(244,235,217,.04))}
+.res:nth-child(even){background:rgba(244,235,217,.1)}
 .bars div{flex:1;background:linear-gradient(180deg,#ffd166,#C8102E);position:relative;animation:grow 1.2s ease-out both;transform-origin:bottom}
 @keyframes grow{from{transform:scaleY(0)}}
 .bars span{position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:14px;color:#ffd166}.bars i{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-style:normal;font-size:11px;opacity:.7}
@@ -216,7 +230,8 @@ h+='<div class="fut cup"><h3 class="bb">♠️ Season '+esc(D.season)+' Ace futu
 
 var PO=D.pot||[];
 if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'<\/h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.<\/b> ':'')+'Every charge that could happen right now. Bet on the Hill form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.<\/div>'
-+PO.slice(0,24).map(function(L){return '<div class="r" style="grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr) 70px"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title<\/small>':'')+'<\/span><b>'+fo(L.a)+'<\/b><span class="bb" style="text-align:right">@ '+esc(L.df)+'<\/span><b>'+fo(L.h)+'<\/b><\/div>';}).join('')+'<\/div>';}}
++'<div class="r ml hd"><span>Charging<\/span><b>Odds<\/b><span style="text-align:right">@ Holding<\/span><b>Odds<\/b><\/div>'
++PO.slice(0,24).map(function(L){var oc=function(o){return '<b class="'+(+o<0?'fv':'dg')+'">'+fo(o)+'<\/b>';};return '<div class="r ml"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title<\/small>':'')+'<\/span>'+oc(L.a)+'<span class="bb" style="text-align:right">@ '+esc(L.df)+'<\/span>'+oc(L.h)+'<\/div>';}).join('')+'<div class="note" style="margin-top:8px"><span class="fv">−120<\/span> favorite · <span class="dg">+150<\/span> underdog<\/div><\/div>';}}
 h+='<!--TAB:season-->';
 var aw=D.awards||[],cp=D.cup||[];
 if(aw.length){h+='<h2 class="bb">🏆 Season '+esc(D.season)+' hardware'+(D.seasonClosed?' · final':' · race')+'<\/h2><div class="hw"><div class="cup"><h3 class="bb">🏆 The Bench Clearer Cup<\/h3>'+(cp.length?cp.map(function(x,i){return '<div class="r"><b>'+(i+1)+'<\/b><span class="bb">'+esc(x.name)+'<small>'+esc(x.club)+'<\/small><\/span><span class="bb" style="font-size:20px">'+x.pts+'<\/span><\/div>';}).join(''):'<div class="empty">No Brawl points yet. The first payday is midnight.<\/div>')+'<\/div><div><div class="aws">'+aw.filter(function(a){return a.name!=='The Bench Clearer Cup';}).map(function(a){return '<div class="aw"><div class="i">'+a.icon+'<\/div><div class="t bb">'+esc(a.name)+'<\/div><div class="w bb">'+(a.who?esc(a.who):'—')+'<\/div><div class="v">'+(a.who?esc(a.value):'up for grabs')+'<\/div><div class="q">'+esc(a.what)+'<\/div><\/div>';}).join('')+'<\/div>'+(D.prizes?'<div class="prize">🎁 <b>Prizes:<\/b> '+esc(D.prizes)+'<\/div>':'')+'<\/div><\/div>';}
