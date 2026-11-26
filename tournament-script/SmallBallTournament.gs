@@ -474,7 +474,7 @@ function drawBracket_() {
     '**' + T.seeds.length + ' clubs · ' + (T.fmt === 'double' ? 'double elimination (two losses and you\'re out)' : 'single elimination') + ' · BigLeague games only**\n\n' +
     '**Seeds**\n' + T.seeds.map((s) => s.seed + '. ' + tag_(Em[s.club]) + ' · ' + clubTxt_(Em[s.club])).join('\n') + '\n\n' +
     '**How it works**\n> Matches go in waves of ' + Math.round(waveMs_(C) / 60000) + ' minutes, starting ' + ts_(start) + ' (' + tsR_(start) + ').\n' +
-    '> When your match opens you\'ll be tagged here. Start a **BigLeague** game against your opponent\'s club ID before the wave ends: either club can start it.\n' +
+    '> When your match opens you\'ll be tagged here. The **lower seed sends a BigLeague challenge** to the other club\'s ID and the higher seed accepts. Play before the wave ends.\n' +
     '> The script finds the game on SmallBall by itself. Results post once the game has aired: **no spoilers**.\n' +
     '> No game by the end of the wave: ' + (lc_(C.NO_SHOW) === 'commish' ? 'the organizer decides.' : 'the higher seed moves on.') + ' A tie: ' + (lc_(C.TIE_RULE) === 'higher seed' ? 'the higher seed moves on.' : 'play it again.') + '\n\n' +
     '**Wave 1** (' + firsts.length + ' match' + (firsts.length === 1 ? '' : 'es') + '):\n' + firsts.map((m) => '• ' + nameOf_(Em, T, sideClub_(T, m.a)) + ' vs ' + nameOf_(Em, T, sideClub_(T, m.b))).join('\n') +
@@ -498,13 +498,15 @@ function waves_(T, C) {
   if (!opened.length && !live.length) return true;
   const line = (m) => {
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
-    return '**' + esc_(m.label) + '**\n> ' + nameOf_(E, T, a) + ' · club ID `' + a + '`\n> vs ' + nameOf_(E, T, b) + ' · club ID `' + b + '`';
+    // The lower seed needs the game (a no-show sends the higher seed on), so the lower seed sends the challenge.
+    const ch = seedOf_(T, a) > seedOf_(T, b) ? a : b, df = ch === a ? b : a;
+    return '**' + esc_(m.label) + '**\n> 🥊 ' + nameOf_(E, T, ch) + ' **sends the challenge** to club ID `' + df + '`\n> 🛡️ ' + nameOf_(E, T, df) + ' accepts · club ID `' + ch + '`';
   };
   const due = opened.length ? opened[0].deadline : end;
   post_('## 🔔 Wave ' + w + ' is on! Play before ' + ts_(due) + ' (' + tsR_(due) + ')\n' +
     (opened.length ? opened.map(line).join('\n') : '*No new matches this wave.*') +
     (live.length ? '\n\n⏳ Still to play: ' + live.map((m) => esc_(m.label)).join(', ') : '') +
-    '\n-# Start a BigLeague game against your opponent\'s club ID. Either club can start it. The script finds it on SmallBall.' + linksLine_(C));
+    '\n-# 🥊 The lower seed sends a BigLeague challenge to the club ID shown; the higher seed accepts. The script finds the game on SmallBall.' + linksLine_(C));
   log_('system', 'Wave ' + w, opened.map((m) => m.id).join(', ') || 'nothing new');
   return true;
 }
@@ -910,6 +912,7 @@ function side(c,bye,m,isA){
 }
 function box(m){
   var st=m.v?'':m.bye?'':m.w?(m.how==='no-show'?'No-show: higher seed on':m.how==='organizer'?'Settled by the organizer':m.how==='tie'?'Tie: higher seed on':''):m.live?'📡 Game found · result once it airs':m.flag?'Waiting on the organizer':m.open?'🔴 Open · play by '+t(m.dl):'';
+  if(m.open&&!m.live&&!m.w&&m.a&&m.z&&m.a.s&&m.z.s){var cc=m.a.s>m.z.s?m.a:m.z,dd=cc===m.a?m.z:m.a;st+='<br>🥊 '+esc(cc.n)+' challenges club ID '+esc(dd.id);}
   var ft=m.g?(st?st+' · ':'')+'<a href="https://play.smallball.com/training?watch='+esc(m.g)+'" target="_blank">📺 game '+esc(m.g)+'</a>':st;
   return '<div class="m'+(m.live?' live':m.open?' open':'')+(m.byeA||m.byeZ?' bye':'')+'"><div class="lab"><span>'+esc(m.l||m.id)+'</span></div>'+side(m.a,m.byeA,m,true)+side(m.z,m.byeZ,m,false)+(ft?'<div class="ft">'+ft+'</div>':'')+'</div>';
 }
@@ -926,9 +929,9 @@ function rules(){
   h+='<div class="rgrid">';
   h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
   h+=card('⏱ Your match window',['Matches run in <b>'+w+'-minute waves</b>, a new wave every hour from Wave 1 until there is a champion.','Your match <b>opens at the start of a wave</b> once both clubs are known. You get tagged in the Brawl channel.','You have <b>until the end of that wave</b> to play. Your next match can open as soon as the next wave starts, so stick around.','Can’t make a wave? Tell your opponent and the organizer in the Brawl channel ahead of time.']);
-  h+=card('🥊 Playing your game',['Either owner can send the challenge in SmallBall. Talk it out in the Brawl channel and go.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
+  h+=card('🥊 Playing your game',['<b>The lower seed sends the challenge</b> (to the club ID in the ping); the higher seed accepts. Talk it out in the Brawl channel and go.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game by the end of the wave:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
-  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Matches open fast.','Answer challenges quickly and play it straight. No stalling out the clock.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
+  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Matches open fast.','Higher seeds: accept challenges quickly. Dodging to run out the clock can get the match awarded to your opponent.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
   h+='</div>'+(D.prizes?'<p style="margin:12px 2px 0">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</p>':'')+'</details></div>';
   return h;
 }
