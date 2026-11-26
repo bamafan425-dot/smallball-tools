@@ -65,20 +65,20 @@ function rules(){
   function li(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}
   function card(t,a){return '<div class="rcard"><h3>'+t+'</h3>'+li(a)+'</div>'}
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
-  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match window: <b>'+w+' minutes</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
+  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
   h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
-  h+=card('⏱ Your match window',['Matches run in <b>'+w+'-minute waves</b>, a new wave every hour from Wave 1 until there is a champion.','Your match <b>opens at the start of a wave</b> once both clubs are known. You get tagged in the Brawl channel.','You have <b>until the end of that wave</b> to play. Your next match can open as soon as the next wave starts, so stick around.','Can’t make a wave? Tell your opponent and the organizer in the Brawl channel ahead of time.']);
+  h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed sends the challenge</b> (to the club ID in the ping); the higher seed accepts. Talk it out in the Brawl channel and go.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
-  h+=card('⚖️ When things go sideways',['<b>No game by the end of the wave:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
-  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Matches open fast.','Higher seeds: accept challenges quickly. Dodging to run out the clock can get the match awarded to your opponent.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
+  h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
+  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Your next match can open any time, not just on the hour.','Higher seeds: accept challenges quickly. Dodging to run out the clock can get the match awarded to your opponent.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
   h+='</div>'+(D.prizes?'<p style="margin:12px 2px 0">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</p>':'')+'</details></div>';
   return h;
 }
 function render(){
   var h='<header><div><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
   if(!D.matches){h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'Wave 1 <b>'+t(D.start)+'</b>':'');}
-  else h+=(D.done?'<b>Finished</b>':'Wave <b>'+(D.wave||0)+'</b> · '+(D.waveMin||60)+'-minute waves')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
+  else h+=(D.done?'<b>Finished</b>':'<b>Live</b> · '+(D.waveMin||60)+'-minute match windows')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
   h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
   if(D.champ)h+='<div class="champ bb">👑 '+esc(D.champ.n)+' wins the '+esc(D.name)+'!'+(D.prizes?' <span style="font-size:15px;font-family:Oswald">🎁 '+esc(D.prizes)+'</span>':'')+'</div>';
   if(!D.matches&&D.preview){
@@ -115,7 +115,7 @@ function png(){
   x.fillStyle='#0E1B33';x.fillRect(0,0,cw,ch);
   x.fillStyle='#ffd166';x.font='600 14px Oswald, sans-serif';x.fillText('SMALLBALL TOURNAMENT',PAD,40);
   x.fillStyle='#F4EBD9';x.font='40px "Bebas Neue", Oswald, sans-serif';x.fillText(D.name||'Tournament',PAD,80);
-  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Wave '+(D.wave||0))+' · '+new Date().toLocaleString(),cw-PAD-260,80);
+  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Live')+' · '+new Date().toLocaleString(),cw-PAD-260,80);
   if(D.champ){x.fillStyle='#C8102E';x.fillRect(PAD,y-6,cw-PAD*2,44);x.fillStyle='#ffd166';x.font='28px "Bebas Neue", Oswald, sans-serif';x.fillText('👑 '+D.champ.n+' wins!',PAD+14,y+26);y+=60}
   secs.forEach(function(s,si){
     x.fillStyle='#ffd166';x.font='24px "Bebas Neue", Oswald, sans-serif';x.fillText(s[0],PAD,y+22);

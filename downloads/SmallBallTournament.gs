@@ -22,10 +22,10 @@ const DEFAULTS = {
   SEEDING: ['signup', 'signup (sign-up order), stars (most stars first) or random'],
   SIGNUP_CLOSE: ['2026-11-26 21:00', 'Sign-ups close and the bracket is drawn (yyyy-MM-dd HH:mm, Mountain time)'],
   START: ['2026-11-27 09:00', 'Wave 1 starts (yyyy-MM-dd HH:mm, Mountain time)'],
-  WAVE_MINUTES: ['60', 'Each wave lasts this long. A match opens at the start of a wave and must be played before it ends'],
+  WAVE_MINUTES: ['60', 'Minutes to play each match. Wave 1 opens at START; after that a match opens as soon as both clubs are known'],
   ALLOWED_KINDS: ['big', 'Game types that count, comma separated: big, pro, exhibition'],
   POST_DELAY_MINUTES: ['25', 'Results post this long after the game is played, once it has aired (official games air about 22 minutes)'],
-  NO_SHOW: ['higher seed', 'No game by the end of the wave: "higher seed" moves on automatically, or "commish" waits for you'],
+  NO_SHOW: ['higher seed', 'No game in the match window: "higher seed" moves on automatically, or "commish" waits for you'],
   TIE_RULE: ['replay', 'A tie: "replay" (play again; the match gets 30 more minutes) or "higher seed"'],
   MAX_CLUBS: ['32', 'Sign-ups stop at this many clubs'],
   PREVIEW_SIZE: ['16', 'While sign-ups are open, the bracket page shows a preview bracket this big (16 = no byes). It grows to 32 if more sign up'],
@@ -440,7 +440,7 @@ function tick() {
 function nextWork_(T, C) {
   const t = Date.now(), soon = [t + 30 * 60000];
   if (T.done) return t + 6 * 3600e3;
-  const w = currentWave_(C, t); soon.push(waveStart_(C, Math.max(1, w + 1)));
+  const start = when_(C.START, C); if (start > t) soon.push(start);
   for (const m of T.matches) {
     if (m.winner || m.void) continue;
     if (m.pend) soon.push(m.pend.airs);
@@ -473,41 +473,42 @@ function drawBracket_() {
   post_('# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' bracket is set!\n' +
     '**' + T.seeds.length + ' clubs · ' + (T.fmt === 'double' ? 'double elimination (two losses and you\'re out)' : 'single elimination') + ' · BigLeague games only**\n\n' +
     '**Seeds**\n' + T.seeds.map((s) => s.seed + '. ' + tag_(Em[s.club]) + ' · ' + clubTxt_(Em[s.club])).join('\n') + '\n\n' +
-    '**How it works**\n> Matches go in waves of ' + Math.round(waveMs_(C) / 60000) + ' minutes, starting ' + ts_(start) + ' (' + tsR_(start) + ').\n' +
-    '> When your match opens you\'ll be tagged here. The **lower seed sends a BigLeague challenge** to the other club\'s ID and the higher seed accepts. Play before the wave ends.\n' +
+    '**How it works**\n> Wave 1 starts ' + ts_(start) + ' (' + tsR_(start) + '). After that, **your next match opens the moment both clubs are known**, and you have ' + Math.round(waveMs_(C) / 60000) + ' minutes to play it.\n' +
+    '> When your match opens you\'ll be tagged here. The **lower seed sends a BigLeague challenge** to the other club\'s ID and the higher seed accepts. Play early in your window: the sooner your result airs, the sooner your next match opens.\n' +
     '> The script finds the game on SmallBall by itself. Results post once the game has aired: **no spoilers**.\n' +
-    '> No game by the end of the wave: ' + (lc_(C.NO_SHOW) === 'commish' ? 'the organizer decides.' : 'the higher seed moves on.') + ' A tie: ' + (lc_(C.TIE_RULE) === 'higher seed' ? 'the higher seed moves on.' : 'play it again.') + '\n\n' +
+    '> No game in time: ' + (lc_(C.NO_SHOW) === 'commish' ? 'the organizer decides.' : 'the higher seed moves on.') + ' A tie: ' + (lc_(C.TIE_RULE) === 'higher seed' ? 'the higher seed moves on.' : 'play it again.') + '\n\n' +
     '**Wave 1** (' + firsts.length + ' match' + (firsts.length === 1 ? '' : 'es') + '):\n' + firsts.map((m) => '• ' + nameOf_(Em, T, sideClub_(T, m.a)) + ' vs ' + nameOf_(Em, T, sideClub_(T, m.b))).join('\n') +
     (T.matches.some((m) => m.bye && m.bracket === 'W' && m.round === 1) ? '\n-# Top seeds with a bye wait for the next wave.' : '') + linksLine_(C));
 }
 
-// Open the matches that are ready, at each wave's start. A match opens only once both clubs are known
-// from results already posted (so nobody learns a result early from the bracket).
+// Open matches as soon as they're ready. Wave 1 opens every first-round match at START; after that, a match
+// opens the moment both clubs are known from results already posted (so nobody learns a result early), and
+// gets its own window (WAVE_MINUTES) from that moment.
 function waves_(T, C) {
-  const t = Date.now(), w = currentWave_(C, t);
-  if (!w || w <= (T.wave || 0)) return false;
-  const ws = waveStart_(C, w), end = ws + waveMs_(C), E = entrantMap_(), opened = [];
+  const t = Date.now(), start = when_(C.START, C);
+  if (!start || t < start) return false;
+  const win = waveMs_(C), E = entrantMap_(), opened = [], first = !(T.wave > 0);
   for (const m of T.matches) {
     if (m.winner || m.void || m.openAt) continue;
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     if (!(a > 0 && b > 0)) continue;
-    m.openAt = ws; m.deadline = Math.max(end, t + waveMs_(C) * 0.75); m.wave = w; opened.push(m);   // opened late (a slow trigger)? still a fair window
+    m.openAt = first && t - start < 10 * 60000 ? start : t;
+    m.deadline = Math.max(m.openAt + win, t + win * 0.75);   // opened late (a slow trigger)? still a fair window
+    opened.push(m);
   }
-  T.wave = w;
-  const live = T.matches.filter((m) => m.openAt && !m.winner && !m.void && m.wave < w);
-  if (!opened.length && !live.length) return true;
+  if (!opened.length) return false;
+  T.wave = (T.wave || 0) + 1; opened.forEach((m) => { m.wave = T.wave; });
   const line = (m) => {
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     // The lower seed needs the game (a no-show sends the higher seed on), so the lower seed sends the challenge.
     const ch = seedOf_(T, a) > seedOf_(T, b) ? a : b, df = ch === a ? b : a;
-    return '**' + esc_(m.label) + '**\n> 🥊 ' + nameOf_(E, T, ch) + ' **sends the challenge** to club ID `' + df + '`\n> 🛡️ ' + nameOf_(E, T, df) + ' accepts · club ID `' + ch + '`';
+    return '**' + esc_(m.label) + '** · play by ' + ts_(m.deadline) + ' (' + tsR_(m.deadline) + ')\n> 🥊 ' + nameOf_(E, T, ch) + ' **sends the challenge** to club ID `' + df + '`\n> 🛡️ ' + nameOf_(E, T, df) + ' accepts · club ID `' + ch + '`';
   };
-  const due = opened.length ? opened[0].deadline : end;
-  post_('## 🔔 Wave ' + w + ' is on! Play before ' + ts_(due) + ' (' + tsR_(due) + ')\n' +
-    (opened.length ? opened.map(line).join('\n') : '*No new matches this wave.*') +
-    (live.length ? '\n\n⏳ Still to play: ' + live.map((m) => esc_(m.label)).join(', ') : '') +
-    '\n-# 🥊 The lower seed sends a BigLeague challenge to the club ID shown; the higher seed accepts. The script finds the game on SmallBall.' + linksLine_(C));
-  log_('system', 'Wave ' + w, opened.map((m) => m.id).join(', ') || 'nothing new');
+  const head = first ? '## 🔔 Wave 1 is on! First pitch for the ' + esc_(C.TOURNEY_NAME) + '\n'
+    : '## 🔔 ' + (opened.length === 1 ? 'Next match is ready' : opened.length + ' matches are ready') + '\n';
+  post_(head + opened.map(line).join('\n') +
+    '\n-# 🥊 The lower seed sends a BigLeague challenge to the club ID shown; the higher seed accepts. You have ' + Math.round(win / 60000) + ' minutes. The script finds the game on SmallBall.' + linksLine_(C));
+  log_('system', first ? 'Wave 1' : 'Opened', opened.map((m) => m.id).join(', '));
   return true;
 }
 
@@ -925,20 +926,20 @@ function rules(){
   function li(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}
   function card(t,a){return '<div class="rcard"><h3>'+t+'</h3>'+li(a)+'</div>'}
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
-  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match window: <b>'+w+' minutes</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
+  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
   h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
-  h+=card('⏱ Your match window',['Matches run in <b>'+w+'-minute waves</b>, a new wave every hour from Wave 1 until there is a champion.','Your match <b>opens at the start of a wave</b> once both clubs are known. You get tagged in the Brawl channel.','You have <b>until the end of that wave</b> to play. Your next match can open as soon as the next wave starts, so stick around.','Can’t make a wave? Tell your opponent and the organizer in the Brawl channel ahead of time.']);
+  h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed sends the challenge</b> (to the club ID in the ping); the higher seed accepts. Talk it out in the Brawl channel and go.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
-  h+=card('⚖️ When things go sideways',['<b>No game by the end of the wave:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
-  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Matches open fast.','Higher seeds: accept challenges quickly. Dodging to run out the clock can get the match awarded to your opponent.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
+  h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
+  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Your next match can open any time, not just on the hour.','Higher seeds: accept challenges quickly. Dodging to run out the clock can get the match awarded to your opponent.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
   h+='</div>'+(D.prizes?'<p style="margin:12px 2px 0">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</p>':'')+'</details></div>';
   return h;
 }
 function render(){
   var h='<header><div><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
   if(!D.matches){h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'Wave 1 <b>'+t(D.start)+'</b>':'');}
-  else h+=(D.done?'<b>Finished</b>':'Wave <b>'+(D.wave||0)+'</b> · '+(D.waveMin||60)+'-minute waves')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
+  else h+=(D.done?'<b>Finished</b>':'<b>Live</b> · '+(D.waveMin||60)+'-minute match windows')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
   h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
   if(D.champ)h+='<div class="champ bb">👑 '+esc(D.champ.n)+' wins the '+esc(D.name)+'!'+(D.prizes?' <span style="font-size:15px;font-family:Oswald">🎁 '+esc(D.prizes)+'</span>':'')+'</div>';
   if(!D.matches&&D.preview){
@@ -975,7 +976,7 @@ function png(){
   x.fillStyle='#0E1B33';x.fillRect(0,0,cw,ch);
   x.fillStyle='#ffd166';x.font='600 14px Oswald, sans-serif';x.fillText('SMALLBALL TOURNAMENT',PAD,40);
   x.fillStyle='#F4EBD9';x.font='40px "Bebas Neue", Oswald, sans-serif';x.fillText(D.name||'Tournament',PAD,80);
-  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Wave '+(D.wave||0))+' · '+new Date().toLocaleString(),cw-PAD-260,80);
+  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Live')+' · '+new Date().toLocaleString(),cw-PAD-260,80);
   if(D.champ){x.fillStyle='#C8102E';x.fillRect(PAD,y-6,cw-PAD*2,44);x.fillStyle='#ffd166';x.font='28px "Bebas Neue", Oswald, sans-serif';x.fillText('👑 '+D.champ.n+' wins!',PAD+14,y+26);y+=60}
   secs.forEach(function(s,si){
     x.fillStyle='#ffd166';x.font='24px "Bebas Neue", Oswald, sans-serif';x.fillText(s[0],PAD,y+22);
