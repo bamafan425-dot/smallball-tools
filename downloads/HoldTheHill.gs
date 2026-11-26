@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -100,7 +100,9 @@ const DEFAULTS = {
   BOOK_VIG: [0.045, 'House edge built into the odds (0.045 = 4.5%)'],
   BOOK_POST_BETS: ['TRUE', 'Post each bet in Discord (TRUE/FALSE)'],
   WAGER_ON: ['TRUE', 'Head-to-head wagers on (TRUE/FALSE). Needs the sportsbook on'],
-  WAGER_MAX: [250, 'Most Brawl Bucks either side can put on one head-to-head wager'],
+  BET_MAX_PCT: [4.2, 'Most you can put on one sportsbook bet, as a % of your Brawl Bucks right now'],
+  WAGER_MAX_PCT: [4.2, 'Most either side can put on one head-to-head wager, as a % of their Brawl Bucks right now'],
+  WAGER_BIG_PCT: [10, 'With the commish\'s OK (menu: 🤝 Allow a big wager), a head-to-head wager can go up to this %'],
   WAGER_OFFER_HOURS: [24, 'Hours a wager offer stays open for the other player to accept'],
   WAGER_PLAY_HOURS: [48, 'Hours after a wager is accepted to play the game that settles it (else everyone is refunded)'],
   ITEMS_ON: ['FALSE', 'Brawl Bucks items shop on (TRUE/FALSE). Needs the sportsbook on. The 🛒 menu item turns it on'],
@@ -1585,6 +1587,13 @@ function ensureItemsForm_(form) {
       .setHelpText('Optional. Use one you bought in the 🛒 shop, or buy it right here (Margin Eraser ' + itemPrices_(C).eraser + ' BB, Ladder Jump ' + itemPrices_(C).jump + ' BB). Brass Knuckles are defense and go on by themselves.');
     form.moveItem(it.getIndex(), opp.getIndex() + 1);
   }
+  // Stake limits are a % of your bankroll now: refresh the stake boxes' help (and drop the old fixed wager cap).
+  form.getItems(FormApp.ItemType.TEXT).forEach(function (it) {
+    const t = it.getTitle();
+    if (t === Q.W_STAKE) it.asTextItem().setHelpText('Up to ' + pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks (' + pctOf_(C.WAGER_BIG_PCT, 10) + '% with the commish\'s OK).')
+      .setValidation(FormApp.createTextValidation().requireWholeNumber().setHelpText('A whole number of Brawl Bucks').build());
+    if (t === Q.STAKE) it.asTextItem().setHelpText('Up to ' + pctOf_(C.BET_MAX_PCT, 4.2) + '% of your Brawl Bucks per bet.');
+  });
   const action = form.getItems(FormApp.ItemType.MULTIPLE_CHOICE).find(function (i) { return i.getTitle() === Q.ACTION; });
   if (!action) return;
   const mc = action.asMultipleChoiceItem(), old = mc.getChoices();
@@ -1895,6 +1904,7 @@ function onOpen() {
     .addItem('🔎 Add "Who can I charge?" to the form', 'adminAddReach')
     .addItem('🤝 Add head-to-head wagers to the form', 'adminAddWagers')
     .addItem('🛒 Add the Brawl Bucks items shop to the form', 'adminAddItems')
+    .addItem('🤝 Allow a big wager (commish OK, up to 10%)', 'adminBigWager')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub Hill Board', 'adminConnectGithub')
     .addToUi();
@@ -2209,6 +2219,7 @@ function doBet_(sub, C) {
   const me = activeMe_(pt, sub.email);
   const label = norm_(sub.f[Q.BET]);
   const stake = Math.floor(Number(norm_(sub.f[Q.STAKE]).replace(/[^\d]/g, '')));
+  if (stake >= 1) { const cap = betCap_(C, me.Email); if (stake > cap) fail_('The most you can bet right now is **' + cap + ' BB** (' + pctOf_(C.BET_MAX_PCT, 4.2) + '% of your Brawl Bucks). Bet that or less.'); }
   if (/^🔮 /.test(label)) {
     if (doPotBet_(sub, C, me, label, stake)) return;
     fail_('Those matchup odds have moved since you loaded the form. Reload it and pick again.');
@@ -2658,9 +2669,32 @@ const WAGER_REPLIES = ['✅ Accept', '❌ Decline', '🗑️ Cancel my own offer
 const WAGER_WARN = '⚠️ Fair play: throwing games, fake wagers to slide Brawl Bucks to a friend, or any other funny business gets your Brawl Bucks taken and split among the rest of the league. Extreme cases get expelled from the Hill.';
 const WAGER_LIVE = ['Offered', 'Accepted', 'Airing'];
 function wagerOn_(C) { return bookOn_(C) && lc_(C.WAGER_ON) !== 'false'; }
-function wagerMax_(C) { return Number(C.WAGER_MAX) || 250; }
+function pctOf_(v, d) { const n = Number(v); return n > 0 ? n : d; }
+// The most someone can stake right now: a % of their free Brawl Bucks (never under 5, never over what they have).
+function stakeCap_(C, email, pct) { const have = bankOf_(bankrolls_(C), email); return Math.max(0, Math.min(have, Math.max(5, Math.floor(have * pct / 100)))); }
+function betCap_(C, email) { return stakeCap_(C, email, pctOf_(C.BET_MAX_PCT, 4.2)); }
+// Big wagers: the commish gives a player a one-time OK (24 hours) to go up to WAGER_BIG_PCT on their next wager.
+function bigOk_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('BIG_WAGER_OK') || '{}'); } catch (e) { return {}; } }
+function hasBigOk_(email) { const o = bigOk_(), t = o[lc_(email)]; return !!t && t > now_().getTime(); }
+function useBigOk_(email) { const o = bigOk_(); delete o[lc_(email)]; PropertiesService.getScriptProperties().setProperty('BIG_WAGER_OK', JSON.stringify(o)); }
+function wagerCap_(C, email) { return stakeCap_(C, email, hasBigOk_(email) ? pctOf_(C.WAGER_BIG_PCT, 10) : pctOf_(C.WAGER_MAX_PCT, 4.2)); }
+function wagerNormalCap_(C, email) { return stakeCap_(C, email, pctOf_(C.WAGER_MAX_PCT, 4.2)); }
+function wagerMax_(C) { return pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks'; }
+function adminBigWager() {
+  withUi_(function (ui) {
+    const C = cfg_(), r = ui.prompt('🤝 Allow a big wager', 'Club ID or Discord name of the player. Their next head-to-head wager (offer or accept) in the next 24 hours can go up to ' + pctOf_(C.WAGER_BIG_PCT, 10) + '% of their Brawl Bucks instead of ' + pctOf_(C.WAGER_MAX_PCT, 4.2) + '%.', ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    const v = lc_(r.getResponseText()), pt = players_();
+    const p = pt.rows.find(function (x) { return x.Status === 'Active' && (norm_(x.ClubID) === v || lc_(x.Discord) === v); });
+    if (!p) return 'No active Hill player with that club ID or Discord name.';
+    const o = bigOk_(); o[lc_(p.Email)] = now_().getTime() + 24 * 3600e3; PropertiesService.getScriptProperties().setProperty('BIG_WAGER_OK', JSON.stringify(o));
+    log_('commish', 'Big wager OK', p.Discord);
+    try { postBook_('🤝 The commish OKs a **big wager** for ' + who_(p) + ': up to ' + pctOf_(C.WAGER_BIG_PCT, 10) + '% of their Brawl Bucks (' + wagerCap_(C, p.Email) + ' BB right now) on their next head-to-head, for 24 hours.'); } catch (e) { }
+    return p.Discord + ' can wager up to ' + wagerCap_(C, p.Email) + ' BB (' + pctOf_(C.WAGER_BIG_PCT, 10) + '%) on their next head-to-head in the next 24 hours.';
+  });
+}
 function wagerHelp_(C) {
-  return 'Bet Brawl Bucks straight against another Hill player: up to ' + wagerMax_(C) + ' BB a side, on your terms (straight up, odds or a run line). ' +
+  return 'Bet Brawl Bucks straight against another Hill player: up to ' + wagerMax_(C) + ' a side (more with the commish\'s OK), on your terms (straight up, odds or a run line). ' +
     'They accept on this form. The next BigLeague game between your two clubs within ' + (Number(C.WAGER_PLAY_HOURS) || 48) + ' hours of accepting settles it, once it has aired. ' +
     'No house cut: the winner takes the loser\'s stake. A tie (straight up or odds) or no game in time = everyone gets their bucks back. ' + WAGER_WARN;
 }
@@ -2710,10 +2744,11 @@ function doWager_(sub, C) {
   const opp = pt.rows.find(function (p) { return p.Status === 'Active' && norm_(p.ClubID) === oppId; });
   if (!opp) fail_('No active Hill player has club ID ' + oppId + '. Both of you need to be on the Hill.');
   if (lc_(opp.Email) === lc_(me.Email)) fail_("You can't wager against yourself.");
-  const max = wagerMax_(C);
+  const max = wagerCap_(C, me.Email), big = hasBigOk_(me.Email);
   const stake = Math.floor(Number(norm_(sub.f[Q.W_STAKE]).replace(/[^\d]/g, '')));
   if (!(stake >= 1)) fail_('Enter a stake of at least 1 Brawl Buck.');
-  if (stake > max) fail_('The most anyone can put on a wager is ' + max + ' Brawl Bucks.');
+  if (stake > max) fail_('The most you can put on a wager right now is **' + max + ' BB** (' + (big ? pctOf_(C.WAGER_BIG_PCT, 10) + '% with the commish\'s OK' : pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks; up to ' + pctOf_(C.WAGER_BIG_PCT, 10) + '% with the commish\'s OK') + ').');
+  const oppMax = wagerCap_(C, opp.Email);
   const label = norm_(sub.f[Q.W_TERMS]);
   const terms = Object.keys(WAGER_TERMS).find(function (k) { return WAGER_TERMS[k] === label; }) || 'even';
   let ms = stake, ts = stake, line = '';
@@ -2724,7 +2759,7 @@ function doWager_(sub, C) {
     if (terms === 'giveOdds') ts = Math.max(1, Math.round(stake * o.b / o.a));
     else {
       ts = Math.round(stake * o.a / o.b);
-      if (ts > max) fail_('At ' + o.txt + ' they would risk ' + ts + ' BB, over the ' + max + ' BB limit. Lower your stake to ' + Math.floor(max * o.b / o.a) + ' or less.');
+      if (ts > oppMax) fail_('At ' + o.txt + ' they would risk ' + ts + ' BB, over their ' + oppMax + ' BB limit. Lower your stake to ' + Math.floor(oppMax * o.b / o.a) + ' or less.');
     }
   }
   if (terms === 'giveRuns' || terms === 'getRuns') {
@@ -2734,6 +2769,8 @@ function doWager_(sub, C) {
   }
   const br = bankrolls_(C), have = bankOf_(br, me.Email);
   if (ms > have) fail_('You only have ' + have + ' Brawl Bucks free (stakes on open bets and wagers are held until they settle).');
+  if (ts > oppMax) fail_('That would have ' + opp.Discord + ' risk ' + ts + ' BB, over their limit of ' + oppMax + ' BB right now. Lower the stake.');
+  if (big && ms > wagerNormalCap_(C, me.Email)) useBigOk_(me.Email);
   const wt = readTable_(SHEETS.WAGERS);
   const going = wt.rows.find(function (w) { return WAGER_LIVE.indexOf(w.Status) >= 0 && wagerPair_(w, me.Email, opp.Email); });
   if (going) fail_('You two already have a wager going (' + going.WagerID + '). Settle that one first.');
@@ -2782,6 +2819,9 @@ function doWagerReply_(sub, C) {
   if (!maker || maker.Status !== 'Active') fail_(w.MakerName + " isn't active on the Hill anymore, so " + id + ' is off.');
   const ts = num_(w.TakerStake), br = bankrolls_(C), have = bankOf_(br, me.Email);
   if (ts > have) fail_('Accepting ' + id + ' takes ' + ts + ' Brawl Bucks and you only have ' + have + ' free.');
+  const tcap = wagerCap_(C, me.Email);
+  if (ts > tcap) fail_('Accepting ' + id + ' takes ' + ts + ' BB, over your limit of ' + tcap + ' BB right now (' + pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks; up to ' + pctOf_(C.WAGER_BIG_PCT, 10) + '% with the commish\'s OK).');
+  if (hasBigOk_(me.Email) && ts > wagerNormalCap_(C, me.Email)) useBigOk_(me.Email);
   const dl = hoursFrom_(now_(), Number(C.WAGER_PLAY_HOURS) || 48);
   w.Status = 'Accepted'; w.AcceptedAt = now_(); w.Deadline = dl; writeRow_(wt, w);
   log_(sub.email, 'Wager accepted', id);
@@ -2866,7 +2906,7 @@ function wagerBoard_(C) {
       win: w.Status === 'Settled' ? (mw ? norm_(w.MakerName) : norm_(w.TakerName)) : '', amt: w.Status === 'Settled' ? (mw ? num_(w.TakerStake) : num_(w.MakerStake)) : 0 };
   };
   const done = rows.filter(function (w) { return w.Status === 'Settled' || (w.Status === 'Refunded' && norm_(w.AcceptedAt)); });
-  return { max: wagerMax_(C), open: rows.filter(function (w) { return w.Status === 'Offered'; }).map(pub),
+  return { max: wagerMax_(C), pct: pctOf_(C.WAGER_MAX_PCT, 4.2), big: pctOf_(C.WAGER_BIG_PCT, 10), open: rows.filter(function (w) { return w.Status === 'Offered'; }).map(pub),
     live: rows.filter(function (w) { return w.Status === 'Accepted' || w.Status === 'Airing'; }).map(pub), done: done.slice(-8).reverse().map(pub) };
 }
 
@@ -3694,7 +3734,7 @@ h+='<div class="book" style="margin-top:12px"><div class="mine"><h3 class="bb" s
 +'<div class="cup"><h3 class="bb">💸 Big hits</h3>'+(BK.hits.length?BK.hits.map(function(x){return '<div class="hit">'+esc(x.name)+' · '+esc(x.what)+' ('+fo(x.odds)+') <b>+'+x.profit+'</b></div>';}).join(''):'<div class="empty">No winners yet.</div>')+'</div></div>';
 var WG=D.wagers;
 if(WG){var wrow=function(x,st){return '<div class="r" style="grid-template-columns:62px minmax(0,1fr) auto"><span class="bb" style="opacity:.6;font-size:15px">'+esc(x.id)+'</span><span class="bb">'+esc(x.m)+' <small style="display:inline;opacity:.6">vs</small> '+esc(x.t)+'<small>'+esc(x.terms)+' · '+x.ms+(x.ts!==x.ms?' vs '+x.ts+' BB':' BB each')+'</small></span><b style="text-align:right">'+st+'</b></div>';};
-h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.max||250)+' BB a side, straight up, odds or a run line. They accept on the Hill form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.</b></div>'
+h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.pct||4.2)+'% of your Brawl Bucks a side ('+(WG.big||10)+'% with the commish’s OK), straight up, odds or a run line. They accept on the Hill form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.</b></div>'
 +(WG.live.length||WG.open.length||WG.done.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join('')+WG.done.map(function(x){return wrow(x,x.win?'💸 '+esc(x.win)+' +'+x.amt:'↩️ Refunded');}).join(''):'<div class="empty">No wagers yet. Call somebody out on the Hill form.</div>')+'</div>';}
 var IT=D.items;
 if(IT){h+='<div class="fut cup"><h3 class="bb">🛒 Brawl Bucks shop</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Buy on the Hill form and hold it until you need it. The Ace pays '+IT.aceX+'× the price. One item per side per charge, one item per player every '+IT.cooldown+' hours. Every Hill game pays +'+IT.play.played+' BB, and the winner gets +'+IT.play.win+' more.</div>'+IT.items.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+x.icon+' '+esc(x.name)+' <small style="display:inline;opacity:.6">'+esc(x.kind)+'</small><small>'+esc(x.what)+'</small></span><b style="color:#ffd166">'+x.price+' BB</b></div>';}).join('')+'<h3 class="bb" style="margin-top:10px">🎒 Who is holding</h3>'+(IT.holders.length?IT.holders.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+esc(x.name)+(x.club?'<small>'+esc(x.club)+'</small>':'')+'</span><span>'+x.items.map(function(i){var m=IT.items.filter(function(y){return y.k===i.k;})[0];return (m?m.icon:'')+(i.n>1?'×'+i.n:'');}).join(' ')+(x.cool?' <small style="display:inline;opacity:.6">⏳ cooling down</small>':'')+'</span></div>';}).join(''):'<div class="empty">Nobody is holding anything yet. 🥊 Brass Knuckles show here, so chargers know what they are walking into.</div>')+'</div>';}
