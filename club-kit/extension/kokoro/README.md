@@ -65,8 +65,10 @@ Measured in headless Chromium on a 4-vCPU 2.1 GHz Xeon VM (a slow CPU), real Kok
 * Multi-threaded WASM needs `SharedArrayBuffer`, i.e. a cross-origin isolated context. An iframe inside
   play.smallball.com can't be one, so the CPU path is single-threaded, where q8 is as fast as fp32 and a
   third of the download. That's why the CPU path uses q8.
-* The WebGPU path was exercised end to end on SwiftShader (a software GPU, test-only override) to prove it
-  loads and speaks inside the extension frame; real GPU speed has to be measured on real hardware.
+* The WebGPU path was exercised on SwiftShader (a software GPU, with a test-only override that allows fallback
+  adapters): inside the extension frame's worker it detected the adapter, downloaded the fp32 model and created
+  the WebGPU session. Software-GPU inference is far too slow to finish warm-up, so **real-GPU speed and audio are
+  untested here** and need a check on real hardware.
 * Expect WebGPU on Chrome/Edge for Windows, macOS and ChromeOS, including integrated graphics (most machines
   "without a dedicated GPU" still have one WebGPU can use). Firefox ships WebGPU on Windows from 141; elsewhere
   Firefox uses WASM.
