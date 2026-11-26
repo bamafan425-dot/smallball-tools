@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.29.1
+// @version      1.30.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -155,7 +155,7 @@ const SBX_MOBILE = true;
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
     ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
-    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["live", "🏆 Live tournament chip: your open tournament match, the deadline and a Start button"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
+    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["live", "🏆 Tournaments button, with a card for each tournament you're in (your match, deadline, Start button)"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
   ];
   let FEAT = {}; try { FEAT = JSON.parse(localStorage.getItem("sbx-features") || "{}"); } catch (_) {}
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
@@ -3011,11 +3011,13 @@ const SBX_MOBILE = true;
   }
   async function liveRefresh(force) {
     if (LIVE.busy || (document.hidden && !force) || !on("live")) return;
-    const mine = ownIds(); if (!mine.size) return;
+    const mine = ownIds();
     LIVE.busy = true;
     try {
       const idx = await liveGet("docs/tournaments/index.json"), list = (idx && idx.list) || [], items = [];
+      LIVE.signups = list.filter((t) => t.status === "signups" && !(t.signupClose && t.signupClose < Date.now())).length;
       for (const t of list) {
+        if (!mine.size) break;
         if (t.status === "done" && !(t.finished && Date.now() - t.finished < 864e5)) continue;
         const m = /github\.io\/[^/]+\/(.*)$/.exec(t.url || ""); if (!m) continue;
         const D = await liveGet("docs/" + m[1].replace(/\/?$/, "/") + "bracket.json");
@@ -3028,40 +3030,44 @@ const SBX_MOBILE = true;
   const liveHidden = () => { try { return JSON.parse(sessionStorage.getItem(LIVE_HIDE_KEY) || "{}"); } catch (_) { return {}; } };
   // Box-score toasts share the bottom-right corner, so they sit just above the chip.
   function liveLift() { const el = document.getElementById("sbx-live"); document.documentElement.style.setProperty("--sbx-live-h", el ? (el.offsetHeight + 8) + "px" : "0px"); }
+  // The 🏆 Tournaments button (always there: it opens the Tournaments page) with a card above it for each
+  // tournament you're in. ▾ on the button folds the cards away; the button then shows how many are waiting.
+  const TOURNEY_HOME = "https://slipnsliders.github.io/smallball-tools/tournaments/";
+  const LIVE_MIN_KEY = "sbx-live-min";
+  const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) === "1"; } catch (_) { return false; } };
   function mountLive() {
+    if (!on("live")) return;
     let el = document.getElementById("sbx-live");
     const hidden = liveHidden(), items = LIVE.items.filter((x) => hidden[x.k] !== JSON.stringify(x.lines));
-    const key = JSON.stringify(items) + (el && el.dataset.min);
-    if (!items.length) { if (el) el.remove(); liveLift(); return; }
-    if (el && el.dataset.key === key) return;
+    const min = liveMin(), su = LIVE.signups || 0;
+    const key = JSON.stringify(items) + min + su;
+    if (el && el.isConnected && el.dataset.key === key) return;
     if (!el) {
       el = document.createElement("div"); el.id = "sbx-live";
-      el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147482990;width:min(380px,calc(100vw - 24px));display:flex;flex-direction:column;align-items:stretch;gap:8px;font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
-      document.body.appendChild(el);
+      el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147482990;width:min(380px,calc(100vw - 24px));display:flex;flex-direction:column;align-items:stretch;gap:8px;font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;pointer-events:none";
     }
-    const min = el.dataset.min === "1";
-    el.dataset.key = JSON.stringify(items) + el.dataset.min;
-    if (min) {
-      el.innerHTML = '<button data-open style="align-self:flex-end;border:0;border-radius:999px;padding:8px 14px;font:700 14px system-ui,sans-serif;background:#0f5132;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer">🏆 ' + items.length + " tournament " + (items.length === 1 ? "match" : "matches") + "</button>";
-      el.querySelector("[data-open]").onclick = () => { el.dataset.min = ""; mountLive(); };
-      liveLift();
-      return;
-    }
-    el.innerHTML = items.map((x, i) => {
+    if (!el.isConnected) document.body.appendChild(el);
+    el.dataset.key = key;
+    const pill = "border:0;border-radius:999px;font:800 14px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center;gap:6px";
+    const cards = min ? "" : items.map((x, i) => {
       const bg = x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
       const ln = x.lines.map((l) => '<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="flex:1;min-width:180px">' + l.t + "</span>" +
         (l.go ? '<a href="' + esc(l.go) + '" style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">▶ Start</a>' : "") + "</div>").join("");
-      return '<div style="background:' + bg + ';color:#f4efe2;border-radius:14px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12)">' +
+      return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12)">' +
         '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:13px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
         '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
-        (i === 0 ? '<button data-min title="Shrink" style="background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:15px">▾</button>' : "") +
         '<button data-x="' + i + '" title="Hide this one" style="background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:16px">×</button></div>' +
         (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
     }).join("");
+    const fold = items.length ? '<button data-fold title="' + (min ? "Show your tournament matches" : "Fold your tournament matches away") + '" style="' + pill + ';padding:9px 12px;background:#0b1220;color:#fde68a;border:1px solid #334155">' +
+      (min ? "▴ " + items.length + " match" + (items.length === 1 ? "" : "es") : "▾") + "</button>" : "";
+    const home = '<a data-home href="' + TOURNEY_HOME + '" target="_blank" rel="noopener" title="SmallBall tournaments: brackets, sign-ups, the Hall of Champions" style="' + pill + ';padding:10px 16px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#1c1917">🏆 Tournaments' +
+      (su ? '<span style="font:700 11px/1 system-ui,sans-serif;background:#14532d;color:#bbf7d0;border-radius:999px;padding:4px 7px">sign-ups open</span>' : "") + "</a>";
+    el.innerHTML = cards + '<div style="display:flex;justify-content:flex-end;gap:8px">' + fold + home + "</div>";
     el.querySelectorAll("[data-x]").forEach((b) => { b.onclick = () => { const x = items[Number(b.dataset.x)], h = liveHidden(); h[x.k] = JSON.stringify(x.lines); try { sessionStorage.setItem(LIVE_HIDE_KEY, JSON.stringify(h)); } catch (_) {} mountLive(); }; });
-    const mn = el.querySelector("[data-min]"); if (mn) mn.onclick = () => { el.dataset.min = "1"; mountLive(); };
-    liveLift();
+    const fb = el.querySelector("[data-fold]"); if (fb) fb.onclick = () => { try { sessionStorage.setItem(LIVE_MIN_KEY, min ? "0" : "1"); } catch (_) {} mountLive(); };
     el.querySelectorAll("code").forEach((c) => { c.style.cssText = "font:700 12px ui-monospace,monospace;background:rgba(250,204,21,.18);color:#fde68a;border-radius:5px;padding:1px 5px"; });
+    liveLift();
   }
   setTimeout(() => liveRefresh(true), 3000);
   setInterval(() => liveRefresh(false), 180000);
