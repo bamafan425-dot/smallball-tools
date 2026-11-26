@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -399,7 +399,13 @@ function clubGames_(clubId) {
 const watchUrl_ = (gid) => 'https://play.smallball.com/training?watch=' + gid;
 
 // ===================== The clock: runs every minute =====================
+// Free Google accounts get about 90 minutes of trigger run time a day, shared by every script you own (Hold the
+// Hill too). So the clock wakes every minute but only works when something is due: it writes down when that
+// is (NEXT_AT) and goes straight back to sleep until then. Reading one script property costs almost nothing.
 function tick() {
+  const pr = PropertiesService.getScriptProperties();
+  const nextAt = Number(pr.getProperty('NEXT_AT') || 0), retries = pr.getProperty('RETRY_POSTS');
+  if (Date.now() < nextAt && (!retries || retries === '[]')) return;
   const lock = LockService.getScriptLock(); if (!lock.tryLock(20000)) return;
   try {
     CFG_CACHE = null;
@@ -407,11 +413,14 @@ function tick() {
     const C = cfg_(), t = Date.now();
     let T = stateGet_();
     if (!T) {
-      if (when_(C.SIGNUP_CLOSE, C) && t >= when_(C.SIGNUP_CLOSE, C)) drawBracket_();
-      snapshot_(); try { flushLog_(); } catch (e) { }
-      return;
+      const close = when_(C.SIGNUP_CLOSE, C);
+      if (close && t >= close) drawBracket_();
+      try { flushLog_(); } catch (e) { }
+      T = stateGet_();
+      // Sign-ups snapshot themselves as they come in; nothing else happens until sign-ups close.
+      if (!T) { pr.setProperty('NEXT_AT', String(close && t < close ? Math.min(close, t + 30 * 60000) : t + 5 * 60000)); return; }
     }
-    if (T.done) { try { flushLog_(); } catch (e) { } return; }
+    if (T.done) { try { flushLog_(); } catch (e) { } pr.setProperty('NEXT_AT', String(t + 6 * 3600e3)); return; }
     let changed = false;
     try { changed = detect_(T, C) || changed; } catch (e) { log_('system', 'ERROR (detect)', String(e && e.stack || e)); }
     changed = postDue_(T, C) || changed;
@@ -419,10 +428,26 @@ function tick() {
     changed = waves_(T, C) || changed;
     if (!T.done && champion_(T)) { crown_(T, C); changed = true; }
     if (changed) stateSet_(T);
-    snapshot_(T);
+    if (changed || !pr.getProperty('NEXT_AT')) snapshot_(T);
     try { flushLog_(); } catch (e) { }
+    pr.setProperty('NEXT_AT', String(nextWork_(T, C)));
   } finally { lock.releaseLock(); }
 }
+// When the clock next has something to do: a wave starting, a result airing, a deadline, or (while a match
+// is open with no game found yet) a look at SmallBall every 2 minutes.
+function nextWork_(T, C) {
+  const t = Date.now(), soon = [t + 30 * 60000];
+  if (T.done) return t + 6 * 3600e3;
+  const w = currentWave_(C, t); soon.push(waveStart_(C, Math.max(1, w + 1)));
+  for (const m of T.matches) {
+    if (m.winner || m.void) continue;
+    if (m.pend) soon.push(m.pend.airs);
+    else if (m.openAt && !m.flag) { soon.push(t + 2 * 60000); soon.push(m.deadline); }
+  }
+  return Math.max(t + 50000, Math.min.apply(null, soon.filter((x) => x > t - 1)));
+}
+// Anything that changes the tournament from outside the clock wakes it on its next minute.
+function wake_() { try { PropertiesService.getScriptProperties().deleteProperty('NEXT_AT'); } catch (e) { } }
 function waveStart_(C, w) { return when_(C.START, C) + (w - 1) * waveMs_(C); }
 function waveMs_(C) { return Math.max(15, Number(C.WAVE_MINUTES) || 60) * 60000; }
 function currentWave_(C, t) { const s = when_(C.START, C); return t < s ? 0 : Math.floor((t - s) / waveMs_(C)) + 1; }
@@ -502,7 +527,7 @@ function detect_(T, C) {
     const ra = Number(aAway ? g.away_runs : g.home_runs), rb = Number(aAway ? g.home_runs : g.away_runs);
     const airs = Date.parse(g.finished_at) + Math.max(0, Number(C.POST_DELAY_MINUTES) || 0) * 60000;
     m.pend = { gid: String(g.game_id), ra, rb, airs };
-    m.used = used.concat(String(g.game_id));
+    m.used = (m.used || []).concat(String(g.game_id));   // this match's own games (the global list is built fresh each time)
     log_('system', 'Game found', m.id + ' game ' + g.game_id);
     post_('📡 **Game found** for ' + esc_(m.label) + ': ' + esc_(plainName_(E, a)) + ' vs ' + esc_(plainName_(E, b)) + ' · game `' + g.game_id + '`. The result posts ' + ts_(airs) + ', once it has aired. (No score here: no spoilers.)\n📺 Watch it live: <' + watchUrl_(g.game_id) + '>');
     changed = true;
@@ -691,11 +716,12 @@ function setup() {
   ScriptApp.getProjectTriggers().forEach((t) => { if (['onTourneyFormSubmit', 'tick'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('onTourneyFormSubmit').forForm(form).onFormSubmit().create();
   ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();
+  wake_();
   log_('organizer', 'Setup', 'Form ' + form.getId());
   snapshot_();
   try { SpreadsheetApp.getUi().alert('Set up ✅\n\nSign-up form: ' + form.getPublishedUrl() + '\n\nNext: paste your Discord webhook into Config, then Deploy → New deployment → Web app for the live bracket.'); } catch (e) { }
 }
-function adminCheckNow() { withUi_(() => { tick(); const T = stateGet_(); return T ? 'Checked. Wave ' + (T.wave || 0) + (T.done ? ' · finished' : '') + '. See the Matches tab.' : 'Checked. No bracket yet: it\'s drawn when sign-ups close.'; }); }
+function adminCheckNow() { withUi_(() => { wake_(); tick(); const T = stateGet_(); return T ? 'Checked. Wave ' + (T.wave || 0) + (T.done ? ' · finished' : '') + '. See the Matches tab.' : 'Checked. No bracket yet: it\'s drawn when sign-ups close.'; }); }
 function adminDrawNow() { withUi_((ui) => { if (stateGet_()) return 'The bracket is already drawn.'; if (ui.alert('Close sign-ups and draw the bracket now?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return ''; drawBracket_(); snapshot_(); return stateGet_() ? 'Bracket drawn and posted.' : 'Not enough clubs yet.'; }); }
 function adminPostBracket() { withUi_(() => { const T = stateGet_(); if (!T) return 'No bracket yet.'; post_(bracketText_(T)); return 'Posted.'; }); }
 function bracketText_(T) {
@@ -724,7 +750,7 @@ function adminSettle() {
     m.flag = false; finish_(T, m, w, p, 'organizer');
     post_(resultText_(T, m, E, cfg_(), '🧑‍⚖️ Settled by the organizer.'));
     if (champion_(T) && !T.done) crown_(T, cfg_());
-    stateSet_(T); snapshot_(T); return 'Settled ' + m.id + '.';
+    stateSet_(T); snapshot_(T); wake_(); return 'Settled ' + m.id + '.';
   });
 }
 function adminUndo() {
@@ -738,7 +764,7 @@ function adminUndo() {
     const clear = (id) => { T.matches.forEach((x) => { if ((x.a.from === id || x.b.from === id || x.resetOf === id) && (x.winner || x.openAt || x.void || x.pend)) { clear(x.id); } if (x.a.from === id || x.b.from === id || x.resetOf === id) { delete x.winner; delete x.loser; delete x.score; delete x.gid; delete x.how; delete x.bye; delete x.void; delete x.pend; delete x.openAt; delete x.deadline; delete x.flag; } }); };
     clear(m.id); delete m.winner; delete m.loser; delete m.score; delete m.gid; delete m.how; m.pend = null; m.flag = false; delete T.done;
     m.deadline = Math.max(m.deadline || 0, Date.now() + waveMs_(cfg_()));
-    settle_(T); stateSet_(T); snapshot_(T);
+    settle_(T); stateSet_(T); snapshot_(T); wake_();
     post_('↩️ The organizer reopened **' + esc_(m.label) + '**.' + linksLine_(cfg_()));
     return 'Reopened ' + m.id + '.';
   });
@@ -750,7 +776,7 @@ function adminResetBracket() {
     stateSet_(null); PropertiesService.getScriptProperties().deleteProperty('TOO_FEW_POSTED');
     try { const C = cfg_(); if (norm_(C.FORM_ID)) FormApp.openById(norm_(C.FORM_ID)).setAcceptingResponses(true); } catch (e) { }
     const sh = sheet_(SHEETS.MATCHES); if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).clearContent();
-    snapshot_(null); log_('organizer', 'Reset', 'bracket cleared');
+    snapshot_(null); wake_(); log_('organizer', 'Reset', 'bracket cleared');
     return 'Cleared. The bracket is drawn again when sign-ups close (or with "Draw the bracket now").';
   });
 }
