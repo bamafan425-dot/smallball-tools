@@ -12,6 +12,7 @@ with Discord webhooks and a live Hill Board web page. **Join:** https://discord.
 - 📡 Games are found from SmallBall's public game list and results post only after they air (no spoilers).
 - 🏆 Daily Brawl points by ladder spot go toward **The Bench Clearer Cup**, plus season awards.
 - 🎰 A play-money sportsbook (Brawl Bucks) with matchup lines and Ace futures.
+- 🛒 Brawl Bucks items: 🥊 Brass Knuckles (+1 run on the next charge against you), 🧽 Margin Eraser (any win will do), 🪜 Ladder Jump (charge one spot past your reach). The Ace pays 2×. Every Hill game pays Brawl Bucks too. Turn it on from the menu: **🛒 Add the Brawl Bucks items shop to the form**.
 
 Rules images: [1](art/HoldTheHill-rules-1.png) · [2](art/HoldTheHill-rules-2.png) · [3](art/HoldTheHill-rules-3.png) · [4](art/HoldTheHill-rules-4.png)
 

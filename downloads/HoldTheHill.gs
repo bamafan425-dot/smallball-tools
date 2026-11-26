@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -42,6 +42,7 @@ const SHEETS = {
   BETS: 'Bets',
   WAGERS: 'Wagers',
   LEDGER: 'Ledger',
+  ITEMS: 'Items',
   LOG: 'Log',
 };
 
@@ -61,6 +62,7 @@ const HEADERS = {
   Wagers: ['WagerID', 'Season', 'Offered', 'Status', 'Maker', 'MakerName', 'MakerClubID', 'Taker', 'TakerName', 'TakerClubID', 'Terms', 'Line',
     'MakerStake', 'TakerStake', 'Expires', 'AcceptedAt', 'Deadline', 'GameID', 'MakerRuns', 'TakerRuns', 'AirsAt', 'Winner', 'Settled', 'Notes'],
   Ledger: ['Date', 'Season', 'Email', 'Player', 'Amount', 'Reason'],
+  Items: ['Date', 'Season', 'Email', 'Player', 'Item', 'Action', 'Price', 'ChallengeID', 'Notes'],
   Log: ['Time', 'Actor', 'Action', 'Details'],
 };
 
@@ -99,6 +101,11 @@ const DEFAULTS = {
   WAGER_MAX: [250, 'Most Brawl Bucks either side can put on one head-to-head wager'],
   WAGER_OFFER_HOURS: [24, 'Hours a wager offer stays open for the other player to accept'],
   WAGER_PLAY_HOURS: [48, 'Hours after a wager is accepted to play the game that settles it (else everyone is refunded)'],
+  ITEMS_ON: ['FALSE', 'Brawl Bucks items shop on (TRUE/FALSE). Needs the sportsbook on. The 🛒 menu item turns it on'],
+  ITEM_PRICES: ['knuckles:300,eraser:250,jump:200', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump'],
+  ITEM_ACE_X: [2, 'The Ace pays this many times the price for an item'],
+  ITEM_COOLDOWN_HOURS: [24, 'Hours between items for each player'],
+  PLAY_BUCKS: ['played:10,win:50', 'Brawl Bucks for playing a Hill game: both clubs get played, the winner also gets win'],
   WAGER_KINDS: ['big', 'Game types that can settle a wager, comma separated: big, pro, exhibition'],
   PRIZES: ['SmallBall Tickets and pictures of dogs', 'Shown on the board and in the awards post'],
   CHALLENGE_REACH: [3, 'How many spots above you that you can challenge'],
@@ -139,6 +146,7 @@ const ACTIONS = {
   REACH: '🔎 Who can I charge? (your list posts in #hill-help)',
   WAGER: '🤝 Wager an opponent (head-to-head Brawl Bucks)',
   WAGER_REPLY: '🤝 Answer a wager (accept, decline or cancel)',
+  SHOP: '🛒 Brawl Bucks shop (buy an item)',
 };
 
 const Q = {
@@ -165,6 +173,8 @@ const Q = {
   W_RUNS: 'Runs (only for a run-line bet)',
   W_ID: 'Wager # (from the Discord post, like W-0003)',
   W_REPLY: 'Your answer',
+  ITEM: 'Item to buy',
+  USE_ITEM: 'Use an item on this charge?',
 };
 
 const ACE_CHOICE = '♠ THE ACE (charge the mound: title shot, #1 contender, or lower when the mound is open)';
@@ -784,6 +794,7 @@ function actionOf_(raw) {
   const l = v.toLowerCase();
   if (/discord id|tagged|my id/.test(l)) return ACTIONS.DISCORD_ID;
   if (/who can i|in reach|reach/.test(l)) return ACTIONS.REACH;
+  if (/\bshop\b|buy an item/.test(l)) return ACTIONS.SHOP;
   if (/answer a wager|accept|decline/.test(l)) return ACTIONS.WAGER_REPLY;
   if (/wager|head-to-head/.test(l)) return ACTIONS.WAGER;
   if (/revenge/.test(l)) return ACTIONS.REVENGE;
@@ -847,6 +858,7 @@ function handleSubmission_(sub) {
       case ACTIONS.REACH: doReach_(sub, C); break;
       case ACTIONS.WAGER: doWager_(sub, C); break;
       case ACTIONS.WAGER_REPLY: doWagerReply_(sub, C); break;
+      case ACTIONS.SHOP: doShop_(sub, C); break;
       default: fail_('Unknown action.');
     }
   } catch (err) {
@@ -969,7 +981,8 @@ function doChallenge_(sub, C) {
   if (revengeOpen && lc_(me.Email) === exAce) fail_("You have the Ace's Revenge pending. Declare it, or wait for the window to close, before issuing ladder challenges.");
 
   const choice = norm_(sub.f[Q.OPPONENT]);
-  let type, opp, need = 1;
+  const pick = itemKeyOf_(sub.f[Q.USE_ITEM]);
+  let type, opp, need = 1, gap = 0;
   if (choice === ACE_CHOICE) {
     if (!ace) fail_('There is no Ace right now. The commish will crown one.');
     const openTo = moundOpenTo_(C);
@@ -983,9 +996,10 @@ function doChallenge_(sub, C) {
     if (opp === me) fail_("You can't challenge yourself.");
     if (opp === ace) fail_('To challenge the Ace, choose the ♠ THE ACE option.');
     if (revengeOpen && lc_(opp.Email) === exAce) fail_("The dethroned Ace can't be challenged while their Ace's Revenge window is open.");
-    const gap = Number(me.Rank) - Number(opp.Rank);
+    gap = Number(me.Rank) - Number(opp.Rank);
     if (gap < 1) fail_('You can only challenge players ranked above you (you are #' + me.Rank + ', they are #' + opp.Rank + ').');
-    if (gap > C.CHALLENGE_REACH) fail_('You can challenge up to ' + C.CHALLENGE_REACH + ' spots above you (you are #' + me.Rank + ', they are #' + opp.Rank + ').');
+    const jumping = pick === 'jump' && itemsOn_(C) && gap === Number(C.CHALLENGE_REACH) + 1;
+    if (gap > C.CHALLENGE_REACH && !jumping) fail_((gap === Number(C.CHALLENGE_REACH) + 1 && itemsOn_(C) ? '🪜 A Ladder Jump gets you one spot further. ' : '') + 'You can challenge up to ' + C.CHALLENGE_REACH + ' spots above you (you are #' + me.Rank + ', they are #' + opp.Rank + ').');
     type = 'Ladder';
     need = needFor_(gap);
   }
@@ -998,21 +1012,25 @@ function doChallenge_(sub, C) {
   try { ms = starsOf_(me); os = starsOf_(opp); } catch (e) { }
   const starGap = ms != null && os != null ? Math.max(0, os - ms) : 0, fullNeed = need;
   if (type === 'Ladder' && starGap) need = Math.max(1, need - starGap);
+  const needBefore = need, IT = chargeItems_(C, me, opp, type, gap, need, pick);   // 🛒 Brawl Bucks items (may buy on the spot)
+  need = IT.need;
   const deadline = hoursFrom_(now_(), C.MATCH_HOURS);
-  const note = [need > 1 ? 'Must win by ' + need + '+' : '', ms != null && os != null ? 'Stars ' + ms + 'v' + os : ''].filter(Boolean).join(' · ');
+  const note = [need > 1 ? 'Must win by ' + need + '+' : '', ms != null && os != null ? 'Stars ' + ms + 'v' + os : '', IT.notes.length ? 'Items ' + IT.notes.join(' ') : ''].filter(Boolean).join(' · ');
   const c = newChallenge_(ct, type, 'Accepted', me, opp, deadline, note);
-  log_(sub.email, 'Challenge', c.ID + ' ' + type + ': ' + me.Discord + ' → ' + opp.Discord);
+  useItems_(C, IT.used, c.ID);
+  const itemTxt = IT.post.length ? '\n' + IT.post.join('\n') + (need !== needBefore || IT.notes.length ? ' ' + esc_(me.Discord) + ' needs ' + (need > 1 ? '**' + need + '+ runs**' : '**any win**') + '.' : '') : '';
+  log_(sub.email, 'Challenge', c.ID + ' ' + type + ': ' + me.Discord + ' → ' + opp.Discord + (IT.notes.length ? ' (items ' + IT.notes.join(' ') + ')' : ''));
   const lineTxt = openLine_(c, me, opp, C);
   try { if (bookOn_(C)) { const Lc = readTable_(SHEETS.LINES).rows.filter(function (x) { return x.ChallengeID === c.ID; })[0]; betsClosedPost_(c, me, opp, Lc); } } catch (e) { }
   try { potTick_(true); } catch (e) { }
   if (type === 'Title') {
     post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
-      ' holds it.' + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
+      ' holds it.' + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   } else {
     post_('🥊 ' + who_(me) + ' (#' + me.Rank + ') charges the hill at ' + who_(opp) + ' (#' + opp.Rank + ')! Benches clear. ' +
       (ms != null && os != null ? '(' + starTag_(ms) + ' vs ' + starTag_(os) + ') ' : '') +
       (starGap && fullNeed > need ? '🗡️ Giant Killer rule: down ' + starGap + '★, so ' + esc_(me.Discord) + ' needs ' + (need > 1 ? 'only **' + need + '+ runs**' : '**any win**') + ' instead of ' + fullNeed + '+. ' :
-        need > 1 ? 'Reaching ' + (Number(me.Rank) - Number(opp.Rank)) + ' spots up, ' + esc_(me.Discord) + ' must win by **' + need + '+ runs** to climb. ' : '') +
+        needBefore > 1 ? 'Reaching ' + (Number(me.Rank) - Number(opp.Rank)) + ' spots up, ' + esc_(me.Discord) + ' must win by **' + needBefore + '+ runs** to climb. ' : '') + itemTxt +
       '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   }
 }
@@ -1147,7 +1165,14 @@ function finalize_(ct, c, cr, dr, source) {
     const rt = readTable_(SHEETS.REIGNS);
     const reign = currentReign_(rt);
     if (!reign) fail_('No active reign on file. The commish should crown the Ace again.');
-    if (!chWins) {
+    const tNeed = needOf_(c);
+    if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small changes nothing
+      dropOne_(lad, ch);
+      setLadder_(lad);
+      outcome = 'Won by ' + margin + ', needed ' + tNeed + '+: the Ace holds';
+      headline = '🥊 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + ' but needed to win by **' + tNeed + '+** through the Brass Knuckles. ' +
+        '♠️ ' + who_(df) + ' keeps the hill. Nobody moves, no points.';
+    } else if (!chWins) {
       const n = num_(reign.Defenses) + 1;
       points = reward_(n, C);
       const before = num_(reign.ReignPts);
@@ -1232,6 +1257,7 @@ function finalize_(ct, c, cr, dr, source) {
   const bk = bookSettle_(c, forfeit ? 0 : cr, forfeit ? 0 : dr, forfeit);
   if (bk) extra.push(bk);
   try { const pk = potSettle_(c, cr, dr, forfeit); if (pk) extra.push(pk); } catch (e) { log_('system', 'Matchup settle error', String(e)); }
+  if (!forfeit) { try { const pb = payPlay_(C, c, W, L, false); if (pb) extra.push(pb); } catch (e) { log_('system', 'Play bucks error', String(e)); } }
   try { payoutPost_(c, cr, dr, forfeit); } catch (e) { }
   postResult_(c, headline + (extra.length ? '\n' + extra.join('\n') : ''));
 }
@@ -1265,8 +1291,9 @@ function tie_(ct, c, runs, source, C, pt, ch, df) {
     : '🤝 ' + who_(df) + ' and ' + who_(ch) + ' tie ' + score + '. **The Ace holds the hill** (a tie earns no defense points).';
   const bk = bookSettle_(c, runs, runs, false);
   let pk = ''; try { pk = potSettle_(c, runs, runs, false); } catch (e) { }
+  let pb = ''; try { pb = payPlay_(C, c, df, ch, true); } catch (e) { }
   try { payoutPost_(c, runs, runs, false); } catch (e) { }
-  postResult_(c, head + (bk ? '\n' + bk : '') + (pk ? '\n' + pk : ''));
+  postResult_(c, head + (bk ? '\n' + bk : '') + (pk ? '\n' + pk : '') + (pb ? '\n' + pb : ''));
 }
 
 // Results wait until the game has aired (POST_DELAY_MINUTES after the first report), then post with the
@@ -1365,6 +1392,7 @@ function voidChallenge_(ct, c, why) {
   const bk = bookSettle_(c, 0, 0, true);
   if (bk) why += ' ' + bk;
   try { const pk = potSettle_(c, 0, 0, true); if (pk) why += ' ' + pk; } catch (e) { }
+  const ib = refundItems_(cfg_(), c); if (ib) why += ' ' + ib;
   c.Status = 'Void';
   c.Notes = (c.Notes ? c.Notes + ' · ' : '') + why;
   writeRow_(ct, c);
@@ -1375,6 +1403,188 @@ function voidChallenge_(ct, c, why) {
   } else {
     post_('🕳️ Challenge ' + esc_(c.ChallengerName) + ' vs ' + esc_(c.DefenderName) + ' is void: ' + why + '.');
   }
+}
+
+// ───────────────────────────── 🛒 Brawl Bucks items ─────────────────────────────
+// Buy an item from the shop (the Hill form) and hold it until you need it. Prices are set when you buy:
+// the Ace pays more (ITEM_ACE_X), so suiting up on the way up is the smart play.
+//   🥊 Brass Knuckles (defense): used by itself on the next charge against you. The challenger needs 1 more run
+//      (a title charge needs a 2-run win).
+//   🧽 Margin Eraser (offense): pick it on the charge form. Win your charge by any amount. It cancels Brass Knuckles.
+//   🪜 Ladder Jump (offense): pick it on the charge form. Charge one spot further than the normal reach.
+// One item per side per charge; each player can use one item every ITEM_COOLDOWN_HOURS. Items used on a charge that
+// gets voided come back. Purchases and items in play are public: they post in Discord and show on the Hill Board.
+// Every Hill game also pays Brawl Bucks (PLAY_BUCKS), so you don't have to bet to afford items.
+const ITEMS = {
+  knuckles: { icon: '🥊', name: 'Brass Knuckles', kind: 'defense', what: 'On the next charge against you, the challenger needs 1 more run (a title charge needs a 2-run win)' },
+  eraser: { icon: '🧽', name: 'Margin Eraser', kind: 'offense', what: 'Win your charge by any amount. Cancels Brass Knuckles' },
+  jump: { icon: '🪜', name: 'Ladder Jump', kind: 'offense', what: 'Charge one spot further than the normal reach' },
+};
+const itemLabel_ = (k) => ITEMS[k].icon + ' ' + ITEMS[k].name;
+function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && bookOn_(C); }
+function itemPrices_(C) {
+  const out = { knuckles: 300, eraser: 250, jump: 200 };
+  norm_(C.ITEM_PRICES).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
+  return out;
+}
+const aceX_ = (C) => Math.max(1, Number(C.ITEM_ACE_X) || 2);
+function priceFor_(C, key, isAce) { return Math.round(itemPrices_(C)[key] * (isAce ? aceX_(C) : 1)); }
+function itemKeyOf_(txt) { const l = lc_(txt); return /knuckle/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump/.test(l) ? 'jump' : ''; }
+// What each player holds this season: bought - used + refunded.
+function inventory_(C) {
+  const season = String(C.SEASON), inv = {};
+  try {
+    readTable_(SHEETS.ITEMS).rows.forEach(function (x) {
+      if (String(x.Season) !== season) return;
+      const e = lc_(x.Email), k = norm_(x.Item); if (!ITEMS[k]) return;
+      inv[e] = inv[e] || { knuckles: 0, eraser: 0, jump: 0 };
+      inv[e][k] += x.Action === 'Bought' || x.Action === 'Refunded' ? 1 : x.Action === 'Used' ? -1 : 0;
+    });
+  } catch (e) { }
+  return inv;
+}
+const holds_ = (inv, email, key) => ((inv[lc_(email)] || {})[key] || 0);
+// When this player last used an item (refunded uses don't count).
+function lastItemUse_(C, email) {
+  const season = String(C.SEASON), refunded = {}; let last = 0;
+  const rows = readTable_(SHEETS.ITEMS).rows.filter(function (x) { return String(x.Season) === season && lc_(x.Email) === lc_(email); });
+  rows.forEach(function (x) { if (x.Action === 'Refunded') refunded[x.ChallengeID + ':' + x.Item] = true; });
+  rows.forEach(function (x) { if (x.Action === 'Used' && !refunded[x.ChallengeID + ':' + x.Item]) last = Math.max(last, new Date(x.Date).getTime()); });
+  return last;
+}
+function itemCooling_(C, email) {
+  const h = Number(C.ITEM_COOLDOWN_HOURS) || 24, last = lastItemUse_(C, email);
+  return last && now_().getTime() - last < h * 3600e3 ? new Date(last + h * 3600e3) : null;
+}
+function itemRow_(C, p, key, action, price, cid, note) {
+  appendObj_(SHEETS.ITEMS, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: p.Discord, Item: key, Action: action, Price: price || '', ChallengeID: cid || '', Notes: note || '' });
+}
+function ledger_(C, p, amount, reason) {
+  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: p.Discord, Amount: amount, Reason: reason });
+}
+// Buy one item (from the shop, or on the spot when charging with an item you don't hold yet).
+function buyItem_(C, p, key, isAce) {
+  const price = priceFor_(C, key, isAce), bank = bankOf_(bankrolls_(C), p.Email);
+  if (bank < price) fail_(itemLabel_(key) + ' costs ' + price + ' BB' + (isAce ? ' for the Ace' : '') + ' and you have ' + bank + ' BB.');
+  ledger_(C, p, -price, 'Bought ' + itemLabel_(key) + (isAce ? ' (Ace price)' : ''));
+  itemRow_(C, p, key, 'Bought', price, '', isAce ? 'Ace price' : '');
+  return price;
+}
+function doShop_(sub, C) {
+  if (!itemsOn_(C)) fail_('The Brawl Bucks shop is closed right now.');
+  const pt = players_(), me = activeMe_(pt, sub.email), key = itemKeyOf_(sub.f[Q.ITEM]);
+  if (!key) fail_('Pick an item to buy.');
+  const ace = ace_(pt), isAce = ace === me;
+  const price = buyItem_(C, me, key, isAce), inv = inventory_(C), n = holds_(inv, me.Email, key);
+  log_(sub.email, 'Item bought', key + ' for ' + price);
+  postBook_('🛒 ' + who_(me) + ' buys ' + itemLabel_(key) + ' for **' + price + ' BB**' + (isAce ? ' (Ace price)' : '') + '. Holding ' + n + '.' +
+    (key === 'knuckles' ? '\n-# 🥊 Brass Knuckles go on by themselves at the next charge against them: the challenger needs 1 more run.' : '\n-# They pick it on the charge form when they charge.'));
+}
+// At charge time: work out which items are in play and what the challenger needs. Throws for a bad pick.
+// Returns { need, notes: [...], used: [[player, key, bought]], post: '...' }.
+function chargeItems_(C, me, opp, type, gap, need, pick) {
+  const out = { need: need, notes: [], used: [], post: [] };
+  if (!itemsOn_(C)) { if (pick) fail_('Items are switched off right now: charge without one.'); return out; }
+  const inv = inventory_(C);
+  if (pick === 'knuckles') fail_('Brass Knuckles are for defense: they go on by themselves when someone charges you.');
+  if (pick === 'jump' && type !== 'Ladder') fail_('The Ladder Jump is for ladder charges, not the mound.');
+  if (pick === 'jump' && gap !== Number(C.CHALLENGE_REACH) + 1) fail_('The Ladder Jump is for charging exactly ' + (Number(C.CHALLENGE_REACH) + 1) + ' spots up. This charge is in reach without it.');
+  // The defender's Brass Knuckles (one per charge, if they're not cooling down)
+  let knuckles = false;
+  if (type !== 'Revenge' && holds_(inv, opp.Email, 'knuckles') > 0 && !itemCooling_(C, opp.Email)) knuckles = true;
+  if (pick === 'eraser' && !knuckles && need <= 1) fail_('The Margin Eraser would do nothing here: you only need to win this one. Save it.');
+  if (pick) {
+    const cool = itemCooling_(C, me.Email);
+    if (cool) fail_('You used an item in the last ' + (Number(C.ITEM_COOLDOWN_HOURS) || 24) + ' hours. Your next one is ready ' + cool.toUTCString() + '.');
+    let bought = false;
+    if (holds_(inv, me.Email, pick) < 1) { buyItem_(C, me, pick, false); bought = true; }
+    out.used.push([me, pick, bought]);
+  }
+  if (knuckles) { out.used.push([opp, 'knuckles', false]); out.need += 1; out.notes.push('🥊 ' + opp.Discord); out.post.push('🥊 ' + tag_(opp) + ' is wearing **Brass Knuckles**: +1 run.'); }
+  if (pick === 'eraser') { out.need = 1; out.notes.push('🧽 ' + me.Discord); out.post.push('🧽 ' + esc_(me.Discord) + ' swings the **Margin Eraser**: ' + (knuckles ? 'the Brass Knuckles are knocked off, and ' : '') + 'any win will do.'); }
+  if (pick === 'jump') { out.notes.push('🪜 ' + me.Discord); out.post.push('🪜 ' + esc_(me.Discord) + ' uses a **Ladder Jump** to reach ' + gap + ' spots up.'); }
+  return out;
+}
+function useItems_(C, used, cid) { used.forEach(function (u) { itemRow_(C, u[0], u[1], 'Used', '', cid, u[2] ? 'Bought on the spot' : ''); }); }
+// A voided charge gives its items back.
+function refundItems_(C, c) {
+  try {
+    const pt = players_(), rows = readTable_(SHEETS.ITEMS).rows.filter(function (x) { return x.ChallengeID === c.ID; });
+    const back = rows.filter(function (x) { return x.Action === 'Used' && !rows.some(function (y) { return y.Action === 'Refunded' && y.Item === x.Item && lc_(y.Email) === lc_(x.Email); }); });
+    back.forEach(function (x) { const p = findBy_(pt, x.Email); if (p) itemRow_(C, p, x.Item, 'Refunded', '', c.ID, 'Charge voided'); });
+    return back.length ? '🛒 Items used on it go back to their owners.' : '';
+  } catch (e) { return ''; }
+}
+// Brawl Bucks for playing: every Hill game pays both clubs, the winner gets more.
+function playBucks_(C) {
+  const out = { played: 10, win: 50 };
+  norm_(C.PLAY_BUCKS).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
+  return out;
+}
+function payPlay_(C, c, W, L, tie) {
+  if (!bookOn_(C)) return '';
+  const pb = playBucks_(C);
+  if (!pb.played && !pb.win) return '';
+  if (tie) { ledger_(C, W, pb.played, 'Played ' + c.ID); ledger_(C, L, pb.played, 'Played ' + c.ID); return '💵 +' + pb.played + ' BB each for playing.'; }
+  ledger_(C, W, pb.played + pb.win, 'Won ' + c.ID); if (L && pb.played) ledger_(C, L, pb.played, 'Played ' + c.ID);
+  return '💵 +' + (pb.played + pb.win) + ' BB to ' + esc_(W.Discord) + (L && pb.played ? ', +' + pb.played + ' BB to ' + esc_(L.Discord) : '') + ' for playing.';
+}
+function itemBoard_(C) {
+  const pt = players_(), inv = inventory_(C), p = itemPrices_(C), holders = [];
+  pt.rows.forEach(function (x) { if (x.Status !== 'Active') return; const h = inv[lc_(x.Email)]; if (!h) return;
+    const list = Object.keys(ITEMS).filter(function (k) { return h[k] > 0; }).map(function (k) { return { k: k, n: h[k] }; });
+    if (list.length) holders.push({ name: norm_(x.Discord), club: norm_(x.Club), items: list, cool: !!itemCooling_(C, x.Email) }); });
+  return { prices: p, aceX: aceX_(C), cooldown: Number(C.ITEM_COOLDOWN_HOURS) || 24, play: playBucks_(C), items: Object.keys(ITEMS).map(function (k) { return { k: k, icon: ITEMS[k].icon, name: ITEMS[k].name, kind: ITEMS[k].kind, what: ITEMS[k].what, price: p[k] }; }), holders: holders };
+}
+const SHOP_HELP_ = function (C) {
+  const p = itemPrices_(C);
+  return 'Spend Brawl Bucks on an item and hold it until you need it. The Ace pays ' + aceX_(C) + '× the price, so stock up on the way up.\n\n' +
+    Object.keys(ITEMS).map(function (k) { return itemLabel_(k) + ' · ' + p[k] + ' BB: ' + ITEMS[k].what + '.'; }).join('\n') +
+    '\n\nOffense items: pick them on the charge form when you charge (you can buy on the spot there too). Brass Knuckles go on by themselves when someone charges you.\n' +
+    'One item per side per charge, and one item per player every ' + (Number(C.ITEM_COOLDOWN_HOURS) || 24) + ' hours. Items used on a charge that gets voided come back.';
+};
+const USE_ITEM_CHOICES_ = ['No item', '🧽 Margin Eraser (win by any amount)', '🪜 Ladder Jump (charge one spot further)'];
+function shopChoices_(C) { const p = itemPrices_(C); return Object.keys(ITEMS).map(function (k) { return itemLabel_(k) + ' · ' + p[k] + ' BB (' + ITEMS[k].kind + ')'; }); }
+// Adds the 🛒 shop section and the "use an item" question on the charge section. Safe to run again (it updates prices).
+function ensureItemsForm_(form) {
+  const C = cfg_();
+  let pS = form.getItems(FormApp.ItemType.PAGE_BREAK).find(function (p) { return p.getTitle() === ACTIONS.SHOP; });
+  if (!pS) {
+    pS = form.addPageBreakItem().setTitle(ACTIONS.SHOP);
+    pS.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+    form.addMultipleChoiceItem().setTitle(Q.ITEM).setChoiceValues(shopChoices_(C)).setRequired(true);
+  }
+  pS = pS.asPageBreakItem ? pS.asPageBreakItem() : pS; pS.setHelpText(SHOP_HELP_(C));
+  const shopQ = form.getItems(FormApp.ItemType.MULTIPLE_CHOICE).find(function (i) { return i.getTitle() === Q.ITEM; });
+  if (shopQ) shopQ.asMultipleChoiceItem().setChoiceValues(shopChoices_(C));
+  // The charge section: "Use an item?" right after the opponent question.
+  const all = form.getItems(), opp = all.find(function (i) { return i.getTitle() === Q.OPPONENT; });
+  if (opp && !all.some(function (i) { return i.getTitle() === Q.USE_ITEM; })) {
+    const it = form.addMultipleChoiceItem().setTitle(Q.USE_ITEM).setChoiceValues(USE_ITEM_CHOICES_).setRequired(false)
+      .setHelpText('Optional. Use one you bought in the 🛒 shop, or buy it right here (Margin Eraser ' + itemPrices_(C).eraser + ' BB, Ladder Jump ' + itemPrices_(C).jump + ' BB). Brass Knuckles are defense and go on by themselves.');
+    form.moveItem(it.getIndex(), opp.getIndex() + 1);
+  }
+  const action = form.getItems(FormApp.ItemType.MULTIPLE_CHOICE).find(function (i) { return i.getTitle() === Q.ACTION; });
+  if (!action) return;
+  const mc = action.asMultipleChoiceItem(), old = mc.getChoices();
+  if (old.some(function (ch) { return ch.getValue() === ACTIONS.SHOP; })) return;
+  const choices = old.map(function (ch) {
+    const pg = ch.getGotoPage(); if (pg) return mc.createChoice(ch.getValue(), pg);
+    const nav = ch.getPageNavigationType(); return mc.createChoice(ch.getValue(), nav || FormApp.PageNavigationType.CONTINUE);
+  });
+  choices.push(mc.createChoice(ACTIONS.SHOP, pS));
+  mc.setChoices(choices);
+}
+function adminAddItems() {
+  withUi_(function () {
+    ensureSheets_(SpreadsheetApp.getActive());
+    const C = cfg_();
+    if (!/^true$/i.test(norm_(C.ITEMS_ON))) setCfg_('ITEMS_ON', 'TRUE');
+    const form = FormApp.openById(cfg_().FORM_ID);
+    ensureItemsForm_(form);
+    ensureTidyForm_(form);
+    return 'The 🛒 Brawl Bucks shop is on the form, and the charge section asks "' + Q.USE_ITEM + '". Prices are in Config (ITEM_PRICES, ITEM_ACE_X); the Items and Ledger tabs hold the records. Re-run this after changing prices.';
+  });
 }
 
 // ───────────────────────────── Hourly deadline check ─────────────────────────────
@@ -1579,6 +1789,7 @@ function onOpen() {
     .addItem('Refresh form opponent list', 'refreshFormChoices')
     .addItem('🔎 Add "Who can I charge?" to the form', 'adminAddReach')
     .addItem('🤝 Add head-to-head wagers to the form', 'adminAddWagers')
+    .addItem('🛒 Add the Brawl Bucks items shop to the form', 'adminAddItems')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub Hill Board', 'adminConnectGithub')
     .addToUi();
@@ -2595,10 +2806,11 @@ function ensureWagerForm_(form) {
 
 // The order and look of the first question on the form. Tidy-up renames the old choices and their sections to
 // these labels, keeps every choice pointing at its own section, and puts 🥊 Charge the Hill first.
-const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'REGISTER', 'DISCORD_ID'];
+const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'SHOP', 'REGISTER', 'DISCORD_ID'];
 const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
   'Only #1 can charge ♠ THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound.\n\n' +
   'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
+const CHARGE_ITEMS_HELP = '\n\n🛒 Items (optional, Brawl Bucks): 🧽 Margin Eraser = any win will do. 🪜 Ladder Jump = charge one spot past your reach (win by 5+). If the player you charge wears 🥊 Brass Knuckles, you need 1 more run (2+ against the Ace), unless you swing the Eraser.';
 function ensureTidyForm_(form) {
   const items = form.getItems();
   const action = items.find(function (i) { return i.getTitle() === Q.ACTION && i.getType() === FormApp.ItemType.MULTIPLE_CHOICE; });
@@ -2607,7 +2819,7 @@ function ensureTidyForm_(form) {
   form.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function (it) {
     const pb = it.asPageBreakItem(), canon = actionOf_(pb.getTitle());
     if (Object.keys(ACTIONS).some(function (k) { return ACTIONS[k] === canon; }) && pb.getTitle() !== canon) pb.setTitle(canon);
-    if (canon === ACTIONS.CHALLENGE) pb.setHelpText(CHARGE_HELP);
+    if (canon === ACTIONS.CHALLENGE) pb.setHelpText(CHARGE_HELP + (itemsOn_(cfg_()) ? CHARGE_ITEMS_HELP : ''));
   });
   const mc = action.asMultipleChoiceItem(), old = mc.getChoices(), byCanon = {}, extra = [];
   old.forEach(function (ch) {
@@ -3101,6 +3313,7 @@ function snapshotBoard_() {
         snap.cup = aw.cupTable.map(function (x) { return { name: x.name, club: x.club, pts: x.pts }; });
         snap.bank = (aw.bookTable || []).map(function (x) { return { name: x.name, bank: x.bank }; });
         snap.wagers = wagerOn_(C) ? wagerBoard_(C) : null;
+        try { snap.items = itemsOn_(C) ? itemBoard_(C) : null; } catch (e) { snap.items = null; }
         if (bookOn_(C)) { snap.book = bookBoard_(C); const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
@@ -3377,6 +3590,8 @@ var WG=D.wagers;
 if(WG){var wrow=function(x,st){return '<div class="r" style="grid-template-columns:62px minmax(0,1fr) auto"><span class="bb" style="opacity:.6;font-size:15px">'+esc(x.id)+'</span><span class="bb">'+esc(x.m)+' <small style="display:inline;opacity:.6">vs</small> '+esc(x.t)+'<small>'+esc(x.terms)+' · '+x.ms+(x.ts!==x.ms?' vs '+x.ts+' BB':' BB each')+'</small></span><b style="text-align:right">'+st+'</b></div>';};
 h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.max||250)+' BB a side, straight up, odds or a run line. They accept on the Hill form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.</b></div>'
 +(WG.live.length||WG.open.length||WG.done.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join('')+WG.done.map(function(x){return wrow(x,x.win?'💸 '+esc(x.win)+' +'+x.amt:'↩️ Refunded');}).join(''):'<div class="empty">No wagers yet. Call somebody out on the Hill form.</div>')+'</div>';}
+var IT=D.items;
+if(IT){h+='<div class="fut cup"><h3 class="bb">🛒 Brawl Bucks shop</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Buy on the Hill form and hold it until you need it. The Ace pays '+IT.aceX+'× the price. One item per side per charge, one item per player every '+IT.cooldown+' hours. Every Hill game pays +'+IT.play.played+' BB, and the winner gets +'+IT.play.win+' more.</div>'+IT.items.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+x.icon+' '+esc(x.name)+' <small style="display:inline;opacity:.6">'+esc(x.kind)+'</small><small>'+esc(x.what)+'</small></span><b style="color:#ffd166">'+x.price+' BB</b></div>';}).join('')+'<h3 class="bb" style="margin-top:10px">🎒 Who is holding</h3>'+(IT.holders.length?IT.holders.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+esc(x.name)+(x.club?'<small>'+esc(x.club)+'</small>':'')+'</span><span>'+x.items.map(function(i){var m=IT.items.filter(function(y){return y.k===i.k;})[0];return (m?m.icon:'')+(i.n>1?'×'+i.n:'');}).join(' ')+(x.cool?' <small style="display:inline;opacity:.6">⏳ cooling down</small>':'')+'</span></div>';}).join(''):'<div class="empty">Nobody is holding anything yet. 🥊 Brass Knuckles show here, so chargers know what they are walking into.</div>')+'</div>';}
 var PO=D.pot||[];
 if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.</b> ':'')+'Every charge that could happen right now. Bet on the Hill form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.</div>'
 +PO.slice(0,24).map(function(L){return '<div class="r" style="grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr) 70px"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title</small>':'')+'</span><b>'+fo(L.a)+'</b><span class="bb" style="text-align:right">@ '+esc(L.df)+'</span><b>'+fo(L.h)+'</b></div>';}).join('')+'</div>';}
