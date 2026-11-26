@@ -42,8 +42,15 @@ play.smallball.com page
 | Brock Callahan (guest) | `am_fenrir` (US) | 1.00 |
 | Gary Plainfield (guest) | `bm_fable` (UK) | 0.92 |
 
-Fixed per character (`KV` / `KSP` in `radio.js`), so a character always sounds the same and his clips can be
-reused. Kokoro has no pitch control, so the browser engine's per-character `pitch` doesn't apply; Mack's
+These are the defaults (`KV` / `KSP` in `radio.js`). The Mack, Dewey and Guest pickers also list all 28 English
+Kokoro voices next to the browser's voices, so engines can be mixed (say Mack on Kokoro, Dewey on a browser voice).
+*Automatic* follows the Voices switch. Kokoro loads if any picker names a Kokoro voice.
+
+Saved clips are keyed by model (q8 for the processor, fp32 for the graphics card) as well as voice, speed and text,
+so a clip made on one never replays on the other. Every generated clip is checked for garbled output (bad numbers,
+or zero crossings on about half the samples, which is what noise and crackle look like; speech is a few percent).
+On a graphics card, warm-up checks each cast voice and drops to the processor if any is garbled. A garbled line at
+run time is spoken with the browser voice instead, and after three failures Kokoro switches off. Kokoro has no pitch control, so the browser engine's per-character `pitch` doesn't apply; Mack's
 "talks faster when he's behind" is left out in Kokoro mode so his stock calls stay cacheable.
 
 ## Processing: WebGPU or WASM

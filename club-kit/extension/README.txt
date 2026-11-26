@@ -43,7 +43,8 @@ A little make-over for play.smallball.com. Everything stays in your own browser.
   it) from Hugging Face and keeps it in the browser; your browser's voices fill in until it's ready. Runs on:
   Automatic picks your graphics card (WebGPU) when it can, otherwise the processor. If your computer can't
   make the lines fast enough to keep up with the game, the booth goes back to your browser's voices and says
-  so. "Clear Kokoro downloads" removes everything it stored. Still nothing about the game is sent anywhere. It's the same booth as the Broadcast Kit's radio and shares its settings; when the Broadcast
+  so. The Mack, Dewey and Guest pickers list the Kokoro voices too, so you can mix: Kokoro for one, a
+  browser voice for another. "Clear Kokoro downloads" removes everything it stored. Still nothing about the game is sent anywhere. It's the same booth as the Broadcast Kit's radio and shares its settings; when the Broadcast
   window is open, the Broadcast Kit has the microphone. Turn the button off in ⚙ under Features.
 
 ⛰️ REPORT TO HOLD THE HILL (new in 1.24.0)

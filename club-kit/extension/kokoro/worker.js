@@ -92,6 +92,16 @@ async function init(want, voices) {
 
 // The first run compiles the graph (and the GPU shaders), so make one short line now. The cast's voice files
 // (~0.5 MB each) are fetched into the same cache kokoro-js reads them from, so the game never waits on them.
+// Garbled output (seen on some graphics cards) sounds like crackling. Speech crosses zero rarely (a few % of
+// samples, even with an "s" in it); noise or crackle crosses on about half. Bad numbers are garbled too.
+function garbled(pcm) {
+  let act = 0, flips = 0, prev = 0;
+  for (let i = 0; i < pcm.length; i++) {
+    const v = pcm[i]; if (!Number.isFinite(v) || v > 4 || v < -4) return true;
+    if (v > 0.01 || v < -0.01) { const sg = v > 0 ? 1 : -1; if (prev && sg !== prev) flips++; prev = sg; act++; }
+  }
+  return act > 200 && flips / act > 0.25;
+}
 async function warm(voices) {
   const vs = voices || [];
   let cache = null; try { cache = typeof caches !== "undefined" ? await caches.open("kokoro-voices") : null; } catch (_) {}
@@ -101,6 +111,8 @@ async function warm(voices) {
   }
   if (!vs.length) return;
   await tts.generate("Play ball.", { voice: vs[0], speed: 1 });            // compiles; slow the first time
+  // On a graphics card, check every voice in the cast once: a card that garbles them goes back to the CPU.
+  if (device === "webgpu") for (const v of vs) { const a = await tts.generate("Ball one.", { voice: v, speed: 1 }); if (garbled(a.audio)) throw new Error("the graphics card garbled the " + v + " voice"); }
   const t0 = performance.now(), a = await tts.generate("Ball one.", { voice: vs[0], speed: 1 });
   warmRtf = (performance.now() - t0) / Math.max(1, (a.audio.length / (a.sampling_rate || 24000)) * 1000);   // how long making a line takes, per second of speech
 }
@@ -110,6 +122,7 @@ async function speak(m) {
   const a = await tts.generate(m.text, { voice: m.voice, speed: m.speed || 1 });
   const pcm = a.audio instanceof Float32Array ? a.audio : new Float32Array(a.audio);
   const ms = performance.now() - t0;
+  if (garbled(pcm)) throw new Error("garbled audio from " + m.voice + " on " + device);
   post({ t: "audio", id: m.id, key: m.key, sr: a.sampling_rate || 24000, pcm: pcm.buffer, gen: Math.round(ms) }, [pcm.buffer]);
 }
 
