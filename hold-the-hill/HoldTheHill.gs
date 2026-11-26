@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -68,6 +68,8 @@ const DEFAULTS = {
   SEASON_START: ['2026-11-27 00:00', 'When the season opens, Mountain time (YYYY-MM-DD HH:MM). Clubs can register before this; charges and Brawl points start here.'],
   SEASON_END: ['2026-12-23 23:59', 'When the season ends, Mountain time (YYYY-MM-DD HH:MM). New charges lock then; charges already made can still be played and reported.'],
   FORM_LINK: ['https://tinyurl.com/holdthehillsb', 'Link to the Hill form, shown as a button on the Hill Board'],
+  GITHUB_REPO: ['slipnsliders/smallball-tools', 'Optional: the GitHub repo that hosts the Hill Board (owner/repo). Connect it from the Hill menu'],
+  GITHUB_PATH: ['docs/hill/board.json', 'Where the board data goes in that repo (the page sits next to it)'],
   BOARD_LINK: ['', 'Link to the live Hill Board for Discord posts (a short link is nice). Blank = the web app link, found on its own'],
   BOOK_WEBHOOK_URL: ['', 'Optional: a webhook for a #sportsbook channel. Bets and the daily odds board post there instead of the main feed'],
   BOOK_ODDS_EVERY_HOURS: [1, 'How often the odds board posts to the sportsbook channel, in hours (only when something changed)'],
@@ -794,7 +796,7 @@ function rejectPost_(sub, msg) {
     content: (ping ? ping + ' ' : '') + '❌ **REJECTED**',
     embeds: [{ color: 0xC8102E, title: '❌ ' + kind.replace(/^\S+\s/, '').toUpperCase() + " DIDN'T GO THROUGH",
       description: '**' + who.replace(/<@\d+>/, 'You').replace(/\*/g, '') + '**, the Hill turned this one away:\n\n> ' + why.replace(/\n+/g, '\n> ') +
-        '\n\n🔁 **Fix it and send the form again:** ' + norm_(C.FORM_LINK || ''),
+        '\n\n🔁 **Fix it and send the form again:** ' + (norm_(C.FORM_LINK || '') ? '[Hill form](<' + norm_(C.FORM_LINK) + '>)' : 'the Hill form'),
       footer: { text: 'Nothing was changed. Questions? #hill-help' } }] };
   try {
     const res = UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', muteHttpExceptions: true, payload: JSON.stringify(body) });
@@ -892,7 +894,7 @@ function doReach_(sub, C) {
     const mine = openFor_(ct, me.Email), list = reachList_(me, C, pt, ct);
     msg = '🔎 ' + tag_(me) + ", you're **#" + me.Rank + '** on the Climb' + (mine ? ' (and already in a fight: finish it before your next charge)' : '') + '. ' +
       (list.length ? 'In reach right now:\n' + list.map(function (x) { return '• ' + x; }).join('\n') : 'Nobody is in reach right now.') +
-      '\n🥊 Charge on the Hill form: ' + norm_(C.FORM_LINK || '') + ' · Put the club ID in SmallBall to play.';
+      '\n🥊 Charge on the ' + (norm_(C.FORM_LINK || '') ? '[Hill form](<' + norm_(C.FORM_LINK) + '>)' : 'Hill form') + ' · Put the club ID in SmallBall to play.';
   }
   log_(sub.email, 'Reach check', me.Discord + ' #' + me.Rank);
   post_(msg, 'help');
@@ -1546,6 +1548,7 @@ function onOpen() {
     .addItem('Run deadline check now', 'hourlyTick')
     .addItem('Refresh form opponent list', 'refreshFormChoices')
     .addItem('🔎 Add "Who can I charge?" to the form', 'adminAddReach')
+    .addItem('🐙 Connect the GitHub Hill Board', 'adminConnectGithub')
     .addToUi();
 }
 
@@ -2677,10 +2680,71 @@ function snapshotBoard_() {
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
     sh.getRange('A1').setValue(JSON.stringify(snap));
+    ghPush_(snap);
   } catch (e) { log_('system', 'Board snapshot error', String(e)); }
 }
 
+
+// ===================== The Hill Board on GitHub Pages =====================
+// The token lives in Script Properties (never on a tab). Each change to the board is saved as one JSON file in the
+// repo; the page next to it reads that file. Nothing is sent when the board hasn't changed.
+function ghPush_(snap, force) {
+  const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
+  if (!tok) return false;
+  const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH) || 'docs/hill/board.json';
+  const body = JSON.stringify(snap), key = JSON.stringify(Object.assign({}, snap, { updated: 0 }));
+  const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, key + repo + path, Utilities.Charset.UTF_8));
+  if (!force && pr.getProperty('GH_HASH') === hash) return true;
+  const api = 'https://api.github.com/repos/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
+  const headers = { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let sha = null;
+    const g = UrlFetchApp.fetch(api, { headers: headers, muteHttpExceptions: true });
+    if (g.getResponseCode() === 200) { try { sha = JSON.parse(g.getContentText()).sha; } catch (e) { } }
+    else if (g.getResponseCode() !== 404) { log_('system', 'GitHub read failed', g.getResponseCode() + ' ' + g.getContentText().slice(0, 200)); return false; }
+    const payload = { message: 'Hill Board update', content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
+    if (sha) payload.sha = sha;
+    const r = UrlFetchApp.fetch(api, { method: 'put', headers: headers, contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
+    const code = r.getResponseCode();
+    if (code === 200 || code === 201) { pr.setProperty('GH_HASH', hash); return true; }
+    if (code !== 409 && code !== 422) { log_('system', 'GitHub save failed', code + ' ' + r.getContentText().slice(0, 200)); return false; }
+  }
+  return false;
+}
+function ghPageUrl_(C) {
+  const repo = (norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools').split('/'), path = norm_(C.GITHUB_PATH) || 'docs/hill/board.json';
+  return 'https://' + repo[0].toLowerCase() + '.github.io/' + repo[1] + '/' + path.replace(/^docs\//, '').replace(/[^/]*$/, '');
+}
+function adminConnectGithub() {
+  const ui = SpreadsheetApp.getUi();
+  const r = ui.prompt('Connect the GitHub Hill Board',
+    'Paste a GitHub fine-grained token with "Contents: Read and write" on ' + (norm_(cfg_().GITHUB_REPO) || 'slipnsliders/smallball-tools') + ' only.\n' +
+    'It is kept in the script\'s private settings, not on any tab. Leave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  withUi_(function () {
+    const pr = PropertiesService.getScriptProperties(), tok = norm_(r.getResponseText());
+    if (!tok) { pr.deleteProperty('GITHUB_TOKEN'); pr.deleteProperty('GH_HASH'); return 'GitHub disconnected. The board stays on the Google web app.'; }
+    pr.setProperty('GITHUB_TOKEN', tok); pr.deleteProperty('GH_HASH');
+    snapshotBoard_();
+    if (!pr.getProperty('GH_HASH')) return 'GitHub didn\'t accept that token. Check it has Contents: Read and write on the repo, then try again (the Log tab has the details).';
+    const url = ghPageUrl_(cfg_());
+    setCfg_('BOARD_LINK', url);
+    return 'Connected! The Hill Board is now at ' + url + ' (give GitHub a minute the first time). Discord posts link there, and the old board link forwards there once you deploy a new version of the web app.';
+  });
+}
+
+// Once the board lives on GitHub, the old web app link (and any short link to it) forwards there.
+function redirectPage_(url) {
+  const u = String(url).replace(/"/g, '&quot;');
+  return HtmlService.createHtmlOutput('<!doctype html><html><head><meta charset="utf-8"><base target="_top">' +
+    '<style>body{margin:0;background:#0E1B33;color:#F4EBD9;font:500 17px/1.5 Oswald,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center}a{display:inline-block;margin-top:14px;background:#C8102E;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600}</style></head>' +
+    '<body><div>⛰️ The Hill Board moved to a faster home.<br><a href="' + u + '">Open the Hill Board →</a></div>' +
+    '<script>try{window.top.location.replace("' + u + '")}catch(e){}</script></body></html>')
+    .setTitle('Hold the Hill · SmallBall').addMetaTag('viewport', 'width=device-width, initial-scale=1').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
 function doGet(e) {
+  try { const bl = norm_(cfg_().BOARD_LINK); if (/github\.io/i.test(bl) && !(e && e.parameter && (e.parameter.demo || e.parameter.stay))) return redirectPage_(bl); } catch (err) { }
   let data = '{}';
   if (e && e.parameter && e.parameter.demo) data = JSON.stringify(demoBoard_());   // ?demo=1 → made-up sample data, nothing saved
   else try { const sh = SpreadsheetApp.getActive().getSheetByName(BOARD_TAB); if (sh) data = sh.getRange('A1').getValue() || '{}'; } catch (err) { data = '{}'; }
