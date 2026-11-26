@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (iPad)
 // @namespace    slipnsliders.smallball.ipad
-// @version      1.36.0
+// @version      1.36.1
 // @description  The full SmallBall Club Kit for iPad Safari: dashboard, stadium records, season games, squad views, box scores, your Hold the Hill card, tournament cards and Rotate Bench. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -3918,6 +3918,40 @@ const SBX_TABLET = true;
       (ins.length ? `<br>In: <b>${ins.map(esc).join(", ")}</b> · Out: ${outs.map(esc).join(", ")}` : c.orderOnly ? "" : "<br>Same nine men, maybe in new spots.") +
       (lines.length ? `<ul>${lines.join("")}</ul>` : "") + `<div style="opacity:.75;margin-top:4px">Bat = your mix of contact, batting skill, power and speed. Fit = glove, arm and speed for that position.</div>`;
   }
+
+  // ---------- after Save: ask SmallBall what it actually kept ----------
+  // field_pos lists the nine starters in this order (roster slots); batting_order lists positions (indexes into it).
+  const SERVER_POS = ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"];
+  async function verifySave(expect) {
+    const say = (html, ok) => {
+      const m = document.getElementById("lu-msg"); if (!m) return;
+      let x = document.getElementById("sbx-build-check");
+      if (!x) { x = document.createElement("div"); x.id = "sbx-build-check"; m.parentElement.appendChild(x); }
+      x.style.cssText = "margin-top:8px;padding:8px 12px;border-radius:10px;font:600 13px/1.4 system-ui,sans-serif;" + (ok ? "background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.5)" : "background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.55)");
+      x.innerHTML = html;
+    };
+    try {
+      const prof = await (await fetch(`/teams/${ST.team}/profile`, { credentials: "include", cache: "no-store" })).json();
+      const bySlot = new Map(prof.roster.map((p) => [Number(p.slot), p]));
+      const nm = (id) => (ST.byId.get(String(id)) || {}).name || "?";
+      const diffs = [];
+      (prof.field_pos || []).forEach((slot, k) => {
+        const have = String((bySlot.get(Number(slot)) || {}).player_id), want = expect.pos[POS.indexOf(SERVER_POS[k])];
+        if (have !== want) diffs.push(`${SERVER_POS[k]}: SmallBall has ${esc(nm(have))}, the form had ${esc(nm(want))}`);
+      });
+      const order = (prof.batting_order || []).map((k) => String((bySlot.get(Number(prof.field_pos[k])) || {}).player_id));
+      const badOrder = order.length === expect.order.length && order.some((id, i) => id !== expect.order[i]);
+      if (!diffs.length && !badOrder) say("🧩 ✓ Checked with SmallBall: it has this exact lineup and batting order.", true);
+      else say("🧩 ⚠️ SmallBall didn't keep everything:<br>" + diffs.concat(badOrder ? ["Batting order: SmallBall has " + order.map((id) => esc(nm(id))).join(", ")] : []).join("<br>") +
+        "<br><span style=\"font-weight:400;opacity:.85\">Reload the page and try again, or set it with the dropdowns. Please screenshot this for slipnsliders.</span>", false);
+    } catch (e) { say("🧩 Couldn't check with SmallBall (" + esc(e.message || e) + ").", false); }
+  }
+  document.addEventListener("click", (e) => {
+    if (!e.target || !e.target.closest || !e.target.closest("#lu-save") || !ST.prof || !ST.prof.mine) return;
+    const expect = readForm(ST.byName); if (!expect) return;
+    const old = document.getElementById("sbx-build-check"); if (old) old.remove();
+    setTimeout(() => verifySave(expect), 2000);
+  }, true);
 
   // ---------- mount ----------
   let loading = false;
