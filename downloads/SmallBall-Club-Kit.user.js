@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.35.0
+// @version      1.35.1
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -494,7 +494,8 @@ const SBX_MOBILE = true;
       .sbx-gsum .chips i.l { background: rgba(220,38,38,.18); color: #dc2626; }
       .sbx-gsum .chips i.t { background: rgba(127,127,127,.2); }
       .sbx-hide { display: none !important; }
-      .sbx-suspects { position: relative; background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(250,204,21,.13) 27px 28px), repeating-linear-gradient(180deg, transparent 0 139px, rgba(250,204,21,.32) 139px 141px); border-radius: 10px; }
+      .sbx-suspects { position: relative; }
+      .sbx-suspects::after { content: ""; position: absolute; pointer-events: none; left: 0; top: var(--sus-top, 0px); bottom: 0; width: var(--sus-w, 44px); mix-blend-mode: multiply; background-image: repeating-linear-gradient(180deg, transparent 0 calc(var(--sus-rh, 40px) / 4 - 1px), rgba(20,20,20,.55) calc(var(--sus-rh, 40px) / 4 - 1px) calc(var(--sus-rh, 40px) / 4)), repeating-linear-gradient(180deg, transparent 0 calc(var(--sus-rh, 40px) - 2px), rgba(0,0,0,.85) calc(var(--sus-rh, 40px) - 2px) var(--sus-rh, 40px)); }
       .sbx-suspects-cap { font-size: 12px; letter-spacing: .04em; opacity: .8; margin: 2px 0 8px; font-style: italic; }
       .sbx-medal { margin-top: 6px; font-size: 12px; line-height: 1.35; opacity: .92; }
       .sbx-medal .bar { height: 4px; border-radius: 2px; background: rgba(127,127,127,.25); margin-top: 3px; overflow: hidden; }
@@ -2804,17 +2805,30 @@ const SBX_MOBILE = true;
 
   // 🕵️ For rgbartley and The Usual Suspects: on their club pages the lineup gets a height chart behind it.
   function mountSuspects() {
+    // A mugshot height chart behind the player portraits on The Usual Suspects TUS (rgbartley's club), plus a caption.
     const m = location.hash.match(/^#\/team\/(\d+)/);
     const head = document.querySelector("main .teamhead");
     const yes = !!(m && head && /usual suspects/i.test(head.textContent));
-    const h = [...document.querySelectorAll("main h2")].find((x) => /^lineup/i.test(x.textContent.trim()));
+    const h = [...document.querySelectorAll("main h2")].find((x) => /^(lineup|the squad)/i.test(x.textContent.trim()));
     if (!h) return;
     let cap = h.nextElementSibling && h.nextElementSibling.classList.contains("sbx-suspects-cap") ? h.nextElementSibling : null;
-    const box = cap ? cap.nextElementSibling : h.nextElementSibling;
-    if (!yes) { cap?.remove(); box?.classList.remove("sbx-suspects"); return; }
-    if (box && !box.classList.contains("sbx-suspects")) box.classList.add("sbx-suspects");
+    let box = h.nextElementSibling;
+    while (box && box.tagName !== "H2" && !(box.matches("table") || box.querySelector("table"))) box = box.nextElementSibling;
+    if (box && box.tagName === "H2") box = null;
+    if (!yes) { cap?.remove(); document.querySelectorAll(".sbx-suspects").forEach((x) => x.classList.remove("sbx-suspects")); return; }
+    if (box) {
+      box.classList.add("sbx-suspects");
+      const tr = box.querySelector("tbody tr"), td = tr && tr.querySelector("td"), th = box.querySelector("thead");
+      if (tr && td) {
+        const bt = box.getBoundingClientRect().top;
+        box.style.setProperty("--sus-rh", tr.getBoundingClientRect().height.toFixed(2) + "px");
+        box.style.setProperty("--sus-top", ((th ? th.getBoundingClientRect().bottom : tr.getBoundingClientRect().top) - bt).toFixed(1) + "px");
+        box.style.setProperty("--sus-w", td.getBoundingClientRect().width.toFixed(1) + "px");
+      }
+    }
     if (!cap) h.insertAdjacentHTML("afterend", '<div class="sbx-suspects-cap" title="For The Usual Suspects TUS">🕵️ Step forward and face the wall. One of these nine is Keyser Söze.</div>');
   }
+
 
   // 6b. Tidy the commish's Achievements section (his drawing, rearranged; nothing is recalculated):
   //     - his Stadiums wall: each park's medal and "next" goal go onto the stadium cards above, and the wall folds away
