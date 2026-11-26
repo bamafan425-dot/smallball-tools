@@ -303,7 +303,11 @@
     const chips = mine.length ? `<div class="chips">${mine.map((c) => `<span class="chip"><b>${esc(c.name || "Club " + c.id)}</b>${S.clubs.some((x) => x.id === c.id) ? `<span class="note">following</span>` : `<button class="mini" data-act="fclub" data-id="${c.id}" title="Follow: its new games join the queue by themselves">Follow</button>`}<button class="mini" data-act="bclub" data-id="${c.id}" title="Pick from its recent games">Games</button></span>`).join("")}</div>` : "";
     side.innerHTML = `
       <div class="quick">${nUp && free > 0 ? `<button class="go" data-act="fill">▶ Watch the next ${Math.min(free, nUp)}${live ? "" : " now"}</button>` : !nUp ? `<span class="note">Add games below and they'll line up here.</span>` : `<span class="note">All tiles in use. ✓ Done on a tile frees it${S.autoNext ? " (or it frees itself at the final)" : ""}.</span>`}
+        <button class="mini" data-act="rlive" title="Pick a random game that's on the air right now, among the clubs you follow, your clubs and the clubs they've played lately">🎲 Random live game</button>
+        <button class="mini" data-act="slive" title="List the games on the air right now around your clubs">● Live now</button>
         <label class="sw" title="When a game reaches its final, mark it watched and put the next game from the queue on that tile"><input type="checkbox" data-k="autoNext" ${S.autoNext ? "checked" : ""}> Auto next</label></div>
+      ${liveMsg ? `<p class="note">${esc(liveMsg)}</p>` : ""}
+      ${liveList && liveList.length ? `<h4>On the air now · ${liveList.length}</h4>${liveList.map((x) => game(x.id, `<span class="note">${Math.max(1, Math.round((x.until - Date.now()) / 60e3))} min left</span><button class="mini on" data-act="wnow" data-id="${x.id}" title="Watch it now">▶ Watch</button>`)).join("")}<button class="mini" data-act="hlive">Hide the list</button>` : ""}
       <h4>Queue · ${q.filter((id) => !S.watched[id]).length} to watch</h4>
       ${q.length ? q.map((id, qi) => game(id, `${S.watched[id] ? "" : `<button class="mini on" data-act="air" data-id="${id}" title="${live ? "Play it now on a free tile" : "Put it on a tile; Start plays them all together"}">${live ? "▶ Play" : "＋ Tile"}</button>${qi ? `<button class="mini" data-act="top" data-id="${id}" title="Move to the front of the queue">⤒</button>` : ""}`}<button class="mini" data-act="drop" data-id="${id}" title="Remove from the queue">✕</button>`)).join("") : `<p class="note">Empty. Follow clubs or add games above.</p>`}
       ${Object.keys(S.watched).length ? `<h4>Watched</h4><p class="note">${Object.keys(S.watched).length} game${Object.keys(S.watched).length === 1 ? "" : "s"} marked watched. <button class="mini" data-act="clearw">Forget them</button></p>` : ""}
@@ -1277,6 +1281,57 @@
     }
     save(); paintBadge(); paintSide(); shield();
   }
+  // ---------- 🎲 Live now: games on the air right now among the clubs you follow, your clubs, and the clubs
+  // those have played lately. Only "is it on the air, and since when" is read: never a score.
+  let liveList = null, liveBusy = false, liveMsg = "";
+  async function scanLive() {
+    if (liveBusy) return liveList; liveBusy = true;
+    try {
+      const mine = [...document.querySelectorAll("#who-team option")].map((o) => Number(o.value)).filter((x) => x > 0);
+      const seeds = [...new Set(S.clubs.map((c) => c.id).concat(mine))];
+      if (!seeds.length) { liveMsg = "Follow a club (or open SmallBall signed in) so there's somewhere to look."; return (liveList = []); }
+      const pool = new Set(seeds), rowsBy = {}, now = Date.now();
+      liveMsg = `Looking around ${seeds.length} club${seeds.length === 1 ? "" : "s"}…`; paintSide();
+      for (const c of seeds) {        // their opponents join the pool
+        try { const rows = (await getJSON(`/games/all?club=${c}`)).rows || []; rowsBy[c] = rows; for (const g of rows.slice(0, 15)) { pool.add(Number(g.home_team_id)); pool.add(Number(g.away_team_id)); } } catch (_) {}
+        await sleep(200);
+      }
+      const ids = [...pool].filter((x) => x > 0).slice(0, 40), cand = {};
+      liveMsg = `Checking ${ids.length} clubs for games on the air…`; paintSide();
+      for (const c of ids) {
+        let rows = rowsBy[c];
+        if (!rows) { try { rows = (await getJSON(`/games/all?club=${c}`)).rows || []; } catch (_) { rows = []; } await sleep(200); }
+        for (const g of rows.slice(0, 5)) {
+          const t = Date.parse(g.first_pitch_at || g.finished_at || ""); if (!t || now - t > 30 * 60e3 || now - t < -60e3) continue;
+          if (!S.watched[g.game_id]) cand[g.game_id] = g;
+        }
+      }
+      const out = [];
+      for (const g of Object.values(cand).slice(0, 14)) {
+        try {
+          const d = await getJSON(`/games/${g.game_id}`), until = Date.parse(d.live_until || "") || 0;
+          if (until > Date.now() + 2 * 60e3) { if (!S.meta[g.game_id]) remember(g); out.push({ id: g.game_id, until, start: Date.parse(g.first_pitch_at || g.finished_at || "") || 0 }); }
+        } catch (_) {}
+        await sleep(150);
+      }
+      out.sort((a, b) => b.start - a.start);          // freshest first
+      liveMsg = out.length ? "" : "Nothing on the air around your clubs right now. Try again in a few minutes.";
+      return (liveList = out);
+    } finally { liveBusy = false; paintSide(); }
+  }
+  // Put one game on the air now: a free tile, and start (or join the running broadcast).
+  async function watchNow(id) {
+    if (!S.queue.includes(id)) S.queue.unshift(id); else S.queue = [id].concat(S.queue.filter((x) => x !== id));
+    if (S.air.length >= maxTiles()) { if (maxTiles() === 1) S.air = []; else { liveMsg = "All tiles are in use: ✓ Done or ✕ one first."; save(); paintSide(); return; } }
+    if (!S.air.includes(id)) S.air.push(id);
+    save(); paintBadge(); shield(); paintSide(); paintStage();
+    if (!live) await goLive();
+  }
+  async function randomLive() {
+    const L = await scanLive(); if (!L || !L.length) return;
+    const fresh = L.filter((x) => x.until - Date.now() > 8 * 60e3), pick = (fresh.length ? fresh : L)[Math.floor(Math.random() * (fresh.length || L.length))];
+    await watchNow(pick.id);
+  }
   async function doBrowse(club) {
     browseClub = club; browse = `<p class="note">Loading…</p>`; paintSide();
     try {
@@ -1308,6 +1363,10 @@
     else if (act === "browse") { const cid = Number(val("browse")); if (cid) await doBrowse(cid); }
     else if (act === "unbrowse") { browse = null; browseClub = 0; paintSide(); }
     else if (act === "fill") await fillTiles();
+    else if (act === "rlive") await randomLive();
+    else if (act === "slive") await scanLive();
+    else if (act === "wnow") await watchNow(id);
+    else if (act === "hlive") { liveList = null; liveMsg = ""; paintSide(); }
     else if (act === "fclub") { if (!S.clubs.some((c) => c.id === id)) { let name = ""; try { name = (await getJSON(`/teams/${id}/profile`)).name; } catch (_) {} S.clubs.push({ id, name, since: Date.now() }); save(); paintSide(); poll(); } }
     else if (act === "bclub") await doBrowse(id);
     else if (act === "top") { S.queue = [id].concat(S.queue.filter((x) => x !== id)); save(); paintSide(); }

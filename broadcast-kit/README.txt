@@ -1,5 +1,11 @@
 (Renamed from the Tournament Kit in 0.8.0. Your settings and queue carry over: remove the old Tournament Kit in chrome://extensions before loading this one.)
 
+🎲 RANDOM LIVE GAME (0.11.0)
+  🎲 Random live game   Picks a game that's on the air right now and starts it on a free tile. It looks at the
+                        clubs you follow, your own clubs, and the clubs those have played lately.
+  ● Live now            Lists those games with the minutes left on the air; ▶ Watch plays one right away.
+  Only "is it on the air" is read, never a score. Games with 8+ minutes left get picked first.
+
 ⚡ SMOOTHER WATCHING (0.10.0)
   ▶ Watch the next   One button at the top of the panel fills the free tiles from the queue and starts the
                      countdown (or, mid-broadcast, plays them on the free tiles straight away).
