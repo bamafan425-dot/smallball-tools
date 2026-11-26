@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.29.0
+// @version      1.29.1
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -527,7 +527,7 @@ const SBX_MOBILE = true;
       #sbx-box .row.wait { opacity: .75; }
       .sbx-gid { font-size: 11.5px; opacity: .55; margin-right: 8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .sbx-bxcell { margin-left: 6px; } .sbx-bxl { cursor: pointer; white-space: nowrap; }
-      #sbx-boxtoast { position: fixed; right: 16px; bottom: 16px; z-index: 2147483003; display: flex; flex-direction: column; gap: 8px; }
+      #sbx-boxtoast { position: fixed; right: 16px; bottom: calc(16px + var(--sbx-live-h, 0px)); z-index: 2147483003; display: flex; flex-direction: column; gap: 8px; }
       #sbx-boxtoast button { display: flex; align-items: center; gap: 10px; max-width: 360px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb; font: 600 13.5px/1.35 system-ui, sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,.45); cursor: pointer; }
       #sbx-boxtoast button b { color: #fde68a; }
       :is(#sbx-dash, .sbx-tabbody) .acts .trn { background: transparent; color: inherit; border: 1px solid rgba(127,127,127,.45); }
@@ -3026,22 +3026,25 @@ const SBX_MOBILE = true;
   }
   const LIVE_HIDE_KEY = "sbx-live-hidden";
   const liveHidden = () => { try { return JSON.parse(sessionStorage.getItem(LIVE_HIDE_KEY) || "{}"); } catch (_) { return {}; } };
+  // Box-score toasts share the bottom-right corner, so they sit just above the chip.
+  function liveLift() { const el = document.getElementById("sbx-live"); document.documentElement.style.setProperty("--sbx-live-h", el ? (el.offsetHeight + 8) + "px" : "0px"); }
   function mountLive() {
     let el = document.getElementById("sbx-live");
     const hidden = liveHidden(), items = LIVE.items.filter((x) => hidden[x.k] !== JSON.stringify(x.lines));
     const key = JSON.stringify(items) + (el && el.dataset.min);
-    if (!items.length) { if (el) el.remove(); return; }
+    if (!items.length) { if (el) el.remove(); liveLift(); return; }
     if (el && el.dataset.key === key) return;
     if (!el) {
       el = document.createElement("div"); el.id = "sbx-live";
-      el.style.cssText = "position:fixed;left:12px;bottom:" + (MOBILE ? 12 : 64) + "px;z-index:2147482990;width:min(380px,calc(100vw - 24px));display:flex;flex-direction:column;gap:8px;font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
+      el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147482990;width:min(380px,calc(100vw - 24px));display:flex;flex-direction:column;align-items:stretch;gap:8px;font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
       document.body.appendChild(el);
     }
     const min = el.dataset.min === "1";
     el.dataset.key = JSON.stringify(items) + el.dataset.min;
     if (min) {
-      el.innerHTML = '<button data-open style="align-self:flex-start;border:0;border-radius:999px;padding:8px 14px;font:700 14px system-ui,sans-serif;background:#0f5132;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer">🏆 ' + items.length + " tournament " + (items.length === 1 ? "match" : "matches") + "</button>";
+      el.innerHTML = '<button data-open style="align-self:flex-end;border:0;border-radius:999px;padding:8px 14px;font:700 14px system-ui,sans-serif;background:#0f5132;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer">🏆 ' + items.length + " tournament " + (items.length === 1 ? "match" : "matches") + "</button>";
       el.querySelector("[data-open]").onclick = () => { el.dataset.min = ""; mountLive(); };
+      liveLift();
       return;
     }
     el.innerHTML = items.map((x, i) => {
@@ -3057,6 +3060,7 @@ const SBX_MOBILE = true;
     }).join("");
     el.querySelectorAll("[data-x]").forEach((b) => { b.onclick = () => { const x = items[Number(b.dataset.x)], h = liveHidden(); h[x.k] = JSON.stringify(x.lines); try { sessionStorage.setItem(LIVE_HIDE_KEY, JSON.stringify(h)); } catch (_) {} mountLive(); }; });
     const mn = el.querySelector("[data-min]"); if (mn) mn.onclick = () => { el.dataset.min = "1"; mountLive(); };
+    liveLift();
     el.querySelectorAll("code").forEach((c) => { c.style.cssText = "font:700 12px ui-monospace,monospace;background:rgba(250,204,21,.18);color:#fde68a;border-radius:5px;padding:1px 5px"; });
   }
   setTimeout(() => liveRefresh(true), 3000);
