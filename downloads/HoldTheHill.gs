@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.10: 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -104,7 +104,7 @@ const DEFAULTS = {
   WAGER_OFFER_HOURS: [24, 'Hours a wager offer stays open for the other player to accept'],
   WAGER_PLAY_HOURS: [48, 'Hours after a wager is accepted to play the game that settles it (else everyone is refunded)'],
   ITEMS_ON: ['FALSE', 'Brawl Bucks items shop on (TRUE/FALSE). Needs the sportsbook on. The 🛒 menu item turns it on'],
-  ITEM_PRICES: ['knuckles:300,eraser:250,jump:200,rain:150', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump, Rain Delay'],
+  ITEM_PRICES: ['knuckles:300,eraser:250,jump:200,jumpplus:300,rain:150', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump, Ladder Jump+, Rain Delay'],
   ITEM_ACE_X: [2, 'The Ace pays this many times the price for an item'],
   ITEM_COOLDOWN_HOURS: [24, 'Hours between items for each player'],
   PLAY_BUCKS: ['played:10,win:50,charge:15', 'Brawl Bucks for a Hill game: both clubs get played, the winner also gets win, the challenger also gets charge'],
@@ -923,7 +923,7 @@ function reachList_(me, C, pt, ct) {
     let cool = null; try { cool = inCooldown_(me.Email, p.Email, C); } catch (e) { }
     if (cool) why.push('rematch after ' + Utilities.formatDate(cool, 'America/Denver', 'EEE h:mm a') + ' MT');
     out.push('**#' + p.Rank + '** ' + esc_(p.Discord) + ' · ' + esc_(p.Club) + ' · ' + clubIdTxt_(p) + (norm_(p.ClubID) ? ' [scout](<https://play.smallball.com/#/team/' + norm_(p.ClubID) + '>)' : '') + ': ' +
-      (need > 1 ? '**win by ' + need + '+**' : '**just win**') + (sg && need < full ? ' *(Giant Killer: ' + sg + '★ underdog discount)*' : '') + kn(p) + (jump ? ' 🪜 *(Ladder Jump only)*' : '') +
+      (need > 1 ? '**win by ' + need + '+**' : '**just win**') + (sg && need < full ? ' *(Giant Killer: ' + sg + '★ underdog discount)*' : '') + kn(p) + (jump ? ' 🪜 *(Ladder Jump only; with Ladder Jump+ just win)*' : '') +
       (why.length ? ' ⏳ *(' + why.join(', ') + ')*' : ''));
   });
   return out;
@@ -1007,7 +1007,7 @@ function doChallenge_(sub, C) {
     if (revengeOpen && lc_(opp.Email) === exAce) fail_("The dethroned Ace can't be challenged while their Ace's Revenge window is open.");
     gap = Number(me.Rank) - Number(opp.Rank);
     if (gap < 1) fail_('You can only challenge players ranked above you (you are #' + me.Rank + ', they are #' + opp.Rank + ').');
-    const jumping = pick === 'jump' && itemsOn_(C) && gap === Number(C.CHALLENGE_REACH) + 1;
+    const jumping = (pick === 'jump' || pick === 'jumpplus') && itemsOn_(C) && gap === Number(C.CHALLENGE_REACH) + 1;
     if (gap > C.CHALLENGE_REACH && !jumping) fail_((gap === Number(C.CHALLENGE_REACH) + 1 && itemsOn_(C) ? '🪜 A Ladder Jump gets you one spot further. ' : '') + 'You can challenge up to ' + C.CHALLENGE_REACH + ' spots above you (you are #' + me.Rank + ', they are #' + opp.Rank + ').');
     type = 'Ladder';
     need = needFor_(gap);
@@ -1428,18 +1428,19 @@ const ITEMS = {
   knuckles: { icon: '🥊', name: 'Brass Knuckles', kind: 'defense', what: 'On the next charge against you, the challenger needs 1 more run (a title charge needs a 2-run win)' },
   eraser: { icon: '🧽', name: 'Margin Eraser', kind: 'offense', what: 'Win your charge by any amount. Cancels Brass Knuckles' },
   jump: { icon: '🪜', name: 'Ladder Jump', kind: 'offense', what: 'Charge one spot further than the normal reach' },
+  jumpplus: { icon: '🪜', name: 'Ladder Jump+', kind: 'offense', what: 'Charge one spot further than the normal reach, and any win will do' },
   rain: { icon: '🌧️', name: 'Rain Delay', kind: 'streak', what: 'Saves your 🔥 Hill streak once, on a day you don\'t play' },
 };
 const itemLabel_ = (k) => ITEMS[k].icon + ' ' + ITEMS[k].name;
 function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && bookOn_(C); }
 function itemPrices_(C) {
-  const out = { knuckles: 300, eraser: 250, jump: 200, rain: 150 };
+  const out = { knuckles: 300, eraser: 250, jump: 200, jumpplus: 300, rain: 150 };
   norm_(C.ITEM_PRICES).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
   return out;
 }
 const aceX_ = (C) => Math.max(1, Number(C.ITEM_ACE_X) || 2);
 function priceFor_(C, key, isAce) { return Math.round(itemPrices_(C)[key] * (isAce ? aceX_(C) : 1)); }
-function itemKeyOf_(txt) { const l = lc_(txt); return /knuckle/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump/.test(l) ? 'jump' : /rain|delay/.test(l) ? 'rain' : ''; }
+function itemKeyOf_(txt) { const l = lc_(txt); return /knuckle/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump\s*(\+|plus)/.test(l) ? 'jumpplus' : /jump/.test(l) ? 'jump' : /rain|delay/.test(l) ? 'rain' : ''; }
 // What each player holds this season: bought - used + refunded.
 function inventory_(C) {
   const season = String(C.SEASON), inv = {};
@@ -1499,8 +1500,9 @@ function chargeItems_(C, me, opp, type, gap, need, pick) {
   const inv = inventory_(C);
   if (pick === 'knuckles') fail_('Brass Knuckles are for defense: they go on by themselves when someone charges you.');
   if (pick === 'rain') fail_('The Rain Delay saves your streak by itself on a day you miss. Buy it in the 🛒 shop; nothing to pick here.');
-  if (pick === 'jump' && type !== 'Ladder') fail_('The Ladder Jump is for ladder charges, not the mound.');
-  if (pick === 'jump' && gap !== Number(C.CHALLENGE_REACH) + 1) fail_('The Ladder Jump is for charging exactly ' + (Number(C.CHALLENGE_REACH) + 1) + ' spots up. This charge is in reach without it.');
+  const isJump = pick === 'jump' || pick === 'jumpplus';
+  if (isJump && type !== 'Ladder') fail_('The ' + ITEMS[pick].name + ' is for ladder charges, not the mound.');
+  if (isJump && gap !== Number(C.CHALLENGE_REACH) + 1) fail_('The Ladder Jump is for charging exactly ' + (Number(C.CHALLENGE_REACH) + 1) + ' spots up. This charge is in reach without it.');
   // The defender's Brass Knuckles (one per charge, if they're not cooling down)
   let knuckles = false;
   if (type !== 'Revenge' && holds_(inv, opp.Email, 'knuckles') > 0 && !itemCooling_(C, opp.Email)) knuckles = true;
@@ -1514,6 +1516,7 @@ function chargeItems_(C, me, opp, type, gap, need, pick) {
   }
   if (knuckles) { out.used.push([opp, 'knuckles', false]); out.need += 1; out.notes.push('🥊 ' + opp.Discord); out.post.push('🥊 ' + tag_(opp) + ' is wearing **Brass Knuckles**: +1 run.'); }
   if (pick === 'eraser') { out.need = 1; out.notes.push('🧽 ' + me.Discord); out.post.push('🧽 ' + esc_(me.Discord) + ' swings the **Margin Eraser**: ' + (knuckles ? 'the Brass Knuckles are knocked off, and ' : '') + 'any win will do.'); }
+  if (pick === 'jumpplus') { out.need = knuckles ? 2 : 1; out.notes.push('🪜+ ' + me.Discord); out.post.push('🪜 ' + esc_(me.Discord) + ' uses a **Ladder Jump+** to reach ' + gap + ' spots up: ' + (knuckles ? 'the Brass Knuckles still count, so 2+ runs.' : 'any win will do.')); }
   if (pick === 'jump') { out.notes.push('🪜 ' + me.Discord); out.post.push('🪜 ' + esc_(me.Discord) + ' uses a **Ladder Jump** to reach ' + gap + ' spots up.'); }
   return out;
 }
@@ -1559,7 +1562,7 @@ const SHOP_HELP_ = function (C) {
     '\n\nOffense items: pick them on the charge form when you charge (you can buy on the spot there too). Brass Knuckles go on by themselves when someone charges you.\n' +
     'One item per side per charge, and one item per player every ' + (Number(C.ITEM_COOLDOWN_HOURS) || 24) + ' hours. Items used on a charge that gets voided come back.';
 };
-const USE_ITEM_CHOICES_ = ['No item', '🧽 Margin Eraser (win by any amount)', '🪜 Ladder Jump (charge one spot further)'];
+const USE_ITEM_CHOICES_ = ['No item', '🧽 Margin Eraser (win by any amount)', '🪜 Ladder Jump (charge one spot further)', '🪜 Ladder Jump+ (charge one spot further, any win)'];
 function shopChoices_(C) { const p = itemPrices_(C); return Object.keys(ITEMS).map(function (k) { return itemLabel_(k) + ' · ' + p[k] + ' BB (' + ITEMS[k].kind + ')'; }); }
 // Adds the 🛒 shop section and the "use an item" question on the charge section. Safe to run again (it updates prices).
 function ensureItemsForm_(form) {
@@ -1575,7 +1578,9 @@ function ensureItemsForm_(form) {
   if (shopQ) shopQ.asMultipleChoiceItem().setChoiceValues(shopChoices_(C));
   // The charge section: "Use an item?" right after the opponent question.
   const all = form.getItems(), opp = all.find(function (i) { return i.getTitle() === Q.OPPONENT; });
-  if (opp && !all.some(function (i) { return i.getTitle() === Q.USE_ITEM; })) {
+  const useQ = all.find(function (i) { return i.getTitle() === Q.USE_ITEM; });
+  if (useQ) useQ.asMultipleChoiceItem().setChoiceValues(USE_ITEM_CHOICES_);
+  if (opp && !useQ) {
     const it = form.addMultipleChoiceItem().setTitle(Q.USE_ITEM).setChoiceValues(USE_ITEM_CHOICES_).setRequired(false)
       .setHelpText('Optional. Use one you bought in the 🛒 shop, or buy it right here (Margin Eraser ' + itemPrices_(C).eraser + ' BB, Ladder Jump ' + itemPrices_(C).jump + ' BB). Brass Knuckles are defense and go on by themselves.');
     form.moveItem(it.getIndex(), opp.getIndex() + 1);
@@ -2910,7 +2915,7 @@ const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER',
 const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
   'Only #1 can charge ♠ THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound.\n\n' +
   'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
-const CHARGE_ITEMS_HELP = '\n\n🛒 Items (optional, Brawl Bucks): 🧽 Margin Eraser = any win will do. 🪜 Ladder Jump = charge one spot past your reach (win by 5+). If the player you charge wears 🥊 Brass Knuckles, you need 1 more run (2+ against the Ace), unless you swing the Eraser.';
+const CHARGE_ITEMS_HELP = '\n\n🛒 Items (optional, Brawl Bucks): 🧽 Margin Eraser = any win will do. 🪜 Ladder Jump = charge one spot past your reach (win by 5+); 🪜 Ladder Jump+ = the same, and any win will do. If the player you charge wears 🥊 Brass Knuckles, you need 1 more run (2+ against the Ace), unless you swing the Eraser.';
 function ensureTidyForm_(form) {
   const items = form.getItems();
   const action = items.find(function (i) { return i.getTitle() === Q.ACTION && i.getType() === FormApp.ItemType.MULTIPLE_CHOICE; });
