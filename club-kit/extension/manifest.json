@@ -2,7 +2,13 @@
   "manifest_version": 3,
   "name": "SmallBall Club Kit",
   "version": "1.26.1",
-  "description": "Quick club tabs, a readable club selector, your own club logos, a club dashboard, stadium records, PlayerOptimizer III by Jon2s and SmallBall Radio for play.smallball.com. Read-only: it never plays, trains or saves for you.",
+  "description": "Quick club tabs, a readable club selector, your own club logos, a club dashboard, stadium records, PlayerOptimizer III by Jon2s and SmallBall Radio for play.smallball.com. Read-only: it never plays, trains or saves for you.",  "browser_specific_settings": {
+    "gecko": {
+      "id": "smallball-club-kit@slipnsliders",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  },
   "permissions": ["storage"],
   "content_scripts": [
     { "matches": ["https://play.smallball.com/*"], "js": ["freeze.js", "po3-interceptor.js"], "run_at": "document_start", "world": "MAIN" },
