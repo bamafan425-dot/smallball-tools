@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.33.1
+// @version      1.34.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -165,7 +165,10 @@ const SBX_MOBILE = true;
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
   const MOBILE_KEEP = ["hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
-  const on = (f) => (MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
+  // iPad edition (a Safari userscript): the full kit, minus what a userscript can't do there.
+  const TABLET = typeof SBX_TABLET !== "undefined" && !!SBX_TABLET;
+  const TABLET_OFF = ["skinbtn", "radio", "optimizer"];
+  const on = (f) => (TABLET && TABLET_OFF.includes(f) ? false : MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
   // One switch for every tool: count good matches only (games between clubs with the same star rating).
   const GOOD_KEY = "sbx-good-only";
@@ -491,6 +494,8 @@ const SBX_MOBILE = true;
       .sbx-gsum .chips i.l { background: rgba(220,38,38,.18); color: #dc2626; }
       .sbx-gsum .chips i.t { background: rgba(127,127,127,.2); }
       .sbx-hide { display: none !important; }
+      .sbx-suspects { position: relative; background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(250,204,21,.13) 27px 28px), repeating-linear-gradient(180deg, transparent 0 139px, rgba(250,204,21,.32) 139px 141px); border-radius: 10px; }
+      .sbx-suspects-cap { font-size: 12px; letter-spacing: .04em; opacity: .8; margin: 2px 0 8px; font-style: italic; }
       .sbx-medal { margin-top: 6px; font-size: 12px; line-height: 1.35; opacity: .92; }
       .sbx-medal .bar { height: 4px; border-radius: 2px; background: rgba(127,127,127,.25); margin-top: 3px; overflow: hidden; }
       .sbx-medal .bar i { display: block; height: 100%; background: #e0a04a; }
@@ -2797,6 +2802,20 @@ const SBX_MOBILE = true;
     if (PR.rows && grid.dataset.sbxPainted !== `${team}|${PR.scope}|${PR.kind}|${PR.others}|${PR.rows.length}`) paintParks(team);
   }
 
+  // 🕵️ For rgbartley and The Usual Suspects: on their club pages the lineup gets a height chart behind it.
+  function mountSuspects() {
+    const m = location.hash.match(/^#\/team\/(\d+)/);
+    const head = document.querySelector("main .teamhead");
+    const yes = !!(m && head && /usual suspects/i.test(head.textContent));
+    const h = [...document.querySelectorAll("main h2")].find((x) => /^lineup/i.test(x.textContent.trim()));
+    if (!h) return;
+    let cap = h.nextElementSibling && h.nextElementSibling.classList.contains("sbx-suspects-cap") ? h.nextElementSibling : null;
+    const box = cap ? cap.nextElementSibling : h.nextElementSibling;
+    if (!yes) { cap?.remove(); box?.classList.remove("sbx-suspects"); return; }
+    if (box && !box.classList.contains("sbx-suspects")) box.classList.add("sbx-suspects");
+    if (!cap) h.insertAdjacentHTML("afterend", '<div class="sbx-suspects-cap" title="For The Usual Suspects TUS">🕵️ Step forward and face the wall. One of these nine is Keyser Söze.</div>');
+  }
+
   // 6b. Tidy the commish's Achievements section (his drawing, rearranged; nothing is recalculated):
   //     - his Stadiums wall: each park's medal and "next" goal go onto the stadium cards above, and the wall folds away
   //     - Country tour: only countries you've played, best first, with a one-line summary and "Show all"
@@ -3218,6 +3237,7 @@ const SBX_MOBILE = true;
       if (on("logos")) safe(decorate);
       if (on("parks")) safe(mountParkRecords);
       if (on("achtidy")) safe(mountAchTidy);
+      safe(mountSuspects);
       if (on("games")) safe(mountGamesFold);
       if (on("livebar")) safe(mountLiveCtl);
       safe(mountSquad);

@@ -87,10 +87,10 @@ footer{padding-block:28px 40px;color:var(--muted);font-size:15px;display:flex;fl
 <div class="wrap">
   <nav>
     <div class="brand"><a href="../" style="text-decoration:none;font:600 15px Barlow,sans-serif;color:var(--muted);text-transform:none;margin-right:6px" title="All SmallBall ToolKits">← All ToolKits</a><span class="stars" id="navstars" aria-hidden="true"></span>SmallBall Club Kit</div>
-    <a class="btn line" id="nav-download" href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.33.1</a>
+    <a class="btn line" id="nav-download" href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.34.0</a>
   </nav>
-  <aside class="release" aria-label="New in version 1.33.1">
-    <div class="rtop"><span class="tag">New today</span><h2>Version 1.33.1 is out</h2><a class="btn go" href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.33.1</a></div>
+  <aside class="release" aria-label="New in version 1.34.0">
+    <div class="rtop"><span class="tag">New today</span><h2>Version 1.34.0 is out</h2><a class="btn go" href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.34.0</a></div>
     <ul>
       <li><b>New: 🏆 Tournaments button.</b> Bottom right of every page: it opens the Tournaments page (brackets, sign-ups, the Hall of Champions) and says when sign-ups are open. In a tournament? A card stacks above it with your open match, your opponent's club ID, the deadline and a ▶ Start button when it's your turn. In a ⛳ Scramble it lists both your games and which one you tee off. ▾ folds the cards away. No spoilers.</li>
       <li><b>New: 🥊 Challenge links.</b> Hold the Hill, the Black Friday Brawl and head-to-head wagers now post a "Start the game" link that opens SmallBall right on your opponent. The kit shows which of your clubs you're about to play as, and switches it in one click if it's the wrong one. You still press Play.</li>
@@ -130,9 +130,10 @@ footer{padding-block:28px 40px;color:var(--muted);font-size:15px;display:flex;fl
 <section class="band alt" id="new">
   <div class="wrap">
     <h2>What's new</h2>
-    <p class="lede" style="margin-bottom:18px;max-width:760px">The latest releases, newest first. Grab 1.33.1 from the button up top or the steps below.</p>
+    <p class="lede" style="margin-bottom:18px;max-width:760px">The latest releases, newest first. Grab 1.34.0 from the button up top or the steps below.</p>
     <div class="card" style="padding:6px 22px">
       <ul class="log">
+        <li><b>1.34.0</b><span><em>New: iPad edition (beta).</em> The full Club Kit as a Safari userscript for iPad, updating itself; everything but the Skins window, the Radio and PlayerOptimizer III. See <a href="#phone">On your phone</a>.</span></li>
         <li><b>1.33.1</b><span><em>Phone:</em> the phone script now updates itself (Tampermonkey checks daily; the Userscripts app can fetch new versions too), and it includes the ⛰️ Hold the Hill card and tournament match cards.</span></li>
         <li><b>1.32.0</b><span><em>⛰️ Hold the Hill card:</em> your ladder spot, Brawl Bucks and streak, who you can charge (club IDs, how much you need to win by) and a 🥊 Charge button, in the bottom-right stack. In a charge it shows who and the deadline. Tournament cards are bolder, and the ▾ Hide cards button is labeled.</span></li>
         <li><b>1.31.0</b><span><em>Achievements, tidied:</em> SmallBall's new Achievements section, rearranged. Earned badges first; each stadium's medal and next goal sit on its card in Stadiums (next to your Club Kit record), so the duplicate stadium wall folds away; the Country tour shows only countries you've played, best first, with a one-line summary and a Show all button. Off switch in settings.</span></li>
@@ -384,6 +385,7 @@ footer{padding-block:28px 40px;color:var(--muted);font-size:15px;display:flex;fl
     <style>@media(max-width:760px){.phone-wrap{grid-template-columns:1fr!important}.phone-wrap .shot{margin:0 auto}}</style>
     <div class="more two">
       <div class="card"><h3>iPhone, in Safari</h3><ol style="margin:0;padding-left:20px;color:var(--muted)"><li>Install <b>Userscripts</b> from the App Store (free) and open it once.</li><li>Settings &rarr; Apps &rarr; Safari &rarr; Extensions &rarr; Userscripts: on.</li><li>Save the <a href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.user.js" target="_blank" rel="noopener">phone script</a> into the Userscripts folder in Files. The name must end in <code>.user.js</code>.</li><li>On play.smallball.com tap <b>aA</b> &rarr; Userscripts &rarr; Always Allow on This Website, then reload.</li></ol><p style="margin:8px 0 0;color:var(--muted);font-size:14px"><b>Updates:</b> the script carries its own update link, so the Userscripts app can fetch new versions when it checks for updates. Or just save the phone script again over the old one.</p></div>
+      <div class="card"><h3>iPad, in Safari: the full kit</h3><ol style="margin:0;padding-left:20px;color:var(--muted)"><li>Same setup as iPhone: install <b>Userscripts</b>, turn it on in Settings &rarr; Apps &rarr; Safari &rarr; Extensions.</li><li>Save the <a href="https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/downloads/SmallBall-Club-Kit-iPad.user.js" target="_blank" rel="noopener">iPad script</a> into the Userscripts folder in Files (name ends in <code>.user.js</code>). Use this one <em>instead of</em> the phone script.</li><li>On play.smallball.com tap <b>aA</b> &rarr; Userscripts &rarr; Always Allow on This Website, then reload.</li></ol><p style="margin:8px 0 0;color:var(--muted);font-size:14px">The whole computer Club Kit (dashboard, stadium records, season games, squad views, box scores, Hill and tournament cards, Rotate Bench), minus the Skins window, the Radio and PlayerOptimizer III. <b>Beta.</b></p></div>
       <div class="card"><h3>Android, in Firefox</h3><ol style="margin:0;padding-left:20px;color:var(--muted)"><li>Install <b>Firefox</b>, then add <b>Tampermonkey</b> from its add-ons menu.</li><li>In Firefox, open the <a href="https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/downloads/SmallBall-Club-Kit.user.js" target="_blank" rel="noopener">phone script</a>. Tampermonkey shows its install page: tap <b>Install</b>.</li><li>Open play.smallball.com in Firefox.</li></ol><p style="margin:8px 0 0;color:var(--muted);font-size:14px"><b>Updates:</b> automatic. Tampermonkey checks for new versions about once a day (or Tampermonkey &rarr; Check for userscript updates).</p></div>
     </div>
   </div>
@@ -404,7 +406,7 @@ footer{padding-block:28px 40px;color:var(--muted);font-size:15px;display:flex;fl
       <h3>Plays fair</h3>
       <p style="margin-bottom:12px">It's read-only. It never plays games, trains, changes lineups or saves anything for you. It only reads your own clubs' pages, the same ones you can open yourself.</p>
       <p style="margin-bottom:18px">Logos and settings stay in your browser. Nothing is sent anywhere.</p>
-      <a class="btn go" id="get-download" href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.33.1</a>
+      <a class="btn go" id="get-download" href="https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.zip" rel="noopener">Download v1.34.0</a>
     </div>
   </div>
 </section>
