@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -43,6 +43,7 @@ const SHEETS = {
   WAGERS: 'Wagers',
   LEDGER: 'Ledger',
   ITEMS: 'Items',
+  VOTES: 'Votes',
   STREAKS: 'Streaks',
   LOG: 'Log',
 };
@@ -65,6 +66,7 @@ const HEADERS = {
   Ledger: ['Date', 'Season', 'Email', 'Player', 'Amount', 'Reason'],
   Items: ['Date', 'Season', 'Email', 'Player', 'Item', 'Action', 'Price', 'ChallengeID', 'Notes'],
   Streaks: ['Email', 'Player', 'Streak', 'Best', 'LastPlayed', 'Season'],
+  Votes: ['Date', 'Season', 'Email', 'Voter', 'Pick', 'PickEmail'],
   Log: ['Time', 'Actor', 'Action', 'Details'],
 };
 
@@ -103,6 +105,7 @@ const DEFAULTS = {
   BET_MAX_PCT: [4.2, 'Most you can put on one sportsbook bet, as a % of your Brawl Bucks right now'],
   BET_MAX_FLAT: [250, 'And never more than this many Brawl Bucks on one bet or wager (a commish-OK big wager can go past it)'],
   SHOP_WEBHOOK_URL: ['', 'Discord webhook for the 🛒 shop channel (purchases, items used, refunds). Blank = they post in the sportsbook channel'],
+  VOTE_DAYS: [7, 'The 🏟️ Bleacher Vote opens this many days before the season ends'],
   PAID_GAMES_PER_DAY: [3, 'Only this many Hill games a day pay Brawl Bucks per player (stops marathon farming)'],
   WAGER_MAX_PCT: [4.2, 'Most either side can put on one head-to-head wager, as a % of their Brawl Bucks right now'],
   WAGER_BIG_PCT: [10, 'With the commish\'s OK (menu: 🤝 Allow a big wager), a head-to-head wager can go up to this %'],
@@ -157,6 +160,7 @@ const ACTIONS = {
   WAGER: '🤝 Wager an opponent (head-to-head Brawl Bucks)',
   WAGER_REPLY: '🤝 Answer a wager (accept, decline or cancel)',
   SHOP: '🛒 Brawl Bucks shop (buy an item)',
+  VOTE: '🏟️ The Bleacher Vote (season award)',
 };
 
 const Q = {
@@ -185,6 +189,7 @@ const Q = {
   W_REPLY: 'Your answer',
   ITEM: 'Item to buy',
   USE_ITEM: 'Use an item on this charge?',
+  VOTE: 'Your Bleacher Vote',
 };
 
 const ACE_CHOICE = '♠ THE ACE (charge the mound: title shot, #1 contender, or lower when the mound is open)';
@@ -337,6 +342,7 @@ const AWARDS = [
   { key: 'sharp', icon: '💰', name: 'The Sharp', what: 'Most Brawl Bucks won betting the sportsbook' },
   { key: 'grinder', icon: '🔥', name: 'The Grinder', what: 'Longest 🔥 Hill streak (days in a row with a Hill game)' },
   { key: 'hustler', icon: '🤝', name: 'The Hustler', what: 'Most Brawl Bucks won head-to-head (wagers)' },
+  { key: 'bleacher', icon: '🏟️', name: 'The Bleacher Vote', what: 'Voted by the players: who made the season the most fun' },
 ];
 
 // ── Open mound: only #1 can charge the Ace, then one more spot opens each day nobody charges.
@@ -490,6 +496,7 @@ function awards_() {
       .sort(function (a, b) { return num_(b.Best) - num_(a.Best) || num_(b.Streak) - num_(a.Streak); });
     out.grinder = sk.length ? Object.assign(nm(sk[0].Email), { value: num_(sk[0].Best) + ' days in a row' }) : null;
   } catch (e) { out.grinder = null; }
+  try { out.bleacher = bleacherAward_(C, nm); } catch (e) { out.bleacher = null; }
   try {
     const ups = readTable_(SHEETS.PAYOUTS).rows.filter(function (x) { return String(x.Season) === season && /^Upset/.test(String(x.Spot)); });
     let gk = null; ups.forEach(function (x) { if (!gk || num_(x.Pts) > num_(gk.Pts)) gk = x; });
@@ -815,6 +822,7 @@ function actionOf_(raw) {
   if (/discord id|tagged|my id/.test(l)) return ACTIONS.DISCORD_ID;
   if (/who can i|in reach|reach/.test(l)) return ACTIONS.REACH;
   if (/\bshop\b|buy an item/.test(l)) return ACTIONS.SHOP;
+  if (/bleacher|\bvote\b/.test(l)) return ACTIONS.VOTE;
   if (/answer a wager|accept|decline/.test(l)) return ACTIONS.WAGER_REPLY;
   if (/wager|head-to-head/.test(l)) return ACTIONS.WAGER;
   if (/revenge/.test(l)) return ACTIONS.REVENGE;
@@ -879,6 +887,7 @@ function handleSubmission_(sub) {
       case ACTIONS.WAGER: doWager_(sub, C); break;
       case ACTIONS.WAGER_REPLY: doWagerReply_(sub, C); break;
       case ACTIONS.SHOP: doShop_(sub, C); break;
+      case ACTIONS.VOTE: doVote_(sub, C); break;
       default: fail_('Unknown action.');
     }
   } catch (err) {
@@ -1735,6 +1744,85 @@ function streakBoard_(C) {
   return { list: list, day: S.day, step: S.step, max: S.max, ms: milestones_(C) };
 }
 
+// ───────────────────────────── 🏟️ The Bleacher Vote (People's Choice) ─────────────────────────────
+// The last VOTE_DAYS days of the season, every active Hill player gets one vote on the form for whoever made the
+// season the most fun. No voting for yourself; voting again replaces your vote. The count stays secret until the
+// season ends; ties go to whoever got there first.
+function voteWindow_(C) {
+  const end = seasonEnd_(C); if (!end) return null;
+  return { open: new Date(end.getTime() - (Number(C.VOTE_DAYS) || 7) * 86400e3), close: end };
+}
+function voteNote_(C) {
+  const w = voteWindow_(C); if (!w) return 'Voted by the players at the end of the season';
+  const t = now_(), f = function (d) { return Utilities.formatDate(d, 'America/Denver', 'MMM d'); };
+  if (t < w.open) return '🗳️ Voting opens ' + f(w.open);
+  if (t < w.close) return '🗳️ Voting open · closes ' + f(w.close);
+  return 'Votes are in';
+}
+function doVote_(sub, C) {
+  const pt = players_(), me = activeMe_(pt, sub.email), w = voteWindow_(C), t = now_();
+  if (!w) fail_('The Bleacher Vote opens near the end of the season.');
+  if (t < w.open) fail_('The Bleacher Vote opens ' + Utilities.formatDate(w.open, 'America/Denver', 'EEE MMM d') + ' (the last ' + (Number(C.VOTE_DAYS) || 7) + ' days of the season).');
+  if (t >= w.close) fail_('The Bleacher Vote is closed for this season.');
+  const pick = norm_(sub.f[Q.VOTE]);
+  const who = pt.rows.find(function (p) { return p.Status === 'Active' && (lc_(p.Discord) === lc_(pick) || lc_(voteLabel_(p)) === lc_(pick)); });
+  if (!who) fail_('Pick a Hill player from the list.');
+  if (who === me) fail_("No voting for yourself. Pick whoever made this season the most fun.");
+  appendObj_(SHEETS.VOTES, { Date: t, Season: C.SEASON, Email: me.Email, Voter: me.Discord, Pick: who.Discord, PickEmail: who.Email });
+  log_(sub.email, 'Bleacher Vote', 'voted');
+  post_('🏟️ ' + esc_(me.Discord) + ' cast a **Bleacher Vote**. Votes stay secret until the season wrap-up.', 'help');
+}
+const voteLabel_ = (p) => norm_(p.Discord) + ' · ' + norm_(p.Club);
+function bleacherAward_(C, nm) {
+  if (!seasonOver_(C)) return null;   // secret until the season ends
+  const season = String(C.SEASON), last = {};
+  readTable_(SHEETS.VOTES).rows.forEach(function (v) { if (String(v.Season) === season) last[lc_(v.Email)] = v; });   // latest vote per voter
+  const tally = {}, reached = {};
+  Object.keys(last).map(function (k) { return last[k]; }).sort(function (a, b) { return new Date(a.Date) - new Date(b.Date); }).forEach(function (v) {
+    const e = lc_(v.PickEmail); tally[e] = (tally[e] || 0) + 1; reached[e + ':' + tally[e]] = new Date(v.Date).getTime();
+  });
+  const top = Object.keys(tally).sort(function (a, b) { return tally[b] - tally[a] || reached[a + ':' + tally[a]] - reached[b + ':' + tally[b]]; })[0];
+  const x = top ? nm(top) : null;
+  return x ? Object.assign(x, { value: tally[top] + (tally[top] === 1 ? ' vote' : ' votes') }) : null;
+}
+function ensureVoteForm_(form) {
+  let pV = form.getItems(FormApp.ItemType.PAGE_BREAK).find(function (p) { return p.getTitle() === ACTIONS.VOTE; });
+  if (!pV) {
+    pV = form.addPageBreakItem().setTitle(ACTIONS.VOTE);
+    pV.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+    form.addListItem().setTitle(Q.VOTE).setChoiceValues(['(the player list fills in)']).setRequired(true);
+  }
+  pV = pV.asPageBreakItem ? pV.asPageBreakItem() : pV;
+  pV.setHelpText('Season award, voted by the players: who made this season the most fun? Trash talk, big charges, good sport, whatever you liked. Open the last ' + (Number(cfg_().VOTE_DAYS) || 7) + ' days of the season. One vote each (voting again replaces it), not yourself. The count stays secret until the season wrap-up.');
+  refreshVoteChoices_(form);
+  const action = form.getItems(FormApp.ItemType.MULTIPLE_CHOICE).find(function (i) { return i.getTitle() === Q.ACTION; });
+  if (!action) return;
+  const mc = action.asMultipleChoiceItem(), old = mc.getChoices();
+  if (old.some(function (ch) { return ch.getValue() === ACTIONS.VOTE; })) return;
+  const choices = old.map(function (ch) {
+    const pg = ch.getGotoPage(); if (pg) return mc.createChoice(ch.getValue(), pg);
+    const nav = ch.getPageNavigationType(); return mc.createChoice(ch.getValue(), nav || FormApp.PageNavigationType.CONTINUE);
+  });
+  choices.push(mc.createChoice(ACTIONS.VOTE, pV));
+  mc.setChoices(choices);
+}
+function refreshVoteChoices_(form) {
+  const it = form.getItems(FormApp.ItemType.LIST).find(function (i) { return i.getTitle() === Q.VOTE; });
+  if (!it) return;
+  const names = players_().rows.filter(function (p) { return p.Status === 'Active'; }).map(voteLabel_).sort(function (a, b) { return a.localeCompare(b); });
+  if (names.length) it.asListItem().setChoiceValues(names);
+}
+function adminAddVote() {
+  withUi_(function () {
+    ensureSheets_(SpreadsheetApp.getActive());
+    const form = FormApp.openById(cfg_().FORM_ID);
+    ensureVoteForm_(form);
+    ensureTidyForm_(form);
+    const w = voteWindow_(cfg_());
+    return '🏟️ The Bleacher Vote is on the form.' + (w ? ' Voting is open ' + Utilities.formatDate(w.open, 'America/Denver', 'MMM d') + ' to ' + Utilities.formatDate(w.close, 'America/Denver', 'MMM d') + '; votes before that get a polite ❌.' : '');
+  });
+}
+
 // ───────────────────────────── Hourly deadline check ─────────────────────────────
 
 function hourlyTick() {
@@ -1939,6 +2027,7 @@ function onOpen() {
     .addItem('🤝 Add head-to-head wagers to the form', 'adminAddWagers')
     .addItem('🛒 Add the Brawl Bucks items shop to the form', 'adminAddItems')
     .addItem('🤝 Allow a big wager (commish OK, up to 10%)', 'adminBigWager')
+    .addItem('🏟️ Add the Bleacher Vote to the form', 'adminAddVote')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub Hill Board', 'adminConnectGithub')
     .addToUi();
@@ -2079,6 +2168,7 @@ function refreshFormChoices() {
     .sort(function (a, b) { return Number(a.Rank) - Number(b.Rank); })
     .map(function (p) { return oppLabel_(p); });
   item.asListItem().setChoiceValues([ACE_CHOICE].concat(names));
+  try { refreshVoteChoices_(form); } catch (e) { }
   try { item.setHelpText('Each club shows its ladder spot and SmallBall club ID. After you charge, start a BigLeague game in SmallBall against that club ID, as the visitor, within the hour. The Hill finds the game by itself.'); } catch (e) { }
   const bi = form.getItems(FormApp.ItemType.LIST).find(function (i) { return i.getTitle() === Q.BET; });
   if (bi) {
@@ -2997,7 +3087,7 @@ function ensureWagerForm_(form) {
 
 // The order and look of the first question on the form. Tidy-up renames the old choices and their sections to
 // these labels, keeps every choice pointing at its own section, and puts 🥊 Charge the Hill first.
-const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'SHOP', 'REGISTER', 'DISCORD_ID'];
+const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'SHOP', 'VOTE', 'REGISTER', 'DISCORD_ID'];
 const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
   'Only #1 can charge ♠ THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound.\n\n' +
   'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
@@ -3500,7 +3590,7 @@ function snapshotBoard_() {
       snap.revenge = exAce ? { name: norm_(exAce.Discord), margin: C.STATE_REVENGE_MARGIN } : null;
       try {
         const aw = awards_();
-        snap.awards = AWARDS.map(function (w) { const x = aw[w.key]; return { icon: w.icon, name: w.key === 'ace' ? 'Season ' + C.SEASON + ' Ace' : w.name, what: w.what, who: x ? x.name : '', club: x ? x.club : '', value: x ? x.value : '' }; });
+        snap.awards = AWARDS.map(function (w) { const x = aw[w.key]; return { icon: w.icon, name: w.key === 'ace' ? 'Season ' + C.SEASON + ' Ace' : w.name, what: w.what, who: x ? x.name : '', club: x ? x.club : '', value: x ? x.value : '', note: w.key === 'bleacher' ? voteNote_(C) : '' }; });
         snap.cup = aw.cupTable.map(function (x) { return { name: x.name, club: x.club, pts: x.pts }; });
         snap.bank = null;
         try { snap.wallet = walletBoard_(C); } catch (e) { snap.wallet = null; }
@@ -3824,7 +3914,7 @@ if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div
 +PO.slice(0,24).map(function(L){var oc=function(o){return '<b class="'+(+o<0?'fv':'dg')+'">'+fo(o)+'</b>';};return '<div class="r ml"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title</small>':'')+'</span>'+oc(L.a)+'<span class="bb" style="text-align:right">@ '+esc(L.df)+'</span>'+oc(L.h)+'</div>';}).join('')+'<div class="note" style="margin-top:8px"><span class="fv">−120</span> favorite · <span class="dg">+150</span> underdog</div></div>';}}
 h+='<!--TAB:season-->';
 var aw=D.awards||[],cp=D.cup||[];
-if(aw.length){h+='<h2 class="bb">🏆 Season '+esc(D.season)+' hardware'+(D.seasonClosed?' · final':' · race')+'</h2><div class="hw"><div class="cup"><h3 class="bb">🏆 The Bench Clearer Cup</h3>'+(cp.length?cp.map(function(x,i){return '<div class="r"><b>'+(i+1)+'</b><span class="bb">'+esc(x.name)+'<small>'+esc(x.club)+'</small></span><span class="bb" style="font-size:20px">'+x.pts+'</span></div>';}).join(''):'<div class="empty">No Brawl points yet. The first payday is midnight.</div>')+'</div><div><div class="aws">'+aw.filter(function(a){return a.name!=='The Bench Clearer Cup';}).map(function(a){return '<div class="aw"><div class="i">'+a.icon+'</div><div class="t bb">'+esc(a.name)+'</div><div class="w bb">'+(a.who?esc(a.who):'—')+'</div><div class="v">'+(a.who?esc(a.value):'up for grabs')+'</div><div class="q">'+esc(a.what)+'</div></div>';}).join('')+'</div>'+(D.prizes?'<div class="prize">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</div>':'')+'</div></div>';}
+if(aw.length){h+='<h2 class="bb">🏆 Season '+esc(D.season)+' hardware'+(D.seasonClosed?' · final':' · race')+'</h2><div class="hw"><div class="cup"><h3 class="bb">🏆 The Bench Clearer Cup</h3>'+(cp.length?cp.map(function(x,i){return '<div class="r"><b>'+(i+1)+'</b><span class="bb">'+esc(x.name)+'<small>'+esc(x.club)+'</small></span><span class="bb" style="font-size:20px">'+x.pts+'</span></div>';}).join(''):'<div class="empty">No Brawl points yet. The first payday is midnight.</div>')+'</div><div><div class="aws">'+aw.filter(function(a){return a.name!=='The Bench Clearer Cup';}).map(function(a){return '<div class="aw"><div class="i">'+a.icon+'</div><div class="t bb">'+esc(a.name)+'</div><div class="w bb">'+(a.who?esc(a.who):'—')+'</div><div class="v">'+(a.who?esc(a.value):esc(a.note||'up for grabs'))+'</div><div class="q">'+esc(a.what)+'</div></div>';}).join('')+'</div>'+(D.prizes?'<div class="prize">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</div>':'')+'</div></div>';}
 var pts=[10,20,40,80,160,320,320,320];
 h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">🥊 Charge the hill</h3><p>Pick a fight with anyone up to <b>3 spots above you</b>. Reach higher, win bigger.</p><div class="reach"><div class="no">#2 · too far</div><div class="ok">#3 · win by 4+</div><div class="ok">#4 · win by 3+</div><div class="ok">#5 · just win</div><div class="me">#6 · YOU</div></div></div>'
