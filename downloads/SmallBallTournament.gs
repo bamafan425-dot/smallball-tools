@@ -949,6 +949,28 @@ h1{font-size:52px;text-shadow:0 2px 0 rgba(0,0,0,.4)}
 .pv{background:linear-gradient(90deg,rgba(255,209,102,.10),rgba(21,39,74,.6));border-radius:14px}
 .rules{background:linear-gradient(180deg,rgba(21,39,74,.9),rgba(11,23,48,.9));border-radius:16px}
 .rcard{background:rgba(6,16,31,.45);border-radius:12px}
+
+/* ── Readability pass: clear sans for small text, bigger sizes, brighter secondary text, plain card faces ── */
+:root{--muted:#c3cfe6}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.m{background:#15294f}
+.m .s:nth-child(odd){background:transparent}
+.m .lab{font:700 11.5px system-ui,sans-serif;letter-spacing:.05em;color:#dbe4f5}
+.m .s{padding:8px 10px}
+.m .s .n{font:600 15.5px/1.2 system-ui,sans-serif;color:#fff}
+.m .s .n small{font:500 12.5px system-ui,sans-serif;color:var(--muted)}
+.m .s .n small .cid{font-weight:700}
+.m .s .sd{font:700 11.5px system-ui,sans-serif;color:#dbe4f5;width:24px;height:24px}
+.m .s.l .n{opacity:.62}.m .s.l .n small{opacity:.9}
+.m .tbd{color:#9fb0cf;font-weight:500}
+.m .ft{font:600 12.5px system-ui,sans-serif}
+.col h3{font:800 11.5px system-ui,sans-serif;letter-spacing:.07em}
+.ids a span{font:600 15px system-ui,sans-serif}.ids i{font-size:12.5px}.ids em{font:700 12.5px system-ui,sans-serif}
+.meta{font-size:14.5px}
+.pv{font-size:16px}.pv span{font-size:14.5px}
+.rcard li{font-size:15px;line-height:1.45}.rcard h3{font:700 16px system-ui,sans-serif}
+.when span{font-size:14px}
+.btn{font:700 13.5px system-ui,sans-serif}
 @media(max-width:640px){h1{font-size:40px}.col{min-width:216px}.sec.wb,.sec.lb,.sec.gf{margin:8px 8px;padding:10px}}
 </style></head><body><div id="app"></div>
 <script>
