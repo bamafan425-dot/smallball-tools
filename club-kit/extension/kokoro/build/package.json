@@ -1,0 +1,15 @@
+{
+  "name": "sbx-kokoro-build",
+  "private": true,
+  "description": "Builds ../vendor/kokoro.bundle.js (kokoro-js on transformers.js 4 / ONNX Runtime Web 1.31). Run: npm ci && npm run build",
+  "scripts": {
+    "build": "esbuild entry.js --bundle --format=esm --platform=browser --minify --legal-comments=eof --alias:path=./empty.js --alias:fs/promises=./empty.js --alias:fs=./empty.js --alias:url=./empty.js --alias:sharp=./empty.js --alias:onnxruntime-node=./empty.js --outfile=../vendor/kokoro.bundle.js && cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.mjs node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.wasm ../vendor/"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.2",
+    "kokoro-js": "1.2.1",
+    "phonemizer": "1.2.1"
+  },
+  "devDependencies": { "esbuild": "0.28.2" },
+  "overrides": { "@huggingface/transformers": "$@huggingface/transformers" }
+}

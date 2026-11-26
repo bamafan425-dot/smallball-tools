@@ -30,7 +30,7 @@ let KokoroTTS = null;
 async function lib() {
   if (KokoroTTS) return;
   if (!(await cachesWork()) && typeof indexedDB !== "undefined") { try { Object.defineProperty(self, "caches", { value: idbCaches(), configurable: true }); } catch (_) {} }
-  const m = await import("./vendor/kokoro.web.js");
+  const m = await import("./vendor/kokoro.bundle.js");
   // ONNX Runtime's .wasm/.mjs come from the kit itself, never from a CDN (extension stores forbid remote code).
   // (transformers.js already skips local /models lookups in a worker.)
   m.env.wasmPaths = VENDOR;
@@ -72,20 +72,17 @@ async function load(dev) {
 async function init(want, voices) {
   const t0 = performance.now();
   await lib();
-  let dev = want === "wasm" ? "wasm" : (await gpuOk()) ? "webgpu" : "wasm";
-  if (want === "webgpu" && dev !== "webgpu") post({ t: "note", text: "No usable GPU here, so Kokoro runs on the CPU." });
+  // Kokoro keeps up with a ballgame on a graphics card. On the processor it's several times slower than
+  // speech on most computers, so the processor is only used when the person picks it.
+  const dev = want === "wasm" ? "wasm" : "webgpu";
+  if (dev === "webgpu" && !(await gpuOk())) throw new Error("no graphics card this browser can use for it (WebGPU)");
   try {
     await load(dev);
     post({ t: "progress", phase: "warmup" });
     await warm(voices);
   } catch (e) {
-    if (dev !== "webgpu") throw e;
-    // WebGPU didn't make it (driver, adapter, memory): drop to the CPU model.
-    post({ t: "note", text: "The GPU couldn't run Kokoro (" + String((e && e.message) || e).slice(0, 120) + "), so it runs on the CPU." });
-    tts = null; dev = "wasm";
-    await load(dev);
-    post({ t: "progress", phase: "warmup" });
-    await warm(voices);
+    tts = null;
+    throw dev === "webgpu" ? new Error("the graphics card couldn't run it: " + String((e && e.message) || e).slice(0, 140)) : e;
   }
   post({ t: "ready", device, dtype, ms: Math.round(performance.now() - t0), rtf: +warmRtf.toFixed(3) });
 }

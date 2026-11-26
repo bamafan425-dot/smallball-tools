@@ -55,9 +55,11 @@ run time is spoken with the browser voice instead, and after three failures Koko
 
 ## Processing: WebGPU or WASM
 
-`Runs on: Automatic` asks for a WebGPU adapter in the worker. A real adapter → WebGPU with the fp32 model
-(~326 MB). No adapter, a software ("fallback") adapter, or WebGPU failing to load/warm up → WASM with the
-q8 model (~92 MB). *Graphics card* and *Processor* force one or the other.
+`Runs on: Graphics card` (the default) asks for a WebGPU adapter in the worker and uses the fp32 model (~326 MB).
+No adapter, a software ("fallback") adapter, WebGPU failing to load, or garbled warm-up output → Kokoro doesn't start
+and the browser's voices carry on, with a note. `Processor (slow)` uses WASM with the q8 model (~92 MB); it is only
+used when picked, because single-threaded it runs 2–3× slower than speech on typical computers (confirmed on a
+tester's desktop: RTF 2.7).
 
 Measured in headless Chromium on a 4-vCPU 2.1 GHz Xeon VM (a slow CPU), real Kokoro v1.0 weights,
 `am_michael`. "RTF" is time to make a line ÷ length of the line; under 1 keeps up with the game.
@@ -128,9 +130,12 @@ session played from IndexedDB in the next.
 
 | File | From | License |
 |---|---|---|
-| `vendor/kokoro.web.js` | npm `kokoro-js@1.2.1` `dist/kokoro.web.js` (bundles `@huggingface/transformers@3.5.1` and `phonemizer@1.2.1`) | Apache-2.0 (see note) |
-| `vendor/ort-wasm-simd-threaded.jsep.mjs` | npm `onnxruntime-web@1.22.0-dev.20250409-89f8206ba4` `dist/` (the ORT build transformers 3.5.1 bundles) | MIT |
-| `vendor/ort-wasm-simd-threaded.jsep.wasm` | same | MIT |
+| `vendor/kokoro.bundle.js` | Built by `build/` (esbuild, pinned lockfile) from npm `kokoro-js@1.2.1` + `@huggingface/transformers@4.3.2` + `phonemizer@1.2.1` | Apache-2.0 (see note) |
+| `vendor/ort-wasm-simd-threaded.asyncify.mjs` / `.wasm` | npm `onnxruntime-web@1.31.0-dev.20260914-8d85527a0` `dist/` (the ORT that transformers 4.3.2 uses), unmodified | MIT |
+
+kokoro-js 1.2.1's own `kokoro.web.js` bundles transformers 3.5.1 with ONNX Runtime 1.22-dev, whose WebGPU path
+garbled most voices on a real graphics card in testing. The bundle is rebuilt on transformers 4.3.2 / ONNX Runtime
+1.31 instead; `cd build && npm ci && npm run build` reproduces it byte for byte.
 
 sha256 hashes are in `vendor/SOURCES.txt`. Model data (downloaded at run time, not shipped):
 `onnx-community/Kokoro-82M-v1.0-ONNX` on Hugging Face (Apache-2.0): `onnx/model_quantized.onnx` (q8) or
@@ -149,7 +154,7 @@ acceptable (the alternatives are a different phonemizer or dropping Kokoro). See
   and one `web_accessible_resources` entry (`kokoro/engine.html`, only for play.smallball.com). No new
   permissions, so no new install warnings.
 * **Firefox / AMO:** the vendored files are unmodified release files, listed above with their npm versions,
-  so reviewers can diff them. `kokoro.web.js` is 2.1 MB (under AMO's 4 MB parse limit); the `.wasm` is 21.6 MB.
+  and the bundle is reproducible from `build/` (submit that as the source code). `kokoro.bundle.js` is 1.9 MB (under AMO's 4 MB parse limit); the `.wasm` is 26.9 MB.
   `data_collection_permissions: none` still holds: downloading public model files isn't data collection, but the
   listing should mention the one-time download from huggingface.co.
 * **Size:** the kit grows by ~24 MB unpacked (~5.5 MB zipped), almost all the ONNX Runtime `.wasm`.

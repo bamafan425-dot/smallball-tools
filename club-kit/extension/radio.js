@@ -858,9 +858,12 @@
   // Each voice picker (Mack, Dewey, Guest) can name a browser voice, a Kokoro voice ("kokoro:am_michael"), or
   // Automatic, which follows Voices. So the booth can mix: say Mack on Kokoro and Dewey on a browser voice.
   const KPICK = { p: "pbp", c: "color", g: "guestVoice" };
-  const kPicked = (who) => { const v = R[KPICK[who === "p" || who === "c" ? who : "g"]] || ""; return v.startsWith("kokoro:") ? v.slice(7) : ""; };
-  const kFor = (who) => K_OK && who !== "pause" && (kPicked(who) ? true : !R[KPICK[who === "p" || who === "c" ? who : "g"]] && R.engine === "kokoro");
-  const kWant = () => K_OK && (R.engine === "kokoro" || ["p", "c", "g"].some((w) => kPicked(w)));
+  // Kokoro is on only when Voices is Kokoro; then the pickers also offer Kokoro voices, and a picker can still
+  // name a browser voice to mix the two.
+  const kPickRaw = (who) => R[KPICK[who === "p" || who === "c" ? who : "g"]] || "";
+  const kPicked = (who) => { const v = kPickRaw(who); return R.engine === "kokoro" && v.startsWith("kokoro:") ? v.slice(7) : ""; };
+  const kFor = (who) => kWant() && who !== "pause" && (!kPickRaw(who) || !!kPicked(who));
+  const kWant = () => K_OK && R.engine === "kokoro";
   const kLive = (who) => kWant() && K.st === "ready" && !(K.slow && TTS) && (who == null || kFor(who));
   const kMackV = () => kPicked("p") || KV.p;
   const kCast = (who, id) => (who === "p" || who === "c" ? who : (GS[id] || {}).guest || Object.keys(GUESTS).find((g) => R.guests[g]) || "quiz");
@@ -1020,7 +1023,7 @@
   }
   const mb = (n) => (n >= 1e6 ? Math.round(n / 1e6) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB");
   function kStatus() {
-    if (K.st === "failed") return `⚠️ Kokoro couldn't start (${esc(K.err)}). The booth is using your browser's voices.`;
+    if (K.st === "failed") return `⚠️ Kokoro couldn't start: ${esc(K.err)}. The booth is using your browser's voices.${R.kdev !== "wasm" ? " You can try Processor (slow) below, but on most computers it can't keep up with a game." : ""} <button class="mini" data-act="kload">Try again</button>`;
     if (K.st === "loading") {
       if (K.phase === "download" && K.total) { const p = Math.min(100, Math.round((K.loaded / K.total) * 100)); return `⏬ Getting the Kokoro voices: ${p}% (${mb(K.loaded)} of ${mb(K.total)}). Your browser's voices fill in until they're ready.<div class="kbar"><i style="width:${p}%"></i></div>`; }
       if (K.phase === "warmup") return "⚙️ Warming up the Kokoro voices…";
@@ -1030,7 +1033,7 @@
       if (K.slow && TTS) return `🐢 ${esc(K.note)} <button class="mini" data-act="kretry">Try Kokoro again</button>`;
       return `✅ Kokoro is on, running on the ${K.dev === "webgpu" ? "graphics card (WebGPU)" : "processor (WASM)"}. ${K.made + K.hits} lines so far${K.hits ? `, ${K.hits} from saved clips` : ""}${K.late ? `, ${K.late} skipped as too late` : ""}.`;
     }
-    return K.init ? "" : `Not downloaded yet. Kokoro needs about 90 MB on the processor (WASM), or about 330 MB with a graphics card (WebGPU), downloaded once from Hugging Face and kept in this browser. It starts when you turn the radio on, or <button class="mini" data-act="kload">download now</button>.`;
+    return `Kokoro is off. <button class="mini" data-act="kload">Start Kokoro</button> (the first time it downloads about 330 MB for the graphics card, or 90 MB for the processor, from Hugging Face, and keeps it in this browser).`;
   }
   function kPaint() {
     if (!isOpen()) return;
@@ -1083,8 +1086,8 @@
     const en = VO.filter((v) => /^en/i.test(v.lang));
     const auto = (who) => (R.engine === "kokoro" && K_OK ? (who === "g" ? "Kokoro cast" : "Kokoro " + KVN[KV[who]]) : (voiceFor(who) || {}).name || "");
     const opts = (cur, who) => `<option value="">Automatic${auto(who) ? ` (${esc(auto(who))})` : ""}</option>` +
-      (K_OK ? `<optgroup label="Kokoro (neural, made on this computer)">${KALL.map(([id, n]) => `<option value="kokoro:${id}"${cur === "kokoro:" + id ? " selected" : ""}>${esc(n)}</option>`).join("")}</optgroup><optgroup label="Browser voices">` : "") +
-      en.map((v) => `<option${v.name === cur ? " selected" : ""}>${esc(v.name)}</option>`).join("") + (K_OK ? "</optgroup>" : "");
+      (kWant() ? `<optgroup label="Kokoro (neural, made on this computer)">${KALL.map(([id, n]) => `<option value="kokoro:${id}"${cur === "kokoro:" + id ? " selected" : ""}>${esc(n)}</option>`).join("")}</optgroup><optgroup label="Browser voices">` : "") +
+      en.map((v) => `<option${v.name === cur ? " selected" : ""}>${esc(v.name)}</option>`).join("") + (kWant() ? "</optgroup>" : "");
     const seg = (key, vals) => `<span class="seg" data-seg="${key}">${vals.map(([v, l]) => `<button data-v="${v}" class="${R[key] === v ? "on" : ""}">${l}</button>`).join("")}</span>`;
     box.innerHTML = `
       <div class="rrow"><b>📻 SmallBall Radio</b><span class="note">Mack calls it, Dewey colors it, a guest drops by.</span></div>
@@ -1092,7 +1095,7 @@
       ${K_OK ? `<div class="rrow"><span class="lbl">Voices</span>${seg("engine", [["browser", "Browser"], ["kokoro", "Kokoro (neural)"]])}</div>` : ""}
       ${kWant() ? `<div class="kbox">
         <p class="note kstat" style="opacity:.9"></p>
-        <div class="rrow"><span class="lbl">Runs on</span>${seg("kdev", [["auto", "Automatic"], ["webgpu", "Graphics card"], ["wasm", "Processor"]])}</div>
+        <div class="rrow"><span class="lbl">Runs on</span>${seg("kdev", [["auto", "Graphics card"], ["wasm", "Processor (slow)"]])}</div>
         <p class="note">The cast: Mack ${KVN[KV.p]}, Dewey ${KVN[KV.c]}, Chet ${KVN[KV.quiz]}, Brock ${KVN[KV.qb]}, Gary ${KVN[KV.obvious]}. Made on this computer; nothing about the game is sent anywhere. The voices below are the backup.</p>
         <div class="rrow"><button class="mini" data-act="kclear">Clear Kokoro downloads</button><span class="note kuse"></span></div>
       </div>` : ""}
@@ -1193,7 +1196,7 @@
     if (seg && ["quips", "pitches", "style", "updates", "sit", "air", "lean", "engine", "kdev"].includes(seg.dataset.seg)) {
       const k = seg.dataset.seg, was = R[k]; R[k] = b.dataset.v; rsave();
       if (was !== R[k] && (k === "engine" || k === "kdev")) {   // Kokoro: start, stop or restart on the new processor
-        if (!kWant()) kStop(); else if (k === "kdev" && K.frame) { const go = K.init || R.on; kStop(); if (go) kStart(true); } else if (R.on) { kAC(); kStart(true); }
+        if (!kWant()) kStop(); else if (k === "kdev") { kStop(); K.slow = false; K.gens = []; kAC(); kStart(true); } else { kAC(); kStart(true); }   // picking Kokoro turns it on
       }
       paintRadio(); return;
     }
