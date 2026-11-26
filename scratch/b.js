@@ -191,28 +191,29 @@
   #sbx-build { margin: 0 0 16px; padding: 14px 16px 16px; border-radius: 14px; background: linear-gradient(180deg, rgba(30,41,82,.92), rgba(14,22,44,.95)); color: #eef2ff; box-shadow: 0 8px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08); font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
   #sbx-build * { box-sizing: border-box; }
   #sbx-build .bh { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  #sbx-build .bh h3 { margin: 0; font-size: 18px; flex: 1 1 auto; }
-  #sbx-build .bh p { margin: 2px 0 0; font-size: 12px; opacity: .75; font-weight: 400; }
+  #sbx-build .bh .xb-t { flex: 1 1 320px; min-width: 0; } #sbx-build .bh h3 { margin: 0; font-size: 18px; }
+  #sbx-build .bh .xb-sub { margin: 3px 0 0; font: 400 12.5px/1.35 system-ui, sans-serif; opacity: .8; text-transform: none; letter-spacing: normal; }
   #sbx-build .bb { border: 0; border-radius: 999px; padding: 8px 14px; font: 800 13px/1 system-ui, sans-serif; cursor: pointer; background: rgba(255,255,255,.12); color: inherit; }
   #sbx-build .bb.go { background: #facc15; color: #1b1300; }
   #sbx-build .bb:disabled { opacity: .5; cursor: wait; }
+  #sbx-build .field, #sbx-build .ord { min-width: 0; }
   #sbx-build .cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; margin-top: 12px; }
   @media (max-width: 760px) { #sbx-build .cols { grid-template-columns: 1fr; } }
   #sbx-build .field { position: relative; border-radius: 12px; padding: 10px; background: radial-gradient(ellipse at 50% 120%, #8a5a2b 0 34%, transparent 35%), repeating-linear-gradient(90deg, #2f6b3a 0 26px, #2a6134 26px 52px); display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 6px; }
-  #sbx-build .slot { border-radius: 10px; padding: 4px; min-height: 64px; background: rgba(0,0,0,.18); border: 2px dashed transparent; }
+  #sbx-build .slot { min-width: 0; border-radius: 10px; padding: 4px; min-height: 64px; background: rgba(0,0,0,.18); border: 2px dashed transparent; }
   #sbx-build .slot > b { display: block; font: 800 11px/1 ui-monospace, monospace; letter-spacing: .08em; color: #fde68a; margin: 1px 0 3px 3px; }
   #sbx-build .slot.hot, #sbx-build .ord li.hot { border-color: #facc15; background: rgba(250,204,21,.18); }
   #sbx-build .bench { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; padding-top: 8px; border-top: 2px solid rgba(255,255,255,.25); }
-  #sbx-build .chip { position: relative; background: #f8f5ec; color: #1e1b14; border-radius: 8px; padding: 5px 7px 5px 8px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+  #sbx-build .chip { position: relative; overflow: hidden; min-width: 0; display: block; text-align: left; letter-spacing: normal; text-transform: none; background: #f8f5ec; color: #1e1b14; border-radius: 8px; padding: 5px 7px 5px 8px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
   #sbx-build .chip.sel { outline: 3px solid #facc15; }
-  #sbx-build .chip .n { display: block; font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 18px; }
-  #sbx-build .chip .s { display: block; font-size: 10.5px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #sbx-build .chip .xb-n { display: block; font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 18px; }
+  #sbx-build .chip .xb-s { display: block; font-size: 10.5px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #sbx-build .chip .fit { height: 3px; border-radius: 2px; margin-top: 3px; background: #e5e7eb; overflow: hidden; }
   #sbx-build .chip .fit i { display: block; height: 100%; }
   #sbx-build .chip .lk { position: absolute; top: 3px; right: 4px; border: 0; background: none; cursor: pointer; font-size: 12px; padding: 0; opacity: .35; }
   #sbx-build .chip .lk.on { opacity: 1; }
   #sbx-build .ord { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
-  #sbx-build .ord li { display: flex; align-items: center; gap: 8px; border-radius: 10px; border: 2px dashed transparent; padding: 1px; }
+  #sbx-build .ord li { min-width: 0; margin: 0; list-style: none; display: flex; align-items: center; gap: 8px; border-radius: 10px; border: 2px dashed transparent; padding: 1px; }
   #sbx-build .ord li > b { width: 22px; text-align: center; font: 800 15px/1 ui-monospace, monospace; color: #fde68a; flex: none; }
   #sbx-build .ord li .chip { flex: 1; }
   #sbx-build .chip .pos { font: 800 10.5px/1 ui-monospace, monospace; background: #1e293b; color: #fde68a; border-radius: 5px; padding: 2px 5px; margin-right: 2px; vertical-align: 1px; }
@@ -245,13 +246,13 @@
   }
   function chip(id, posName, c, tag) {
     const p = ST.byId.get(id);
-    if (!p) return '<div class="chip"><span class="n">?</span></div>';
+    if (!p) return '<div class="chip"><span class="xb-n">?</span></div>';
     const lock = c.locks.map(String).includes(String(id));
     const f = posName && DEF[posName] ? Math.round(DEF[posName](p)) : null;
     const col = f == null ? "" : f >= 80 ? "#16a34a" : f >= 60 ? "#ca8a04" : "#dc2626";
     return `<div class="chip" data-id="${esc(id)}" title="${esc(p.name)} · TP ${S(p, "tp")}${f != null ? ` · ${posName} fit ${f} (${DEF_WHY[posName]})` : ""}">` +
       `<button class="lk${lock ? " on" : ""}" data-lock="${esc(id)}" title="${lock ? "Locked: Optimize leaves him where he is. Click to unlock." : "Lock him here so Optimize leaves him alone"}">${lock ? "🔒" : "🔓"}</button>` +
-      `<span class="n">${tag ? `<span class="pos">${esc(tag)}</span> ` : ""}${esc(p.name)}</span><span class="s">${esc(statLine(p, posName))}${S(p, "tp") ? ` · TP ${Math.round(S(p, "tp") * 10) / 10}` : ""}</span>` +
+      `<span class="xb-n">${tag ? `<span class="pos">${esc(tag)}</span> ` : ""}${esc(p.name)}</span><span class="xb-s">${esc(statLine(p, posName))}${S(p, "tp") ? ` · TP ${Math.round(S(p, "tp") * 10) / 10}` : ""}</span>` +
       (f != null ? `<div class="fit"><i style="width:${f}%;background:${col}"></i></div>` : "") + "</div>";
   }
 
@@ -266,7 +267,7 @@
     const order = form.order.map((id, k) => `<li data-ord="${k}"><b>${k + 1}</b>${id ? chip(id, null, c, posOf(id)) : '<div class="chip">?</div>'}</li>`).join("");
     const pre = Object.entries(PRESETS).map(([k, v]) => `<button data-preset="${k}" class="${c.preset === k ? "on" : ""}" title="${esc(v.tip)}">${v.label}</button>`).join("");
     const sl = SLIDERS.map(([k, label, tip]) => `<label title="${esc(tip)}"><span>${label}</span><input type="range" min="0" max="10" step="1" data-w="${k}" value="${c.w[k]}"><b>${c.w[k]}</b></label>`).join("");
-    el.innerHTML = `<div class="bh"><h3>🧩 Lineup Builder<p>Drag men between spots, the bench and the batting order (or tap one, then another). It fills SmallBall's form below; nothing is saved until you press <b>Save</b>.</p></h3>` +
+    el.innerHTML = `<div class="bh"><div class="xb-t"><h3>🧩 Lineup Builder</h3><div class="xb-sub">Drag men between spots, the bench and the batting order (or tap one, then another). It fills SmallBall's form below; nothing is saved until you press <b>Save</b>.</div></div>` +
       `<button class="bb go" data-act="opt" title="Build the lineup and batting order with your settings">⚡ Optimize my way</button>` +
       `<button class="bb" data-act="cust">⚙️ ${ST.open ? "Hide settings" : "My settings"}</button>` +
       (ST.snapshot ? `<button class="bb" data-act="undo" title="Put the form back the way it was before your changes">↺ Undo my changes</button>` : "") + "</div>" +
