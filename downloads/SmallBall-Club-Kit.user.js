@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.34.0
+// @version      1.35.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -1199,7 +1199,7 @@ const SBX_MOBILE = true;
       let cell = a.parentElement.querySelector(":scope > .sbx-bxcell");
       if (!cell) {
         cell = document.createElement("span"); cell.className = "sbx-bxcell";
-        cell.innerHTML = `<span class="sbx-gid" title="Game number">#${gid}</span><button type="button" class="btn small sbx-bxl" data-boxg="${gid}" title="Box score for game ${gid}">📰 Box score</button>${on("hill") && bs_hillRow(a) ? `<button type="button" class="btn small sbx-hill" data-hill="${gid}" title="Open the Hold the Hill form with this game filled in">⛰️ Report</button>` : ""}`;
+        cell.innerHTML = `<span class="sbx-gid" title="Game number">#${gid}</span><button type="button" class="btn small sbx-bxl" data-boxg="${gid}" title="Box score for game ${gid}">📰 Box score</button>${on("hill") && bs_hillRow(a) ? `<button type="button" class="btn small sbx-hill" data-hill="${gid}" title="Open the Hold the Master Form with this game filled in">⛰️ Report</button>` : ""}`;
         a.parentElement.insertBefore(cell.firstChild, a); a.after(cell);
       }
       const b = cell.querySelector(".sbx-bxl"), u = CD_UNTIL[gid], locked = u != null && u > now;
@@ -1209,7 +1209,7 @@ const SBX_MOBILE = true;
   }
   setInterval(bs_listTick, 1000);
   // ⛰️ Report to Hold the Hill: on your own club's page, a BigLeague game gets a button that opens the Hold the
-  // Hill form with the game ID, the game type and both scores filled in from SmallBall's own game record.
+  // Master Form with the game ID, the game type and both scores filled in from SmallBall's own game record.
   // You just press Next and Submit (the form is how the Hill knows it's you). Both players still report.
   const HILL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfO1EMJ6w017hFyqQFXfda_3J9rM3ivU_o1PYgffN7zX7Xmdg/viewform";
   const HILL_E = { action: "898353382", gid: "2005048912", kind: "649585690", my: "1022644951", opp: "784642772" };
@@ -3121,8 +3121,10 @@ const SBX_MOBILE = true;
     }
     return out;
   }
-  // ⛰️ Hold the Hill: one card per club of yours on the Hill (from the public Hill Board data).
+  // ⛰️ Hold the Hill: one card per club of yours on the Hill (from the public HtH Leaderboard data).
   const HILL_BOARD = "https://slipnsliders.github.io/smallball-tools/hill/";
+  // A club name that opens its SmallBall club page (same tab, like SmallBall's own links)
+  const clubA = (name, id) => '<a href="#/team/' + encodeURIComponent(id) + '" title="Open ' + esc(name) + '\'s club page" style="color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px">' + esc(name) + "</a>";
   const hillNeed = (gap) => (gap <= 1 ? 1 : gap + 1);
   function hillItems(H, mine) {
     if (!H || !H.ladder) return [];
@@ -3131,7 +3133,7 @@ const SBX_MOBILE = true;
     const out = [];
     all.filter((p) => mine.has(String(p.clubId))).forEach((me) => {
       const r = Number(me.rank), w = wal[me.name];
-      const sub = "<b>" + esc(me.name) + "</b> · " + esc(me.club) + " · " + me.w + "–" + me.l +
+      const sub = "<b>" + clubA(me.name, me.clubId) + "</b> · " + esc(me.club) + " · " + me.w + "–" + me.l +
         (w ? " · 💰 <b>" + w.bank + "</b> BB" + (w.streak ? " · 🔥 " + w.streak : "") + (w.items && w.items.length ? " · " + w.items.join(" ") : "") : "");
       const lines = [];
       const ch = (H.charges || []).find((c) => c.ch === me.name || c.df === me.name);
@@ -3139,22 +3141,23 @@ const SBX_MOBILE = true;
         const opp = all.find((p) => p.name === (ch.ch === me.name ? ch.df : ch.ch));
         const by = ch.deadline ? " · play by <b>" + esc(liveWhen(Date.parse(ch.deadline))) + "</b>" : "";
         if (/reported|airing/i.test(ch.status || "")) lines.push({ t: "📡 Your Hill game is in. The result posts once it has aired." });
-        else if (ch.ch === me.name) lines.push({ t: "🥊 You charged <b>" + esc(ch.df) + "</b>" + (opp ? " <code>" + esc(opp.clubId) + "</code>" : "") + by + ". Start a BigLeague game as the visitor.", go: opp ? liveStart(me.clubId, opp.clubId) : "" });
-        else lines.push({ t: "🛡️ <b>" + esc(ch.ch) + "</b> charged you" + by + ". They start the game; be ready." });
+        else if (ch.ch === me.name) lines.push({ t: "🥊 You charged <b>" + (opp ? clubA(ch.df, opp.clubId) : esc(ch.df)) + "</b>" + (opp ? " <code>" + esc(opp.clubId) + "</code>" : "") + by + ". Start a BigLeague game as the visitor.", go: opp ? liveStart(me.clubId, opp.clubId) : "" });
+        else lines.push({ t: "🛡️ <b>" + (opp ? clubA(ch.ch, opp.clubId) : esc(ch.ch)) + "</b> charged you" + by + ". They start the game; be ready." });
       } else if (r === 0) {
         lines.push({ t: "♠ You hold the mound. Defend it" + (me.next ? ": the next defense is worth <b>+" + me.next + "</b>" : "") + "." });
       } else {
         const tg = [];
         const openTo = Number(H.moundOpenTo) || 0;
-        if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: "♠ <b>" + esc(H.ace.name) + "</b> (the Ace) <code>" + esc(H.ace.clubId) + "</code> · title shot" });
+        if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: "♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> (the Ace) <code>" + esc(H.ace.clubId) + "</code> · title shot" });
         H.ladder.filter((p) => r - Number(p.rank) >= 1 && r - Number(p.rank) <= reach).sort((a, b) => a.rank - b.rank).forEach((p) => {
-          const n = hillNeed(r - Number(p.rank)); tg.push({ t: "#" + p.rank + " <b>" + esc(p.name) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win") });
+          const n = hillNeed(r - Number(p.rank)); tg.push({ t: "#" + p.rank + " <b>" + clubA(p.name, p.clubId) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win") });
         });
         const j = H.ladder.find((p) => r - Number(p.rank) === reach + 1);
-        if (j) tg.push({ t: "🪜 #" + j.rank + " <b>" + esc(j.name) + "</b> with a Ladder Jump" });
-        if (tg.length) { lines.push({ t: "You can charge:" }); tg.forEach((x) => lines.push(x)); lines.push({ t: '<span style="opacity:.75;font-size:12px">The Hill form\'s 🔎 Who can I charge? has the exact list (cooldowns, items).</span>', go: form, btn: "🥊 Charge", ext: 1 }); }
+        if (j) tg.push({ t: "🪜 #" + j.rank + " <b>" + clubA(j.name, j.clubId) + "</b> with a Ladder Jump" });
+        if (tg.length) { lines.push({ t: "You can charge:" }); tg.forEach((x) => lines.push(x)); lines.push({ t: '<span style="opacity:.75;font-size:12px">The Master Form\'s 🔎 Who can I charge? has the exact list (cooldowns, items).</span>', go: form, btn: "🥊 Charge", ext: 1 }); }
         else lines.push({ t: "Nobody in reach right now. Win a defense or wait for the ladder to move." });
       }
+      lines.push({ t: '<span style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px"><a href="' + esc(form) + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📝 Master Form</a><a href="' + HILL_BOARD + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📊 Live Hold the Hill Leaderboard</a></span>' });
       out.push({ k: "hill:" + me.clubId, hill: true, title: r === 0 ? "⛰️ Hold the Hill · ♠ The Ace" : "⛰️ Hold the Hill · #" + r + " of " + H.ladder.length, sub, lines, url: HILL_BOARD });
     });
     return out;
@@ -3207,7 +3210,7 @@ const SBX_MOBILE = true;
         (l.go ? '<a href="' + esc(l.go) + '"' + (l.ext ? ' target="_blank" rel="noopener"' : "") + ' style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">' + (l.btn || "▶ Start") + "</a>" : "") + "</div>").join("");
       return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:11px 12px 11px 14px;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);border-left:5px solid ' + edge + '">' +
         '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
-        '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.hill ? "⛰️ Board" : x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
+        '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.hill ? "📊 HtH Leaderboard" : x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
         '<button data-x="' + i + '" title="Hide this card until something changes" style="background:rgba(255,255,255,.12);border:0;color:inherit;cursor:pointer;font-size:14px;line-height:1;border-radius:999px;width:24px;height:24px">×</button></div>' +
         (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
     }).join("");

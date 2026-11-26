@@ -1,9 +1,9 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
- * Hill Board: a live web page (see the bottom of this file). Deploy → New deployment → Web app,
+ * HtH Leaderboard: a live web page (see the bottom of this file). Deploy → New deployment → Web app,
  *   Execute as: Me, Who has access: Anyone. Share that URL.
  *
  * v1.1 (built with what the SmallBall chat knows about the game):
@@ -78,10 +78,10 @@ const DEFAULTS = {
   SEASON: [1, 'Current season number'],
   SEASON_START: ['2026-11-27 00:00', 'When the season opens, Mountain time (YYYY-MM-DD HH:MM). Clubs can register before this; charges and Brawl points start here.'],
   SEASON_END: ['2026-12-23 23:59', 'When the season ends, Mountain time (YYYY-MM-DD HH:MM). New charges lock then; charges already made can still be played and reported.'],
-  FORM_LINK: ['https://tinyurl.com/holdthehillsb', 'Link to the Hill form, shown as a button on the Hill Board'],
-  GITHUB_REPO: ['slipnsliders/smallball-tools', 'Optional: the GitHub repo that hosts the Hill Board (owner/repo). Connect it from the Hill menu'],
+  FORM_LINK: ['https://tinyurl.com/holdthehillsb', 'Link to the Master Form, shown as a button on the HtH Leaderboard'],
+  GITHUB_REPO: ['slipnsliders/smallball-tools', 'Optional: the GitHub repo that hosts the HtH Leaderboard (owner/repo). Connect it from the Hill menu'],
   GITHUB_PATH: ['docs/hill/board.json', 'Where the board data goes in that repo (the page sits next to it)'],
-  BOARD_LINK: ['', 'Link to the live Hill Board for Discord posts (a short link is nice). Blank = the web app link, found on its own'],
+  BOARD_LINK: ['', 'Link to the live HtH Leaderboard for Discord posts (a short link is nice). Blank = the web app link, found on its own'],
   BOOK_WEBHOOK_URL: ['', 'Optional: a webhook for a #sportsbook channel. Bets and the daily odds board post there instead of the main feed'],
   BOOK_ODDS_EVERY_HOURS: [1, 'How often the odds board posts to the sportsbook channel, in hours (only when something changed)'],
   NUDGES: ['TRUE', 'Callouts that nudge idle clubs to charge (TRUE/FALSE)'],
@@ -671,7 +671,7 @@ function newChallenge_(ct, type, status, ch, df, deadline, note) {
 // Sportsbook posts (bets, daily odds) go to BOOK_WEBHOOK_URL if it's set, otherwise to the main feed.
 function postBook_(content) { return post_(content, 'book'); }
 function post_(content, where) {
-  snapshotBoard_();   // the Hill Board shows what Discord has been told
+  snapshotBoard_();   // the HtH Leaderboard shows what Discord has been told
   let C;
   try { C = cfg_(); } catch (e) { return; }
   const url = webhookFor_(C, where);
@@ -760,8 +760,8 @@ function linksLine_(C) {
   let board = norm_(C.BOARD_LINK || '');
   if (!board) try { board = ScriptApp.getService().getUrl() || ''; } catch (e) { board = ''; }
   const form = norm_(C.FORM_LINK || ''), bits = [];
-  if (board) bits.push('📊 [Live Hill Board](<' + board + '>)');
-  if (form) bits.push('📝 [Hill form](<' + form + '>): charge, report, bet');
+  if (board) bits.push('📊 [Live Hold the Hill Leaderboard](<' + board + '>)');
+  if (form) bits.push('📝 [Master Form](<' + form + '>): charge, report, bet');
   return bits.length ? '\n' + bits.join(' · ') : '';
 }
 function standingsText_() {
@@ -848,7 +848,7 @@ function rejectPost_(sub, msg) {
     a === ACTIONS.WAGER ? ACTION_SHORT.Wager : a === ACTIONS.WAGER_REPLY ? ACTION_SHORT.WagerReply : 'form';
   const why = String(msg).replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '(email hidden)');
   const url = norm_(C.HELP_WEBHOOK_URL) || norm_(C.DISCORD_WEBHOOK_URL);
-  // Recent rejections also show on the Hill Board for an hour
+  // Recent rejections also show on the HtH Leaderboard for an hour
   try {
     const props = PropertiesService.getScriptProperties();
     let rj = []; try { rj = JSON.parse(props.getProperty('REJECTS') || '[]'); } catch (e) { rj = []; }
@@ -861,7 +861,7 @@ function rejectPost_(sub, msg) {
     content: (ping ? ping + ' ' : '') + '❌ **REJECTED**',
     embeds: [{ color: 0xC8102E, title: '❌ ' + kind.replace(/^\S+\s/, '').toUpperCase() + " DIDN'T GO THROUGH",
       description: '**' + who.replace(/<@\d+>/, 'You').replace(/\*/g, '') + '**, the Hill turned this one away:\n\n> ' + why.replace(/\n+/g, '\n> ') +
-        '\n\n🔁 **Fix it and send the form again:** ' + (norm_(C.FORM_LINK || '') ? '[Hill form](<' + norm_(C.FORM_LINK) + '>)' : 'the Hill form'),
+        '\n\n🔁 **Fix it and send the form again:** ' + (norm_(C.FORM_LINK || '') ? '[Master Form](<' + norm_(C.FORM_LINK) + '>)' : 'the Master Form'),
       footer: { text: 'Nothing was changed. Questions? #hill-help' } }] };
   try {
     const res = UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', muteHttpExceptions: true, payload: JSON.stringify(body) });
@@ -967,7 +967,7 @@ function doReach_(sub, C) {
     const mine = openFor_(ct, me.Email), list = reachList_(me, C, pt, ct);
     msg = '🔎 ' + tag_(me) + ", you're **#" + me.Rank + '** on the Climb' + (mine ? ' (and already in a fight: finish it before your next charge)' : '') + '. ' +
       (list.length ? 'In reach right now:\n' + list.map(function (x) { return '• ' + x; }).join('\n') : 'Nobody is in reach right now.') +
-      '\n🥊 Charge on the ' + (norm_(C.FORM_LINK || '') ? '[Hill form](<' + norm_(C.FORM_LINK) + '>)' : 'Hill form') + ' first. Your Start-the-game link comes in the charge post. A game played before you charge doesn\'t count.';
+      '\n🥊 Charge on the ' + (norm_(C.FORM_LINK || '') ? '[Master Form](<' + norm_(C.FORM_LINK) + '>)' : 'Master Form') + ' first. Your Start-the-game link comes in the charge post. A game played before you charge doesn\'t count.';
   }
   log_(sub.email, 'Reach check', me.Discord + ' #' + me.Rank);
   post_(msg, 'help');
@@ -1387,7 +1387,7 @@ function adminCheckNow() {
     '📺 Games found, waiting to air: ' + after.found + (next ? ' (next post ' + Utilities.formatDate(new Date(next), 'America/Denver', 'h:mm a') + ')' : ''),
     '',
     'Last SmallBall check: ' + (C.STATE_AUTO_STATUS || 'not yet'),
-    'Hill Board and odds refreshed.'];
+    'HtH Leaderboard and odds refreshed.'];
   ui.alert(lines.join('\n'));
 }
 
@@ -1439,14 +1439,14 @@ function voidChallenge_(ct, c, why) {
 }
 
 // ───────────────────────────── 🛒 Brawl Bucks items ─────────────────────────────
-// Buy an item from the shop (the Hill form) and hold it until you need it. Prices are set when you buy:
+// Buy an item from the shop (the Master Form) and hold it until you need it. Prices are set when you buy:
 // the Ace pays more (ITEM_ACE_X), so suiting up on the way up is the smart play.
 //   🥊 Brass Knuckles (defense): used by itself on the next charge against you. The challenger needs 1 more run
 //      (a title charge needs a 2-run win).
 //   🧽 Margin Eraser (offense): pick it on the charge form. Win your charge by any amount. It cancels Brass Knuckles.
 //   🪜 Ladder Jump (offense): pick it on the charge form. Charge one spot further than the normal reach.
 // One item per side per charge; each player can use one item every ITEM_COOLDOWN_HOURS. Items used on a charge that
-// gets voided come back. Purchases and items in play are public: they post in Discord and show on the Hill Board.
+// gets voided come back. Purchases and items in play are public: they post in Discord and show on the HtH Leaderboard.
 // Every Hill game also pays Brawl Bucks (PLAY_BUCKS), so you don't have to bet to afford items.
 const ITEMS = {
   knuckles: { icon: '🥊', name: 'Brass Knuckles', kind: 'defense', what: 'On the next charge against you, the challenger needs 1 more run (a title charge needs a 2-run win)' },
@@ -1629,6 +1629,7 @@ function ensureItemsForm_(form) {
       .setHelpText('Optional. Use one you bought in the 🛒 shop, or buy it right here (Margin Eraser ' + itemPrices_(C).eraser + ' BB, Ladder Jump ' + itemPrices_(C).jump + ' BB). Brass Knuckles are defense and go on by themselves.');
     form.moveItem(it.getIndex(), opp.getIndex() + 1);
   }
+  try { form.setTitle('Hold the Hill · Master Form').setDescription(MASTER_DESC_); } catch (e) { }
   // Stake limits are a % of your bankroll now: refresh the stake boxes' help (and drop the old fixed wager cap).
   try { const pb = form.getItems(FormApp.ItemType.PAGE_BREAK).find(function (p) { return p.getTitle() === ACTIONS.BET; }); if (pb) pb.asPageBreakItem().setHelpText(BOOK_HELP); } catch (e) { }
   form.getItems(FormApp.ItemType.TEXT).forEach(function (it) {
@@ -2020,7 +2021,7 @@ function onOpen() {
     .addItem('Close the season now (posts awards)', 'adminCloseSeason')
     .addItem('Start the next season', 'adminStartNextSeason')
     .addSeparator()
-    .addItem('Update the Hill Board now', 'adminRefreshBoard')
+    .addItem('Update the HtH Leaderboard now', 'adminRefreshBoard')
     .addItem('Run deadline check now', 'hourlyTick')
     .addItem('Refresh form opponent list', 'refreshFormChoices')
     .addItem('🔎 Add "Who can I charge?" to the form', 'adminAddReach')
@@ -2029,7 +2030,7 @@ function onOpen() {
     .addItem('🤝 Allow a big wager (commish OK, up to 10%)', 'adminBigWager')
     .addItem('🏟️ Add the Bleacher Vote to the form', 'adminAddVote')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
-    .addItem('🐙 Connect the GitHub Hill Board', 'adminConnectGithub')
+    .addItem('🐙 Connect the GitHub HtH Leaderboard', 'adminConnectGithub')
     .addToUi();
 }
 
@@ -2087,11 +2088,12 @@ function ensureSheets_(ss) {
   });
 }
 
-function buildForm_(ss) {
-  const form = FormApp.create('Hold the Hill · SmallBall');
-  form.setDescription('The official form for Hold the Hill, the SmallBall ladder where the Ace holds the mound.\n' +
+const MASTER_DESC_ = '📝 The Master Form: the one form for everything on Hold the Hill, the SmallBall ladder where the Ace holds the mound. Sign up, charge, report a game, bet, wager, shop and vote, all right here.\n' +
     'Pick what you want to do, fill in that one section, and submit. If it checks out, it posts in Discord. ' +
-    'If not, you get an email explaining why.');
+    'If not, you get an email explaining why.';
+function buildForm_(ss) {
+  const form = FormApp.create('Hold the Hill · Master Form');
+  form.setDescription(MASTER_DESC_);
   try { form.setEmailCollectionType(FormApp.EmailCollectionType.VERIFIED); }
   catch (e) { form.setCollectEmail(true); }
   form.setConfirmationMessage(FORM_CONFIRM);
@@ -2385,7 +2387,7 @@ function doBet_(sub, C) {
 }
 
 // Public summary of every bettor this season for the board's "My bets" lookup (no emails).
-// 💰 Brawl Bucks wallets for the Hill Board: everyone's balance, 🔥 streak and items held. Public on purpose; no
+// 💰 Brawl Bucks wallets for the HtH Leaderboard: everyone's balance, 🔥 streak and items held. Public on purpose; no
 // emails and no bet-by-bet history.
 function walletBoard_(C) {
   const pt = players_(), br = bankrolls_(C), inv = itemsOn_(C) ? inventory_(C) : {}, ST = itemsOn_(C) ? streakTable_(C).by : {};
@@ -2876,7 +2878,7 @@ function doWager_(sub, C) {
   const pt = players_(), me = activeMe_(pt, sub.email);
   if (!norm_(me.ClubID)) fail_('Your club ID is missing from the Hill. Register again with it first.');
   const oppId = norm_(sub.f[Q.W_OPP]).replace(/\D/g, '');
-  if (!oppId) fail_("Enter your opponent's club ID (it's next to their name on the Hill Board).");
+  if (!oppId) fail_("Enter your opponent's club ID (it's next to their name on the HtH Leaderboard).");
   const opp = pt.rows.find(function (p) { return p.Status === 'Active' && norm_(p.ClubID) === oppId; });
   if (!opp) fail_('No active Hill player has club ID ' + oppId + '. Both of you need to be on the Hill.');
   if (lc_(opp.Email) === lc_(me.Email)) fail_("You can't wager against yourself.");
@@ -2922,7 +2924,7 @@ function doWager_(sub, C) {
   const form = norm_(C.FORM_LINK);
   postBook_('🤝 **WAGER OFFERED · `' + w.WagerID + '`**\n' + who_(me) + ' puts **' + ms + ' BB** on beating ' + who_(opp) + ' · ' + wagerTerms_(w) +
     (ts !== ms ? '\n> ' + esc_(opp.Discord) + ' would risk **' + ts + ' BB** to win **' + ms + ' BB**' : '') +
-    '\n' + tag_(opp) + ': answer on the ' + (form ? '[Hill form](<' + form + '>)' : 'Hill form') + ' → *🤝 Answer a wager* · wager # `' + w.WagerID + '`. Open until ' + ts_(exp) + '.' +
+    '\n' + tag_(opp) + ': answer on the ' + (form ? '[Master Form](<' + form + '>)' : 'Master Form') + ' → *🤝 Answer a wager* · wager # `' + w.WagerID + '`. Open until ' + ts_(exp) + '.' +
     '\n-# Your next BigLeague game against each other settles it, once it airs. Funny business costs you your Brawl Bucks.');
 }
 
@@ -3031,7 +3033,7 @@ function wagersTick_() {
   });
 }
 
-// For the Hill Board (names only, no emails).
+// For the HtH Leaderboard (names only, no emails).
 function wagerBoard_(C) {
   let rows = []; try { rows = readTable_(SHEETS.WAGERS).rows.filter(function (w) { return String(w.Season) === String(C.SEASON); }); } catch (e) { rows = []; }
   const iso = function (d) { return d ? new Date(d).toISOString() : ''; };
@@ -3053,7 +3055,7 @@ function ensureWagerForm_(form) {
   if (!pW) {
     pW = form.addPageBreakItem().setTitle(ACTIONS.WAGER).setHelpText(wagerHelp_(C));
     pW.setGoToPage(FormApp.PageNavigationType.SUBMIT);
-    form.addTextItem().setTitle(Q.W_OPP).setHelpText("Their club ID number. It's next to their name on the Hill Board.").setRequired(true)
+    form.addTextItem().setTitle(Q.W_OPP).setHelpText("Their club ID number. It's next to their name on the HtH Leaderboard.").setRequired(true)
       .setValidation(FormApp.createTextValidation().requireWholeNumber().setHelpText('The club ID number').build());
     form.addTextItem().setTitle(Q.W_STAKE).setHelpText('What you put up, ' + 1 + ' to ' + wagerMax_(C) + ' Brawl Bucks.').setRequired(true)
       .setValidation(FormApp.createTextValidation().requireNumberBetween(1, wagerMax_(C)).setHelpText('A whole number from 1 to ' + wagerMax_(C)).build());
@@ -3239,10 +3241,10 @@ function newLinesPost_(prev, lines, C) {
   const fresh = lines.filter(function (x) { return !had[x.key]; });
   if (!fresh.length) return;
   const pre = !seasonOpen_(C) ? ' *(preview: betting opens at kickoff)*' : '';
-  if (!prev.length) { postBook_('🔮 **The board is up!** ' + lines.length + ' matchup lines posted' + pre + '. Lock in before the charge. Every line is on the Hill Board and the Hill form.'); return; }
+  if (!prev.length) { postBook_('🔮 **The board is up!** ' + lines.length + ' matchup lines posted' + pre + '. Lock in before the charge. Every line is on the HtH Leaderboard and the Master Form.'); return; }
   postBook_('🆕 **New line' + (fresh.length > 1 ? 's' : '') + ' on the board**' + pre + '\n' + fresh.slice(0, 15).map(function (x) {
     return (x.title ? '♠️ ' : '🔮 ') + '**' + esc_(x.ch) + '** ' + fmtOdds_(x.aml) + ' @ **' + esc_(x.df) + '** ' + fmtOdds_(x.hml);
-  }).join('\n') + (fresh.length > 15 ? '\n…and ' + (fresh.length - 15) + ' more on the Hill Board.' : ''));
+  }).join('\n') + (fresh.length > 15 ? '\n…and ' + (fresh.length - 15) + ' more on the HtH Leaderboard.' : ''));
 }
 // Futures: announce when someone moves 5+ points since the last futures post.
 function futuresMovesPost_(rows) {
@@ -3253,7 +3255,7 @@ function futuresMovesPost_(rows) {
   const save = {}; rows.forEach(function (x) { save[x.email] = x.pct; });
   if (first) {
     props.setProperty('FUT_POSTED', JSON.stringify(save));
-    postBook_('♠️ **Season Ace futures are live!**\n' + rows.slice(0, 5).map(function (x, i) { return (i + 1) + '. **' + esc_(x.name) + '** ' + fmtOdds_(x.odds) + ' (' + x.pct + '%)'; }).join('\n') + '\nBet on who finishes as the Ace on the Hill form (not yourself).');
+    postBook_('♠️ **Season Ace futures are live!**\n' + rows.slice(0, 5).map(function (x, i) { return (i + 1) + '. **' + esc_(x.name) + '** ' + fmtOdds_(x.odds) + ' (' + x.pct + '%)'; }).join('\n') + '\nBet on who finishes as the Ace on the Master Form (not yourself).');
     return;
   }
   if (!movers.length) return;
@@ -3362,7 +3364,7 @@ function potExpire_() {
 // Once a day: the odds board in the sportsbook channel (matchup lines + Ace futures). Held while a result waits to air.
 function oddsBoardText_(C) {
   const L = potCurrent_(), f = futures_();
-  let t = '# 🎰 HILL SPORTSBOOK · ' + Utilities.formatDate(now_(), 'America/Denver', 'EEE MMM d · h a') + (seasonOpen_(C) ? '' : ' · PREVIEW') + '\n*Play money. Bet on the Hill form. Matchup bets lock at the charge and come back if it isn\'t played in ' + (Number(C.BOOK_HOLD_HOURS) || 48) + ' hours.*\n';
+  let t = '# 🎰 HILL SPORTSBOOK · ' + Utilities.formatDate(now_(), 'America/Denver', 'EEE MMM d · h a') + (seasonOpen_(C) ? '' : ' · PREVIEW') + '\n*Play money. Bet on the Master Form. Matchup bets lock at the charge and come back if it isn\'t played in ' + (Number(C.BOOK_HOLD_HOURS) || 48) + ' hours.*\n';
   if (L.length) {
     t += '\n**🔮 Matchup lines**\n' + L.map(function (x) {
       return (x.title ? '♠️ ' : '') + '**' + esc_(x.ch) + '** ' + fmtOdds_(x.aml) + ' @ **' + esc_(x.df) + '** ' + fmtOdds_(x.hml);
@@ -3549,7 +3551,7 @@ function demoBoard_() {
   };
 }
 
-// ───────────────────────────── Hill Board (web page) ─────────────────────────────
+// ───────────────────────────── HtH Leaderboard (web page) ─────────────────────────────
 // A live scoreboard anyone can open: Deploy → New deployment → Web app → Execute as: Me, Who has access:
 // Anyone. It shows only what has already been posted publicly (a snapshot taken at every Discord post, held
 // back while a result is still waiting for its game to air), and never emails. It refreshes every minute.
@@ -3606,7 +3608,7 @@ function snapshotBoard_() {
 }
 
 
-// ===================== The Hill Board on GitHub Pages =====================
+// ===================== The HtH Leaderboard on GitHub Pages =====================
 // The token lives in Script Properties (never on a tab). Each change to the board is saved as one JSON file in the
 // repo; the page next to it reads that file. Nothing is sent when the board hasn't changed.
 function ghPush_(snap, force) {
@@ -3624,7 +3626,7 @@ function ghPush_(snap, force) {
     if (g.getResponseCode() === 200) { try { sha = JSON.parse(g.getContentText()).sha; } catch (e) { } }
     else if (g.getResponseCode() === 401 || g.getResponseCode() === 403) { pr.setProperty('GH_BAD', '1'); log_('system', 'GitHub key stopped working', 'GitHub said ' + g.getResponseCode() + '. The live page is paused: make a key (or reuse your current one) and use the menu: 🐙 Connect again.'); return false; }
     else if (g.getResponseCode() !== 404) { log_('system', 'GitHub read failed', g.getResponseCode() + ' ' + g.getContentText().slice(0, 200)); return false; }
-    const payload = { message: 'Hill Board update', content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
+    const payload = { message: 'HtH Leaderboard update', content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
     if (sha) payload.sha = sha;
     const r = UrlFetchApp.fetch(api, { method: 'put', headers: headers, contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
     const code = r.getResponseCode();
@@ -3639,7 +3641,7 @@ function ghPageUrl_(C) {
 }
 function adminConnectGithub() {
   const ui = SpreadsheetApp.getUi();
-  const r = ui.prompt('Connect the GitHub Hill Board',
+  const r = ui.prompt('Connect the GitHub HtH Leaderboard',
     'Paste a GitHub fine-grained token with "Contents: Read and write" on ' + (norm_(cfg_().GITHUB_REPO) || 'slipnsliders/smallball-tools') + ' only.\n' +
     'It is kept in the script\'s private settings, not on any tab. Leave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK) return;
@@ -3651,7 +3653,7 @@ function adminConnectGithub() {
     if (!pr.getProperty('GH_HASH')) return 'GitHub didn\'t accept that token. Check it has Contents: Read and write on the repo, then try again (the Log tab has the details).';
     const url = ghPageUrl_(cfg_());
     setCfg_('BOARD_LINK', url);
-    return 'Connected! The Hill Board is now at ' + url + ' (give GitHub a minute the first time). Discord posts link there, and the old board link forwards there once you deploy a new version of the web app.';
+    return 'Connected! The HtH Leaderboard is now at ' + url + ' (give GitHub a minute the first time). Discord posts link there, and the old board link forwards there once you deploy a new version of the web app.';
   });
 }
 
@@ -3660,7 +3662,7 @@ function redirectPage_(url) {
   const u = String(url).replace(/"/g, '&quot;');
   return HtmlService.createHtmlOutput('<!doctype html><html><head><meta charset="utf-8"><base target="_top">' +
     '<style>body{margin:0;background:#0E1B33;color:#F4EBD9;font:500 17px/1.5 Oswald,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center}a{display:inline-block;margin-top:14px;background:#C8102E;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600}</style></head>' +
-    '<body><div>⛰️ The Hill Board moved to a faster home.<br><a href="' + u + '">Open the Hill Board →</a></div>' +
+    '<body><div>⛰️ The HtH Leaderboard moved to a faster home.<br><a href="' + u + '">Open the HtH Leaderboard →</a></div>' +
     '<script>try{window.top.location.replace("' + u + '")}catch(e){}</script></body></html>')
     .setTitle('Hold the Hill · SmallBall').addMetaTag('viewport', 'width=device-width, initial-scale=1').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -3881,11 +3883,11 @@ document.getElementById('flag').innerHTML=A?('<span class="lab bb"><span class="
 var h='';
 if(D.revenge)h+='<div class="alert bb">🔥 ACE\\'S REVENGE PENDING: '+esc(D.revenge.name)+' must win by more than '+esc(D.revenge.margin)+'</div>';
 var lad=D.ladder||[],ch=D.charges||[],ms=D.matches||[],rg=D.reigns||[];
-if((D.rejects||[]).length)h+='<div class="rej"><b class="bb">❌ Didn’t go through</b>'+D.rejects.slice().reverse().map(function(x){return '<div><span class="bb">'+esc(x.who)+'</span> · '+esc(x.kind)+' · <i>'+esc(x.why)+'</i> <small>'+when(x.at)+'</small></div>';}).join('')+'<div style="font-size:12px;opacity:.7">Fix it and send the Hill form again. Shows for an hour.</div></div>';
-if(D.formLink)h+='<div class="cta"><a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">📝 Hill form</a><span>Sign up · charge the hill · place a bet</span></div>';
+if((D.rejects||[]).length)h+='<div class="rej"><b class="bb">❌ Didn’t go through</b>'+D.rejects.slice().reverse().map(function(x){return '<div><span class="bb">'+esc(x.who)+'</span> · '+esc(x.kind)+' · <i>'+esc(x.why)+'</i> <small>'+when(x.at)+'</small></div>';}).join('')+'<div style="font-size:12px;opacity:.7">Fix it and send the Master Form again. Shows for an hour.</div></div>';
+if(D.formLink)h+='<div class="cta"><a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">📝 Master Form</a><span>The one form for everything: sign up, charge, report, bet, shop</span></div>';
 if(D.seasonStart&&new Date(D.seasonStart)>new Date()){h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+' · OPENS '+day(D.seasonStart).toUpperCase()+'</span><span>Register now. Charges and Brawl points start at kickoff.</span><span class="bb clk">⏱ '+left(D.seasonStart)+'</span></div>';}
 else if(D.seasonEnd){var se=new Date(D.seasonEnd),over=D.seasonClosed||se<=new Date();h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+(D.seasonClosed?' · FINAL':over?' · FINAL BUZZER':'')+'</span><span>'+(over?(D.seasonClosed?'The awards are in.':'No new charges. Charges in flight are being settled.'):'Ends '+when(D.seasonEnd))+'</span>'+(over?'':'<span class="bb clk">⏱ '+left(D.seasonEnd)+'</span>')+'</div>';}
-h+='<div class="cols"><div><h2 class="bb">The Climb</h2><div class="climb">'+(A?'<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">'+esc(A.name)+'<small>'+esc(A.club)+(A.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(A.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(A.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+(A.since?'<b>'+ndays(A.since)+'</b>'+(ndays(A.since)===1?'day':'days')+' up top':'<b>'+(A.rdef||0)+'</b>defenses')+'</span></div>':'<div class="step ace open"><span class="tag bb">♠ THE ACE</span><span class="rk bb">⛰️</span><span class="who bb">The mound is open<small>Win the title fight to plant the flag</small></span><span class="wl bb"></span></div>')+(lad.length?lad.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(D.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+';animation-delay:'+(i*0.06)+'s"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(p.clubId)+'</a>':'')+'</small>'+reachTxt(p,i)+'</span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the climb yet. Register on the form and you start at the bottom.</div>')+'</div>'+(lad.length?'<div class="rnote">⤴ Who each spot can charge. Underdogs win by less (1 run off per star behind). Pick 🔎 Who can I charge? on the Hill form for your own list in #hill-help.</div>':'')+'</div>';
+h+='<div class="cols"><div><h2 class="bb">The Climb</h2><div class="climb">'+(A?'<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">'+esc(A.name)+'<small>'+esc(A.club)+(A.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(A.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(A.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+(A.since?'<b>'+ndays(A.since)+'</b>'+(ndays(A.since)===1?'day':'days')+' up top':'<b>'+(A.rdef||0)+'</b>defenses')+'</span></div>':'<div class="step ace open"><span class="tag bb">♠ THE ACE</span><span class="rk bb">⛰️</span><span class="who bb">The mound is open<small>Win the title fight to plant the flag</small></span><span class="wl bb"></span></div>')+(lad.length?lad.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(D.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+';animation-delay:'+(i*0.06)+'s"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(p.clubId)+'</a>':'')+'</small>'+reachTxt(p,i)+'</span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the climb yet. Register on the form and you start at the bottom.</div>')+'</div>'+(lad.length?'<div class="rnote">⤴ Who each spot can charge. Underdogs win by less (1 run off per star behind). Pick 🔎 Who can I charge? on the Master Form for your own list in #hill-help.</div>':'')+'</div>';
 h+='<div><h2 class="bb">Charging the Hill</h2><div class="fights">'+(ch.length?ch.map(function(c,i){return '<div class="fight '+(c.type==='Title'?'title':c.type==='Revenge'?'rev':'')+'" style="animation-delay:'+(i*0.08)+'s"><span class="kind bb">'+(c.type==='Title'?'TITLE FIGHT':c.type==='Revenge'?'ACE\\'S REVENGE':'LADDER')+'</span><div class="vs bb">🥊 '+esc(c.ch)+'<em>VS</em>'+esc(c.df)+'</div><div class="meta"><span>'+(c.status==='Game reported'?'<span class="stamp bb">GAME REPORTED</span>':esc(c.status))+'</span><span class="bb" style="font-size:20px">⏱ '+left(c.deadline)+'</span></div></div>';}).join(''):'<div class="empty">No charges right now. Somebody charge the hill.</div>')+'</div></div></div>';
 h+='<h2 class="bb">Recent results</h2>'+(ms.length?'<div class="results">'+ms.slice(0,9).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'</div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'</div>'+(m.wr!==''?'<div class="s bb">'+esc(m.wr)+' – '+esc(m.lr)+'</div>':'')+'<div class="o">'+esc(m.outcome)+(m.pts?' · +'+m.pts+' pts':'')+'</div></div>';}).join('')+'</div>':'<div class="empty">No results yet. They show up here once each game has aired.</div>');
 h+='<h2 class="bb">Reigns</h2>'+(rg.length?'<div class="reigns">'+rg.map(function(r){return '<div class="rg"><div class="n bb">#'+esc(r.n)+(r.revenge?' 🔥':'')+'</div><div class="nm bb">'+esc(r.name)+'</div><div class="m">'+esc(r.club)+'</div><div class="m">'+day(r.start)+' – '+(r.end?day(r.end):'now')+' · '+ndays(r.start,r.end)+(ndays(r.start,r.end)===1?' day':' days')+'</div><div class="m">'+r.defenses+' defenses · '+r.pts+' pts'+(r.endedBy?' · ended by '+esc(r.endedBy):'')+'</div></div>';}).join('')+'</div>':'<div class="empty">The first reign starts when the first Ace is crowned.</div>');
@@ -3894,22 +3896,22 @@ var fo=function(o){o=+o;return o>0?'+'+o:'−'+Math.abs(o);};
 var WL=D.wallet||[],IT=D.items,SK=D.streaks;
 if(WL.length){h+='<h2 class="bb">💰 Brawl Bucks</h2><div class="note">Everyone starts the season with 1,000. Earn more by playing Hill games'+(SK?' and keeping a 🔥 streak':'')+'; spend them on bets, wagers and the shop.</div><table class="wal"><tr><th></th><th>Player</th><th style="text-align:right">BB</th>'+(SK?'<th>🔥</th>':'')+(IT?'<th>Holding</th>':'')+'</tr>'
 +WL.map(function(x,i){return '<tr><td class="r">'+(i+1)+'</td><td class="n">'+(x.ace?'♠ ':'')+esc(x.name)+'<small>'+esc(x.club)+'</small></td><td class="bk">'+x.bank+'</td>'+(SK?'<td>'+(x.streak?'🔥 '+x.streak:'<span style="opacity:.35">–</span>')+'</td>':'')+(IT?'<td class="it">'+(x.items.length?x.items.join(' '):'<span style="opacity:.35">–</span>')+(x.cool?' <small style="font-size:11px;opacity:.6">⏳</small>':'')+'</td>':'')+'</tr>';}).join('')+'</table>';}
-if(IT){h+='<h2 class="bb">🛒 The shop</h2><div class="note">Buy on the Hill form. The Ace pays '+IT.aceX+'×. One item per side per charge, one per player every '+IT.cooldown+' hours.</div><div class="shop">'+IT.items.map(function(x){return '<div><b>'+x.price+'</b>'+x.icon+' '+esc(x.name)+'<small>'+esc(x.what)+'</small></div>';}).join('')+'</div>';}
+if(IT){h+='<h2 class="bb">🛒 The shop</h2><div class="note">Buy on the Master Form. The Ace pays '+IT.aceX+'×. One item per side per charge, one per player every '+IT.cooldown+' hours.</div><div class="shop">'+IT.items.map(function(x){return '<div><b>'+x.price+'</b>'+x.icon+' '+esc(x.name)+'<small>'+esc(x.what)+'</small></div>';}).join('')+'</div>';}
 if(IT||SK){var msl=SK?Object.keys(SK.ms||{}).map(function(k){return k+'d +'+SK.ms[k];}).join(' · '):'';h+='<div class="note" style="margin-top:12px">💵 <b>Getting paid:</b> every Hill game +'+IT.play.played+' BB, the winner +'+IT.play.win+' more, the challenger +'+(IT.play.charge||0)+(SK?'. 🔥 Any day you play: +'+SK.day+', plus +'+SK.step+' per day in a row (up to +'+SK.max+'). Streak bonuses: '+esc(msl)+'. 🌧️ Rain Delay saves a missed day.':'.')+'</div>';}
 h+='<!--TAB:book-->';
 if(D.bookOn){var bo=D.bookOpen||[];
-h+='<h2 class="bb">🎰 The Sportsbook</h2><div class="book"><div>'+(bo.length?bo.map(function(L){var fa=L.fav==='away';return '<div class="ln"><div class="t"><span>'+esc(L.id)+' · play money</span><span>Betting closes · '+left(L.closes)+'</span></div><div class="g"><span class="bb">'+esc(L.away)+'</span><b>'+fo(L.aml)+'</b><span>'+(fa?'−1.5 ':'+1.5 ')+'('+fo(fa?L.frl:L.drl)+')</span><span>O '+esc(L.total)+' ('+fo(L.ou)+')</span><span class="bb">'+esc(L.home)+'</span><b>'+fo(L.hml)+'</b><span>'+(fa?'+1.5 ':'−1.5 ')+'('+fo(fa?L.drl:L.frl)+')</span><span>U '+esc(L.total)+' ('+fo(L.ou)+')</span></div></div>';}).join(''):'<div class="empty">Bet on the 🔮 matchup lines below, before the charge. Betting on a matchup closes the moment the charge is made: no peeking at results.</div>')+'<p style="opacity:.75;font-size:13px">Play money. Bet on the Hill form: up to 4.2% of your Brawl Bucks (250 tops). No betting on yourself or your own games; that’s what 🤝 wagers are for.</p></div></div>';
+h+='<h2 class="bb">🎰 The Sportsbook</h2><div class="book"><div>'+(bo.length?bo.map(function(L){var fa=L.fav==='away';return '<div class="ln"><div class="t"><span>'+esc(L.id)+' · play money</span><span>Betting closes · '+left(L.closes)+'</span></div><div class="g"><span class="bb">'+esc(L.away)+'</span><b>'+fo(L.aml)+'</b><span>'+(fa?'−1.5 ':'+1.5 ')+'('+fo(fa?L.frl:L.drl)+')</span><span>O '+esc(L.total)+' ('+fo(L.ou)+')</span><span class="bb">'+esc(L.home)+'</span><b>'+fo(L.hml)+'</b><span>'+(fa?'+1.5 ':'−1.5 ')+'('+fo(fa?L.drl:L.frl)+')</span><span>U '+esc(L.total)+' ('+fo(L.ou)+')</span></div></div>';}).join(''):'<div class="empty">Bet on the 🔮 matchup lines below, before the charge. Betting on a matchup closes the moment the charge is made: no peeking at results.</div>')+'<p style="opacity:.75;font-size:13px">Play money. Bet on the Master Form: up to 4.2% of your Brawl Bucks (250 tops). No betting on yourself or your own games; that’s what 🤝 wagers are for.</p></div></div>';
 var WG=D.wagers;
 if(WG){var wrow=function(x,st){return '<div class="r" style="grid-template-columns:62px minmax(0,1fr) auto"><span class="bb" style="opacity:.6;font-size:15px">'+esc(x.id)+'</span><span class="bb">'+esc(x.m)+' <small style="display:inline;opacity:.6">vs</small> '+esc(x.t)+'<small>'+esc(x.terms)+' · '+x.ms+(x.ts!==x.ms?' vs '+x.ts+' BB':' BB each')+'</small></span><b style="text-align:right">'+st+'</b></div>';};
-h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.pct||4.2)+'% of your Brawl Bucks a side, '+(WG.flat||250)+' tops ('+(WG.big||10)+'% with the commish’s OK), straight up, odds or a run line. They accept on the Hill form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.</b></div>'
-+(WG.live.length||WG.open.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join(''):'<div class="empty">No wagers on right now. Call somebody out on the Hill form.</div>')+'</div>';}
+h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.pct||4.2)+'% of your Brawl Bucks a side, '+(WG.flat||250)+' tops ('+(WG.big||10)+'% with the commish’s OK), straight up, odds or a run line. They accept on the Master Form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.</b></div>'
++(WG.live.length||WG.open.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join(''):'<div class="empty">No wagers on right now. Call somebody out on the Master Form.</div>')+'</div>';}
 var FU=D.futures;
 if(FU&&FU.rows&&FU.rows.length){var mx=Math.max.apply(null,FU.rows.map(function(x){return x.pct;}))||1;
-h+='<div class="fut cup"><h3 class="bb">♠️ Season '+esc(D.season)+' Ace futures</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Odds to be on the mound when the season ends. The season is played out 2,000 times every hour. Arrows show the move since midnight. Bet on who finishes as the Ace on the Hill form (anyone but yourself).</div>'
+h+='<div class="fut cup"><h3 class="bb">♠️ Season '+esc(D.season)+' Ace futures</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Odds to be on the mound when the season ends. The season is played out 2,000 times every hour. Arrows show the move since midnight. Bet on who finishes as the Ace on the Master Form (anyone but yourself).</div>'
 +FU.rows.slice(0,10).map(function(x){var mv=x.move>0?'<span class="up">▲ '+x.move+'</span>':x.move<0?'<span class="dn">▼ '+Math.abs(x.move)+'</span>':'<span style="opacity:.4">–</span>';return '<div class="r"><span class="bb" style="font-size:18px;opacity:.7">'+(x.rank===0?'♠':'#'+x.rank)+'</span><span class="bb">'+esc(x.name)+'<small>'+esc(x.club)+' · '+x.pct+'%</small></span><span class="bar"><i style="width:'+Math.round(x.pct/mx*100)+'%"></i></span><b>'+fo(x.odds)+'</b>'+mv+'</div>';}).join('')+'</div>';}
 
 var PO=D.pot||[];
-if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.</b> ':'')+'Every charge that could happen right now. Bet on the Hill form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.</div>'
+if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.</b> ':'')+'Every charge that could happen right now. Bet on the Master Form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.</div>'
 +'<div class="r ml hd"><span>Charging</span><b>Odds</b><span style="text-align:right">@ Holding</span><b>Odds</b></div>'
 +PO.slice(0,24).map(function(L){var oc=function(o){return '<b class="'+(+o<0?'fv':'dg')+'">'+fo(o)+'</b>';};return '<div class="r ml"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title</small>':'')+'</span>'+oc(L.a)+'<span class="bb" style="text-align:right">@ '+esc(L.df)+'</span>'+oc(L.h)+'</div>';}).join('')+'<div class="note" style="margin-top:8px"><span class="fv">−120</span> favorite · <span class="dg">+150</span> underdog</div></div>';}}
 h+='<!--TAB:season-->';
@@ -3923,7 +3925,7 @@ h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. Every day nobody charges, one more spot gets a title shot, down to <b>#5</b>. Any win takes the hill: no margins on the mound.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
 +'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
 +'<div class="card"><h3 class="bb"><span class="flame">🔥</span> The Ace\\'s Revenge</h3><p>An Ace who built <b>500+ reign points</b> and loses the hill gets one shot back, declared within 12 hours.</p><p>The catch: they must win by <b>more runs than they lost by</b>. Lost 5–3? You need a 3-run win.</p><p style="opacity:.75;font-size:13px">A dethroned Ace without revenge drops to #3..</p></div>'
-+'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Hill form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
++'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Master Form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
 var TABS=[['hill','⛰️ The Hill'],['bucks','💰 Brawl Bucks'],['book','🎰 Sportsbook'],['season','🏆 Season'],['how','📖 How it works']],parts=h.split(/<!--TAB:(\w+)-->/),P={hill:parts[0]};for(var q=1;q<parts.length;q+=2)P[parts[q]]=(P[parts[q]]||'')+parts[q+1];
 var cur=(location.hash||'').slice(1);if(!P[cur])cur='hill';
 document.getElementById('app').innerHTML='<nav class="tabs">'+TABS.filter(function(t){return P[t[0]];}).map(function(t){return '<a href="#'+t[0]+'" data-t="'+t[0]+'"'+(t[0]===cur?' class="on"':'')+'>'+t[1]+'</a>';}).join('')+'</nav>'+TABS.filter(function(t){return P[t[0]];}).map(function(t){return '<section class="pane'+(t[0]===cur?' on':'')+'" id="p-'+t[0]+'">'+P[t[0]]+'</section>';}).join('');
