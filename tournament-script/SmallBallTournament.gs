@@ -873,6 +873,7 @@ function onOpen() {
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
     .addItem('🔑 Connect SmallBall box scores (Scramble)', 'adminConnectSmallBall')
+    .addItem('🧪 Practice round (Scramble box-score test)', 'adminPracticeRound')
     .addSeparator()
     .addItem('🆕 New tournament (question boxes)', 'adminNewTournamentBoxes')
     .addItem('🧹 Start over (clear the bracket, keep sign-ups)', 'adminResetBracket')
@@ -1272,7 +1273,7 @@ function holes_(m) {
   const G = {}; (m.games || []).forEach((g) => { G[g.k] = g; });
   const inn = (g, side, i) => {   // one club's runs in one inning; null = no game
     if (!g || !g.gid || !g.la) return null;
-    const line = side === 'a' ? g.la : g.lb, home = side === 'a' ? !g.aAway : g.aAway, v = line[i];
+    const line = side === 'a' ? g.la : g.lb, home = side === 'a' ? (g.homeA != null ? g.homeA : !g.aAway) : (g.homeB != null ? g.homeB : g.aAway), v = line[i];
     if (v == null || v === '' || String(v).toLowerCase() === 'x') return i === 8 && home ? GIMME_RUNS_ : 0;
     return Number(v) || 0;
   };
@@ -1305,6 +1306,52 @@ function adminConnectSmallBall() {
   if (!v) { pr.deleteProperty('SB_COOKIE'); pr.deleteProperty('SB_BAD'); ui.alert('SmallBall box scores disconnected. Scramble matches are scored as a Nassau.'); return; }
   pr.setProperty('SB_COOKIE', v); pr.deleteProperty('SB_BAD');
   ui.alert(sbTest_().msg);
+}
+// 🧪 Practice round: real box scores, no tournament needed. Four clubs; each club's two latest BigLeague games stand in for
+// its front and back nine. The result goes to a practice page (with the scorecard and matchup card), never to Discord.
+function adminPracticeRound() {
+  withUi_((ui) => {
+    if (!sbCookie_()) return 'Connect SmallBall first: 🔑 Connect SmallBall box scores.';
+    const def = entrants_().rows.filter((r) => r.Status !== 'Withdrawn').slice(0, 4).map((r) => norm_(r.ClubID)).filter(Boolean);
+    const r = ui.prompt('🧪 Practice round (box-score test)', 'Four club IDs: Team A is the first two, Team B the last two. Each club\'s two latest BigLeague games stand in for its front and back nine. Nothing is posted to Discord.\n\n' + (def.length === 4 ? 'Leave blank for: ' + def.join(' ') : 'Example: 8897 131351 640335 643394'), ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    const ids = (norm_(r.getResponseText()) || def.join(' ')).match(/\d+/g) || [];
+    if (ids.length !== 4) return 'Please give exactly four club IDs.';
+    const P = practice_(ids);
+    if (P.err) return P.err;
+    return '🧪 ' + P.text + '\n\nScorecard: ' + P.url + '#m=P1\n(GitHub takes a minute the first time.)';
+  });
+}
+function practice_(ids) {
+  const per = {};
+  for (const id of ids) {
+    let rows; try { rows = clubGames_(id).filter((g) => lc_(g.kind) === 'big' && g.away_runs != null).slice(0, 2); } catch (e) { return { err: 'SmallBall error: ' + (e.message || e) }; }
+    if (rows.length < 2) return { err: 'Club ' + id + ' has fewer than two BigLeague games.' };
+    per[id] = [];
+    for (const row of rows) {
+      const x = gameRecord_(row.game_id); if (x.err) return { err: 'Couldn\'t read game ' + row.game_id + ': ' + x.err };
+      const away = String(x.g.away_team_id) === String(id), L = x.g.result.line;
+      per[id].push({ gid: String(row.game_id), inn: ((away ? L.away : L.home) || []).slice(0, 9), home: !away, name: norm_(away ? row.away_name : row.home_name) || 'Club ' + id });
+    }
+  }
+  const [a1, a2, b1, b2] = ids, F = 1, K = 0;   // the older game is the front nine, the latest the back nine
+  const mk = (k, ca, cb, i) => ({ k, a: ca, b: cb, gid: per[ca][i].gid + '/' + per[cb][i].gid, la: per[ca][i].inn, lb: per[cb][i].inn, homeA: per[ca][i].home, homeB: per[cb][i].home });
+  const m = { games: [mk('F1', a1, b1, F), mk('F2', a2, b2, F), mk('K1', a1, b2, K), mk('K2', a2, b1, K)] };
+  const mp = holes_(m), club = (id) => ({ id: Number(id), n: per[id][0].name, o: '' });
+  const A = { id: TEAM0_ + 1, n: 'Team ' + per[a1][0].name + ' & ' + per[a2][0].name, s: 1, how: 'picked', clubs: [club(a1), club(a2)] };
+  const B = { id: TEAM0_ + 2, n: 'Team ' + per[b1][0].name + ' & ' + per[b2][0].name, s: 2, how: 'picked', clubs: [club(b1), club(b2)] };
+  const sum = (x) => x.reduce((t, v) => t + (v || 0), 0);
+  const w = mp.lead === 'b' ? B : A, how = mp.tieBy || (mp.lead ? '' : 'higher seed');
+  const M = { id: 'P1', b: 'W', r: 1, l: 'Practice round', a: A, z: B, w: w.id, how, mp: { a: mp.a, b: mp.b, run: mp.run, res: mp.res, clinch: mp.clinch, ca: mp.ca, cb: mp.cb }, v: false, bye: false, open: false };
+  const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = 'docs/t/practice/bracket.json';
+  const PC = { TOURNEY_NAME: 'Practice Round', GITHUB_REPO: repo, GITHUB_PATH: path, FORMAT: 'scramble' };
+  const snap = { name: 'Practice Round', updated: Date.now(), fmt: 'scramble', done: true, champ: w, seeds: [A, B], matches: [M], entrants: [], prizes: 'Bragging rights' };
+  ghPut_('docs/t/practice/index.html', pageHtml_(PC), 'Practice round page');
+  ghPut_(path, JSON.stringify(snap), 'Practice round: ' + A.n + ' vs ' + B.n, null, true);
+  const games = ids.map((id) => id + ': front ' + per[id][F].gid + ', back ' + per[id][K].gid).join(' · ');
+  log_('organizer', 'Practice round', A.n + ' vs ' + B.n + ' → ' + mp.res + ' · ' + games);
+  const text = w.n + ' win ' + (mp.res === 'AS' ? '(all square, ' + (how || 'tie') + ')' : mp.res) + '\n' + A.n + ': ' + toPar_(mp.ca.par) + ' (' + mp.ca.bird + ' birdies, ' + mp.ca.eagle + ' eagles, ' + mp.ca.alb + ' albatross)\n' + B.n + ': ' + toPar_(mp.cb.par) + ' (' + mp.cb.bird + ' birdies, ' + mp.cb.eagle + ' eagles, ' + mp.cb.alb + ' albatross)\n\nHoles (runs): ' + A.n + ' ' + mp.a.map((v) => (v == null ? '·' : v)).join(' ') + '\n' + B.n + ' ' + mp.b.map((v) => (v == null ? '·' : v)).join(' ') + '\n\nGames used: ' + games;
+  return { text, url: ghPageUrl_(PC), mp, A, B, w };
 }
 // Accepts the cookie line itself, "cookie: ..." or a whole "Copy as cURL" / "Copy as fetch" paste.
 function sbCookieFrom_(txt) {
