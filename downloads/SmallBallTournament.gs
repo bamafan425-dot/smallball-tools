@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v1.1: returning players can sign up with a blank form) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -28,6 +28,7 @@ const DEFAULTS = {
   NO_SHOW: ['higher seed', 'No game by the end of the wave: "higher seed" moves on automatically, or "commish" waits for you'],
   TIE_RULE: ['replay', 'A tie: "replay" (play again; the match gets 30 more minutes) or "higher seed"'],
   MAX_CLUBS: ['32', 'Sign-ups stop at this many clubs'],
+  PREVIEW_SIZE: ['16', 'While sign-ups are open, the bracket page shows a preview bracket this big (16 = no byes). It grows to 32 if more sign up'],
   MIN_STARS: ['0', 'Lowest club stars allowed (0 = anyone)'],
   MAX_STARS: ['10', 'Highest club stars allowed'],
   FORM_LINK: ['', 'Short link to the sign-up form (filled in by setup; swap in a tinyurl if you like)'],
@@ -269,7 +270,7 @@ function register_(sub) {
     rec.Joined = now_(); appendRow_(et, rec);
     const n = active.length + 1;
     log_(sub.email, 'Signed up', sub.club + ' (' + sub.clubId + ') #' + n);
-    post_('🆕 ' + tag_(rec) + ' signs up with ' + clubTxt_(rec) + '. **' + n + '** club' + (n === 1 ? '' : 's') + ' in for the **' + esc_(C.TOURNEY_NAME) + '**.' + fromRecord +
+    post_('🆕 ' + tag_(rec) + ' signs up with ' + clubTxt_(rec) + '. **' + n + ' of ' + Math.max(Number(C.PREVIEW_SIZE) || 16, pow2_(n)) + '** spots filled for the **' + esc_(C.TOURNEY_NAME) + '**.' + fromRecord +
       (when_(C.SIGNUP_CLOSE, C) ? '\n-# Sign-ups close ' + ts_(when_(C.SIGNUP_CLOSE, C)) + ' (' + tsR_(when_(C.SIGNUP_CLOSE, C)) + ').' : '') + linksLine_(C));
   }
   snapshot_();
@@ -357,6 +358,12 @@ function champion_(T) {
     return f2.winner || null;
   }
   const f = T.matches.find((m) => m.id === T.final); return f && f.winner > 0 ? f.winner : null;
+}
+function seededEntrants_(entrants, C) {
+  const how = lc_(C.SEEDING), e = entrants.slice();
+  if (how === 'stars') e.sort((a, b) => (Number(b.Stars) || 0) - (Number(a.Stars) || 0) || new Date(a.Joined) - new Date(b.Joined));
+  else e.sort((a, b) => new Date(a.Joined) - new Date(b.Joined));   // random seeding: the preview shows sign-up order
+  return e;
 }
 function createTournament_(entrants, C) {
   const how = lc_(C.SEEDING), e = entrants.slice();
@@ -587,6 +594,19 @@ function snapshot_(T) {
     signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), tz: tz_(C),
     entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars) })),
   };
+  if (!T) {
+    // The bracket we're aiming for: today's sign-ups in seed order, the rest "open spots". Placeholders are -1000-k.
+    const ord = seededEntrants_(et, C), size = Math.max(Number(C.PREVIEW_SIZE) || 16, pow2_(ord.length));
+    const ids = ord.map((r) => Number(r.ClubID)); for (let k = ids.length; k < size; k++) ids.push(-1000 - k);
+    const P = lc_(C.FORMAT) === 'single' ? buildSingle_(ids, {}) : buildDouble_(ids, lc_(C.GRAND_FINAL_RESET) !== 'no');
+    const Tp = { seeds: ids.map((c, i) => ({ club: c, seed: i + 1 })), matches: P.matches };
+    const pc = (id) => id == null ? null : id <= -1000 ? { id, n: 'Open spot', s: -999 - id, open: true } : (() => { const e = E[id]; return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: seedOf_(Tp, id), st: norm_(e.Stars) } : null; })();
+    // Put the live bracket's link on the sign-up form once the web app is deployed.
+    try { const url = boardUrl_(C), pr = PropertiesService.getScriptProperties();
+      if (url && norm_(C.FORM_ID) && pr.getProperty('FORM_LINKED') !== url) { FormApp.openById(norm_(C.FORM_ID)).setDescription(FORM_DESC + '\n\n📋 The bracket preview and who\'s in: ' + url); pr.setProperty('FORM_LINKED', url); } } catch (e) { }
+    snap.preview = { size, filled: ord.length, fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', seeding: lc_(C.SEEDING) || 'signup',
+      matches: P.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: pc(sideClub_(Tp, m.a)), z: pc(sideClub_(Tp, m.b)), v: false })) };
+  }
   if (T) {
     snap.fmt = T.fmt; snap.wave = T.wave || 0; snap.done = !!T.done; snap.champ = T.done ? club(champion_(T)) : null;
     snap.seeds = T.seeds.map((s) => club(s.club));
@@ -783,6 +803,8 @@ h1{margin:0;font-size:46px;line-height:.95}h1 small{display:block;font-size:17px
 .m .s.w{background:rgba(52,211,153,.12)}.m .s.w .n{font-weight:600}.m .s.l .n{opacity:.5;text-decoration:line-through}
 .m .s .sc{font-weight:600;min-width:16px;text-align:right}.m .tbd{color:var(--muted);font-style:italic}
 .m .ft{font-size:11px;padding:3px 9px 5px;color:var(--gold)}.m .ft a{color:var(--gold)}
+.pv{background:var(--panel);border:1px dashed var(--gold);border-radius:12px;padding:12px 16px;font-size:16px}.pv span{color:var(--muted);font-size:14px}.pv .btn{margin-left:8px}
+.m .s.openspot .n{color:#6f84ab}
 .ents{display:flex;flex-wrap:wrap;gap:8px}.ents span{background:var(--panel);border:1px solid var(--edge);border-radius:999px;padding:5px 12px}
 .empty{color:var(--muted);padding:20px 22px}
 footer{color:var(--muted);font-size:12px;padding:14px 22px 26px}
@@ -794,6 +816,7 @@ function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'nume
 function side(c,bye,m,isA){
   if(bye)return '<div class="s"><span class="sd"></span><span class="n tbd">bye</span><span></span></div>';
   if(!c)return '<div class="s"><span class="sd"></span><span class="n tbd">TBD</span><span></span></div>';
+  if(c.open)return '<div class="s openspot"><span class="sd">'+c.s+'</span><span class="n tbd">Open spot</span><span></span></div>';
   var cls=m.w?(m.w===c.id?' w':' l'):'',sc=m.sc&&m.w?(m.w===c.id?m.sc[0]:m.sc[1]):'';
   return '<div class="s'+cls+'"><span class="sd">'+(c.s||'')+'</span><span class="n">'+esc(c.n)+'<small>'+esc(c.o||'')+(c.st!==''&&c.st!=null?' · '+esc(c.st)+'★':'')+'</small></span><span class="sc">'+sc+'</span></div>';
 }
@@ -812,6 +835,14 @@ function render(){
   else h+=(D.done?'<b>Finished</b>':'Wave <b>'+(D.wave||0)+'</b> · '+(D.waveMin||60)+'-minute waves')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
   h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
   if(D.champ)h+='<div class="champ bb">👑 '+esc(D.champ.n)+' wins the '+esc(D.name)+'!'+(D.prizes?' <span style="font-size:15px;font-family:Oswald">🎁 '+esc(D.prizes)+'</span>':'')+'</div>';
+  if(!D.matches&&D.preview){
+    var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw when sign-ups close'}[P.seeding]||'sign-up order';
+    h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we\u2019re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who\u2019s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
+    var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
+    h+='<div class="sec"><h2 class="bb">'+(P.fmt==='double'?'Winners bracket':'Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PL.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PF.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
+  }
   if(!D.matches){
     h+='<div class="sec"><h2 class="bb">Signed up · '+(D.entrants||[]).length+'</h2>'+((D.entrants||[]).length?'<div class="ents">'+D.entrants.map(function(e){return '<span>'+esc(e.n)+' <small style="color:var(--muted)">'+esc(e.o)+(e.st!==''?' · '+esc(e.st)+'★':'')+'</small></span>'}).join('')+'</div>':'<div class="empty">Nobody yet. Be the first!</div>')+'</div>';
   } else {
