@@ -46,6 +46,7 @@ body{background-color:#0b1730;background-image:
   radial-gradient(900px 500px at 110% 110%,rgba(200,16,46,.14),transparent 60%),
   repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 2px,transparent 2px 44px),
   repeating-linear-gradient(135deg,rgba(255,255,255,.022) 0 1px,transparent 1px 12px);background-attachment:fixed}
+.home{display:inline-block;color:var(--gold);font:600 13px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-decoration:none;margin:0 0 8px;opacity:.9}.home:hover{opacity:1;text-decoration:underline}
 header{margin:14px 16px 6px;padding:16px 20px;border-radius:16px;background:linear-gradient(180deg,#13254a,#0d1b38);border:1px solid #2b4170;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);position:relative;overflow:hidden}
 header::before{content:"";position:absolute;inset:6px;border-radius:12px;pointer-events:none;border:2px dashed rgba(200,16,46,.55)}
 header::after{content:"⚾";position:absolute;right:-18px;bottom:-34px;font-size:120px;opacity:.06;transform:rotate(-18deg)}
@@ -111,7 +112,7 @@ body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-
 @media(max-width:640px){h1{font-size:40px}.col{min-width:216px}.sec.wb,.sec.lb,.sec.gf{margin:8px 8px;padding:10px}}
 </style></head><body><div id="app"></div>
 <script>
-var D={name:"Black Friday Brawl"};
+var D={"name":"Black Friday Brawl"};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'})}
 function side(c,bye,m,isA){
@@ -147,7 +148,8 @@ function rules(){
   return h;
 }
 function render(){
-  var h='<header><div><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
+  var HOME=/github.io$/.test(location.host)?location.pathname.split('/').slice(0,2).join('/')+'/tournaments/':'https://slipnsliders.github.io/smallball-tools/tournaments/';
+  var h='<header><div><a class="home" href="'+HOME+'" target="_top">← 🏆 All tournaments</a><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
   if(!D.matches){h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'Wave 1 <b>'+t(D.start)+'</b>':'');}
   else h+=(D.done?'<b>Finished</b>':'<b>Live</b> · '+(D.waveMin||60)+'-minute match windows')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
   h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
@@ -216,13 +218,10 @@ function png(){
   try{var a=document.createElement('a');a.download=(D.name||'bracket').replace(/[^a-z0-9]+/gi,'-')+'.png';a.href=url;document.body.appendChild(a);a.click();a.remove();}catch(e){}
   var o=document.getElementById('shot')||document.createElement('div');o.id='shot';
   o.style.cssText='position:fixed;inset:0;background:rgba(5,10,20,.92);z-index:9;overflow:auto;padding:18px;text-align:center';
-  o.innerHTML='<p style="margin:0 0 10px">📷 Here’s the bracket. If it didn’t download, right-click it (or long-press on a phone) and save it, then post it in Discord. <button class="btn" onclick="this.closest(\'#shot\').remove()">Close</button></p><img style="max-width:100%;border-radius:8px" src="'+url+'">';
+  o.innerHTML='<p style="margin:0 0 10px">📷 Here\u2019s the bracket. If it didn\u2019t download, right-click it (or long-press on a phone) and save it, then post it in Discord. <button class="btn" onclick="this.closest(\'#shot\').remove()">Close</button></p><img style="max-width:100%;border-radius:8px" src="'+url+'">';
   document.body.appendChild(o);
 }
-var SRC=[
-  'https://api.github.com/repos/slipnsliders/smallball-tools/contents/docs/brawl/bracket.json?ref=main',
-  'https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/docs/brawl/bracket.json',
-  'bracket.json'],last='';
+var SRC=["https://api.github.com/repos/slipnsliders/smallball-tools/contents/docs/brawl/bracket.json?ref=main","https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/docs/brawl/bracket.json","bracket.json"],last='';
 function load(i){
   i=i||0;if(i>=SRC.length)return;
   var u=SRC[i]+(i?(SRC[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
