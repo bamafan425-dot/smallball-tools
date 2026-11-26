@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmallBall Tournaments</title>
+<meta property="og:title" content="SmallBall Tournaments"><meta property="og:description" content="What's coming up, what's live, and every past champion. Sign up in two minutes.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E1B33;--panel:#15274a;--edge:#2b4170;--ink:#F4EBD9;--muted:#c3cfe6;--red:#C8102E;--gold:#ffd166;--green:#34d399}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg) repeating-linear-gradient(135deg,rgba(255,255,255,.02) 0 1px,transparent 1px 14px);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--gold)}
+.wrap{max-width:860px;margin:0 auto;padding:22px 16px 40px}
+header{text-align:center;padding:10px 0 18px;border-bottom:3px solid var(--red);margin-bottom:22px}
+h1{font:400 clamp(40px,8vw,64px)/1 'Bebas Neue',Impact,sans-serif;letter-spacing:2px;margin:0}
+header p{color:var(--muted);margin:6px 0 0}
+h2{font:400 28px/1 'Bebas Neue',Impact,sans-serif;letter-spacing:1.5px;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+h2 .n{font:600 13px system-ui;background:var(--edge);color:var(--ink);border-radius:999px;padding:2px 9px;letter-spacing:0}
+.card{background:linear-gradient(180deg,#1a2f59,var(--panel));border:1px solid var(--edge);border-radius:14px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden}
+.card.live{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 0 24px rgba(200,16,46,.25)}
+.card .tag{position:absolute;top:14px;right:14px;font:700 12px system-ui;letter-spacing:.5px;text-transform:uppercase;border-radius:999px;padding:3px 10px}
+.tag.live{background:var(--red);color:#fff;animation:pulse 1.8s infinite}.tag.open{background:var(--green);color:#06261a}.tag.soon{background:var(--edge)}
+@keyframes pulse{50%{opacity:.6}}
+.card h3{font:400 30px/1.05 'Bebas Neue',Impact,sans-serif;letter-spacing:1px;margin:0 90px 6px 0}
+.meta{color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:6px 14px;margin:2px 0 10px}
+.big{font-size:16px;margin:8px 0}
+.big b{color:var(--gold)}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.btn{display:inline-block;text-decoration:none;font:700 14px system-ui;border-radius:9px;padding:9px 16px;border:1px solid var(--edge);color:var(--ink);background:#0f1f3d}
+.btn.go{background:var(--gold);color:#1b1300;border-color:var(--gold)}
+.btn:hover{filter:brightness(1.1)}
+.next{margin-top:10px;padding:10px 12px;background:#0f1f3d;border-radius:10px;border:1px dashed var(--edge);font-size:14px}
+.cid{color:var(--gold);font-variant-numeric:tabular-nums;text-decoration:none}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--edge);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--edge);vertical-align:top}
+th{font:600 12px system-ui;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);background:#10203f}
+tr:last-child td{border-bottom:0}
+td small{color:var(--muted)}
+.empty{color:var(--muted);background:var(--panel);border:1px dashed var(--edge);border-radius:12px;padding:16px;text-align:center}
+footer{margin-top:34px;text-align:center;color:var(--muted);font-size:14px}
+footer a{margin:0 8px}
+@media(max-width:560px){.card h3{margin-right:0;margin-top:22px}th:nth-child(3),td:nth-child(3){display:none}}
+</style></head><body><div class="wrap">
+<header><h1>🏆 SmallBall Tournaments</h1><p>What's coming up, what's live, and every champion so far.</p></header>
+<div id="app"><p class="empty">Loading…</p></div>
+<footer><a href="../">🛠️ SmallBall ToolKits</a>·<a href="../hill/">⛰️ Hold the Hill board</a>·<a href="https://discord.gg/TyuPzcR5mR">💬 Tournament Discord</a></footer>
+</div>
+<script>
+var REPO='slipnsliders/smallball-tools',PATH='docs/tournaments/index.json';
+var SRC=['https://api.github.com/repos/'+REPO+'/contents/'+PATH+'?ref=main','https://raw.githubusercontent.com/'+REPO+'/main/'+PATH,'index.json'];
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function when(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}
+function day(ms){return ms?new Date(ms).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}):''}
+function left(ms){var d=ms-Date.now();if(d<=0)return'now';var h=Math.floor(d/36e5),m=Math.floor(d%36e5/6e4);return h>=48?Math.round(h/24)+' days':h?h+'h '+m+'m':m+'m'}
+function fetchFirst(urls,i,ok,fail){i=i||0;if(i>=urls.length)return fail&&fail();var u=urls[i]+(i?(urls[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
+  fetch(u,{cache:'no-store',headers:i===0&&/api\.github/.test(u)?{Accept:'application/vnd.github.raw+json'}:{}}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(ok).catch(function(){fetchFirst(urls,i+1,ok,fail)})}
+// Each tournament's own bracket data is the freshest word on it (status, champion, open matches).
+function bracketSrc(t){var m=/github\.io\/[^/]+\/(.*)$/.exec(t.url||'');if(!m)return[];var p='docs/'+m[1]+'bracket.json';
+  return['https://api.github.com/repos/'+REPO+'/contents/'+p+'?ref=main','https://raw.githubusercontent.com/'+REPO+'/main/'+p,t.url+'bracket.json']}
+function freshen(t,b){if(!b||!b.name)return;t.clubs=(b.entrants||[]).length;
+  if(b.done){t.status='done';if(b.champ)t.champ=b.champ;if(b.runner)t.runner=b.runner}else if(b.matches){t.status='live'}
+  if(b.matches&&!b.done){t.open=b.matches.filter(function(m){return m.open&&!m.w&&!m.v}).map(function(m){return{l:m.l,a:m.a,z:m.z,live:m.live,dl:m.dl}})}}
+var L=[];
+function card(t){
+  var st=t.status==='live'?'live':Date.now()<t.signupClose?'open':'soon';
+  var tag=st==='live'?'<span class="tag live">● Live</span>':st==='open'?'<span class="tag open">Sign-ups open</span>':'<span class="tag soon">Bracket drawn</span>';
+  var h='<div class="card'+(st==='live'?' live':'')+'">'+tag+'<h3>'+esc(t.name)+'</h3><div class="meta"><span>'+(t.fmt==='single'?'Single':'Double')+' elimination</span>'+(t.stars?'<span>'+esc(t.stars)+'</span>':'')+(t.kinds?'<span>'+esc(t.kinds)+' games</span>':'')+(t.wave?'<span>'+t.wave+' min per match</span>':'')+'</div>';
+  if(st==='open')h+='<div class="big"><b>'+(t.clubs||0)+'</b> club'+(t.clubs===1?'':'s')+' in · sign-ups close <b>'+esc(when(t.signupClose))+'</b> (in '+left(t.signupClose)+')</div><div class="big">Wave 1 starts '+esc(when(t.start))+'</div>';
+  else if(st==='soon')h+='<div class="big"><b>'+(t.clubs||0)+'</b> clubs · Wave 1 starts <b>'+esc(when(t.start))+'</b> (in '+left(t.start)+')</div>';
+  else{h+='<div class="big"><b>'+(t.clubs||0)+'</b> clubs battling it out</div>';
+    if(t.open&&t.open.length)h+='<div class="next">🔔 <b>Open now:</b> '+t.open.slice(0,4).map(function(m){return esc(m.l)+': '+(m.a?esc(m.a.n):'TBD')+' vs '+(m.z?esc(m.z.n):'TBD')+(m.live?' <small>(game found, airing)</small>':'')}).join(' · ')+(t.open.length>4?' · +'+(t.open.length-4)+' more':'')+'</div>'}
+  if(t.prizes)h+='<div class="meta" style="margin-top:8px">🎁 '+esc(t.prizes)+'</div>';
+  h+='<div class="btns">'+(st==='open'&&t.form?'<a class="btn go" href="'+esc(t.form)+'">📝 Sign up</a>':'')+(t.url?'<a class="btn'+(st==='open'?'':' go')+'" href="'+esc(t.url)+'">🗂️ '+(st==='live'?'Live bracket':'Bracket')+'</a>':'')+'</div></div>';
+  return h}
+function render(){
+  var up=L.filter(function(t){return t.status!=='done'}).sort(function(a,b){return(a.status==='live'?0:1)-(b.status==='live'?0:1)||(a.start||0)-(b.start||0)});
+  var past=L.filter(function(t){return t.status==='done'}).sort(function(a,b){return(b.finished||b.start||0)-(a.finished||a.start||0)});
+  var h='<h2>Live &amp; coming up <span class="n">'+up.length+'</span></h2>'+(up.length?up.map(card).join(''):'<p class="empty">Nothing scheduled right now. The next one is announced in Discord.</p>');
+  h+='<h2>🏆 Hall of champions <span class="n">'+past.length+'</span></h2>';
+  h+=past.length?'<table><tr><th>Tournament</th><th>Champion</th><th>Runner-up</th></tr>'+past.map(function(t){
+    var c=t.champ,r=t.runner;return'<tr><td><a href="'+esc(t.url)+'">'+esc(t.name)+'</a><br><small>'+day(t.finished||t.start)+' · '+(t.clubs||0)+' clubs</small></td><td>'+(c?'👑 <b>'+esc(c.n)+'</b>'+(c.o?'<br><small>'+esc(c.o)+' · <a class="cid" href="https://play.smallball.com/#/team/'+c.id+'">ID '+c.id+'</a></small>':''):'?')+'</td><td>'+(r?esc(r.n)+(r.o?'<br><small>'+esc(r.o)+'</small>':''):'')+'</td></tr>'}).join('')+'</table>'
+    :'<p class="empty">The first champion gets crowned soon.</p>';
+  document.getElementById('app').innerHTML=h}
+function load(){fetchFirst(SRC,0,function(d){L=(d&&d.list)||[];render();
+  L.forEach(function(t){if(t.status!=='done')fetchFirst(bracketSrc(t),0,function(b){freshen(t,b);render()})})},
+  function(){document.getElementById('app').innerHTML='<p class="empty">Couldn\'t load the list. Try again in a minute.</p>'})}
+load();setInterval(function(){if(!document.hidden)load()},120000);
+</script></body></html>

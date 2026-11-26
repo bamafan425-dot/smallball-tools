@@ -1,0 +1,23 @@
+{
+ "updated": 1795670763142,
+ "list": [
+  {
+   "slug": "black-friday-brawl",
+   "name": "Black Friday Brawl",
+   "url": "https://slipnsliders.github.io/smallball-tools/brawl/",
+   "form": "https://docs.google.com/forms/d/e/1FAIpQLSdw7iob8IqSjfbZ5BJUFh1o4WuJW6l9WO9LHMhmd7lL7G1biw/viewform",
+   "prizes": "SmallBall Tickets and pictures of dogs",
+   "fmt": "double",
+   "kinds": "BigLeague",
+   "stars": "Any club",
+   "wave": 60,
+   "signupClose": 1795752000000,
+   "start": 1795795200000,
+   "clubs": 4,
+   "status": "signups",
+   "finished": 0,
+   "champ": null,
+   "runner": null
+  }
+ ]
+}

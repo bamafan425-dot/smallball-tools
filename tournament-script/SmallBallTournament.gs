@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -39,6 +39,8 @@ const DEFAULTS = {
   TZ: ['America/Denver', 'Time zone for the times above'],
   GITHUB_REPO: ['slipnsliders/smallball-tools', 'Optional: the GitHub repo that hosts the bracket page (owner/repo). Connect it from the 🏆 Tournament menu'],
   GITHUB_PATH: ['docs/brawl/bracket.json', 'Where the bracket data goes in that repo (the page sits next to it)'],
+  SLUG: ['', 'Short web name for this tournament (set by 🆕 New tournament)'],
+  TOURNAMENTS_PATH: ['docs/tournaments/index.json', 'The Tournaments page\'s list in the GitHub repo. Every tournament adds itself; past champions stay'],
 };
 const SHEETS = { CONFIG: 'Config', ROSTER: 'Roster', ENTRANTS: 'Entrants', MATCHES: 'Matches', LOG: 'Log', STATE: 'State', BOARD: 'Board' };
 const ENTRANT_COLS = ['Email', 'Discord', 'DiscordID', 'Owner', 'Club', 'ClubID', 'Stars', 'Joined', 'Status', 'Seed'];
@@ -239,7 +241,7 @@ function register_(sub) {
   const C = cfg_(), t = Date.now();
   // Blank boxes are filled in from what we know about this Google account.
   if (sub.email) {
-    const k = knownPerson_(sub.email, C), was = [];
+    const k = knownPerson_(sub.email, C), was = []; sub.knownId = norm_(k.DiscordID).replace(/[^\d]/g, '');
     if (!sub.discord && k.Discord) { sub.discord = k.Discord; was.push('Discord'); }
     if (!sub.discordId && k.DiscordID) { sub.discordId = k.DiscordID.replace(/[^\d]/g, ''); was.push('Discord ID'); }
     if (!sub.owner && k.Owner) { sub.owner = k.Owner; was.push('owner name'); }
@@ -255,7 +257,11 @@ function register_(sub) {
   const stars = sub.stars === '' ? '' : Number(sub.stars);
   if (stars !== '' && (isNaN(stars) || stars < 0 || stars > 10)) fail_('Club stars must be a number from 0 to 10.');
   if (stars !== '' && (stars < Number(C.MIN_STARS || 0) || stars > Number(C.MAX_STARS || 10))) fail_('This tournament is for ' + C.MIN_STARS + '–' + C.MAX_STARS + '★ clubs.');
-  if (sub.discordId && !/^\d{15,21}$/.test(sub.discordId)) fail_('The Discord user ID is the long number (Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID). Leave it blank if unsure.');
+  // A mistyped Discord ID doesn't cost anyone their spot: we skip it (or use the one on record) and say so.
+  if (sub.discordId && !/^\d{15,21}$/.test(sub.discordId)) {
+    sub.discordId = sub.knownId && /^\d{15,21}$/.test(sub.knownId) ? sub.knownId : '';
+    sub.idNote = '\n-# That Discord user ID didn\'t look right (it\'s the long number from *Copy User ID*), so ' + (sub.discordId ? 'we used the one on record.' : 'we skipped it. Send the form again with it to get @tagged when your match opens.');
+  }
   const et = entrants_(), active = et.rows.filter((r) => r.Status !== 'Withdrawn');
   const mine = et.rows.find((r) => lc_(r.Email) === sub.email);
   const clash = active.find((r) => norm_(r.ClubID) === sub.clubId && r !== mine);
@@ -266,7 +272,7 @@ function register_(sub) {
   if (rows && !rows.length) fail_('SmallBall shows no games at all for club ID ' + sub.clubId + '. Check the number on your club page.');
   const rec = { Email: sub.email, Discord: sub.discord, DiscordID: sub.discordId || '', Owner: sub.owner, Club: sub.club, ClubID: sub.clubId, Stars: stars, Status: 'In' };
   try { remember_(rec); } catch (e) { }
-  const fromRecord = sub.filled && sub.filled.length ? ' *(filled in from your record: ' + sub.filled.join(', ') + ')*' : '';
+  const fromRecord = (sub.filled && sub.filled.length ? ' *(filled in from your record: ' + sub.filled.join(', ') + ')*' : '') + (sub.idNote || '');
   if (mine) { Object.assign(mine, rec); writeRow_(et, mine); log_(sub.email, 'Updated', sub.club + ' (' + sub.clubId + ')'); post_('✏️ ' + tag_(mine) + ' updated their entry: ' + clubTxt_(mine) + '.' + fromRecord); }
   else {
     rec.Joined = now_(); appendRow_(et, rec);
@@ -414,6 +420,9 @@ function tick() {
     try { flushRetries_(); } catch (e) { log_('system', 'ERROR (retries)', String(e && e.stack || e)); }
     const C = cfg_(), t = Date.now();
     let T = stateGet_();
+    // The ✅ health check runs by itself once per tournament, 6 hours before sign-ups close.
+    const hk = slugOf_(C), hclose = when_(C.SIGNUP_CLOSE, C);
+    if ((!T || !T.done) && hclose && t >= hclose - 6 * 3600e3 && pr.getProperty('HEALTH_RAN') !== hk) { pr.setProperty('HEALTH_RAN', hk); try { autoHealth_(C); } catch (e) { log_('system', 'ERROR (health)', String(e && e.stack || e)); } }
     if (!T) {
       const close = when_(C.SIGNUP_CLOSE, C);
       if (close && t >= close) drawBracket_();
@@ -607,7 +616,7 @@ function deadlines_(T, C) {
 function crown_(T, C) {
   const E = entrantMap_(), c = champion_(T); T.done = Date.now();
   const runner = (() => { const f = T.matches.filter((m) => m.bracket === 'F' || m.id === T.final).filter((m) => m.winner && !m.void).pop(); return f ? f.loser : null; })();
-  const lossless = lossesOf_(T, c) === 0;
+  const lossless = lossesOf_(T, c) === 0; T.runner = runner || null;
   post_('# 👑 ' + esc_(plainName_(E, c)) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' +
     tag_(E[c]) + ' (#' + seedOf_(T, c) + ' seed) takes it' + (lossless ? ' without a single loss' : ' the hard way, out of the losers bracket') + '. 🎉' +
     (runner ? '\n🥈 Runner-up: ' + tag_(E[runner]) + ' (*' + esc_(plainName_(E, runner)) + '*)' : '') +
@@ -639,7 +648,7 @@ function snapshot_(T) {
       matches: P.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: pc(sideClub_(Tp, m.a)), z: pc(sideClub_(Tp, m.b)), v: false })) };
   }
   if (T) {
-    snap.fmt = T.fmt; snap.wave = T.wave || 0; snap.done = !!T.done; snap.champ = T.done ? club(champion_(T)) : null;
+    snap.fmt = T.fmt; snap.wave = T.wave || 0; snap.done = !!T.done; snap.champ = T.done ? club(champion_(T)) : null; snap.runner = T.done && T.runner ? club(T.runner) : null;
     snap.seeds = T.seeds.map((s) => club(s.club));
     // Only what Discord has been told: a match's winner shows once its result posted; a pending game shows as "game found".
     snap.matches = T.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: club(sideClub_(T, m.a)), z: club(sideClub_(T, m.b)),
@@ -648,6 +657,7 @@ function snapshot_(T) {
   }
   sheet_(SHEETS.BOARD).getRange(1, 1).setValue(JSON.stringify(snap));
   ghPush_(snap);
+  try { updateIndex_(snap); } catch (e) { log_('system', 'Tournaments page not updated', String(e.message || e)); }
   // A readable Matches tab for the organizer.
   if (T) {
     const sh = sheet_(SHEETS.MATCHES, ['ID', 'Match', 'Club A', 'Club B', 'Status', 'Winner', 'Score', 'Game', 'Opens', 'Deadline']);
@@ -665,28 +675,41 @@ function snapshot_(T) {
 // The token lives in Script Properties (never on a tab). Each change to the bracket is saved as one small JSON
 // file in the repo; the page next to it reads that file. Nothing is sent when the bracket hasn't changed.
 function ghPush_(snap, force) {
+  const C = cfg_(), key = JSON.stringify(Object.assign({}, snap, { updated: 0 }));
+  return ghPut_(norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json', JSON.stringify(snap), 'Bracket update: ' + (snap.name || 'tournament'), key, force);
+}
+// One file in the repo, saved only when it changed. hashSrc = what counts as "changed" (default: the text itself).
+function ghPut_(path, body, message, hashSrc, force) {
   const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
   if (!tok || pr.getProperty('GH_BAD')) return false;   // a dead key stays quiet until it's reconnected
-  const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json';
-  const body = JSON.stringify(snap), key = JSON.stringify(Object.assign({}, snap, { updated: 0 }));
-  const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, key + repo + path, Utilities.Charset.UTF_8));
-  if (!force && pr.getProperty('GH_HASH') === hash) return true;
-  const api = 'https://api.github.com/repos/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
-  const headers = { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools';
+  const hk = path === (norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json') ? 'GH_HASH' : 'GH_HASH:' + path;
+  const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, (hashSrc == null ? body : hashSrc) + repo + path, Utilities.Charset.UTF_8));
+  if (!force && pr.getProperty(hk) === hash) return true;
+  const api = ghApi_(repo, path), headers = ghHeaders_(tok);
   for (let attempt = 0; attempt < 2; attempt++) {
     let sha = null;
     const g = UrlFetchApp.fetch(api, { headers, muteHttpExceptions: true });
     if (g.getResponseCode() === 200) try { sha = JSON.parse(g.getContentText()).sha; } catch (e) { }
     else if (g.getResponseCode() === 401 || g.getResponseCode() === 403) { pr.setProperty('GH_BAD', '1'); log_('system', 'GitHub key stopped working', 'GitHub said ' + g.getResponseCode() + '. The live page is paused: make a key (or reuse your current one) and use the menu: 🐙 Connect again.'); return false; }
     else if (g.getResponseCode() !== 404) { log_('system', 'GitHub read failed', g.getResponseCode() + ' ' + g.getContentText().slice(0, 200)); return false; }
-    const payload = { message: 'Bracket update: ' + (snap.name || 'tournament'), content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
+    const payload = { message, content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
     if (sha) payload.sha = sha;
     const r = UrlFetchApp.fetch(api, { method: 'put', headers, contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
     const code = r.getResponseCode();
-    if (code === 200 || code === 201) { pr.setProperty('GH_HASH', hash); return true; }
+    if (code === 200 || code === 201) { pr.setProperty(hk, hash); return true; }
     if (code !== 409 && code !== 422) { log_('system', 'GitHub save failed', code + ' ' + r.getContentText().slice(0, 200)); return false; }
   }
   return false;
+}
+const ghApi_ = (repo, path) => 'https://api.github.com/repos/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
+const ghHeaders_ = (tok) => ({ Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
+// Read a text file from the repo (null if it isn't there or GitHub isn't connected).
+function ghGet_(path) {
+  const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
+  if (!tok || pr.getProperty('GH_BAD')) return null;
+  const C = cfg_(), r = UrlFetchApp.fetch(ghApi_(norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path), { headers: Object.assign(ghHeaders_(tok), { Accept: 'application/vnd.github.raw+json' }), muteHttpExceptions: true });
+  return r.getResponseCode() === 200 ? r.getContentText() : null;
 }
 function ghPageUrl_(C) {
   const repo = (norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools').split('/'), path = norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json';
@@ -725,6 +748,9 @@ function doGet(e) {
 // ===================== Organizer menu =====================
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('🏆 Tournament')
+    .addItem('🆕 New tournament…', 'adminNewTournament')
+    .addItem('✅ Health check', 'adminHealth')
+    .addSeparator()
     .addItem('Set up / repair (form, tabs, triggers)', 'setup')
     .addItem('🔄 Check SmallBall now', 'adminCheckNow')
     .addItem('✅ Settle a match by hand', 'adminSettle')
@@ -839,6 +865,277 @@ function adminResetBracket() {
     return 'Cleared. The bracket is drawn again when sign-ups close (or with "Draw the bracket now").';
   });
 }
+
+// ===================== Tournament Central: one Sheet runs tournament after tournament =====================
+// 🆕 New tournament: archives the one that just finished, clears the tabs, reopens the same sign-up form under the
+// new name (same link, so returning players still sign up with a blank form), gives the new tournament its own
+// page at /t/<name>/, adds it to the Tournaments page, and (if you like) posts the announcement.
+const slug_ = (s) => lc_(s).normalize('NFKD').replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'tournament';
+const slugOf_ = (C) => norm_(C.SLUG) || slug_(C.TOURNEY_NAME);
+const KIND_NAMES_ = { big: 'BigLeague', pro: 'pro', exhibition: 'exhibition' };
+const kindsTxt_ = (C) => norm_(C.ALLOWED_KINDS || 'big').split(/\s*,\s*/).filter(Boolean).map((k) => KIND_NAMES_[lc_(k)] || k).join(' or ');
+const starsTxt_ = (C) => { const lo = Number(C.MIN_STARS || 0), hi = Number(C.MAX_STARS || 10); return lo <= 0 && hi >= 10 ? 'Any club' : lo === hi ? lo + '★ clubs' : lo + '–' + hi + '★ clubs'; };
+const htmlEsc_ = (s) => norm_(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function adminNewTournament() {
+  const C = cfg_(), T = stateGet_(), n = entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length;
+  const init = {
+    now: norm_(C.TOURNEY_NAME), live: !!(T && !T.done), done: !!(T && T.done), unplayed: !T ? n : 0,
+    fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', wave: Number(C.WAVE_MINUTES) || 60, kinds: norm_(C.ALLOWED_KINDS) || 'big',
+    minS: Number(C.MIN_STARS || 0), maxS: Number(C.MAX_STARS || 10), max: Number(C.MAX_CLUBS) || 32, prizes: norm_(C.PRIZES), tz: tz_(C),
+    gh: !!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN'),
+  };
+  const html = NEW_HTML_.replace('__INIT__', () => JSON.stringify(init).replace(/</g, '\\u003c'));
+  SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(html).setWidth(520).setHeight(640), '🆕 New tournament');
+}
+
+// Called by the dialog (and by tests). o: { name, close, start, wave, fmt, kinds, minS, maxS, max, prizes, webhook, announce, replace }
+function newTournament(o) {
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    const C = cfg_(), T = stateGet_(), ents = entrants_().rows.filter((r) => r.Status !== 'Withdrawn');
+    const name = norm_(o.name).slice(0, 60);
+    // Safety first: never pull the rug out from under a tournament that's being played.
+    if (T && !T.done) fail_('The ' + norm_(C.TOURNEY_NAME) + ' is still being played. Let it finish (or use 🧹 Start over) before starting a new one.');
+    if (!T && ents.length && !o.replace) fail_('The ' + norm_(C.TOURNEY_NAME) + ' has ' + ents.length + ' sign-up' + (ents.length === 1 ? '' : 's') + ' and hasn\'t been played. Tick "Replace it" to drop it and start fresh.');
+    if (!name) fail_('Give the tournament a name.');
+    const tz = tz_(C), when = (v) => when_(norm_(v).replace('T', ' '), { TZ: tz });
+    const close = when(o.close), start = when(o.start), wave = Math.round(Number(o.wave) || 60);
+    if (!close || !start) fail_('Pick when sign-ups close and when Wave 1 starts.');
+    if (close <= Date.now()) fail_('Sign-ups would already be closed: pick a later close time.');
+    if (start < close) fail_('Wave 1 has to start after sign-ups close.');
+    if (wave < 15 || wave > 24 * 60) fail_('Minutes per match: somewhere from 15 to 1440.');
+    const minS = Number(o.minS || 0), maxS = Number(o.maxS === '' || o.maxS == null ? 10 : o.maxS), max = Math.round(Number(o.max) || 32);
+    if (!(minS >= 0 && maxS <= 10 && minS <= maxS)) fail_('Stars: a range inside 0–10.');
+    if (max < 2 || max > 64) fail_('Max clubs: 2 to 64.');
+    const kinds = norm_(o.kinds || 'big').split(/\s*,\s*/).map(lc_).filter((k) => KIND_NAMES_[k]);
+    if (!kinds.length) fail_('Pick at least one game type.');
+    const hook = norm_(o.webhook);
+    if (hook && !/^https:\/\/(\w+\.)?discord(app)?\.com\/api\/webhooks\//.test(hook)) fail_('That doesn\'t look like a Discord webhook link.');
+
+    // 1. Put the old one away.
+    const old = archive_(C, T, ents);
+    // 2. A web name nobody has used yet.
+    let slug = slug_(name); const taken = old.taken; taken[old.slug] = 1;
+    if (taken[slug]) { let k = 2; while (taken[slug + '-' + k]) k++; slug = slug + '-' + k; }
+    // 3. The new settings.
+    const set = { TOURNEY_NAME: name, SLUG: slug, SIGNUP_CLOSE: fmtCfg_(close, tz), START: fmtCfg_(start, tz), WAVE_MINUTES: String(wave),
+      FORMAT: o.fmt === 'single' ? 'single' : 'double', ALLOWED_KINDS: kinds.join(','), MIN_STARS: String(minS), MAX_STARS: String(maxS),
+      MAX_CLUBS: String(max), PRIZES: norm_(o.prizes), GITHUB_PATH: 'docs/t/' + slug + '/bracket.json' };
+    if (hook) set.DISCORD_WEBHOOK_URL = hook;
+    Object.keys(set).forEach((k) => setCfg_(k, set[k]));
+    const pr = PropertiesService.getScriptProperties();
+    setCfg_('BOARD_LINK', pr.getProperty('GITHUB_TOKEN') && !pr.getProperty('GH_BAD') ? ghPageUrl_(cfg_()) : '');
+    // 4. A clean slate (the Roster of everyone who ever signed up stays, so blank forms keep working).
+    stateSet_(null);
+    clearRows_(SHEETS.ENTRANTS); clearRows_(SHEETS.MATCHES); sheet_(SHEETS.BOARD).getRange(1, 1).setValue('');
+    ['NEXT_AT', 'TOO_FEW_POSTED', 'GH_HASH', 'FORM_LINKED', 'IDX_HASH', 'HEALTH_RAN'].forEach((k) => pr.deleteProperty(k));
+    CFG_CACHE = null; const C2 = cfg_();
+    // 5. The same form, renamed and reopened.
+    try { if (norm_(C2.FORM_ID)) FormApp.openById(norm_(C2.FORM_ID)).setTitle(name + ' · sign-up').setDescription(FORM_DESC).setAcceptingResponses(true); }
+    catch (e) { log_('system', 'Form not reopened', String(e.message || e)); }
+    // 6. Its own page, then the (empty) bracket data and the Tournaments list.
+    ghPut_(pageDir_(C2) + 'index.html', pageHtml_(C2), 'New tournament page: ' + name);
+    snapshot_(null);
+    log_('organizer', 'New tournament', name + ' (' + slug + ')' + (old.name ? ' · archived ' + old.name : ''));
+    if (o.announce) post_(announceText_(C2));
+    wake_();
+    return { ok: true, name, url: boardUrl_(C2), form: norm_(C2.FORM_LINK), archived: old.name || '', health: health_(C2) };
+  } finally { lock.releaseLock(); }
+}
+const fmtCfg_ = (t, tz) => Utilities.formatDate(new Date(t), tz, 'yyyy-MM-dd HH:mm');
+const pageDir_ = (C) => (norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json').replace(/[^/]*$/, '');
+function clearRows_(name) { const sh = sheet_(name); if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(1, sh.getLastColumn())).clearContent(); }
+
+// Saves who played (and who won) on the History tab, and marks the old one finished on the Tournaments page.
+function archive_(C, T, ents) {
+  const out = { name: '', slug: slugOf_(C), taken: {} };
+  let list = []; try { list = (JSON.parse(ghGet_(idxPath_(C)) || '{}').list) || []; } catch (e) { }
+  list.forEach((x) => { out.taken[x.slug] = 1; });
+  if (!ents.length && !T) return out;
+  out.name = norm_(C.TOURNEY_NAME);
+  const champ = T && T.done ? champion_(T) : null, runner = T && T.runner, seeds = {};
+  if (T) T.seeds.forEach((s) => { seeds[s.club] = s.seed; });
+  const H = ['Tournament', 'Slug', 'Finished', 'Place', 'Email', 'Discord', 'DiscordID', 'Club', 'ClubID', 'Stars', 'Seed'];
+  const sh = sheet_('History', H), when = T && T.done ? new Date(T.done) : now_();
+  const rows = ents.map((r) => { const id = Number(r.ClubID);
+    return [out.name, out.slug, when, !T ? 'Not played' : id === champ ? '🏆 Champion' : id === runner ? '🥈 Runner-up' : 'Played', r.Email, r.Discord, norm_(r.DiscordID), r.Club, r.ClubID, r.Stars, seeds[id] || '']; });
+  if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, H.length).setValues(rows);
+  if (T && T.done) { try { snapshot_(T); } catch (e) { } }             // the final bracket stays up at its own link
+  else try { updateIndex_(null, { drop: out.slug }); } catch (e) { }   // never played: off the list
+  return out;
+}
+
+// The bracket page for this tournament's folder: the same page as the Apps Script one, reading its bracket.json.
+function pageHtml_(C) {
+  const name = norm_(C.TOURNEY_NAME) || 'SmallBall Tournament', repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH);
+  const head = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + htmlEsc_(name) + ' · live bracket</title>\n' +
+    '<meta property="og:title" content="' + htmlEsc_(name) + ' · live bracket"><meta property="og:description" content="A SmallBall ' + (lc_(C.FORMAT) === 'single' ? 'single' : 'double') + '-elimination tournament. Sign up, see the bracket, follow every result.">';
+  const src = ['https://api.github.com/repos/' + repo + '/contents/' + path + '?ref=main', 'https://raw.githubusercontent.com/' + repo + '/main/' + path, 'bracket.json'];
+  const loader = 'var SRC=' + JSON.stringify(src) + ",last='';\n" +
+    'function load(i){\n  i=i||0;if(i>=SRC.length)return;\n  var u=SRC[i]+(i?(SRC[i].indexOf(\'?\')<0?\'?\':\'&\')+\'t=\'+Date.now():\'\');\n' +
+    "  fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}})\n" +
+    '    .then(function(r){if(!r.ok)throw r.status;return r.text()})\n' +
+    "    .then(function(txt){var d=JSON.parse(txt);if(txt!==last&&!document.getElementById('shot')){var op=document.querySelector('details.rules');last=txt;D=d;render();var np=document.querySelector('details.rules');if(op&&np)np.open=op.open;}})\n" +
+    '    .catch(function(){load(i+1)});\n}\nrender();load();\n' +
+    "setInterval(function(){if(!document.hidden)load()},90000);\ndocument.addEventListener('visibilitychange',function(){if(!document.hidden)load()});";
+  const reload = "render();\nif(!/demo=1/.test(location.search))setTimeout(function(){location.reload()},60000);";
+  let t = BRACKET_HTML_;
+  if (t.indexOf(reload) < 0 || t.indexOf('var D=__DATA__;') < 0) throw new Error('bracket page template changed');
+  t = t.replace('<meta charset="utf-8">', () => head).replace('var D=__DATA__;', () => 'var D=' + JSON.stringify({ name }).replace(/</g, '\\u003c') + ';').replace(reload, () => loader);
+  return t;
+}
+
+// ----- The Tournaments page: docs/tournaments/index.json lists every tournament any Sheet has run -----
+const idxPath_ = (C) => norm_(C.TOURNAMENTS_PATH) || 'docs/tournaments/index.json';
+function indexEntry_(C, snap) {
+  const p = (c) => (c ? { n: c.n, o: c.o || '', id: c.id } : null);
+  return { slug: slugOf_(C), name: norm_(C.TOURNEY_NAME), url: boardUrl_(C), form: norm_(C.FORM_LINK), prizes: norm_(C.PRIZES),
+    fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', kinds: kindsTxt_(C), stars: starsTxt_(C), wave: Math.round(waveMs_(C) / 60000),
+    signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), clubs: snap.entrants ? snap.entrants.length : 0,
+    status: snap.done ? 'done' : snap.matches ? 'live' : 'signups', finished: snap.done ? (stateGet_() || {}).done || Date.now() : 0,
+    champ: p(snap.champ), runner: p(snap.runner) };
+}
+// Only touches GitHub when this tournament's line actually changes (status, sign-up count, champion...).
+function updateIndex_(snap, opt) {
+  const pr = PropertiesService.getScriptProperties(); opt = opt || {};
+  if (!pr.getProperty('GITHUB_TOKEN') || pr.getProperty('GH_BAD')) return false;
+  const C = cfg_(), e = snap ? indexEntry_(C, snap) : null;
+  const key = opt.drop ? 'drop:' + opt.drop : JSON.stringify(e);
+  if (pr.getProperty('IDX_HASH') === key) return true;
+  let doc = {}; try { doc = JSON.parse(ghGet_(idxPath_(C)) || '{}'); } catch (x) { doc = {}; }
+  let list = Array.isArray(doc.list) ? doc.list : [];
+  if (opt.drop) list = list.filter((x) => x.slug !== opt.drop);
+  if (e) list = list.filter((x) => x.slug !== e.slug && x.url !== e.url).concat([e]);
+  list.sort((a, b) => (b.start || 0) - (a.start || 0));
+  const ok = ghPut_(idxPath_(C), JSON.stringify({ updated: Date.now(), list }, null, 1), 'Tournaments page: ' + (e ? e.name + ' (' + e.status + ')' : 'removed ' + opt.drop), JSON.stringify(list), true);
+  if (ok) pr.setProperty('IDX_HASH', key);
+  return ok;
+}
+
+// The sign-ups-open post for Discord.
+function announceText_(C) {
+  C = C || cfg_();
+  const close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), f = norm_(C.FORM_LINK), b = boardUrl_(C);
+  const lines = ['# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' is open for sign-ups!',
+    'A SmallBall **' + (lc_(C.FORMAT) === 'single' ? 'single-elimination' : 'double-elimination (two losses and you\'re out)') + '** tournament · ' + starsTxt_(C) + ' · ' + kindsTxt_(C) + ' games only · up to ' + (Number(C.MAX_CLUBS) || 32) + ' clubs.',
+    ''];
+  if (f) lines.push('📝 **[Sign up here](<' + f + '>)**: played here or on Hold the Hill before? Just submit the blank form.');
+  if (close) lines.push('🗓️ Sign-ups close ' + '<t:' + Math.floor(close / 1000) + ':F> (' + tsR_(close) + ').');
+  if (start) lines.push('🔔 Wave 1 starts <t:' + Math.floor(start / 1000) + ':F>. Every match gets **' + Math.round(waveMs_(C) / 60000) + ' minutes**, and your next match opens the moment both clubs are known.');
+  lines.push('🥊 The lower seed starts the game, the higher seed defends. No reporting: the script finds the game and posts the result once it airs.');
+  if (norm_(C.PRIZES)) lines.push('🎁 Prizes: ' + esc_(C.PRIZES));
+  if (b) lines.push('🗂️ [Live bracket](<' + b + '>) · fills in as people sign up');
+  return lines.join('\n');
+}
+
+// ===================== ✅ Health check =====================
+// Everything that bit us before a tournament, checked in one go. Nothing is posted anywhere while checking.
+function health_(C) {
+  C = C || cfg_();
+  const out = [], pr = PropertiesService.getScriptProperties(), add = (s, t, fix) => out.push({ s, t, fix: fix || '' });
+  const T = stateGet_(), t = Date.now(), close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C);
+  const hook = (url) => { try { const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true }); if (r.getResponseCode() !== 200) return 'Discord said ' + r.getResponseCode(); const j = JSON.parse(r.getContentText()); return j && j.channel_id ? '' : 'not a webhook'; } catch (e) { return String(e.message || e); } };
+  // Discord
+  if (!webhook_(C)) add('bad', 'No Discord webhook', 'Config → DISCORD_WEBHOOK_URL (Discord channel → Edit Channel → Integrations → Webhooks → Copy URL)');
+  else { const w = hook(webhook_(C)); w ? add('bad', 'Discord webhook doesn\'t work (' + w + ')', 'Make a new webhook in the channel and paste it into Config → DISCORD_WEBHOOK_URL') : add('ok', 'Discord webhook works'); }
+  if (!norm_(C.LOG_WEBHOOK_URL)) add('warn', 'No private log channel', 'Optional: a private channel\'s webhook in Config → LOG_WEBHOOK_URL gets errors and rejections');
+  else { const w = hook(norm_(C.LOG_WEBHOOK_URL)); w ? add('bad', 'Log webhook doesn\'t work (' + w + ')', 'Paste a fresh webhook into Config → LOG_WEBHOOK_URL') : add('ok', 'Log channel webhook works'); }
+  let q = []; try { q = JSON.parse(pr.getProperty('RETRY_POSTS') || '[]'); } catch (e) { }
+  if (q.length) add('warn', q.length + ' Discord post' + (q.length === 1 ? '' : 's') + ' waiting to retry', 'Usually Discord being busy; they go out on their own');
+  // The form
+  let form = null; try { if (norm_(C.FORM_ID)) form = FormApp.openById(norm_(C.FORM_ID)); } catch (e) { }
+  if (!form) add('bad', 'Sign-up form not found', 'Run "Set up / repair"');
+  else {
+    const open = !T && close > t, acc = form.isAcceptingResponses();
+    if (open && !acc) add('bad', 'The form is closed but sign-ups should be open', 'Form → Responses → turn on "Accepting responses"');
+    else if (!open && acc && T) add('warn', 'The form is still open after the draw', 'Late sign-ups get a polite ❌; close it in the form if you like');
+    else add('ok', 'Form is ' + (acc ? 'open' : 'closed') + ', as it should be');
+    let domainOnly = false; try { domainOnly = form.requiresLogin(); } catch (e) { }
+    if (domainOnly) add('bad', 'Only people in your Google Workspace can open the form', 'Form → Settings → Responses → untick "Restrict to users in your organization"');
+    try { if (!form.collectsEmail()) add('bad', 'The form doesn\'t collect emails, so blank sign-ups can\'t work', 'Run "Set up / repair"'); } catch (e) { }
+  }
+  if (!norm_(C.FORM_LINK)) add('warn', 'No form link in Config', 'Config → FORM_LINK (the form\'s Send → link)');
+  // Triggers and the clock
+  let trig = []; try { trig = ScriptApp.getProjectTriggers().map((x) => x.getHandlerFunction()); } catch (e) { }
+  if (trig.indexOf('tick') < 0) add('bad', 'The clock isn\'t running', 'Run "Set up / repair" (as the account that should own it)');
+  if (trig.indexOf('onTourneyFormSubmit') < 0) add('bad', 'The form isn\'t hooked up, so sign-ups are ignored', 'Run "Set up / repair"');
+  const nextAt = Number(pr.getProperty('NEXT_AT') || 0);
+  if (trig.indexOf('tick') >= 0 && nextAt && nextAt < t - 20 * 60000) add('bad', 'The clock is stuck (last due ' + fmtT_(nextAt, C) + ')', 'Run "🔄 Check SmallBall now"; if it stays stuck, run "Set up / repair"');
+  else if (trig.indexOf('tick') >= 0 && trig.indexOf('onTourneyFormSubmit') >= 0) add('ok', 'Clock and form triggers are running');
+  // GitHub
+  const tok = pr.getProperty('GITHUB_TOKEN'), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools';
+  if (!tok) add('warn', 'GitHub isn\'t connected, so the bracket page is the Apps Script one', 'Menu → 🐙 Connect the GitHub bracket page');
+  else if (pr.getProperty('GH_BAD')) add('bad', 'The GitHub key stopped working; the page is paused', 'Make a key and use 🐙 Connect again (same key on every Sheet that uses it)');
+  else {
+    let code = 0; try { code = UrlFetchApp.fetch('https://api.github.com/repos/' + repo, { headers: ghHeaders_(tok), muteHttpExceptions: true }).getResponseCode(); } catch (e) { }
+    if (code === 200) add('ok', 'GitHub key works'); else add('bad', 'GitHub key rejected (' + (code || 'no answer') + ')', 'Menu → 🐙 Connect the GitHub bracket page with a working key');
+  }
+  const url = boardUrl_(C);
+  if (url) { let code = 0; try { code = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true }).getResponseCode(); } catch (e) { }
+    code === 200 ? add('ok', 'Bracket page loads') : add('warn', 'Bracket page didn\'t load (' + (code || 'no answer') + ')', 'Right after 🆕 New tournament, GitHub needs a minute. Otherwise check BOARD_LINK'); }
+  // Returning players
+  if (norm_(C.HILL_SHEET_ID)) { let ok = false; try { ok = !!SpreadsheetApp.openById(norm_(C.HILL_SHEET_ID)).getSheetByName('Players'); } catch (e) { }
+    ok ? add('ok', 'Hill Sheet readable: Hill players can sign up with a blank form') : add('bad', 'Can\'t read the Hold the Hill Sheet', 'Share the Hill Sheet (Viewer is enough) with the account that runs this script'); }
+  // Times
+  if (!close || !start) add('bad', 'Sign-up close or start time is missing or unreadable', 'Config → SIGNUP_CLOSE / START as yyyy-MM-dd HH:mm');
+  else if (start < close) add('bad', 'Wave 1 starts before sign-ups close', 'Fix SIGNUP_CLOSE / START in Config');
+  else if (!T && close < t) add('warn', 'Sign-up close time has passed but there\'s no bracket yet', 'Needs 2+ clubs; or use 🎲 Draw the bracket now');
+  else add('ok', T ? (T.done ? 'Finished' : 'Under way') + ': ' + norm_(C.TOURNEY_NAME) : 'Sign-ups close ' + fmtT_(close, C) + ', Wave 1 ' + fmtT_(start, C));
+  return out;
+}
+function healthText_(h, plain) {
+  const icon = { ok: '✅', warn: '⚠️', bad: '❌' }, bad = h.filter((x) => x.s === 'bad').length, warn = h.filter((x) => x.s === 'warn').length;
+  const top = bad ? '❌ ' + bad + ' problem' + (bad === 1 ? '' : 's') + ' to fix' : warn ? '✅ Ready (' + warn + ' note' + (warn === 1 ? '' : 's') + ')' : '✅ All good';
+  return top + '\n\n' + h.map((x) => icon[x.s] + ' ' + x.t + (x.s !== 'ok' && x.fix ? (plain ? '\n     → ' : ' → ') + x.fix : '')).join('\n');
+}
+function adminHealth() { withUi_(() => healthText_(health_(cfg_()), true)); }
+// Runs by itself once, a few hours before sign-ups close; problems go to the private log channel.
+function autoHealth_(C) {
+  const h = health_(C), issues = h.filter((x) => x.s !== 'ok');
+  log_('system', issues.some((x) => x.s === 'bad') ? 'Health check: needs you' : 'Health check', issues.length ? issues.map((x) => (x.s === 'bad' ? '❌ ' : '⚠️ ') + x.t + ' → ' + x.fix).join(' | ') : 'All good for the ' + norm_(C.TOURNEY_NAME));
+}
+
+const NEW_HTML_ = `<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_top"><style>
+body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2430;margin:0;padding:4px 6px}
+label{display:block;font-weight:600;margin:10px 0 3px}small{color:#5b6475;font-weight:400}
+input,select,textarea{width:100%;box-sizing:border-box;font:inherit;padding:6px 8px;border:1px solid #c7ccd6;border-radius:6px}
+.row{display:flex;gap:10px}.row>div{flex:1}.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin-top:10px}.chk input{width:auto;margin-top:3px}
+.note{background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;margin:4px 0 8px}.bad{background:#fde8e8;border-color:#f1a3a3}
+button{background:#1a73e8;color:#fff;border:0;border-radius:6px;padding:9px 18px;font:600 14px system-ui;margin-top:14px;cursor:pointer}button[disabled]{opacity:.5}
+#out{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:12px}.kinds label{display:inline-flex;gap:5px;font-weight:400;margin-right:12px}.kinds input{width:auto}
+</style></head><body>
+<div id="state"></div>
+<label>Name <small>shown everywhere, e.g. "New Year's Knockout"</small></label><input id="name" maxlength="60">
+<div class="row"><div><label>Sign-ups close</label><input id="close" type="datetime-local"></div><div><label>Wave 1 starts</label><input id="start" type="datetime-local"></div></div>
+<div class="row"><div><label>Minutes per match</label><input id="wave" type="number" min="15" max="1440"></div>
+<div><label>Format</label><select id="fmt"><option value="double">Double elimination</option><option value="single">Single elimination</option></select></div></div>
+<label>Game types that count</label><div class="kinds"><label><input type="checkbox" value="big">BigLeague</label><label><input type="checkbox" value="pro">Pro</label><label><input type="checkbox" value="exhibition">Exhibition</label></div>
+<div class="row"><div><label>Stars from</label><input id="minS" type="number" min="0" max="10"></div><div><label>to</label><input id="maxS" type="number" min="0" max="10"></div><div><label>Max clubs</label><input id="max" type="number" min="2" max="64"></div></div>
+<label>Prizes</label><input id="prizes">
+<label>Different Discord channel? <small>paste its webhook; blank = same channel as now</small></label><input id="webhook" placeholder="https://discord.com/api/webhooks/...">
+<label class="chk"><input type="checkbox" id="announce" checked><span>Post the sign-ups-open announcement to Discord</span></label>
+<label class="chk" id="replaceRow" style="display:none"><input type="checkbox" id="replace"><span id="replaceTxt"></span></label>
+<button id="go">🆕 Start it</button><div id="out"></div>
+<script>
+var I=__INIT__;function $(i){return document.getElementById(i)}
+var st=$('state');
+if(I.live){st.className='note bad';st.textContent='The '+I.now+' is still being played. Starting a new one is locked until it finishes (or you use Start over).';$('go').disabled=true;}
+else if(I.done){st.className='note';st.textContent='The '+I.now+' is finished. Starting a new one saves it to the History tab and keeps its bracket page up for good.';}
+else if(I.unplayed){$('replaceRow').style.display='flex';$('replaceTxt').textContent='Replace it: the '+I.now+' has '+I.unplayed+' sign-up(s) and was never played. They go to the History tab and it comes off the Tournaments page.';}
+if(!I.gh){var n=document.createElement('div');n.className='note';n.textContent='GitHub isn\\'t connected, so the new bracket will be the Apps Script page and won\\'t show on the Tournaments page. Connect GitHub first if you can.';st.after(n);}
+$('wave').value=I.wave;$('fmt').value=I.fmt;$('minS').value=I.minS;$('maxS').value=I.maxS;$('max').value=I.max;$('prizes').value=I.prizes;
+I.kinds.split(',').forEach(function(k){var b=document.querySelector('.kinds input[value="'+k.trim()+'"]');if(b)b.checked=true});
+$('go').onclick=function(){
+  var kinds=[].slice.call(document.querySelectorAll('.kinds input:checked')).map(function(b){return b.value}).join(',');
+  var o={name:$('name').value,close:$('close').value,start:$('start').value,wave:$('wave').value,fmt:$('fmt').value,kinds:kinds,minS:$('minS').value,maxS:$('maxS').value,max:$('max').value,prizes:$('prizes').value,webhook:$('webhook').value,announce:$('announce').checked,replace:$('replace').checked};
+  $('go').disabled=true;$('out').textContent='Working… (archiving, setting up the form and page)';
+  google.script.run.withSuccessHandler(function(r){
+    var icon={ok:'✅',warn:'⚠️',bad:'❌'};
+    $('out').textContent='🎉 '+r.name+' is set up'+(r.archived?' ('+r.archived+' archived)':'')+'.\\n\\nBracket page: '+r.url+'\\nSign-up form (same link as before): '+r.form+'\\n\\nHealth check:\\n'+r.health.map(function(x){return icon[x.s]+' '+x.t+(x.s!=='ok'&&x.fix?'\\n     → '+x.fix:'')}).join('\\n');
+  }).withFailureHandler(function(e){$('go').disabled=false;$('out').textContent='❌ '+(e.message||e);}).newTournament(o);
+};
+</script></body></html>`;
 
 // ===================== Demo data for ?demo=1 =====================
 function demoSnap_() {
