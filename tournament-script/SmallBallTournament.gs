@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -37,6 +37,8 @@ const DEFAULTS = {
   HILL_SHEET_ID: ['', 'Optional: the Hold the Hill spreadsheet ID (the long code in its link). Hill players can then sign up with a blank form'],
   FORM_ID: ['', '(set by setup)'],
   TZ: ['America/Denver', 'Time zone for the times above'],
+  GITHUB_REPO: ['slipnsliders/smallball-tools', 'Optional: the GitHub repo that hosts the bracket page (owner/repo). Connect it from the 🏆 Tournament menu'],
+  GITHUB_PATH: ['docs/brawl/bracket.json', 'Where the bracket data goes in that repo (the page sits next to it)'],
 };
 const SHEETS = { CONFIG: 'Config', ROSTER: 'Roster', ENTRANTS: 'Entrants', MATCHES: 'Matches', LOG: 'Log', STATE: 'State', BOARD: 'Board' };
 const ENTRANT_COLS = ['Email', 'Discord', 'DiscordID', 'Owner', 'Club', 'ClubID', 'Stars', 'Joined', 'Status', 'Seed'];
@@ -641,6 +643,7 @@ function snapshot_(T) {
       open: !!m.openAt && !m.winner && !m.void, dl: m.deadline || 0, g: m.pend ? m.pend.gid : (m.gid || ''), live: !!m.pend, flag: !!m.flag }));
   }
   sheet_(SHEETS.BOARD).getRange(1, 1).setValue(JSON.stringify(snap));
+  ghPush_(snap);
   // A readable Matches tab for the organizer.
   if (T) {
     const sh = sheet_(SHEETS.MATCHES, ['ID', 'Match', 'Club A', 'Club B', 'Status', 'Winner', 'Score', 'Game', 'Opens', 'Deadline']);
@@ -651,6 +654,56 @@ function snapshot_(T) {
     if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 10).clearContent();
     if (rows.length) sh.getRange(2, 1, rows.length, 10).setValues(rows);
   }
+}
+
+
+// ===================== The bracket on GitHub Pages =====================
+// The token lives in Script Properties (never on a tab). Each change to the bracket is saved as one small JSON
+// file in the repo; the page next to it reads that file. Nothing is sent when the bracket hasn't changed.
+function ghPush_(snap, force) {
+  const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
+  if (!tok) return false;
+  const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json';
+  const body = JSON.stringify(snap), key = JSON.stringify(Object.assign({}, snap, { updated: 0 }));
+  const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, key + repo + path, Utilities.Charset.UTF_8));
+  if (!force && pr.getProperty('GH_HASH') === hash) return true;
+  const api = 'https://api.github.com/repos/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
+  const headers = { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let sha = null;
+    const g = UrlFetchApp.fetch(api, { headers, muteHttpExceptions: true });
+    if (g.getResponseCode() === 200) try { sha = JSON.parse(g.getContentText()).sha; } catch (e) { }
+    else if (g.getResponseCode() !== 404) { log_('system', 'GitHub read failed', g.getResponseCode() + ' ' + g.getContentText().slice(0, 200)); return false; }
+    const payload = { message: 'Bracket update: ' + (snap.name || 'tournament'), content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
+    if (sha) payload.sha = sha;
+    const r = UrlFetchApp.fetch(api, { method: 'put', headers, contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
+    const code = r.getResponseCode();
+    if (code === 200 || code === 201) { pr.setProperty('GH_HASH', hash); return true; }
+    if (code !== 409 && code !== 422) { log_('system', 'GitHub save failed', code + ' ' + r.getContentText().slice(0, 200)); return false; }
+  }
+  return false;
+}
+function ghPageUrl_(C) {
+  const repo = (norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools').split('/'), path = norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json';
+  const dir = path.replace(/^docs\//, '').replace(/[^/]*$/, '');
+  return 'https://' + repo[0].toLowerCase() + '.github.io/' + repo[1] + '/' + dir;
+}
+function adminConnectGithub() {
+  withUi_((ui) => {
+    const r = ui.prompt('Connect the GitHub bracket page',
+      'Paste a GitHub fine-grained token with "Contents: Read and write" on ' + (norm_(cfg_().GITHUB_REPO) || 'slipnsliders/smallball-tools') + ' only.\n' +
+      'It is kept in the script\'s private settings, not on any tab. Leave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    const pr = PropertiesService.getScriptProperties(), tok = norm_(r.getResponseText());
+    if (!tok) { pr.deleteProperty('GITHUB_TOKEN'); pr.deleteProperty('GH_HASH'); return 'GitHub disconnected.'; }
+    pr.setProperty('GITHUB_TOKEN', tok); pr.deleteProperty('GH_HASH');
+    const C = cfg_(), url = ghPageUrl_(C);
+    snapshot_(stateGet_());
+    if (!pr.getProperty('GH_HASH')) return 'GitHub didn\'t accept that token. Check it has Contents: Read and write on the repo, then try again (the Log tab has the details).';
+    setCfg_('BOARD_LINK', url);
+    snapshot_(stateGet_());   // so the form's description picks up the new link
+    return 'Connected! The live bracket is at ' + url + ' (give GitHub a minute the first time). Discord posts now link there.';
+  });
 }
 
 // ===================== Web page =====================
@@ -674,6 +727,7 @@ function onOpen() {
     .addItem('📣 Post the bracket to Discord', 'adminPostBracket')
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
+    .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
     .addSeparator()
     .addItem('🧹 Start over (clear the bracket, keep sign-ups)', 'adminResetBracket')
     .addToUi();

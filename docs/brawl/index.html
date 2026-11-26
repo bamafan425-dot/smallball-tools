@@ -1,0 +1,138 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Friday Brawl · live bracket</title>
+<meta property="og:title" content="Black Friday Brawl · live bracket"><meta property="og:description" content="A SmallBall double-elimination tournament. Sign up, see the bracket, follow every result.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E1B33;--panel:#15274a;--edge:#2b4170;--ink:#F4EBD9;--muted:#9fb0cf;--red:#C8102E;--gold:#ffd166;--green:#34d399}
+*{box-sizing:border-box}body{margin:0;background:var(--bg) repeating-linear-gradient(135deg,rgba(255,255,255,.02) 0 1px,transparent 1px 14px);color:var(--ink);font:15px/1.4 Oswald,system-ui,sans-serif}
+.bb{font-family:"Bebas Neue",Oswald,sans-serif;letter-spacing:.04em}
+header{padding:18px 22px 8px;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between}
+h1{margin:0;font-size:46px;line-height:.95}h1 small{display:block;font-size:17px;color:var(--gold);letter-spacing:.12em}
+.meta{color:var(--muted);font-size:14px;text-align:right}.meta b{color:var(--ink)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;justify-content:flex-end}
+.btn{background:var(--panel);border:1px solid var(--edge);color:var(--ink);border-radius:999px;padding:7px 14px;font:600 13px Oswald,sans-serif;cursor:pointer;text-decoration:none}
+.btn.go{background:var(--red);border-color:var(--red)}
+.champ{margin:8px 22px;padding:14px 18px;border-radius:12px;background:linear-gradient(90deg,rgba(200,16,46,.5),rgba(255,209,102,.2));box-shadow:0 0 0 2px var(--gold) inset;font-size:22px}
+.sec{padding:6px 22px 18px}.sec h2{margin:10px 0 8px;font-size:28px;color:var(--gold)}
+.cols{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.col{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:210px}
+.col h3{margin:0 0 2px;font:600 12px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.m{background:var(--panel);border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+.m.bye{opacity:.5}.m.open{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}.m.live{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.m .lab{font-size:11px;color:var(--muted);padding:4px 9px 2px;display:flex;justify-content:space-between;gap:8px}
+.m .s{display:grid;grid-template-columns:24px 1fr auto;gap:6px;align-items:center;padding:5px 9px;border-top:1px solid rgba(255,255,255,.05)}
+.m .s .sd{font-size:12px;color:var(--muted);text-align:right}.m .s .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.m .s .n small{color:var(--muted);margin-left:5px}
+.m .s.w{background:rgba(52,211,153,.12)}.m .s.w .n{font-weight:600}.m .s.l .n{opacity:.5;text-decoration:line-through}
+.m .s .sc{font-weight:600;min-width:16px;text-align:right}.m .tbd{color:var(--muted);font-style:italic}
+.m .ft{font-size:11px;padding:3px 9px 5px;color:var(--gold)}.m .ft a{color:var(--gold)}
+.pv{background:var(--panel);border:1px dashed var(--gold);border-radius:12px;padding:12px 16px;font-size:16px}.pv span{color:var(--muted);font-size:14px}.pv .btn{margin-left:8px}
+.m .s.openspot .n{color:#6f84ab}
+.ents{display:flex;flex-wrap:wrap;gap:8px}.ents span{background:var(--panel);border:1px solid var(--edge);border-radius:999px;padding:5px 12px}
+.empty{color:var(--muted);padding:20px 22px}
+footer{color:var(--muted);font-size:12px;padding:14px 22px 26px}
+</style></head><body><div id="app"></div>
+<script>
+var D={name:"Black Friday Brawl"};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'})}
+function side(c,bye,m,isA){
+  if(bye)return '<div class="s"><span class="sd"></span><span class="n tbd">bye</span><span></span></div>';
+  if(!c)return '<div class="s"><span class="sd"></span><span class="n tbd">TBD</span><span></span></div>';
+  if(c.open)return '<div class="s openspot"><span class="sd">'+c.s+'</span><span class="n tbd">Open spot</span><span></span></div>';
+  var cls=m.w?(m.w===c.id?' w':' l'):'',sc=m.sc&&m.w?(m.w===c.id?m.sc[0]:m.sc[1]):'';
+  return '<div class="s'+cls+'"><span class="sd">'+(c.s||'')+'</span><span class="n">'+esc(c.n)+'<small>'+esc(c.o||'')+(c.st!==''&&c.st!=null?' · '+esc(c.st)+'★':'')+'</small></span><span class="sc">'+sc+'</span></div>';
+}
+function box(m){
+  var st=m.v?'':m.bye?'':m.w?(m.how==='no-show'?'No-show: higher seed on':m.how==='organizer'?'Settled by the organizer':m.how==='tie'?'Tie: higher seed on':''):m.live?'📡 Game found · result once it airs':m.flag?'Waiting on the organizer':m.open?'🔴 Open · play by '+t(m.dl):'';
+  var ft=m.g?(st?st+' · ':'')+'<a href="https://play.smallball.com/training?watch='+esc(m.g)+'" target="_blank">📺 game '+esc(m.g)+'</a>':st;
+  return '<div class="m'+(m.live?' live':m.open?' open':'')+(m.byeA||m.byeZ?' bye':'')+'"><div class="lab"><span>'+esc(m.l||m.id)+'</span></div>'+side(m.a,m.byeA,m,true)+side(m.z,m.byeZ,m,false)+(ft?'<div class="ft">'+ft+'</div>':'')+'</div>';
+}
+function cols(list,name){
+  var rs={};list.forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});
+  return '<div class="cols">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){var ms=rs[r].filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))});if(!ms.length)return'';return '<div class="col"><h3>'+esc(name(r,ms))+'</h3>'+ms.map(box).join('')+'</div>'}).join('')+'</div>';
+}
+function render(){
+  var h='<header><div><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
+  if(!D.matches){h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'Wave 1 <b>'+t(D.start)+'</b>':'');}
+  else h+=(D.done?'<b>Finished</b>':'Wave <b>'+(D.wave||0)+'</b> · '+(D.waveMin||60)+'-minute waves')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
+  h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
+  if(D.champ)h+='<div class="champ bb">👑 '+esc(D.champ.n)+' wins the '+esc(D.name)+'!'+(D.prizes?' <span style="font-size:15px;font-family:Oswald">🎁 '+esc(D.prizes)+'</span>':'')+'</div>';
+  if(!D.matches&&D.preview){
+    var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw when sign-ups close'}[P.seeding]||'sign-up order';
+    h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we\u2019re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who\u2019s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
+    var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
+    h+='<div class="sec"><h2 class="bb">'+(P.fmt==='double'?'Winners bracket':'Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PL.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PF.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
+  }
+  if(!D.matches){
+    h+='<div class="sec"><h2 class="bb">Signed up · '+(D.entrants||[]).length+'</h2>'+((D.entrants||[]).length?'<div class="ents">'+D.entrants.map(function(e){return '<span>'+esc(e.n)+' <small style="color:var(--muted)">'+esc(e.o)+(e.st!==''?' · '+esc(e.st)+'★':'')+'</small></span>'}).join('')+'</div>':'<div class="empty">Nobody yet. Be the first!</div>')+'</div>';
+  } else {
+    var W=D.matches.filter(function(m){return m.b==='W'}),L=D.matches.filter(function(m){return m.b==='L'}),F=D.matches.filter(function(m){return m.b==='F'&&!m.v});
+    var wr=Math.max.apply(null,W.map(function(m){return m.r})),lr=Math.max.apply(null,L.map(function(m){return m.r}).concat([0]));
+    h+='<div class="sec"><h2 class="bb">'+(D.fmt==='double'?'Winners bracket':'Bracket')+'</h2>'+cols(W,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(L.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(L,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(F.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+F.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
+  }
+  h+='<footer>Updated '+t(D.updated||Date.now())+' · refreshes on its own · results show once each game has aired (no spoilers) · read-only on SmallBall</footer>';
+  document.getElementById('app').innerHTML=h;
+}
+// A picture of the whole bracket, drawn on a canvas (no outside services).
+function png(){
+  var secs=[],W=D.matches.filter(function(m){return m.b==='W'}),L=D.matches.filter(function(m){return m.b==='L'}),F=D.matches.filter(function(m){return m.b==='F'&&!m.v});
+  function group(list){var rs={};list.filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))}).forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});return Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){return rs[r]})}
+  secs.push([D.fmt==='double'?'WINNERS BRACKET':'BRACKET',group(W)]);if(L.length)secs.push(['LOSERS BRACKET',group(L)]);if(F.length)secs.push(['GRAND FINAL',[F]]);
+  var BW=230,BH=64,GX=24,GY=12,PAD=28,y=110,maxCols=0,heights=[];
+  secs.forEach(function(s){maxCols=Math.max(maxCols,s[1].length);var most=Math.max.apply(null,s[1].map(function(c){return c.length}));heights.push(40+most*(BH+GY))});
+  var cw=PAD*2+maxCols*(BW+GX),ch=y+heights.reduce(function(a,b){return a+b},0)+(D.champ?60:0)+30;
+  var c=document.createElement('canvas'),k=2;c.width=cw*k;c.height=ch*k;var x=c.getContext('2d');x.scale(k,k);
+  x.fillStyle='#0E1B33';x.fillRect(0,0,cw,ch);
+  x.fillStyle='#ffd166';x.font='600 14px Oswald, sans-serif';x.fillText('SMALLBALL TOURNAMENT',PAD,40);
+  x.fillStyle='#F4EBD9';x.font='40px "Bebas Neue", Oswald, sans-serif';x.fillText(D.name||'Tournament',PAD,80);
+  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Wave '+(D.wave||0))+' · '+new Date().toLocaleString(),cw-PAD-260,80);
+  if(D.champ){x.fillStyle='#C8102E';x.fillRect(PAD,y-6,cw-PAD*2,44);x.fillStyle='#ffd166';x.font='28px "Bebas Neue", Oswald, sans-serif';x.fillText('👑 '+D.champ.n+' wins!',PAD+14,y+26);y+=60}
+  secs.forEach(function(s,si){
+    x.fillStyle='#ffd166';x.font='24px "Bebas Neue", Oswald, sans-serif';x.fillText(s[0],PAD,y+22);
+    var top=y+36,colsH=heights[si]-40;
+    s[1].forEach(function(col,ci){
+      var cx=PAD+ci*(BW+GX),step=colsH/col.length;
+      col.forEach(function(m,mi){
+        var by=top+mi*step+(step-BH)/2;
+        x.fillStyle='#15274a';x.strokeStyle=m.open?'#C8102E':m.live?'#ffd166':'#2b4170';x.lineWidth=1.5;
+        x.beginPath();x.rect(cx,by,BW,BH);x.fill();x.stroke();
+        x.fillStyle='#9fb0cf';x.font='10px Oswald, sans-serif';x.fillText((m.l||m.id).slice(0,40),cx+8,by+12);
+        [[m.a,m.byeA,0],[m.z,m.byeZ,1]].forEach(function(p){
+          var cc=p[0],ry=by+18+p[2]*22,won=m.w&&cc&&m.w===cc.id;
+          if(won){x.fillStyle='rgba(52,211,153,.18)';x.fillRect(cx+1,ry,BW-2,22)}
+          x.fillStyle=cc?(m.w&&!won?'#7b8aa8':'#F4EBD9'):'#7b8aa8';x.font=(won?'600 ':'')+'13px Oswald, sans-serif';
+          x.fillText(p[1]?'bye':cc?((cc.s?cc.s+'  ':'')+cc.n).slice(0,28):'TBD',cx+8,ry+16);
+          if(m.sc&&m.w&&cc){x.textAlign='right';x.fillText(String(m.w===cc.id?m.sc[0]:m.sc[1]),cx+BW-8,ry+16);x.textAlign='left'}
+        });
+      });
+    });
+    y+=heights[si];
+  });
+  x.fillStyle='#9fb0cf';x.font='11px Oswald, sans-serif';x.fillText('Results show once each game has aired · read-only on SmallBall',PAD,ch-12);
+  var url=c.toDataURL('image/png');
+  try{var a=document.createElement('a');a.download=(D.name||'bracket').replace(/[^a-z0-9]+/gi,'-')+'.png';a.href=url;document.body.appendChild(a);a.click();a.remove();}catch(e){}
+  var o=document.getElementById('shot')||document.createElement('div');o.id='shot';
+  o.style.cssText='position:fixed;inset:0;background:rgba(5,10,20,.92);z-index:9;overflow:auto;padding:18px;text-align:center';
+  o.innerHTML='<p style="margin:0 0 10px">📷 Here\u2019s the bracket. If it didn\u2019t download, right-click it (or long-press on a phone) and save it, then post it in Discord. <button class="btn" onclick="this.closest(\'#shot\').remove()">Close</button></p><img style="max-width:100%;border-radius:8px" src="'+url+'">';
+  document.body.appendChild(o);
+}
+var SRC=[
+  'https://api.github.com/repos/slipnsliders/smallball-tools/contents/docs/brawl/bracket.json?ref=main',
+  'https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/docs/brawl/bracket.json',
+  'bracket.json'],last='';
+function load(i){
+  i=i||0;if(i>=SRC.length)return;
+  var u=SRC[i]+(i?(SRC[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
+  fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}})
+    .then(function(r){if(!r.ok)throw r.status;return r.text()})
+    .then(function(txt){var d=JSON.parse(txt);if(txt!==last&&!document.getElementById('shot')){last=txt;D=d;render();}})
+    .catch(function(){load(i+1)});
+}
+render();load();
+setInterval(function(){if(!document.hidden)load()},90000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
+</script></body></html>
