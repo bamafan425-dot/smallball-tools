@@ -883,6 +883,8 @@ h1{margin:0;font-size:46px;line-height:.95}h1 small{display:block;font-size:17px
 .m.bye{opacity:.5}.m.open{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}.m.live{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
 .m .lab{font-size:11px;color:var(--muted);padding:4px 9px 2px;display:flex;justify-content:space-between;gap:8px}
 .m .s{display:grid;grid-template-columns:24px 1fr auto;gap:6px;align-items:center;padding:5px 9px;border-top:1px solid rgba(255,255,255,.05)}
+.cid{color:var(--gold);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--gold)}.cid:hover{color:#fff}
+.ids{display:flex;flex-wrap:wrap;gap:8px}.ids a{display:inline-flex;align-items:baseline;gap:8px;background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:7px 12px;color:var(--ink);text-decoration:none}.ids a:hover{border-color:var(--gold)}.ids b{font:600 18px Oswald,sans-serif;color:var(--gold);letter-spacing:.03em}.ids i{font-style:normal;color:var(--muted);font-size:12px}.ids em{font-style:normal;color:var(--muted);font-size:12px;min-width:18px}
 .m .s .sd{font-size:12px;color:var(--muted);text-align:right}.m .s .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.m .s .n small{color:var(--muted);margin-left:5px}
 .m .s.w{background:rgba(52,211,153,.12)}.m .s.w .n{font-weight:600}.m .s.l .n{opacity:.5;text-decoration:line-through}
 .m .s .sc{font-weight:600;min-width:16px;text-align:right}.m .tbd{color:var(--muted);font-style:italic}
@@ -910,11 +912,11 @@ function side(c,bye,m,isA){
   if(!c)return '<div class="s"><span class="sd"></span><span class="n tbd">TBD</span><span></span></div>';
   if(c.open)return '<div class="s openspot"><span class="sd">'+c.s+'</span><span class="n tbd">Open spot</span><span></span></div>';
   var cls=m.w?(m.w===c.id?' w':' l'):'',sc=m.sc&&m.w?(m.w===c.id?m.sc[0]:m.sc[1]):'';
-  return '<div class="s'+cls+'"><span class="sd">'+(c.s||'')+'</span><span class="n">'+esc(c.n)+'<small>'+esc(c.o||'')+(c.st!==''&&c.st!=null?' · '+esc(c.st)+'★':'')+'</small></span><span class="sc">'+sc+'</span></div>';
+  return '<div class="s'+cls+'"><span class="sd">'+(c.s||'')+'</span><span class="n">'+esc(c.n)+'<small>'+(c.id>0?'<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank" title="Open on SmallBall">ID '+esc(c.id)+'</a> · ':'')+esc(c.o||'')+(c.st!==''&&c.st!=null?' · '+esc(c.st)+'★':'')+'</small></span><span class="sc">'+sc+'</span></div>';
 }
 function box(m){
   var st=m.v?'':m.bye?'':m.w?(m.how==='no-show'?'No-show: higher seed on':m.how==='organizer'?'Settled by the organizer':m.how==='tie'?'Tie: higher seed on':''):m.live?'📡 Game found · result once it airs':m.flag?'Waiting on the organizer':m.open?'🔴 Open · play by '+t(m.dl):'';
-  if(m.open&&!m.live&&!m.w&&m.a&&m.z&&m.a.s&&m.z.s){var cc=m.a.s>m.z.s?m.a:m.z,dd=cc===m.a?m.z:m.a;st+='<br>🥊 '+esc(cc.n)+' starts it vs club ID '+esc(dd.id);}
+  if(m.open&&!m.live&&!m.w&&m.a&&m.z&&m.a.s&&m.z.s){var cc=m.a.s>m.z.s?m.a:m.z,dd=cc===m.a?m.z:m.a;st+='<br>🥊 '+esc(cc.n)+' starts it: <a class="cid" href="https://play.smallball.com/?sbx_as='+esc(cc.id)+'#/team/'+esc(dd.id)+'" target="_blank">▶ Play vs ID '+esc(dd.id)+'</a>';}
   var ft=m.g?(st?st+' · ':'')+'<a href="https://play.smallball.com/training?watch='+esc(m.g)+'" target="_blank">📺 game '+esc(m.g)+'</a>':st;
   return '<div class="m'+(m.live?' live':m.open?' open':'')+(m.byeA||m.byeZ?' bye':'')+'"><div class="lab"><span>'+esc(m.l||m.id)+'</span></div>'+side(m.a,m.byeA,m,true)+side(m.z,m.byeZ,m,false)+(ft?'<div class="ft">'+ft+'</div>':'')+'</div>';
 }
@@ -943,6 +945,8 @@ function render(){
   else h+=(D.done?'<b>Finished</b>':'<b>Live</b> · '+(D.waveMin||60)+'-minute match windows')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
   h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
   if(D.champ)h+='<div class="champ bb">👑 '+esc(D.champ.n)+' wins the '+esc(D.name)+'!'+(D.prizes?' <span style="font-size:15px;font-family:Oswald">🎁 '+esc(D.prizes)+'</span>':'')+'</div>';
+  var IDL=D.matches?(D.seeds||[]):(D.entrants||[]);
+  h+='<div class="sec"><h2 class="bb">'+(D.matches?'🆔 Club IDs':'Signed up · '+IDL.length)+'</h2><div style="color:var(--muted);font-size:13px;margin:-4px 0 8px">The club ID is what you play in SmallBall. Tap one to open that club, with the Play button.</div>'+(IDL.length?'<div class="ids">'+IDL.map(function(e){return '<a href="https://play.smallball.com/#/team/'+esc(e.id)+'" target="_blank">'+(e.s?'<em>#'+esc(e.s)+'</em>':'')+'<span>'+esc(e.n)+' <i>'+esc(e.o||'')+(e.st!==''&&e.st!=null?' · '+esc(e.st)+'★':'')+'</i></span><b>'+esc(e.id)+'</b></a>'}).join('')+'</div>':'<div class="empty">Nobody yet. Be the first!</div>')+'</div>';
   if(!D.matches&&D.preview){
     var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw when sign-ups close'}[P.seeding]||'sign-up order';
     h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we\u2019re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who\u2019s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
@@ -953,7 +957,7 @@ function render(){
     if(PF.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
   if(!D.matches){
-    h+='<div class="sec"><h2 class="bb">Signed up · '+(D.entrants||[]).length+'</h2>'+((D.entrants||[]).length?'<div class="ents">'+D.entrants.map(function(e){return '<span>'+esc(e.n)+' <small style="color:var(--muted)">'+esc(e.o)+(e.st!==''?' · '+esc(e.st)+'★':'')+'</small></span>'}).join('')+'</div>':'<div class="empty">Nobody yet. Be the first!</div>')+'</div>';
+    // (the sign-up list now sits at the top, with club IDs)
   } else {
     var W=D.matches.filter(function(m){return m.b==='W'}),L=D.matches.filter(function(m){return m.b==='L'}),F=D.matches.filter(function(m){return m.b==='F'&&!m.v});
     var wr=Math.max.apply(null,W.map(function(m){return m.r})),lr=Math.max.apply(null,L.map(function(m){return m.r}).concat([0]));
