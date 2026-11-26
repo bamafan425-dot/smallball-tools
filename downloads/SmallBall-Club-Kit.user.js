@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.31.0
+// @version      1.32.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -151,7 +151,7 @@ const SBX_MOBILE = true;
   const FEATURES = [
     ["tabs", "Quick tabs"], ["selector", "Club selector: readable, recent first"], ["logos", "Club logos"],
     ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"],
-    ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
+    ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["hillcard", "⛰️ Hold the Hill card (bottom right): your ladder spot, who you can charge, your Brawl Bucks"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
     ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
@@ -161,7 +161,7 @@ const SBX_MOBILE = true;
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const MOBILE_KEEP = ["hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
   const on = (f) => (MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
@@ -3100,6 +3100,44 @@ const SBX_MOBILE = true;
     }
     return out;
   }
+  // ⛰️ Hold the Hill: one card per club of yours on the Hill (from the public Hill Board data).
+  const HILL_BOARD = "https://slipnsliders.github.io/smallball-tools/hill/";
+  const hillNeed = (gap) => (gap <= 1 ? 1 : gap + 1);
+  function hillItems(H, mine) {
+    if (!H || !H.ladder) return [];
+    const all = (H.ace ? [H.ace] : []).concat(H.ladder), reach = Number(H.reach) || 3, form = H.formLink || HILL_BOARD;
+    const wal = {}; (H.wallet || []).forEach((w) => { wal[w.name] = w; });
+    const out = [];
+    all.filter((p) => mine.has(String(p.clubId))).forEach((me) => {
+      const r = Number(me.rank), w = wal[me.name];
+      const sub = "<b>" + esc(me.name) + "</b> · " + esc(me.club) + " · " + me.w + "–" + me.l +
+        (w ? " · 💰 <b>" + w.bank + "</b> BB" + (w.streak ? " · 🔥 " + w.streak : "") + (w.items && w.items.length ? " · " + w.items.join(" ") : "") : "");
+      const lines = [];
+      const ch = (H.charges || []).find((c) => c.ch === me.name || c.df === me.name);
+      if (ch) {
+        const opp = all.find((p) => p.name === (ch.ch === me.name ? ch.df : ch.ch));
+        const by = ch.deadline ? " · play by <b>" + esc(liveWhen(Date.parse(ch.deadline))) + "</b>" : "";
+        if (/reported|airing/i.test(ch.status || "")) lines.push({ t: "📡 Your Hill game is in. The result posts once it has aired." });
+        else if (ch.ch === me.name) lines.push({ t: "🥊 You charged <b>" + esc(ch.df) + "</b>" + (opp ? " <code>" + esc(opp.clubId) + "</code>" : "") + by + ". Start a BigLeague game as the visitor.", go: opp ? liveStart(me.clubId, opp.clubId) : "" });
+        else lines.push({ t: "🛡️ <b>" + esc(ch.ch) + "</b> charged you" + by + ". They start the game; be ready." });
+      } else if (r === 0) {
+        lines.push({ t: "♠ You hold the mound. Defend it" + (me.next ? ": the next defense is worth <b>+" + me.next + "</b>" : "") + "." });
+      } else {
+        const tg = [];
+        const openTo = Number(H.moundOpenTo) || 0;
+        if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: "♠ <b>" + esc(H.ace.name) + "</b> (the Ace) <code>" + esc(H.ace.clubId) + "</code> · title shot" });
+        H.ladder.filter((p) => r - Number(p.rank) >= 1 && r - Number(p.rank) <= reach).sort((a, b) => a.rank - b.rank).forEach((p) => {
+          const n = hillNeed(r - Number(p.rank)); tg.push({ t: "#" + p.rank + " <b>" + esc(p.name) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win") });
+        });
+        const j = H.ladder.find((p) => r - Number(p.rank) === reach + 1);
+        if (j) tg.push({ t: "🪜 #" + j.rank + " <b>" + esc(j.name) + "</b> with a Ladder Jump" });
+        if (tg.length) { lines.push({ t: "You can charge:" }); tg.forEach((x) => lines.push(x)); lines.push({ t: '<span style="opacity:.75;font-size:12px">The Hill form\'s 🔎 Who can I charge? has the exact list (cooldowns, items).</span>', go: form, btn: "🥊 Charge", ext: 1 }); }
+        else lines.push({ t: "Nobody in reach right now. Win a defense or wait for the ladder to move." });
+      }
+      out.push({ k: "hill:" + me.clubId, hill: true, title: r === 0 ? "⛰️ Hold the Hill · ♠ The Ace" : "⛰️ Hold the Hill · #" + r + " of " + H.ladder.length, sub, lines, url: HILL_BOARD });
+    });
+    return out;
+  }
   async function liveRefresh(force) {
     if (LIVE.busy || (document.hidden && !force) || !on("live")) return;
     const mine = ownIds();
@@ -3114,6 +3152,7 @@ const SBX_MOBILE = true;
         const D = await liveGet("docs/" + m[1].replace(/\/?$/, "/") + "bracket.json");
         if (D && D.name) { try { items.push(...liveItems(D, t, mine)); } catch (_) {} }
       }
+      if (on("hillcard") && mine.size) { try { const H = await liveGet("docs/hill/board.json"); items.unshift(...hillItems(H, mine)); } catch (_) {} }
       LIVE.items = items; LIVE.at = Date.now(); mountLive();
     } finally { LIVE.busy = false; }
   }
@@ -3139,19 +3178,20 @@ const SBX_MOBILE = true;
     }
     if (!el.isConnected) document.body.appendChild(el);
     el.dataset.key = key;
-    const pill = "border:0;border-radius:999px;font:800 14px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center;gap:6px";
+    const pill = "white-space:nowrap;flex:none;border:0;border-radius:999px;font:800 14px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center;gap:6px";
     const cards = min ? "" : items.map((x, i) => {
-      const bg = x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
+      const bg = x.hill ? "linear-gradient(180deg,#7a1f2b,#2b0d12)" : x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
+      const edge = x.hill ? "#ef4444" : x.scr ? "#4ade80" : "#facc15";
       const ln = x.lines.map((l) => '<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="flex:1;min-width:180px">' + l.t + "</span>" +
-        (l.go ? '<a href="' + esc(l.go) + '" style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">▶ Start</a>' : "") + "</div>").join("");
-      return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12)">' +
-        '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:13px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
-        '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
-        '<button data-x="' + i + '" title="Hide this one" style="background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:16px">×</button></div>' +
+        (l.go ? '<a href="' + esc(l.go) + '"' + (l.ext ? ' target="_blank" rel="noopener"' : "") + ' style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">' + (l.btn || "▶ Start") + "</a>" : "") + "</div>").join("");
+      return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:11px 12px 11px 14px;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);border-left:5px solid ' + edge + '">' +
+        '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
+        '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.hill ? "⛰️ Board" : x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
+        '<button data-x="' + i + '" title="Hide this card until something changes" style="background:rgba(255,255,255,.12);border:0;color:inherit;cursor:pointer;font-size:14px;line-height:1;border-radius:999px;width:24px;height:24px">×</button></div>' +
         (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
     }).join("");
-    const fold = items.length ? '<button data-fold title="' + (min ? "Show your tournament matches" : "Fold your tournament matches away") + '" style="' + pill + ';padding:9px 12px;background:#0b1220;color:#fde68a;border:1px solid #334155">' +
-      (min ? "▴ " + items.length + " match" + (items.length === 1 ? "" : "es") : "▾") + "</button>" : "";
+    const fold = items.length ? '<button data-fold title="' + (min ? "Show your cards" : "Tuck these cards away (the button stays)") + '" style="' + pill + ';padding:9px 14px;background:#0b1220;color:#fde68a;border:1px solid #475569">' +
+      (min ? "▴ Show " + items.length + " card" + (items.length === 1 ? "" : "s") : "▾ Hide cards") + "</button>" : "";
     const home = '<a data-home href="' + TOURNEY_HOME + '" target="_blank" rel="noopener" title="SmallBall tournaments: brackets, sign-ups, the Hall of Champions" style="' + pill + ';padding:10px 16px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#1c1917">🏆 Tournaments' +
       (su ? '<span style="font:700 11px/1 system-ui,sans-serif;background:#14532d;color:#bbf7d0;border-radius:999px;padding:4px 7px">sign-ups open</span>' : "") + "</a>";
     el.innerHTML = cards + '<div style="display:flex;justify-content:flex-end;gap:8px">' + fold + home + "</div>";
