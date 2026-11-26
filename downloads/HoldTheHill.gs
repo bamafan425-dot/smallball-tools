@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.10: 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -43,6 +43,7 @@ const SHEETS = {
   WAGERS: 'Wagers',
   LEDGER: 'Ledger',
   ITEMS: 'Items',
+  STREAKS: 'Streaks',
   LOG: 'Log',
 };
 
@@ -63,6 +64,7 @@ const HEADERS = {
     'MakerStake', 'TakerStake', 'Expires', 'AcceptedAt', 'Deadline', 'GameID', 'MakerRuns', 'TakerRuns', 'AirsAt', 'Winner', 'Settled', 'Notes'],
   Ledger: ['Date', 'Season', 'Email', 'Player', 'Amount', 'Reason'],
   Items: ['Date', 'Season', 'Email', 'Player', 'Item', 'Action', 'Price', 'ChallengeID', 'Notes'],
+  Streaks: ['Email', 'Player', 'Streak', 'Best', 'LastPlayed', 'Season'],
   Log: ['Time', 'Actor', 'Action', 'Details'],
 };
 
@@ -102,10 +104,13 @@ const DEFAULTS = {
   WAGER_OFFER_HOURS: [24, 'Hours a wager offer stays open for the other player to accept'],
   WAGER_PLAY_HOURS: [48, 'Hours after a wager is accepted to play the game that settles it (else everyone is refunded)'],
   ITEMS_ON: ['FALSE', 'Brawl Bucks items shop on (TRUE/FALSE). Needs the sportsbook on. The 🛒 menu item turns it on'],
-  ITEM_PRICES: ['knuckles:300,eraser:250,jump:200', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump'],
+  ITEM_PRICES: ['knuckles:300,eraser:250,jump:200,rain:150', 'Item prices in Brawl Bucks: Brass Knuckles, Margin Eraser, Ladder Jump, Rain Delay'],
   ITEM_ACE_X: [2, 'The Ace pays this many times the price for an item'],
   ITEM_COOLDOWN_HOURS: [24, 'Hours between items for each player'],
-  PLAY_BUCKS: ['played:10,win:50', 'Brawl Bucks for playing a Hill game: both clubs get played, the winner also gets win'],
+  PLAY_BUCKS: ['played:10,win:50,charge:15', 'Brawl Bucks for a Hill game: both clubs get played, the winner also gets win, the challenger also gets charge'],
+  STREAK_BUCKS: ['day:20,step:10,max:150', 'Daily 🔥 Hill streak pay: day = any day you play a Hill game; +step more for each day in a row (day 2 +10, day 3 +20 …), up to max extra a day'],
+  STREAK_MILESTONES: ['3:50,5:100,7:200,10:300,14:500,21:750,30:1000', 'One-time streak bonuses: days:BB'],
+  STATE_LAST_STREAK_DAY: ['', 'Managed by script'],
   WAGER_KINDS: ['big', 'Game types that can settle a wager, comma separated: big, pro, exhibition'],
   PRIZES: ['SmallBall Tickets and pictures of dogs', 'Shown on the board and in the awards post'],
   CHALLENGE_REACH: [3, 'How many spots above you that you can challenge'],
@@ -1423,17 +1428,18 @@ const ITEMS = {
   knuckles: { icon: '🥊', name: 'Brass Knuckles', kind: 'defense', what: 'On the next charge against you, the challenger needs 1 more run (a title charge needs a 2-run win)' },
   eraser: { icon: '🧽', name: 'Margin Eraser', kind: 'offense', what: 'Win your charge by any amount. Cancels Brass Knuckles' },
   jump: { icon: '🪜', name: 'Ladder Jump', kind: 'offense', what: 'Charge one spot further than the normal reach' },
+  rain: { icon: '🌧️', name: 'Rain Delay', kind: 'streak', what: 'Saves your 🔥 Hill streak once, on a day you don\'t play' },
 };
 const itemLabel_ = (k) => ITEMS[k].icon + ' ' + ITEMS[k].name;
 function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && bookOn_(C); }
 function itemPrices_(C) {
-  const out = { knuckles: 300, eraser: 250, jump: 200 };
+  const out = { knuckles: 300, eraser: 250, jump: 200, rain: 150 };
   norm_(C.ITEM_PRICES).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
   return out;
 }
 const aceX_ = (C) => Math.max(1, Number(C.ITEM_ACE_X) || 2);
 function priceFor_(C, key, isAce) { return Math.round(itemPrices_(C)[key] * (isAce ? aceX_(C) : 1)); }
-function itemKeyOf_(txt) { const l = lc_(txt); return /knuckle/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump/.test(l) ? 'jump' : ''; }
+function itemKeyOf_(txt) { const l = lc_(txt); return /knuckle/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump/.test(l) ? 'jump' : /rain|delay/.test(l) ? 'rain' : ''; }
 // What each player holds this season: bought - used + refunded.
 function inventory_(C) {
   const season = String(C.SEASON), inv = {};
@@ -1441,7 +1447,7 @@ function inventory_(C) {
     readTable_(SHEETS.ITEMS).rows.forEach(function (x) {
       if (String(x.Season) !== season) return;
       const e = lc_(x.Email), k = norm_(x.Item); if (!ITEMS[k]) return;
-      inv[e] = inv[e] || { knuckles: 0, eraser: 0, jump: 0 };
+      if (!inv[e]) { inv[e] = {}; Object.keys(ITEMS).forEach(function (q) { inv[e][q] = 0; }); }
       inv[e][k] += x.Action === 'Bought' || x.Action === 'Refunded' ? 1 : x.Action === 'Used' ? -1 : 0;
     });
   } catch (e) { }
@@ -1453,7 +1459,7 @@ function lastItemUse_(C, email) {
   const season = String(C.SEASON), refunded = {}; let last = 0;
   const rows = readTable_(SHEETS.ITEMS).rows.filter(function (x) { return String(x.Season) === season && lc_(x.Email) === lc_(email); });
   rows.forEach(function (x) { if (x.Action === 'Refunded') refunded[x.ChallengeID + ':' + x.Item] = true; });
-  rows.forEach(function (x) { if (x.Action === 'Used' && !refunded[x.ChallengeID + ':' + x.Item]) last = Math.max(last, new Date(x.Date).getTime()); });
+  rows.forEach(function (x) { if (x.Action === 'Used' && x.Item !== 'rain' && !refunded[x.ChallengeID + ':' + x.Item]) last = Math.max(last, new Date(x.Date).getTime()); });
   return last;
 }
 function itemCooling_(C, email) {
@@ -1482,7 +1488,8 @@ function doShop_(sub, C) {
   const price = buyItem_(C, me, key, isAce), inv = inventory_(C), n = holds_(inv, me.Email, key);
   log_(sub.email, 'Item bought', key + ' for ' + price);
   postBook_('🛒 ' + who_(me) + ' buys ' + itemLabel_(key) + ' for **' + price + ' BB**' + (isAce ? ' (Ace price)' : '') + '. Holding ' + n + '.' +
-    (key === 'knuckles' ? '\n-# 🥊 Brass Knuckles go on by themselves at the next charge against them: the challenger needs 1 more run.' : '\n-# They pick it on the charge form when they charge.'));
+    (key === 'knuckles' ? '\n-# 🥊 Brass Knuckles go on by themselves at the next charge against them: the challenger needs 1 more run.' :
+      key === 'rain' ? '\n-# 🌧️ The Rain Delay kicks in by itself the first day they miss, and the 🔥 streak lives on.' : '\n-# They pick it on the charge form when they charge.'));
 }
 // At charge time: work out which items are in play and what the challenger needs. Throws for a bad pick.
 // Returns { need, notes: [...], used: [[player, key, bought]], post: '...' }.
@@ -1491,6 +1498,7 @@ function chargeItems_(C, me, opp, type, gap, need, pick) {
   if (!itemsOn_(C)) { if (pick) fail_('Items are switched off right now: charge without one.'); return out; }
   const inv = inventory_(C);
   if (pick === 'knuckles') fail_('Brass Knuckles are for defense: they go on by themselves when someone charges you.');
+  if (pick === 'rain') fail_('The Rain Delay saves your streak by itself on a day you miss. Buy it in the 🛒 shop; nothing to pick here.');
   if (pick === 'jump' && type !== 'Ladder') fail_('The Ladder Jump is for ladder charges, not the mound.');
   if (pick === 'jump' && gap !== Number(C.CHALLENGE_REACH) + 1) fail_('The Ladder Jump is for charging exactly ' + (Number(C.CHALLENGE_REACH) + 1) + ' spots up. This charge is in reach without it.');
   // The defender's Brass Knuckles (one per charge, if they're not cooling down)
@@ -1521,7 +1529,7 @@ function refundItems_(C, c) {
 }
 // Brawl Bucks for playing: every Hill game pays both clubs, the winner gets more.
 function playBucks_(C) {
-  const out = { played: 10, win: 50 };
+  const out = { played: 10, win: 50, charge: 15 };
   norm_(C.PLAY_BUCKS).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
   return out;
 }
@@ -1529,9 +1537,13 @@ function payPlay_(C, c, W, L, tie) {
   if (!itemsOn_(C)) return '';   // launches with the shop
   const pb = playBucks_(C);
   if (!pb.played && !pb.win) return '';
-  if (tie) { ledger_(C, W, pb.played, 'Played ' + c.ID); ledger_(C, L, pb.played, 'Played ' + c.ID); return '💵 +' + pb.played + ' BB each for playing.'; }
-  ledger_(C, W, pb.played + pb.win, 'Won ' + c.ID); if (L && pb.played) ledger_(C, L, pb.played, 'Played ' + c.ID);
-  return '💵 +' + (pb.played + pb.win) + ' BB to ' + esc_(W.Discord) + (L && pb.played ? ', +' + pb.played + ' BB to ' + esc_(L.Discord) : '') + ' for playing.';
+  // The challenger also gets the charge bonus for picking the fight (ladder and title charges, not revenge)
+  const chg = c.Type !== 'Revenge' && pb.charge ? pb.charge : 0, isCh = function (p) { return p && lc_(p.Email) === lc_(c.Challenger); };
+  const amt = function (p, base) { return base + (isCh(p) ? chg : 0); };
+  const tail = chg ? ' (incl. +' + chg + ' for the charge)' : '';
+  if (tie) { ledger_(C, W, amt(W, pb.played), 'Played ' + c.ID); ledger_(C, L, amt(L, pb.played), 'Played ' + c.ID); return '💵 +' + pb.played + ' BB each for playing' + (chg ? ', +' + chg + ' more to the challenger' : '') + '.'; }
+  ledger_(C, W, amt(W, pb.played + pb.win), 'Won ' + c.ID); if (L && amt(L, pb.played)) ledger_(C, L, amt(L, pb.played), 'Played ' + c.ID);
+  return '💵 +' + amt(W, pb.played + pb.win) + ' BB to ' + esc_(W.Discord) + (L && amt(L, pb.played) ? ', +' + amt(L, pb.played) + ' BB to ' + esc_(L.Discord) : '') + ' for playing' + tail + '.';
 }
 function itemBoard_(C) {
   const pt = players_(), inv = inventory_(C), p = itemPrices_(C), holders = [];
@@ -1591,12 +1603,96 @@ function adminAddItems() {
   });
 }
 
+// ───────────────────────────── 🔥 Hill streaks (Brawl Bucks for being active) ─────────────────────────────
+// Once a day the Hill looks back at yesterday (Mountain time). Played a Hill game (a charge, a defense, a title
+// fight or a revenge; a no-show doesn't count for the one who didn't show)? That's a day played: +day BB, plus
+// a streak bonus that grows every day in a row (+step per day, up to max), plus milestone bonuses.
+// Missed a day? The streak ends, unless you hold a 🌧️ Rain Delay (used up by itself) or you're the Ace: the Ace
+// can't charge anybody, so the Ace's streak waits (no pay, no break) until someone charges.
+function kv_(raw, base) { const out = Object.assign({}, base); norm_(raw).split(/[\s,]+/).forEach(function (x) { const m = /^(\w+):(\d+)$/.exec(x); if (m) out[m[1]] = Number(m[2]); }); return out; }
+function streakCfg_(C) { return kv_(C.STREAK_BUCKS, { day: 20, step: 10, max: 150 }); }
+function milestones_(C) { const m = kv_(C.STREAK_MILESTONES, {}), out = {}; Object.keys(m).forEach(function (k) { if (/^\d+$/.test(k)) out[Number(k)] = m[k]; }); return out; }
+function streakPay_(C, n) {
+  const S = streakCfg_(C), ms = milestones_(C);
+  return { day: S.day, bonus: Math.min(S.max, S.step * Math.max(0, n - 1)), milestone: ms[n] || 0 };
+}
+function playedOn_(C, day) {
+  const season = String(C.SEASON), out = {};
+  readTable_(SHEETS.MATCHES).rows.forEach(function (m) {
+    if (String(m.Season) !== season || !m.Date || denverDay_(new Date(m.Date)) !== day) return;
+    out[lc_(m.WinnerEmail)] = true;
+    if (lc_(m.Source) !== 'forfeit') out[lc_(m.LoserEmail)] = true;
+  });
+  return out;
+}
+function streakTable_(C) {
+  const t = readTable_(SHEETS.STREAKS), by = {};
+  t.rows.forEach(function (r) { if (String(r.Season) === String(C.SEASON)) by[lc_(r.Email)] = r; });
+  return { t: t, by: by };
+}
+function streakDay_() {
+  const C = cfg_();
+  if (!itemsOn_(C)) return;
+  const yesterday = denverDay_(new Date(now_().getTime() - 86400000));
+  if (!C.STATE_LAST_STREAK_DAY) { setCfg_('STATE_LAST_STREAK_DAY', yesterday); return; }   // first run: count from today
+  let last = String(C.STATE_LAST_STREAK_DAY), guard = 0;
+  while (last < yesterday && guard++ < 7) {   // catch up a few missed days if the clock was down
+    const d = new Date(Date.parse(last + 'T12:00:00Z') + 86400000), day = d.toISOString().slice(0, 10);
+    const st = seasonStart_(C), end = seasonEnd_(C);
+    if (!(st && day < denverDay_(st)) && !(end && day > denverDay_(end))) streakOne_(C, day);
+    setCfg_('STATE_LAST_STREAK_DAY', day); last = day;
+  }
+}
+function streakOne_(C, day) {
+  const pt = players_(), ace = ace_(pt), played = playedOn_(C, day), ST = streakTable_(C), inv = inventory_(C);
+  const paid = [], ended = [], saved = [], waiting = [];
+  pt.rows.forEach(function (p) {
+    if (p.Status !== 'Active') return;
+    const e = lc_(p.Email); let r = ST.by[e];
+    if (played[e]) {
+      if (!r) { r = { Email: p.Email, Player: p.Discord, Streak: 0, Best: 0, LastPlayed: '', Season: C.SEASON }; ST.t.rows.push(r); ST.by[e] = r; }
+      r.Streak = num_(r.Streak) + 1; r.Best = Math.max(num_(r.Best), r.Streak); r.LastPlayed = day; r.Player = p.Discord;
+      const pay = streakPay_(C, r.Streak), tot = pay.day + pay.bonus + pay.milestone;
+      ledger_(C, p, tot, 'Day played ' + day + ' (🔥 ' + r.Streak + (pay.milestone ? ', milestone' : '') + ')');
+      paid.push({ p: p, n: r.Streak, tot: tot, ms: pay.milestone });
+    } else if (r && num_(r.Streak) > 0) {
+      if (ace === p) waiting.push({ p: p, n: num_(r.Streak) });
+      else if (holds_(inv, p.Email, 'rain') > 0) { itemRow_(C, p, 'rain', 'Used', '', '', 'Saved a ' + r.Streak + '-day streak on ' + day); saved.push({ p: p, n: num_(r.Streak) }); }
+      else { ended.push({ p: p, n: num_(r.Streak) }); r.Streak = 0; }
+    }
+  });
+  writeStreaks_(ST.t);
+  if (!paid.length && !ended.length && !saved.length) return;
+  paid.sort(function (a, b) { return b.n - a.n || b.tot - a.tot; });
+  const L = ['🔥 **Hill streaks · ' + day + '**'];
+  if (paid.length) L.push('💵 ' + paid.map(function (x) { return esc_(x.p.Discord) + ' +' + x.tot + (x.n > 1 ? ' (🔥' + x.n + ')' : '') + (x.ms ? ' 🏅' : ''); }).join(' · '));
+  paid.filter(function (x) { return x.ms; }).forEach(function (x) { L.push('🏅 ' + tag_(x.p) + ' hits a **' + x.n + '-day streak**: +' + x.ms + ' BB bonus!'); });
+  saved.forEach(function (x) { L.push('🌧️ Rain Delay! ' + esc_(x.p.Discord) + "'s " + x.n + '-day streak lives on.'); });
+  waiting.forEach(function (x) { L.push('♠ ' + esc_(x.p.Discord) + "'s " + x.n + '-day streak waits on the mound (the Ace can\'t charge).'); });
+  ended.forEach(function (x) { if (x.n >= 2) L.push('💔 ' + esc_(x.p.Discord) + "'s " + x.n + '-day streak is over.'); });
+  const onLine = paid.filter(function (x) { return x.n >= 2; }).map(function (x) { return esc_(x.p.Discord) + ' (' + x.n + ')'; });
+  if (onLine.length) L.push('-# On the line today: ' + onLine.join(', ') + '. Play a Hill game today to keep it going.');
+  postBook_(L.join('\n'));
+  log_('system', 'Streaks', day + ': ' + paid.length + ' paid, ' + ended.length + ' ended, ' + saved.length + ' saved');
+}
+function writeStreaks_(t) {
+  t.rows.forEach(function (r) { if (r._row) writeRow_(t, r); else { appendObj_(SHEETS.STREAKS, r); } });
+}
+function streakBoard_(C) {
+  const ST = streakTable_(C), pt = players_();
+  const list = ST.t.rows.filter(function (r) { const p = findBy_(pt, r.Email); return String(r.Season) === String(C.SEASON) && p && p.Status === 'Active' && (num_(r.Streak) > 0 || num_(r.Best) > 1); })
+    .map(function (r) { return { name: norm_(r.Player), n: num_(r.Streak), best: num_(r.Best), last: norm_(r.LastPlayed) }; })
+    .sort(function (a, b) { return b.n - a.n || b.best - a.best; }).slice(0, 12);
+  const S = streakCfg_(C);
+  return { list: list, day: S.day, step: S.step, max: S.max, ms: milestones_(C) };
+}
+
 // ───────────────────────────── Hourly deadline check ─────────────────────────────
 
 function hourlyTick() {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
-  try { payday_(); tick_(); seasonTick_(); futuresTick_(); starsDaily_(); potExpire_(); potTick_(); oddsBoardTick_(); nudgeTick_(); }
+  try { payday_(); try { streakDay_(); } catch (e) { log_('system', 'ERROR (streaks)', String(e && e.stack || e)); } tick_(); seasonTick_(); futuresTick_(); starsDaily_(); potExpire_(); potTick_(); oddsBoardTick_(); nudgeTick_(); }
   catch (err) { log_('system', 'ERROR (hourly)', String(err && err.stack || err)); }
   finally { lock.releaseLock(); }
 }
@@ -3318,6 +3414,7 @@ function snapshotBoard_() {
         snap.bank = (aw.bookTable || []).map(function (x) { return { name: x.name, bank: x.bank }; });
         snap.wagers = wagerOn_(C) ? wagerBoard_(C) : null;
         try { snap.items = itemsOn_(C) ? itemBoard_(C) : null; } catch (e) { snap.items = null; }
+        try { snap.streaks = itemsOn_(C) ? streakBoard_(C) : null; } catch (e) { snap.streaks = null; }
         if (bookOn_(C)) { snap.book = bookBoard_(C); const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
@@ -3596,6 +3693,8 @@ h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style=
 +(WG.live.length||WG.open.length||WG.done.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join('')+WG.done.map(function(x){return wrow(x,x.win?'💸 '+esc(x.win)+' +'+x.amt:'↩️ Refunded');}).join(''):'<div class="empty">No wagers yet. Call somebody out on the Hill form.</div>')+'</div>';}
 var IT=D.items;
 if(IT){h+='<div class="fut cup"><h3 class="bb">🛒 Brawl Bucks shop</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Buy on the Hill form and hold it until you need it. The Ace pays '+IT.aceX+'× the price. One item per side per charge, one item per player every '+IT.cooldown+' hours. Every Hill game pays +'+IT.play.played+' BB, and the winner gets +'+IT.play.win+' more.</div>'+IT.items.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+x.icon+' '+esc(x.name)+' <small style="display:inline;opacity:.6">'+esc(x.kind)+'</small><small>'+esc(x.what)+'</small></span><b style="color:#ffd166">'+x.price+' BB</b></div>';}).join('')+'<h3 class="bb" style="margin-top:10px">🎒 Who is holding</h3>'+(IT.holders.length?IT.holders.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+esc(x.name)+(x.club?'<small>'+esc(x.club)+'</small>':'')+'</span><span>'+x.items.map(function(i){var m=IT.items.filter(function(y){return y.k===i.k;})[0];return (m?m.icon:'')+(i.n>1?'×'+i.n:'');}).join(' ')+(x.cool?' <small style="display:inline;opacity:.6">⏳ cooling down</small>':'')+'</span></div>';}).join(''):'<div class="empty">Nobody is holding anything yet. 🥊 Brass Knuckles show here, so chargers know what they are walking into.</div>')+'</div>';}
+var SK=D.streaks;
+if(SK){var msl=Object.keys(SK.ms||{}).map(function(k){return k+' days +'+SK.ms[k];}).join(' · ');h+='<div class="fut cup"><h3 class="bb">🔥 Hill streaks</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Play a Hill game (charge or defend) any day: +'+SK.day+' BB, plus +'+SK.step+' more for every day in a row (up to +'+SK.max+' a day). Milestones: '+esc(msl)+'. Miss a day and it ends, unless you hold a 🌧️ Rain Delay. The Ace’s streak waits on the mound.</div>'+(SK.list.length?SK.list.map(function(x){return '<div class="r" style="grid-template-columns:minmax(0,1fr) auto"><span class="bb">'+esc(x.name)+'<small>best '+x.best+'</small></span><b style="color:#ffd166">'+(x.n?'🔥 '+x.n:'—')+'</b></div>';}).join(''):'<div class="empty">No streaks yet. Play a Hill game today to start one.</div>')+'</div>';}
 var PO=D.pot||[];
 if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.</b> ':'')+'Every charge that could happen right now. Bet on the Hill form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.</div>'
 +PO.slice(0,24).map(function(L){return '<div class="r" style="grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr) 70px"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title</small>':'')+'</span><b>'+fo(L.a)+'</b><span class="bb" style="text-align:right">@ '+esc(L.df)+'</span><b>'+fo(L.h)+'</b></div>';}).join('')+'</div>';}
