@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -64,13 +64,29 @@ const esc_ = (s) => norm_(s).replace(/([*_~`|>\\])/g, '\\$1');   // Discord mark
 const now_ = () => new Date();
 function fail_(msg) { const e = new Error(msg); e.userFacing = true; throw e; }
 
-function ss_() { return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')); }
+function ss_() { return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(props_().getProperty('SHEET_ID')); }
 function sheet_(name, header) {
+  name = tab_(name);
   const ss = ss_(); let sh = ss.getSheetByName(name);
   if (!sh) { sh = ss.insertSheet(name); if (header) { sh.getRange(1, 1, 1, header.length).setValues([header]).setFontWeight('bold'); sh.setFrozenRows(1); } }
   return sh;
 }
 let CFG_CACHE = null;
+// ===================== Several tournaments in one Sheet =====================
+// Each tournament lives in a "slot". The first one uses the plain tabs (Config, Entrants, Matches, State, Board);
+// the others get their own copies ("Config #2", "Entrants #2"...), their own sign-up form and their own page.
+// Roster, History and Log are shared. CUR_ is the slot being worked on (null = the first one).
+let CUR_ = null;
+const PER_T_ = { Config: 1, Entrants: 1, Matches: 1, State: 1, Board: 1 };
+const SHARED_PROPS_ = { GITHUB_TOKEN: 1, GH_BAD: 1, SHEET_ID: 1, SLOTS: 1, ADMIN_SLOT: 1 };
+const tab_ = (name) => (CUR_ && PER_T_[name] ? name + ' #' + CUR_ : name);
+function props_() {
+  const p = PropertiesService['getScriptProperties'](), k = (key) => (CUR_ && !SHARED_PROPS_[key] ? key + '#' + CUR_ : key);
+  return { getProperty: (key) => p.getProperty(k(key)), setProperty: (key, v) => p.setProperty(k(key), v), deleteProperty: (key) => p.deleteProperty(k(key)) };
+}
+function slots_() { let x = []; try { x = JSON.parse(PropertiesService['getScriptProperties']().getProperty('SLOTS') || '[]'); } catch (e) { } return [null].concat(x); }
+function withSlot_(slot, fn) { const prev = CUR_; CUR_ = slot || null; CFG_CACHE = null; try { return fn(); } finally { CUR_ = prev; CFG_CACHE = null; } }
+function adminSlot_() { const s = PropertiesService['getScriptProperties']().getProperty('ADMIN_SLOT'); return s && slots_().indexOf(s) >= 0 ? s : null; }
 function cfg_() {
   if (CFG_CACHE) return CFG_CACHE;
   const sh = sheet_(SHEETS.CONFIG, ['Key', 'Value', 'Notes']);
@@ -98,18 +114,18 @@ const tsR_ = (t) => '<t:' + Math.floor(t / 1000) + ':R>';
 function log_(actor, action, details) {
   try {
     const sh = sheet_(SHEETS.LOG, ['Time', 'Actor', 'Action', 'Details']);
+    const C = cfg_(); if (CUR_) action = '[' + norm_(C.TOURNEY_NAME) + '] ' + action;
     sh.appendRow([now_(), actor, action, norm_(details).slice(0, 4000)]);
-    const C = cfg_();
     if (norm_(C.LOG_WEBHOOK_URL) && !/^Discord/.test(action)) queueLog_('`' + action + '` ' + norm_(details).slice(0, 300));
   } catch (e) { }
 }
 function queueLog_(line) {
-  const p = PropertiesService.getScriptProperties();
+  const p = props_();
   let q = []; try { q = JSON.parse(p.getProperty('LOG_QUEUE') || '[]'); } catch (e) { }
   q.push(line); p.setProperty('LOG_QUEUE', JSON.stringify(q.slice(-60)));
 }
 function flushLog_() {
-  const p = PropertiesService.getScriptProperties(), C = cfg_(), url = norm_(C.LOG_WEBHOOK_URL);
+  const p = props_(), C = cfg_(), url = norm_(C.LOG_WEBHOOK_URL);
   let q = []; try { q = JSON.parse(p.getProperty('LOG_QUEUE') || '[]'); } catch (e) { }
   if (!q.length || !url) return;
   p.setProperty('LOG_QUEUE', '[]');
@@ -148,13 +164,13 @@ function post_(content, embeds) {
   });
 }
 function queueRetry_(chunk) {
-  const p = PropertiesService.getScriptProperties();
+  const p = props_();
   let q = []; try { q = JSON.parse(p.getProperty('RETRY_POSTS') || '[]'); } catch (e) { }
   q.push({ text: chunk, n: 0, first: Date.now(), at: Date.now() + 60000 });
   p.setProperty('RETRY_POSTS', JSON.stringify(q.slice(-40)));
 }
 function flushRetries_() {
-  const p = PropertiesService.getScriptProperties();
+  const p = props_();
   let q = []; try { q = JSON.parse(p.getProperty('RETRY_POSTS') || '[]'); } catch (e) { }
   if (!q.length) return;
   const C = cfg_(), url = webhook_(C), t = Date.now(), keep = []; let blocked = false, sent = 0;
@@ -198,7 +214,13 @@ const tag_ = (e) => (e && /^\d{15,21}$/.test(norm_(e.DiscordID)) ? '<@' + norm_(
 const clubTxt_ = (e) => '*' + esc_(e.Club) + '* (club ID `' + norm_(e.ClubID) + '`' + (norm_(e.Stars) !== '' ? ' · ' + norm_(e.Stars) + '★' : '') + ')';
 
 // ===================== The form =====================
+// Each form's sign-ups go to its own tournament.
 function onTourneyFormSubmit(e) {
+  let fid = ''; try { fid = e.source.getId(); } catch (x) { }
+  const slot = fid ? slots_().find((sl) => withSlot_(sl, () => norm_(cfg_().FORM_ID)) === fid) : null;
+  return withSlot_(slot || null, () => submitOne_(e));
+}
+function submitOne_(e) {
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   let sub = null;
   try {
@@ -410,8 +432,12 @@ const watchUrl_ = (gid) => 'https://play.smallball.com/training?watch=' + gid;
 // Free Google accounts get about 90 minutes of trigger run time a day, shared by every script you own (Hold the
 // Hill too). So the clock wakes every minute but only works when something is due: it writes down when that
 // is (NEXT_AT) and goes straight back to sleep until then. Reading one script property costs almost nothing.
+// The one-minute clock: each tournament in turn (a sleeping one costs one property read).
 function tick() {
-  const pr = PropertiesService.getScriptProperties();
+  slots_().forEach((sl) => { try { withSlot_(sl, tickOne_); } catch (e) { try { withSlot_(sl, () => log_('system', 'ERROR (clock)', String(e && e.stack || e))); } catch (x) { } } });
+}
+function tickOne_() {
+  const pr = props_();
   const nextAt = Number(pr.getProperty('NEXT_AT') || 0), retries = pr.getProperty('RETRY_POSTS');
   if (Date.now() < nextAt && (!retries || retries === '[]')) return;
   const lock = LockService.getScriptLock(); if (!lock.tryLock(20000)) return;
@@ -458,7 +484,7 @@ function nextWork_(T, C) {
   return Math.max(t + 50000, Math.min.apply(null, soon.filter((x) => x > t - 1)));
 }
 // Anything that changes the tournament from outside the clock wakes it on its next minute.
-function wake_() { try { PropertiesService.getScriptProperties().deleteProperty('NEXT_AT'); } catch (e) { } }
+function wake_() { try { props_().deleteProperty('NEXT_AT'); } catch (e) { } }
 function waveStart_(C, w) { return when_(C.START, C) + (w - 1) * waveMs_(C); }
 function waveMs_(C) { return Math.max(15, Number(C.WAVE_MINUTES) || 60) * 60000; }
 function currentWave_(C, t) { const s = when_(C.START, C); return t < s ? 0 : Math.floor((t - s) / waveMs_(C)) + 1; }
@@ -466,8 +492,8 @@ function currentWave_(C, t) { const s = when_(C.START, C); return t < s ? 0 : Ma
 function drawBracket_() {
   const C = cfg_(), E = entrants_().rows.filter((r) => r.Status !== 'Withdrawn' && norm_(r.ClubID));
   if (E.length < 2) {
-    if (!PropertiesService.getScriptProperties().getProperty('TOO_FEW_POSTED')) {
-      PropertiesService.getScriptProperties().setProperty('TOO_FEW_POSTED', '1');
+    if (!props_().getProperty('TOO_FEW_POSTED')) {
+      props_().setProperty('TOO_FEW_POSTED', '1');
       post_('😬 Only ' + E.length + ' club' + (E.length === 1 ? '' : 's') + ' signed up for the **' + esc_(C.TOURNEY_NAME) + '**, so there\'s no bracket yet. Sign-ups stay open: as soon as a second club joins, the bracket is drawn.' + linksLine_(C));
     }
     return;
@@ -642,7 +668,7 @@ function snapshot_(T) {
     const Tp = { seeds: ids.map((c, i) => ({ club: c, seed: i + 1 })), matches: P.matches };
     const pc = (id) => id == null ? null : id <= -1000 ? { id, n: 'Open spot', s: -999 - id, open: true } : (() => { const e = E[id]; return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: seedOf_(Tp, id), st: norm_(e.Stars) } : null; })();
     // Put the live bracket's link on the sign-up form once the web app is deployed.
-    try { const url = boardUrl_(C), pr = PropertiesService.getScriptProperties();
+    try { const url = boardUrl_(C), pr = props_();
       if (url && norm_(C.FORM_ID) && pr.getProperty('FORM_LINKED') !== url) { FormApp.openById(norm_(C.FORM_ID)).setDescription(FORM_DESC + '\n\n📋 The bracket preview and who\'s in: ' + url); pr.setProperty('FORM_LINKED', url); } } catch (e) { }
     snap.preview = { size, filled: ord.length, fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', seeding: lc_(C.SEEDING) || 'signup',
       matches: P.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: pc(sideClub_(Tp, m.a)), z: pc(sideClub_(Tp, m.b)), v: false })) };
@@ -680,7 +706,7 @@ function ghPush_(snap, force) {
 }
 // One file in the repo, saved only when it changed. hashSrc = what counts as "changed" (default: the text itself).
 function ghPut_(path, body, message, hashSrc, force) {
-  const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
+  const pr = props_(), tok = pr.getProperty('GITHUB_TOKEN');
   if (!tok || pr.getProperty('GH_BAD')) return false;   // a dead key stays quiet until it's reconnected
   const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools';
   const hk = path === (norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json') ? 'GH_HASH' : 'GH_HASH:' + path;
@@ -706,7 +732,7 @@ const ghApi_ = (repo, path) => 'https://api.github.com/repos/' + repo + '/conten
 const ghHeaders_ = (tok) => ({ Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
 // Read a text file from the repo (null if it isn't there or GitHub isn't connected).
 function ghGet_(path) {
-  const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
+  const pr = props_(), tok = pr.getProperty('GITHUB_TOKEN');
   if (!tok || pr.getProperty('GH_BAD')) return null;
   const C = cfg_(), r = UrlFetchApp.fetch(ghApi_(norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path), { headers: Object.assign(ghHeaders_(tok), { Accept: 'application/vnd.github.raw+json' }), muteHttpExceptions: true });
   return r.getResponseCode() === 200 ? r.getContentText() : null;
@@ -722,7 +748,7 @@ function adminConnectGithub() {
       'Paste a GitHub fine-grained token with "Contents: Read and write" on ' + (norm_(cfg_().GITHUB_REPO) || 'slipnsliders/smallball-tools') + ' only.\n' +
       'It is kept in the script\'s private settings, not on any tab. Leave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
     if (r.getSelectedButton() !== ui.Button.OK) return '';
-    const pr = PropertiesService.getScriptProperties(), tok = norm_(r.getResponseText());
+    const pr = props_(), tok = norm_(r.getResponseText());
     if (!tok) { pr.deleteProperty('GITHUB_TOKEN'); pr.deleteProperty('GH_HASH'); pr.deleteProperty('GH_BAD'); return 'GitHub disconnected.'; }
     pr.setProperty('GITHUB_TOKEN', tok); pr.deleteProperty('GH_HASH'); pr.deleteProperty('GH_BAD');
     const C = cfg_(), url = ghPageUrl_(C);
@@ -736,6 +762,11 @@ function adminConnectGithub() {
 
 // ===================== Web page =====================
 function doGet(e) {
+  const t = e && e.parameter && e.parameter.t;
+  if (t && slots_().indexOf(String(t)) > 0) return withSlot_(String(t), () => doGetOne_(e));
+  return doGetOne_(e);
+}
+function doGetOne_(e) {
   const demo = e && e.parameter && e.parameter.demo;
   let snap = demo ? demoSnap_() : null;
   if (!snap) { const v = sheet_(SHEETS.BOARD).getRange(1, 1).getValue(); try { snap = JSON.parse(v || '{}'); } catch (x) { snap = {}; } }
@@ -747,7 +778,10 @@ function doGet(e) {
 
 // ===================== Organizer menu =====================
 function onOpen() {
+  let now = ''; try { now = withSlot_(adminSlot_(), () => norm_(cfg_().TOURNEY_NAME)); } catch (e) { }
+  const many = slots_().length > 1;
   SpreadsheetApp.getUi().createMenu('🏆 Tournament')
+    .addItem(many ? '🔀 Working on: ' + now + ' (switch)' : '🔀 Working on: ' + now, 'adminSwitch')
     .addItem('🆕 New tournament…', 'adminNewTournament')
     .addItem('✅ Health check', 'adminHealth')
     .addSeparator()
@@ -763,12 +797,20 @@ function onOpen() {
     .addItem('🧹 Start over (clear the bracket, keep sign-ups)', 'adminResetBracket')
     .addToUi();
 }
+// Menu items act on the tournament you're working on (🔀 to switch).
 function withUi_(fn) {
   const ui = SpreadsheetApp.getUi();
-  try { const msg = fn(ui); if (msg) ui.alert(msg); } catch (e) { ui.alert('Problem: ' + (e.message || e)); }
+  withSlot_(adminSlot_(), () => { try { const msg = fn(ui); if (msg) ui.alert(msg); } catch (e) { if (!(e && e.cancel)) ui.alert('Problem: ' + (e.message || e)); } });
 }
 function setup() {
-  const ss = ss_(); PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
+  const ss = ss_(); props_().setProperty('SHEET_ID', ss.getId());
+  slots_().forEach((sl) => withSlot_(sl, setupOne_));
+  installTriggers_();
+  const C = withSlot_(adminSlot_(), cfg_);
+  try { SpreadsheetApp.getUi().alert('Set up ✅\n\nSign-up form for the ' + norm_(C.TOURNEY_NAME) + ': ' + norm_(C.FORM_LINK) + (slots_().length > 1 ? '\n\n' + slots_().length + ' tournaments in this Sheet, all checked.' : '') + '\n\nNext: run ✅ Health check.'); } catch (e) { }
+}
+// Tabs, settings and the sign-up form for one tournament.
+function setupOne_() {
   const sh = sheet_(SHEETS.CONFIG, ['Key', 'Value', 'Notes']), have = {};
   sh.getRange('B:B').setNumberFormat('@');   // keep times as typed (before writing them)
   sh.getDataRange().getValues().slice(1).forEach((r) => { have[norm_(r[0])] = true; });
@@ -777,34 +819,39 @@ function setup() {
   [SHEETS.MATCHES, SHEETS.LOG, SHEETS.STATE, SHEETS.BOARD].forEach((n) => sheet_(n, n === SHEETS.LOG ? ['Time', 'Actor', 'Action', 'Details'] : null));
   sheet_(SHEETS.ROSTER, ROSTER_COLS).getRange('C:C').setNumberFormat('@');
   CFG_CACHE = null; const C = cfg_();
-  // The sign-up form
   let form = null;
   try { if (norm_(C.FORM_ID)) form = FormApp.openById(norm_(C.FORM_ID)); } catch (e) { form = null; }
   if (!form) {
-    form = FormApp.create(norm_(C.TOURNEY_NAME) + ' · sign-up');
-    form.setDescription(FORM_DESC)
-      .setCollectEmail(true).setAllowResponseEdits(true).setLimitOneResponsePerUser(false)
-      .setConfirmationMessage('Got it! Watch the tournament channel in Discord: your sign-up shows there within a minute (or a red ❌ if something needs fixing).');
-    form.addTextItem().setTitle(Q.DISCORD);
-    form.addTextItem().setTitle(Q.DISCORD_ID).setHelpText('Discord → Settings → Advanced → Developer Mode on, then right-click your name → Copy User ID. A long number. Optional.');
-    form.addTextItem().setTitle(Q.OWNER);
-    form.addTextItem().setTitle(Q.CLUB);
-    form.addTextItem().setTitle(Q.CLUB_ID).setHelpText('The number on your club page.');
-    form.addTextItem().setTitle(Q.STARS).setHelpText('Optional, for seeding and the bracket.');
-    try { form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId()); } catch (e) { }
+    form = makeForm_(norm_(C.TOURNEY_NAME));
     setCfg_('FORM_ID', form.getId());
     if (!norm_(C.FORM_LINK)) setCfg_('FORM_LINK', form.getPublishedUrl());
   }
   // Returning players: every box optional (blank = from your record). Also brings an older form up to date.
   try { form.setDescription(FORM_DESC).setCollectEmail(true); form.getItems(FormApp.ItemType.TEXT).forEach((it) => it.asTextItem().setRequired(false)); } catch (e) { }
-  // Triggers: the form, and the one-minute clock
-  ScriptApp.getProjectTriggers().forEach((t) => { if (['onTourneyFormSubmit', 'tick'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('onTourneyFormSubmit').forForm(form).onFormSubmit().create();
-  ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();
   wake_();
   log_('organizer', 'Setup', 'Form ' + form.getId());
   snapshot_();
-  try { SpreadsheetApp.getUi().alert('Set up ✅\n\nSign-up form: ' + form.getPublishedUrl() + '\n\nNext: paste your Discord webhook into Config, then Deploy → New deployment → Web app for the live bracket.'); } catch (e) { }
+}
+function makeForm_(name) {
+  const form = FormApp.create(name + ' · sign-up');
+  form.setDescription(FORM_DESC)
+    .setCollectEmail(true).setAllowResponseEdits(true).setLimitOneResponsePerUser(false)
+    .setConfirmationMessage('Got it! Watch the tournament channel in Discord: your sign-up shows there within a minute (or a red ❌ if something needs fixing).');
+  form.addTextItem().setTitle(Q.DISCORD);
+  form.addTextItem().setTitle(Q.DISCORD_ID).setHelpText('Discord → Settings → Advanced → Developer Mode on, then right-click your name → Copy User ID. A long number. Optional.');
+  form.addTextItem().setTitle(Q.OWNER);
+  form.addTextItem().setTitle(Q.CLUB);
+  form.addTextItem().setTitle(Q.CLUB_ID).setHelpText('The number on your club page.');
+  form.addTextItem().setTitle(Q.STARS).setHelpText('Optional, for seeding and the bracket.');
+  try { form.setDestination(FormApp.DestinationType.SPREADSHEET, ss_().getId()); } catch (e) { }
+  return form;
+}
+// One clock for every tournament, and one sign-up trigger per form.
+function installTriggers_() {
+  ScriptApp.getProjectTriggers().forEach((t) => { if (['onTourneyFormSubmit', 'tick'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t); });
+  slots_().forEach((sl) => withSlot_(sl, () => { const id = norm_(cfg_().FORM_ID);
+    if (id) try { ScriptApp.newTrigger('onTourneyFormSubmit').forForm(FormApp.openById(id)).onFormSubmit().create(); } catch (e) { log_('system', 'Form trigger failed', String(e.message || e)); } }));
+  ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();
 }
 function adminCheckNow() { withUi_(() => { wake_(); tick(); const T = stateGet_(); return T ? 'Checked. Wave ' + (T.wave || 0) + (T.done ? ' · finished' : '') + '. See the Matches tab.' : 'Checked. No bracket yet: it\'s drawn when sign-ups close.'; }); }
 function adminDrawNow() { withUi_((ui) => { if (stateGet_()) return 'The bracket is already drawn.'; if (ui.alert('Close sign-ups and draw the bracket now?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return ''; drawBracket_(); snapshot_(); return stateGet_() ? 'Bracket drawn and posted.' : 'Not enough clubs yet.'; }); }
@@ -858,7 +905,7 @@ function adminTestWebhook() { withUi_(() => { post_('🧪 Test from the **' + es
 function adminResetBracket() {
   withUi_((ui) => {
     if (ui.alert('Clear the bracket and every result? Sign-ups stay. Type nothing; just confirm.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return '';
-    stateSet_(null); PropertiesService.getScriptProperties().deleteProperty('TOO_FEW_POSTED');
+    stateSet_(null); props_().deleteProperty('TOO_FEW_POSTED');
     try { const C = cfg_(); if (norm_(C.FORM_ID)) FormApp.openById(norm_(C.FORM_ID)).setAcceptingResponses(true); } catch (e) { }
     const sh = sheet_(SHEETS.MATCHES); if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).clearContent();
     snapshot_(null); wake_(); log_('organizer', 'Reset', 'bracket cleared');
@@ -877,22 +924,91 @@ const kindsTxt_ = (C) => norm_(C.ALLOWED_KINDS || 'big').split(/\s*,\s*/).filter
 const starsTxt_ = (C) => { const lo = Number(C.MIN_STARS || 0), hi = Number(C.MAX_STARS || 10); return lo <= 0 && hi >= 10 ? 'Any club' : lo === hi ? lo + '★ clubs' : lo + '–' + hi + '★ clubs'; };
 const htmlEsc_ = (s) => norm_(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// Every tournament in this Sheet, for the menus.
+function slotList_() {
+  return slots_().map((sl) => withSlot_(sl, () => {
+    const C = cfg_(), T = stateGet_(), n = entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length;
+    const status = T ? (T.done ? 'finished' : 'being played') : n ? n + ' signed up, sign-ups ' + (when_(C.SIGNUP_CLOSE, C) > Date.now() ? 'open' : 'closed') : 'no sign-ups yet';
+    return { slot: sl, name: norm_(C.TOURNEY_NAME), status, live: !!(T && !T.done), played: !!T, signups: n };
+  }));
+}
+function adminSwitch() {
+  const ui = SpreadsheetApp.getUi(), L = slotList_();
+  if (L.length < 2) { ui.alert('There\'s one tournament in this Sheet: ' + L[0].name + '.\n\nStart another alongside it with 🆕 New tournament.'); return; }
+  const cur = adminSlot_();
+  const r = ui.prompt('🔀 Which tournament?', L.map((x, i) => (i + 1) + '. ' + x.name + ' · ' + x.status + (x.slot === cur ? '   ← now' : '')).join('\n') + '\n\nType its number. Settle, undo, draw, health check and the rest then act on that one.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const pick = L[Number(norm_(r.getResponseText())) - 1];
+  if (!pick) { ui.alert('No tournament with that number.'); return; }
+  PropertiesService['getScriptProperties']().setProperty('ADMIN_SLOT', pick.slot || '');
+  onOpen();
+  ui.alert('Now working on: ' + pick.name);
+}
+// 🆕 New tournament, asked in plain question boxes (they work even when Chrome is signed in to several Google accounts).
 function adminNewTournament() {
-  const C = cfg_(), T = stateGet_(), n = entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length;
-  const init = {
-    now: norm_(C.TOURNEY_NAME), live: !!(T && !T.done), done: !!(T && T.done), unplayed: !T ? n : 0,
-    fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', wave: Number(C.WAVE_MINUTES) || 60, kinds: norm_(C.ALLOWED_KINDS) || 'big',
-    minS: Number(C.MIN_STARS || 0), maxS: Number(C.MAX_STARS || 10), max: Number(C.MAX_CLUBS) || 32, prizes: norm_(C.PRIZES), tz: tz_(C),
-    gh: !!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN'),
-  };
-  const html = NEW_HTML_.replace('__INIT__', () => JSON.stringify(init).replace(/</g, '\\u003c'));
-  SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(html).setWidth(520).setHeight(640), '🆕 New tournament');
+  withUi_((ui) => {
+    const ask = (title, msg) => { const r = ui.prompt(title, msg, ui.ButtonSet.OK_CANCEL); if (r.getSelectedButton() !== ui.Button.OK) throw { cancel: true }; return norm_(r.getResponseText()); };
+    const L = slotList_(), src = cfg_(), o = { slot: 'new' };
+    // 1. Alongside, or in place of a finished one
+    const reusable = L.map((x, i) => ({ x, i })).filter((y) => !y.x.live);
+    if (reusable.length) {
+      const a = ask('🆕 New tournament (1 of 6)', 'In this Sheet now:\n' + L.map((x, i) => (i + 1) + '. ' + x.name + ' · ' + x.status).join('\n') +
+        '\n\nLeave blank (or type "new") to run the new one ALONGSIDE these, with its own sign-up form.\nOr type the number of one that isn\'t being played to put it away and reuse its sign-up link.');
+      if (a && !/^new$/i.test(a)) {
+        const y = L[Number(a) - 1]; if (!y) return 'No tournament with that number.';
+        if (y.live) return 'The ' + y.name + ' is being played, so it can\'t be replaced. Leave the box blank to run the new one alongside it.';
+        if (!y.played && y.signups && ui.alert('Replace the ' + y.name + '?', 'It has ' + y.signups + ' sign-up(s) and was never played. They\'re saved to the History tab, and it comes off the Tournaments page.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return '';
+        o.slot = y.slot || ''; o.replace = true;
+      }
+    }
+    // 2-6. The details
+    o.name = ask('🆕 New tournament (2 of 6)', 'Name, e.g. Sunday Sandlot Scramble');
+    if (!o.name) return 'It needs a name.';
+    o.close = ask('🆕 New tournament (3 of 6)', 'When do sign-ups close? (Mountain time)\nFormat: yyyy-MM-dd HH:mm, e.g. 2026-12-06 17:00');
+    o.start = ask('🆕 New tournament (4 of 6)', 'When does Wave 1 start? (Mountain time)\nFormat: yyyy-MM-dd HH:mm, e.g. 2026-12-06 18:00');
+    const def = (lc_(src.FORMAT) === 'single' ? 'single' : 'double') + ', ' + (Number(src.WAVE_MINUTES) || 60) + ' min, ' + (norm_(src.ALLOWED_KINDS) || 'big').replace(/,/g, '+') + ', stars ' + (Number(src.MIN_STARS) || 0) + '-' + (src.MAX_STARS === '' ? 10 : Number(src.MAX_STARS)) + ', ' + (Number(src.MAX_CLUBS) || 32) + ' clubs';
+    const st = lc_(ask('🆕 New tournament (5 of 6)', 'Format, minutes per match, game types, stars and max clubs.\nLeave blank for the same as now:\n\n' + def + '\n\nOr type your own in that shape, e.g.  single, 45 min, big+pro, stars 0-10, 16 clubs') || def);
+    o.fmt = /single/.test(st) ? 'single' : 'double';
+    o.wave = (/(\d+)\s*min/.exec(st) || [0, src.WAVE_MINUTES || 60])[1];
+    o.kinds = ['big', 'pro', 'exhibition'].filter((k) => new RegExp('\\b' + k).test(st)).join(',') || 'big';
+    const sr = /stars?\s*(\d+)\s*[-–to ]+\s*(\d+)/.exec(st); o.minS = sr ? sr[1] : 0; o.maxS = sr ? sr[2] : 10;
+    o.max = (/(\d+)\s*clubs?/.exec(st) || [0, src.MAX_CLUBS || 32])[1];
+    const pz = ask('🆕 New tournament (6 of 6)', 'Prizes? Leave blank for: ' + (norm_(src.PRIZES) || 'none') + '\n\nTo post in a different Discord channel, paste that channel\'s webhook link after the prizes (or on its own). Otherwise it posts where the ' + norm_(src.TOURNEY_NAME) + ' does.');
+    const lines = pz.split(/\n|\s+(?=https:\/\/)/); o.prizes = /^https:/.test(lines[0] || '') ? norm_(src.PRIZES) : (lines[0] || norm_(src.PRIZES)); o.webhook = (lines.find((x) => /^https:\/\//.test(x)) || '').trim();
+    o.announce = ui.alert('Post the announcement?', 'Post "The ' + o.name + ' is open for sign-ups!" to Discord now?', ui.ButtonSet.YES_NO) === ui.Button.YES;
+    const r = newTournament(o);
+    try { onOpen(); } catch (e) { }
+    return '🎉 ' + r.name + ' is set up' + (r.archived ? ' (' + r.archived + ' saved to History)' : '') + '.' + (r.alongside ? ' It runs alongside the others, and the menu now works on it (🔀 to switch).' : '') +
+      '\n\nSign-up form: ' + r.form + '\nBracket page: ' + r.url + '\n\n' + healthText_(r.health, true);
+  });
 }
 
-// Called by the dialog (and by tests). o: { name, close, start, wave, fmt, kinds, minS, maxS, max, prizes, webhook, announce, replace }
+// o: { slot ('new' = alongside, '' = the first tournament, '2'... = that one; default: the one you're working on), name, close, start,
+//      wave, fmt, kinds, minS, maxS, max, prizes, webhook, announce, replace }
 function newTournament(o) {
   const lock = LockService.getScriptLock(); lock.waitLock(30000);
   try {
+    if (o.slot === 'new') { const src = cfg_(), id = addSlot_(src); const r = withSlot_(id, () => startIn_(o, src)); props_()['setProperty']('ADMIN_SLOT', id); r.alongside = true; return r; }
+    return withSlot_(o.slot === undefined ? CUR_ : (o.slot || null), () => startIn_(o, null));
+  } finally { lock.releaseLock(); }
+}
+// A new slot: its own settings (Discord, Hill and GitHub settings come from the tournament you're on), tabs and form.
+function addSlot_(src) {
+  const pr = PropertiesService['getScriptProperties'](), have = slots_().filter(Boolean).map(Number), id = String(Math.max.apply(null, [1].concat(have)) + 1);
+  pr.setProperty('SLOTS', JSON.stringify(have.map(String).concat([id])));
+  const carry = { DISCORD_WEBHOOK_URL: 1, LOG_WEBHOOK_URL: 1, HILL_SHEET_ID: 1, TZ: 1, GITHUB_REPO: 1, TOURNAMENTS_PATH: 1, NO_SHOW: 1, TIE_RULE: 1, SEEDING: 1, GRAND_FINAL_RESET: 1, PREVIEW_SIZE: 1, POST_DELAY_MINUTES: 1, PRIZES: 1 };
+  withSlot_(id, () => {
+    const sh = sheet_(SHEETS.CONFIG, ['Key', 'Value', 'Notes']); sh.getRange('B:B').setNumberFormat('@');
+    Object.keys(DEFAULTS).forEach((k) => sh.appendRow([k, carry[k] ? norm_(src[k]) : /^(FORM_ID|FORM_LINK|BOARD_LINK|SLUG)$/.test(k) ? '' : DEFAULTS[k][0], DEFAULTS[k][1]]));
+    sheet_(SHEETS.ENTRANTS, ENTRANT_COLS).getRange('C:C').setNumberFormat('@');
+    [SHEETS.MATCHES, SHEETS.STATE, SHEETS.BOARD].forEach((n) => sheet_(n));
+    const form = makeForm_('New tournament'); setCfg_('FORM_ID', form.getId()); setCfg_('FORM_LINK', form.getPublishedUrl());
+    ScriptApp.newTrigger('onTourneyFormSubmit').forForm(form).onFormSubmit().create();
+  });
+  return id;
+}
+function startIn_(o, fresh) {
+  {
     const C = cfg_(), T = stateGet_(), ents = entrants_().rows.filter((r) => r.Status !== 'Withdrawn');
     const name = norm_(o.name).slice(0, 60);
     // Safety first: never pull the rug out from under a tournament that's being played.
@@ -917,6 +1033,7 @@ function newTournament(o) {
     const old = archive_(C, T, ents);
     // 2. A web name nobody has used yet.
     let slug = slug_(name); const taken = old.taken; taken[old.slug] = 1;
+    slots_().forEach((sl) => { if (sl !== CUR_) taken[withSlot_(sl, () => slugOf_(cfg_()))] = 1; });
     if (taken[slug]) { let k = 2; while (taken[slug + '-' + k]) k++; slug = slug + '-' + k; }
     // 3. The new settings.
     const set = { TOURNEY_NAME: name, SLUG: slug, SIGNUP_CLOSE: fmtCfg_(close, tz), START: fmtCfg_(start, tz), WAVE_MINUTES: String(wave),
@@ -924,7 +1041,7 @@ function newTournament(o) {
       MAX_CLUBS: String(max), PRIZES: norm_(o.prizes), GITHUB_PATH: 'docs/t/' + slug + '/bracket.json' };
     if (hook) set.DISCORD_WEBHOOK_URL = hook;
     Object.keys(set).forEach((k) => setCfg_(k, set[k]));
-    const pr = PropertiesService.getScriptProperties();
+    const pr = props_();
     setCfg_('BOARD_LINK', pr.getProperty('GITHUB_TOKEN') && !pr.getProperty('GH_BAD') ? ghPageUrl_(cfg_()) : '');
     // 4. A clean slate (the Roster of everyone who ever signed up stays, so blank forms keep working).
     stateSet_(null);
@@ -941,7 +1058,7 @@ function newTournament(o) {
     if (o.announce) post_(announceText_(C2));
     wake_();
     return { ok: true, name, url: boardUrl_(C2), form: norm_(C2.FORM_LINK), archived: old.name || '', health: health_(C2) };
-  } finally { lock.releaseLock(); }
+  }
 }
 const fmtCfg_ = (t, tz) => Utilities.formatDate(new Date(t), tz, 'yyyy-MM-dd HH:mm');
 const pageDir_ = (C) => (norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json').replace(/[^/]*$/, '');
@@ -998,7 +1115,7 @@ function indexEntry_(C, snap) {
 }
 // Only touches GitHub when this tournament's line actually changes (status, sign-up count, champion...).
 function updateIndex_(snap, opt) {
-  const pr = PropertiesService.getScriptProperties(); opt = opt || {};
+  const pr = props_(); opt = opt || {};
   if (!pr.getProperty('GITHUB_TOKEN') || pr.getProperty('GH_BAD')) return false;
   const C = cfg_(), e = snap ? indexEntry_(C, snap) : null;
   const key = opt.drop ? 'drop:' + opt.drop : JSON.stringify(e);
@@ -1033,7 +1150,7 @@ function announceText_(C) {
 // Everything that bit us before a tournament, checked in one go. Nothing is posted anywhere while checking.
 function health_(C) {
   C = C || cfg_();
-  const out = [], pr = PropertiesService.getScriptProperties(), add = (s, t, fix) => out.push({ s, t, fix: fix || '' });
+  const out = [], pr = props_(), add = (s, t, fix) => out.push({ s, t, fix: fix || '' });
   const T = stateGet_(), t = Date.now(), close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C);
   const hook = (url) => { try { const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true }); if (r.getResponseCode() !== 200) return 'Discord said ' + r.getResponseCode(); const j = JSON.parse(r.getContentText()); return j && j.channel_id ? '' : 'not a webhook'; } catch (e) { return String(e.message || e); } };
   // Discord
@@ -1059,10 +1176,12 @@ function health_(C) {
   // Triggers and the clock
   let trig = []; try { trig = ScriptApp.getProjectTriggers().map((x) => x.getHandlerFunction()); } catch (e) { }
   if (trig.indexOf('tick') < 0) add('bad', 'The clock isn\'t running', 'Run "Set up / repair" (as the account that should own it)');
-  if (trig.indexOf('onTourneyFormSubmit') < 0) add('bad', 'The form isn\'t hooked up, so sign-ups are ignored', 'Run "Set up / repair"');
+  let mine = trig.indexOf('onTourneyFormSubmit') >= 0;
+  try { const ts = ScriptApp.getProjectTriggers().filter((x) => x.getHandlerFunction() === 'onTourneyFormSubmit'); if (ts.length && ts[0].getTriggerSourceId) mine = ts.some((x) => x.getTriggerSourceId() === norm_(C.FORM_ID)); } catch (e) { }
+  if (!mine) add('bad', 'This tournament\'s form isn\'t hooked up, so its sign-ups are ignored', 'Run "Set up / repair"');
   const nextAt = Number(pr.getProperty('NEXT_AT') || 0);
   if (trig.indexOf('tick') >= 0 && nextAt && nextAt < t - 20 * 60000) add('bad', 'The clock is stuck (last due ' + fmtT_(nextAt, C) + ')', 'Run "🔄 Check SmallBall now"; if it stays stuck, run "Set up / repair"');
-  else if (trig.indexOf('tick') >= 0 && trig.indexOf('onTourneyFormSubmit') >= 0) add('ok', 'Clock and form triggers are running');
+  else if (trig.indexOf('tick') >= 0 && mine) add('ok', 'Clock and form triggers are running');
   // GitHub
   const tok = pr.getProperty('GITHUB_TOKEN'), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools';
   if (!tok) add('warn', 'GitHub isn\'t connected, so the bracket page is the Apps Script one', 'Menu → 🐙 Connect the GitHub bracket page');
@@ -1096,46 +1215,6 @@ function autoHealth_(C) {
   log_('system', issues.some((x) => x.s === 'bad') ? 'Health check: needs you' : 'Health check', issues.length ? issues.map((x) => (x.s === 'bad' ? '❌ ' : '⚠️ ') + x.t + ' → ' + x.fix).join(' | ') : 'All good for the ' + norm_(C.TOURNEY_NAME));
 }
 
-const NEW_HTML_ = `<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_top"><style>
-body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2430;margin:0;padding:4px 6px}
-label{display:block;font-weight:600;margin:10px 0 3px}small{color:#5b6475;font-weight:400}
-input,select,textarea{width:100%;box-sizing:border-box;font:inherit;padding:6px 8px;border:1px solid #c7ccd6;border-radius:6px}
-.row{display:flex;gap:10px}.row>div{flex:1}.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin-top:10px}.chk input{width:auto;margin-top:3px}
-.note{background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;margin:4px 0 8px}.bad{background:#fde8e8;border-color:#f1a3a3}
-button{background:#1a73e8;color:#fff;border:0;border-radius:6px;padding:9px 18px;font:600 14px system-ui;margin-top:14px;cursor:pointer}button[disabled]{opacity:.5}
-#out{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:12px}.kinds label{display:inline-flex;gap:5px;font-weight:400;margin-right:12px}.kinds input{width:auto}
-</style></head><body>
-<div id="state"></div>
-<label>Name <small>shown everywhere, e.g. "New Year's Knockout"</small></label><input id="name" maxlength="60">
-<div class="row"><div><label>Sign-ups close</label><input id="close" type="datetime-local"></div><div><label>Wave 1 starts</label><input id="start" type="datetime-local"></div></div>
-<div class="row"><div><label>Minutes per match</label><input id="wave" type="number" min="15" max="1440"></div>
-<div><label>Format</label><select id="fmt"><option value="double">Double elimination</option><option value="single">Single elimination</option></select></div></div>
-<label>Game types that count</label><div class="kinds"><label><input type="checkbox" value="big">BigLeague</label><label><input type="checkbox" value="pro">Pro</label><label><input type="checkbox" value="exhibition">Exhibition</label></div>
-<div class="row"><div><label>Stars from</label><input id="minS" type="number" min="0" max="10"></div><div><label>to</label><input id="maxS" type="number" min="0" max="10"></div><div><label>Max clubs</label><input id="max" type="number" min="2" max="64"></div></div>
-<label>Prizes</label><input id="prizes">
-<label>Different Discord channel? <small>paste its webhook; blank = same channel as now</small></label><input id="webhook" placeholder="https://discord.com/api/webhooks/...">
-<label class="chk"><input type="checkbox" id="announce" checked><span>Post the sign-ups-open announcement to Discord</span></label>
-<label class="chk" id="replaceRow" style="display:none"><input type="checkbox" id="replace"><span id="replaceTxt"></span></label>
-<button id="go">🆕 Start it</button><div id="out"></div>
-<script>
-var I=__INIT__;function $(i){return document.getElementById(i)}
-var st=$('state');
-if(I.live){st.className='note bad';st.textContent='The '+I.now+' is still being played. Starting a new one is locked until it finishes (or you use Start over).';$('go').disabled=true;}
-else if(I.done){st.className='note';st.textContent='The '+I.now+' is finished. Starting a new one saves it to the History tab and keeps its bracket page up for good.';}
-else if(I.unplayed){$('replaceRow').style.display='flex';$('replaceTxt').textContent='Replace it: the '+I.now+' has '+I.unplayed+' sign-up(s) and was never played. They go to the History tab and it comes off the Tournaments page.';}
-if(!I.gh){var n=document.createElement('div');n.className='note';n.textContent='GitHub isn\\'t connected, so the new bracket will be the Apps Script page and won\\'t show on the Tournaments page. Connect GitHub first if you can.';st.after(n);}
-$('wave').value=I.wave;$('fmt').value=I.fmt;$('minS').value=I.minS;$('maxS').value=I.maxS;$('max').value=I.max;$('prizes').value=I.prizes;
-I.kinds.split(',').forEach(function(k){var b=document.querySelector('.kinds input[value="'+k.trim()+'"]');if(b)b.checked=true});
-$('go').onclick=function(){
-  var kinds=[].slice.call(document.querySelectorAll('.kinds input:checked')).map(function(b){return b.value}).join(',');
-  var o={name:$('name').value,close:$('close').value,start:$('start').value,wave:$('wave').value,fmt:$('fmt').value,kinds:kinds,minS:$('minS').value,maxS:$('maxS').value,max:$('max').value,prizes:$('prizes').value,webhook:$('webhook').value,announce:$('announce').checked,replace:$('replace').checked};
-  $('go').disabled=true;$('out').textContent='Working… (archiving, setting up the form and page)';
-  google.script.run.withSuccessHandler(function(r){
-    var icon={ok:'✅',warn:'⚠️',bad:'❌'};
-    $('out').textContent='🎉 '+r.name+' is set up'+(r.archived?' ('+r.archived+' archived)':'')+'.\\n\\nBracket page: '+r.url+'\\nSign-up form (same link as before): '+r.form+'\\n\\nHealth check:\\n'+r.health.map(function(x){return icon[x.s]+' '+x.t+(x.s!=='ok'&&x.fix?'\\n     → '+x.fix:'')}).join('\\n');
-  }).withFailureHandler(function(e){$('go').disabled=false;$('out').textContent='❌ '+(e.message||e);}).newTournament(o);
-};
-</script></body></html>`;
 
 // ===================== Demo data for ?demo=1 =====================
 function demoSnap_() {

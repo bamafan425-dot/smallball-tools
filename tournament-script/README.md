@@ -26,8 +26,8 @@ A Google Sheet + Form + Apps Script that runs a SmallBall tournament **on its ow
 Read-only on SmallBall: it never plays, trains or saves anything there.
 
 ## The next tournament (about 2 minutes)
-1. When the last one has finished, pick **🏆 Tournament → 🆕 New tournament…**
-2. Fill in the name, when sign-ups close and Wave 1 starts, minutes per match, format, game types, stars, max clubs and prizes. Paste a different channel's webhook only if this one should post somewhere else.
+1. Pick **🏆 Tournament → 🆕 New tournament…** (six short questions)
+2. Choose to run it alongside the others or reuse a finished one's slot (same sign-up link), then fill in the name, when sign-ups close and Wave 1 starts, minutes per match, format, game types, stars, max clubs and prizes. Paste a different channel's webhook only if this one should post somewhere else.
 3. Click **Start it**. The script:
    - saves who played and who won to the **History** tab, and leaves the finished bracket up at its own link;
    - clears the bracket tabs (the **Roster** stays, so returning players still sign up with a blank form);
@@ -38,4 +38,4 @@ Read-only on SmallBall: it never plays, trains or saves anything there.
 
 It won't start a new one while a tournament is being played. A tournament that never got played can be replaced (tick *Replace it*).
 
-**Two at once?** File → Make a copy of the Sheet (the form and script come along), run **Set up / repair**, connect GitHub and paste the webhook, then 🆕 New tournament in the copy.
+**Several at once (v2.1):** one Sheet runs as many tournaments as you like side by side. In 🆕 New tournament, leave the first box blank to run the new one **alongside** the others: it gets its own sign-up form, its own tabs (`Config #2`, `Entrants #2`...) and its own page, while the Roster, History and Log are shared. **🔀 Working on** in the menu picks which tournament settle, undo, draw and the health check act on.
