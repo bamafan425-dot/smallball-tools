@@ -651,7 +651,7 @@
     if (Math.random() < 0.55) { const [w, s] = pick(G.roast); say(w, s, 1, { maxAge: 6000 }); }
   }
   function radioFeed(id, events) {
-    if (!R.on || !TTS || id !== radioGame()) return;
+    if (!R.on || (!TTS && !kWant()) || id !== radioGame()) return;
     const g = gstate(id), b = BS[id] || {};
     for (const e of events) {
       g.last = Date.now();
@@ -915,6 +915,7 @@
   function kStop() {   // unload the model and free its memory (the downloads stay)
     clearTimeout(K.offT); clearTimeout(K.helloT);
     if (K.src) { try { K.src.onended = null; K.src.stop(); } catch (_) {} K.src = null; }
+    if (speaking && speaking.kw) { clearTimeout(speaking.kT); speaking = null; setTimeout(pump, 50); }   // free the line Kokoro was on, so the booth carries on
     try { K.port && K.port.close(); } catch (_) {}
     if (K.frame) K.frame.remove();
     Object.assign(K, { frame: null, port: null, st: "off", init: false, busy: null, phase: "", after: null });
