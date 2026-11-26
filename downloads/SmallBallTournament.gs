@@ -279,7 +279,7 @@ function register_(sub) {
 }
 function rejectPost_(sub, msg) {
   const C = cfg_(), who = sub && sub.discordId && /^\d{15,21}$/.test(sub.discordId) ? '<@' + sub.discordId + '> ' : sub && sub.discord ? '**' + esc_(sub.discord) + '** ' : '';
-  post_(who + '❌ Your sign-up didn\'t go through.', [{ color: 0xC8102E, title: '❌ Sign-up rejected', description: msg + (norm_(C.FORM_LINK) ? '\n\n🔁 Fix it and send the form again: ' + norm_(C.FORM_LINK) : '') }]);
+  post_(who + '❌ Your sign-up didn\'t go through.', [{ color: 0xC8102E, title: '❌ Sign-up rejected', description: msg + (norm_(C.FORM_LINK) ? '\n\n🔁 Fix it and [send the form again](<' + norm_(C.FORM_LINK) + '>)' : '') }]);
 }
 
 // ===================== Bracket engine (from the SmallBall Tournament Kit) =====================
