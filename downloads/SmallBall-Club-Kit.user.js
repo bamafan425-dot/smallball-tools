@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.32.0
-// @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
+// @version      1.33.1
+// @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
 // @inject-into  page
 // @grant        none
 // @noframes
+// @updateURL    https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/downloads/SmallBall-Club-Kit.user.js
+// @downloadURL  https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/downloads/SmallBall-Club-Kit.user.js
 // ==/UserScript==
 // SmallBall Club Kit: freeze records and stats until a game's report airs (⚙ → "Freeze records and stats…").
 // Timed games: a game is simulated in a moment but airs for about 20 minutes, and SmallBall adds its result
