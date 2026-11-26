@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -17,7 +17,7 @@ const DEFAULTS = {
   TOURNEY_NAME: ['Black Friday Brawl', 'Shown everywhere'],
   DISCORD_WEBHOOK_URL: ['', 'Discord channel → Edit Channel → Integrations → Webhooks → New Webhook → Copy URL'],
   LOG_WEBHOOK_URL: ['', 'Optional: a private channel that gets the Log (errors, rejections)'],
-  FORMAT: ['double', 'double (double elimination) or single (single elimination)'],
+  FORMAT: ['double', 'double (double elimination), single (single elimination) or scramble (⛳ two-club teams, Nassau scoring)'],
   GRAND_FINAL_RESET: ['yes', 'Double elimination: if the losers-bracket champ wins the grand final, play once more (yes/no)'],
   SEEDING: ['signup', 'signup (sign-up order), stars (most stars first) or random'],
   SIGNUP_CLOSE: ['2026-11-26 21:00', 'Sign-ups close and the bracket is drawn (yyyy-MM-dd HH:mm, Mountain time)'],
@@ -54,6 +54,7 @@ const Q = {
   CLUB: 'Club name',
   CLUB_ID: 'Club ID # (one club per owner)',
   STARS: 'Club stars (0-10, shown on your SmallBall club page)',
+  PARTNER: 'Partner (optional: their Discord name or club ID)',
 };
 const BYE = -1;
 
@@ -92,7 +93,7 @@ button{background:#1a73e8;color:#fff;border:0;border-radius:6px;padding:9px 18px
 <label>Name <small>shown everywhere, e.g. "New Year's Knockout"</small></label><input id="name" maxlength="60">
 <div class="row"><div><label>Sign-ups close</label><input id="close" type="datetime-local"></div><div><label>Wave 1 starts</label><input id="start" type="datetime-local"></div></div>
 <div class="row"><div><label>Minutes per match</label><input id="wave" type="number" min="15" max="1440"></div>
-<div><label>Format</label><select id="fmt"><option value="double">Double elimination</option><option value="single">Single elimination</option></select></div></div>
+<div><label>Format</label><select id="fmt"><option value="double">Double elimination</option><option value="single">Single elimination</option><option value="scramble">⛳ Two Man Scramble (teams, Nassau)</option></select></div></div>
 <label>Game types that count</label><div class="kinds"><label><input type="checkbox" value="big">BigLeague</label><label><input type="checkbox" value="pro">Pro</label><label><input type="checkbox" value="exhibition">Exhibition</label></div>
 <div class="row"><div><label>Stars from</label><input id="minS" type="number" min="0" max="10"></div><div><label>to</label><input id="maxS" type="number" min="0" max="10"></div><div><label>Max clubs</label><input id="max" type="number" min="2" max="64"></div></div>
 <label>Prizes</label><input id="prizes">
@@ -255,7 +256,7 @@ function readTable_(name, cols) {
 function writeRow_(t, r) { t.sh.getRange(r._row, 1, 1, t.head.length).setValues([t.head.map((h) => (r[h] === undefined ? '' : r[h]))]); }
 function appendRow_(t, r) { t.sh.appendRow(t.head.map((h) => (r[h] === undefined ? '' : r[h]))); }
 function entrants_() { return readTable_(SHEETS.ENTRANTS, ENTRANT_COLS); }
-const tag_ = (e) => (e && /^\d{15,21}$/.test(norm_(e.DiscordID)) ? '<@' + norm_(e.DiscordID) + '>' : '**' + esc_(e ? e.Discord : '?') + '**');
+const tag_ = (e) => (e && e.Tags ? e.Tags : e && /^\d{15,21}$/.test(norm_(e.DiscordID)) ? '<@' + norm_(e.DiscordID) + '>' : '**' + esc_(e ? e.Discord : '?') + '**');
 const clubTxt_ = (e) => '*' + esc_(e.Club) + '* (club ID `' + norm_(e.ClubID) + '`' + (norm_(e.Stars) !== '' ? ' · ' + norm_(e.Stars) + '★' : '') + ')';
 
 // ===================== The form =====================
@@ -283,7 +284,7 @@ function readSubmission_(e) {
   r.getItemResponses().forEach((ir) => { out.a[ir.getItem().getTitle()] = norm_(ir.getResponse()); });
   const pick = (k) => { if (out.a[k] !== undefined) return out.a[k]; const key = Object.keys(out.a).find((t) => t.toLowerCase().indexOf(k.toLowerCase().split(' (')[0]) === 0); return key ? out.a[key] : ''; };
   out.discord = pick(Q.DISCORD); out.discordId = pick(Q.DISCORD_ID); out.owner = pick(Q.OWNER); out.club = pick(Q.CLUB);
-  out.clubId = pick(Q.CLUB_ID).replace(/[^\d]/g, ''); out.stars = pick(Q.STARS);
+  out.clubId = pick(Q.CLUB_ID).replace(/[^\d]/g, ''); out.stars = pick(Q.STARS); out.partner = pick(Q.PARTNER);
   return out;
 }
 // What we already know about this Google account: this Sheet's Roster first, then the Hold the Hill sheet.
@@ -329,6 +330,7 @@ function register_(sub) {
     sub.discordId = sub.knownId && /^\d{15,21}$/.test(sub.knownId) ? sub.knownId : '';
     sub.idNote = '\n-# That Discord user ID didn\'t look right (it\'s the long number from *Copy User ID*), so ' + (sub.discordId ? 'we used the one on record.' : 'we skipped it. Send the form again with it to get @tagged when your match opens.');
   }
+  if (isScr_(C)) ensureCol_(SHEETS.ENTRANTS, 'Partner');
   const et = entrants_(), active = et.rows.filter((r) => r.Status !== 'Withdrawn');
   const mine = et.rows.find((r) => lc_(r.Email) === sub.email);
   const clash = active.find((r) => norm_(r.ClubID) === sub.clubId && r !== mine);
@@ -338,6 +340,7 @@ function register_(sub) {
   let rows = null; try { rows = clubGames_(sub.clubId); } catch (e) { rows = null; }
   if (rows && !rows.length) fail_('SmallBall shows no games at all for club ID ' + sub.clubId + '. Check the number on your club page.');
   const rec = { Email: sub.email, Discord: sub.discord, DiscordID: sub.discordId || '', Owner: sub.owner, Club: sub.club, ClubID: sub.clubId, Stars: stars, Status: 'In' };
+  if (isScr_(C)) rec.Partner = norm_(sub.partner).slice(0, 60);
   try { remember_(rec); } catch (e) { }
   const fromRecord = (sub.filled && sub.filled.length ? ' *(filled in from your record: ' + sub.filled.join(', ') + ')*' : '') + (sub.idNote || '');
   if (mine) { Object.assign(mine, rec); writeRow_(et, mine); log_(sub.email, 'Updated', sub.club + ' (' + sub.clubId + ')'); post_('✏️ ' + tag_(mine) + ' updated their entry: ' + clubTxt_(mine) + '.' + fromRecord); }
@@ -345,7 +348,7 @@ function register_(sub) {
     rec.Joined = now_(); appendRow_(et, rec);
     const n = active.length + 1;
     log_(sub.email, 'Signed up', sub.club + ' (' + sub.clubId + ') #' + n);
-    post_('🆕 ' + tag_(rec) + ' signs up with ' + clubTxt_(rec) + '. **' + n + ' of ' + Math.max(Number(C.PREVIEW_SIZE) || 16, pow2_(n)) + '** spots filled for the **' + esc_(C.TOURNEY_NAME) + '**.' + fromRecord +
+    post_('🆕 ' + tag_(rec) + ' signs up with ' + clubTxt_(rec) + '. ' + (isScr_(C) ? '**' + n + '** club' + (n === 1 ? '' : 's') + ' on the tee sheet for the **' + esc_(C.TOURNEY_NAME) + '**' + (rec.Partner ? ' · 🤝 wants to play with **' + esc_(rec.Partner) + '**' : '') + '.' : '**' + n + ' of ' + Math.max(Number(C.PREVIEW_SIZE) || 16, pow2_(n)) + '** spots filled for the **' + esc_(C.TOURNEY_NAME) + '**.') + fromRecord +
       (when_(C.SIGNUP_CLOSE, C) ? '\n-# Sign-ups close ' + ts_(when_(C.SIGNUP_CLOSE, C)) + ' (' + tsR_(when_(C.SIGNUP_CLOSE, C)) + ').' : '') + linksLine_(C));
   }
   snapshot_();
@@ -460,7 +463,12 @@ function stateGet_() {
   if (!v) return null; try { return JSON.parse(v); } catch (e) { return null; }
 }
 function stateSet_(T) { sheet_(SHEETS.STATE).getRange(1, 1).setValue(T ? JSON.stringify(T) : ''); }
-function entrantMap_() { const m = {}; entrants_().rows.forEach((r) => { if (r.Status !== 'Withdrawn') m[Number(r.ClubID)] = r; }); return m; }
+function entrantMap_() {
+  const m = {}; entrants_().rows.forEach((r) => { if (r.Status !== 'Withdrawn') m[Number(r.ClubID)] = r; });
+  const T = stateGet_();   // a scramble's teams answer to their team ID too
+  if (T && T.teams) Object.keys(T.teams).forEach((k) => { const tm = T.teams[k]; m[Number(k)] = { Club: teamClubs_(m, tm), Discord: teamName_(m, tm), DiscordID: '', team: tm, Tags: tm.clubs.map((c) => tag_(m[c])).join(' & ') }; });
+  return m;
+}
 const seedOf_ = (T, club) => { const s = T.seeds.find((x) => x.club === club); return s ? s.seed : 99; };
 function nameOf_(E, T, club) { const e = E[club]; return e ? '#' + seedOf_(T, club) + ' ' + tag_(e) + ' (*' + esc_(e.Club) + '*)' : 'TBD'; }
 function plainName_(E, club) { const e = E[club]; return e ? norm_(e.Club) : 'TBD'; }
@@ -491,6 +499,7 @@ function tickOne_() {
     try { flushRetries_(); } catch (e) { log_('system', 'ERROR (retries)', String(e && e.stack || e)); }
     const C = cfg_(), t = Date.now();
     let T = stateGet_();
+    if (!T && isScr_(C)) ensurePartnerItem_(C);
     // The ✅ health check runs by itself once per tournament, 6 hours before sign-ups close.
     const hk = slugOf_(C), hclose = when_(C.SIGNUP_CLOSE, C);
     if ((!T || !T.done) && hclose && t >= hclose - 6 * 3600e3 && pr.getProperty('HEALTH_RAN') !== hk) { pr.setProperty('HEALTH_RAN', hk); try { autoHealth_(C); } catch (e) { log_('system', 'ERROR (health)', String(e && e.stack || e)); } }
@@ -536,6 +545,16 @@ function currentWave_(C, t) { const s = when_(C.START, C); return t < s ? 0 : Ma
 
 function drawBracket_() {
   const C = cfg_(), E = entrants_().rows.filter((r) => r.Status !== 'Withdrawn' && norm_(r.ClubID));
+  if (isScr_(C)) {
+    const T = drawScramble_(C, E); if (!T) return;
+    stateSet_(T);
+    const et = entrants_(); et.rows.forEach((r) => { const id = Number(r.ClubID), s = T.seeds.find((x) => teamOf_(T, x.club).clubs.indexOf(id) >= 0);
+      if (s) { r.Seed = s.seed; writeRow_(et, r); } else if (id === T.alt) { r.Status = 'Alternate'; writeRow_(et, r); } });
+    try { if (norm_(C.FORM_ID)) FormApp.openById(norm_(C.FORM_ID)).setAcceptingResponses(false).setCustomClosedFormMessage('Sign-ups are closed. Follow the scramble in Discord!'); } catch (e) { }
+    log_('system', 'Teams drawn', T.seeds.length + ' teams');
+    scrDrawPost_(T, C);
+    return;
+  }
   if (E.length < 2) {
     if (!props_().getProperty('TOO_FEW_POSTED')) {
       props_().setProperty('TOO_FEW_POSTED', '1');
@@ -587,7 +606,9 @@ function waves_(T, C) {
   };
   const head = first ? '## 🔔 Wave 1 is on! First pitch for the ' + esc_(C.TOURNEY_NAME) + '\n'
     : '## 🔔 ' + (opened.length === 1 ? 'Next match is ready' : opened.length + ' matches are ready') + '\n';
-  post_(head + opened.map(line).join('\n') +
+  if (T.fmt === 'scramble') post_((first ? '## ⛳ First tee time! The ' + esc_(C.TOURNEY_NAME) + ' is on\n' : '## ⛳ ' + (opened.length === 1 ? 'Next match is on the tee' : opened.length + ' matches are on the tee') + '\n') +
+    opened.map((m) => scrLine_(T, m, E)).join('\n\n') + '\n-# Each link opens the other club with YOUR club picked: check it, then **Play** (not Exhibition). All four games inside ' + Math.round(win / 60000) + ' minutes. The script finds them on SmallBall.' + linksLine_(C));
+  else post_(head + opened.map(line).join('\n') +
     '\n-# 🥊 The lower seed starts a BigLeague game with the link (check YOUR CLUB first). You have ' + Math.round(win / 60000) + ' minutes. The script finds the game on SmallBall.' + linksLine_(C));
   log_('system', first ? 'Wave 1' : 'Opened', opened.map((m) => m.id).join(', '));
   return true;
@@ -595,6 +616,7 @@ function waves_(T, C) {
 
 // Find each open match's game on SmallBall. The result is held until the game has aired.
 function detect_(T, C) {
+  if (T.fmt === 'scramble') return scrDetect_(T, C);
   const open = T.matches.filter((m) => m.openAt && !m.winner && !m.void && !m.pend && !m.flag);
   if (!open.length) return false;
   const kinds = norm_(C.ALLOWED_KINDS || 'big').split(',').map(lc_).filter(String), E = entrantMap_();
@@ -623,6 +645,7 @@ function detect_(T, C) {
 
 // Results whose game has aired: post them and move the bracket on.
 function postDue_(T, C) {
+  if (T.fmt === 'scramble') return scrPostDue_(T, C, false);
   const t = Date.now(), E = entrantMap_();
   let changed = false;
   for (const m of T.matches) {
@@ -653,6 +676,7 @@ function finish_(T, m, winner, p, how) {
 }
 function lossesOf_(T, club) { return T.matches.filter((m) => m.loser === club && !m.bye).length; }
 function resultText_(T, m, E, C, note) {
+  if (T.fmt === 'scramble') return scrResultText_(T, m, E, C, note);
   const w = m.winner, l = m.loser, out = T.fmt === 'double' ? lossesOf_(T, l) >= 2 || m.id === 'GF2' || (m.id === 'GF' && T.matches.find((x) => x.id === 'GF2' && x.void)) : true;
   let s = '🏆 **' + esc_(m.label) + '**: ' + nameOf_(E, T, w) + ' beats ' + nameOf_(E, T, l) + (m.score ? ' **' + m.score[0] + '–' + m.score[1] + '**' : '') + (m.gid ? ' · game `' + m.gid + '`' : '') + '.';
   if (note) s += '\n' + note;
@@ -666,6 +690,7 @@ function resultText_(T, m, E, C, note) {
 
 // The end of a wave: no game, no result.
 function deadlines_(T, C) {
+  if (T.fmt === 'scramble') return scrPostDue_(T, C, true);
   const t = Date.now(), E = entrantMap_();
   let changed = false;
   for (const m of T.matches) {
@@ -685,6 +710,7 @@ function deadlines_(T, C) {
   return changed;
 }
 function crown_(T, C) {
+  if (T.fmt === 'scramble') return scrCrown_(T, C);
   const E = entrantMap_(), c = champion_(T); T.done = Date.now();
   const runner = (() => { const f = T.matches.filter((m) => m.bracket === 'F' || m.id === T.final).filter((m) => m.winner && !m.void).pop(); return f ? f.loser : null; })();
   const lossless = lossesOf_(T, c) === 0; T.runner = runner || null;
@@ -699,13 +725,16 @@ function crown_(T, C) {
 function snapshot_(T) {
   T = T || stateGet_();
   const C = cfg_(), E = entrantMap_(), et = entrants_().rows.filter((r) => r.Status !== 'Withdrawn');
-  const club = (id) => { if (!(id > 0)) return null; const e = E[id]; return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: T ? seedOf_(T, id) : 0, st: norm_(e.Stars) } : { id, n: 'Club ' + id }; };
+  const club = (id) => { if (!(id > 0)) return null; const e = E[id];
+    if (e && e.team) return { id, n: 'Team ' + norm_(e.Discord), s: seedOf_(T, id), how: e.team.how, clubs: e.team.clubs.map((c) => ({ id: c, n: E[c] ? norm_(E[c].Club) : 'Club ' + c, o: E[c] ? norm_(E[c].Discord) : '' })) };
+    return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: T ? seedOf_(T, id) : 0, st: norm_(e.Stars) } : { id, n: 'Club ' + id }; };
   const snap = {
     name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), form: norm_(C.FORM_LINK),
     signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), tz: tz_(C),
-    entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars) })),
+    entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars), p: norm_(r.Partner) })),
   };
-  if (!T) {
+  if (!T && isScr_(C)) { /* a scramble's teams aren't known until sign-ups close: the page shows the tee sheet */ }
+  else if (!T) {
     // The bracket we're aiming for: today's sign-ups in seed order, the rest "open spots". Placeholders are -1000-k.
     const ord = seededEntrants_(et, C), size = Math.max(Number(C.PREVIEW_SIZE) || 16, pow2_(ord.length));
     const ids = ord.map((r) => Number(r.ClubID)); for (let k = ids.length; k < size; k++) ids.push(-1000 - k);
@@ -724,7 +753,10 @@ function snapshot_(T) {
     // Only what Discord has been told: a match's winner shows once its result posted; a pending game shows as "game found".
     snap.matches = T.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: club(sideClub_(T, m.a)), z: club(sideClub_(T, m.b)),
       byeA: sideClub_(T, m.a) === BYE, byeZ: sideClub_(T, m.b) === BYE, w: m.winner > 0 ? m.winner : null, sc: m.score || null, how: m.how || '', bye: !!m.bye, v: !!m.void,
-      open: !!m.openAt && !m.winner && !m.void, dl: m.deadline || 0, g: m.pend ? m.pend.gid : (m.gid || ''), live: !!m.pend, flag: !!m.flag }));
+      open: !!m.openAt && !m.winner && !m.void, dl: m.deadline || 0, g: m.pend ? m.pend.gid : (m.gid || ''), live: !!m.pend, flag: !!m.flag,
+      nas: m.winner && m.nassau ? m.nassau : null, found: (m.games || []).filter((g) => g.gid).length,
+      games: m.games && !m.winner ? m.games.map((g) => ({ nine: g.nine, an: plainName_(E, g.a), bn: plainName_(E, g.b), teen: E[g.tee] ? norm_(E[g.tee].Discord) : '', g: g.gid || '', aired: !!(g.gid && g.airs <= Date.now()) })) : null }));
+    if (T.fmt === 'scramble') { snap.fmt = 'scramble'; snap.alt = T.alt && E[T.alt] ? { n: norm_(E[T.alt].Club), o: norm_(E[T.alt].Discord) } : null; }
   }
   sheet_(SHEETS.BOARD).getRange(1, 1).setValue(JSON.stringify(snap));
   ghPush_(snap);
@@ -816,7 +848,7 @@ function doGetOne_(e) {
   let snap = demo ? demoSnap_() : null;
   if (!snap) { const v = sheet_(SHEETS.BOARD).getRange(1, 1).getValue(); try { snap = JSON.parse(v || '{}'); } catch (x) { snap = {}; } }
   const safe = JSON.stringify(snap).replace(/</g, '\\u003c');
-  const html = BRACKET_HTML_.replace('__DATA__', function () { return safe; });   // a function, so "$" in names stays as is
+  const html = (isScr_(cfg_()) ? GOLF_HTML_ : BRACKET_HTML_).replace('__DATA__', function () { return safe; });   // a function, so "$" in names stays as is
   return HtmlService.createHtmlOutput(html).setTitle((snap.name || 'SmallBall Tournament') + ' · bracket')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -939,8 +971,8 @@ function adminUndo() {
     if (r1.getSelectedButton() !== ui.Button.OK) return '';
     const m = done.find((x) => x.id === norm_(r1.getResponseText())); if (!m) return 'No such finished match.';
     // Clear this match and everything that depends on it.
-    const clear = (id) => { T.matches.forEach((x) => { if ((x.a.from === id || x.b.from === id || x.resetOf === id) && (x.winner || x.openAt || x.void || x.pend)) { clear(x.id); } if (x.a.from === id || x.b.from === id || x.resetOf === id) { delete x.winner; delete x.loser; delete x.score; delete x.gid; delete x.how; delete x.bye; delete x.void; delete x.pend; delete x.openAt; delete x.deadline; delete x.flag; } }); };
-    clear(m.id); delete m.winner; delete m.loser; delete m.score; delete m.gid; delete m.how; m.pend = null; m.flag = false; delete T.done;
+    const clear = (id) => { T.matches.forEach((x) => { if ((x.a.from === id || x.b.from === id || x.resetOf === id) && (x.winner || x.openAt || x.void || x.pend)) { clear(x.id); } if (x.a.from === id || x.b.from === id || x.resetOf === id) { delete x.winner; delete x.loser; delete x.score; delete x.gid; delete x.how; delete x.bye; delete x.void; delete x.pend; delete x.openAt; delete x.deadline; delete x.flag; delete x.games; delete x.nassau; } }); };
+    clear(m.id); delete m.games; delete m.nassau; delete m.winner; delete m.loser; delete m.score; delete m.gid; delete m.how; m.pend = null; m.flag = false; delete T.done;
     m.deadline = Math.max(m.deadline || 0, Date.now() + waveMs_(cfg_()));
     settle_(T); stateSet_(T); snapshot_(T); wake_();
     post_('↩️ The organizer reopened **' + esc_(m.label) + '**.' + linksLine_(cfg_()));
@@ -1026,7 +1058,7 @@ function adminNewTournamentBoxes() {
     o.start = ask('🆕 New tournament (4 of 6)', 'When does Wave 1 start? (Mountain time)\nFormat: yyyy-MM-dd HH:mm, e.g. 2026-12-06 18:00');
     const def = (lc_(src.FORMAT) === 'single' ? 'single' : 'double') + ', ' + (Number(src.WAVE_MINUTES) || 60) + ' min, ' + (norm_(src.ALLOWED_KINDS) || 'big').replace(/,/g, '+') + ', stars ' + (Number(src.MIN_STARS) || 0) + '-' + (src.MAX_STARS === '' ? 10 : Number(src.MAX_STARS)) + ', ' + (Number(src.MAX_CLUBS) || 32) + ' clubs';
     const st = lc_(ask('🆕 New tournament (5 of 6)', 'Format, minutes per match, game types, stars and max clubs.\nLeave blank for the same as now:\n\n' + def + '\n\nOr type your own in that shape, e.g.  single, 45 min, big+pro, stars 0-10, 16 clubs') || def);
-    o.fmt = /single/.test(st) ? 'single' : 'double';
+    o.fmt = /scramble/.test(st) ? 'scramble' : /single/.test(st) ? 'single' : 'double';
     o.wave = (/(\d+)\s*min/.exec(st) || [0, src.WAVE_MINUTES || 60])[1];
     o.kinds = ['big', 'pro', 'exhibition'].filter((k) => new RegExp('\\b' + k).test(st)).join(',') || 'big';
     const sr = /stars?\s*(\d+)\s*[-–to ]+\s*(\d+)/.exec(st); o.minS = sr ? sr[1] : 0; o.maxS = sr ? sr[2] : 10;
@@ -1096,7 +1128,7 @@ function startIn_(o, fresh) {
     if (taken[slug]) { let k = 2; while (taken[slug + '-' + k]) k++; slug = slug + '-' + k; }
     // 3. The new settings.
     const set = { TOURNEY_NAME: name, SLUG: slug, SIGNUP_CLOSE: fmtCfg_(close, tz), START: fmtCfg_(start, tz), WAVE_MINUTES: String(wave),
-      FORMAT: o.fmt === 'single' ? 'single' : 'double', ALLOWED_KINDS: kinds.join(','), MIN_STARS: String(minS), MAX_STARS: String(maxS),
+      FORMAT: o.fmt === 'scramble' ? 'scramble' : o.fmt === 'single' ? 'single' : 'double', ALLOWED_KINDS: kinds.join(','), MIN_STARS: String(minS), MAX_STARS: String(maxS),
       MAX_CLUBS: String(max), PRIZES: norm_(o.prizes), GITHUB_PATH: 'docs/t/' + slug + '/bracket.json' };
     if (hook) set.DISCORD_WEBHOOK_URL = hook;
     Object.keys(set).forEach((k) => setCfg_(k, set[k]));
@@ -1156,7 +1188,7 @@ function pageHtml_(C) {
     '    .catch(function(){load(i+1)});\n}\nrender();load();\n' +
     "setInterval(function(){if(!document.hidden)load()},90000);\ndocument.addEventListener('visibilitychange',function(){if(!document.hidden)load()});";
   const reload = "render();\nif(!/demo=1/.test(location.search))setTimeout(function(){location.reload()},60000);";
-  let t = BRACKET_HTML_;
+  let t = isScr_(C) ? GOLF_HTML_ : BRACKET_HTML_;
   if (t.indexOf(reload) < 0 || t.indexOf('var D=__DATA__;') < 0) throw new Error('bracket page template changed');
   t = t.replace('<meta charset="utf-8">', () => head).replace('var D=__DATA__;', () => 'var D=' + JSON.stringify({ name }).replace(/</g, '\\u003c') + ';').replace(reload, () => loader);
   return t;
@@ -1167,7 +1199,7 @@ const idxPath_ = (C) => norm_(C.TOURNAMENTS_PATH) || 'docs/tournaments/index.jso
 function indexEntry_(C, snap) {
   const p = (c) => (c ? { n: c.n, o: c.o || '', id: c.id } : null);
   return { slug: slugOf_(C), name: norm_(C.TOURNEY_NAME), url: boardUrl_(C), form: norm_(C.FORM_LINK), prizes: norm_(C.PRIZES),
-    fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', kinds: kindsTxt_(C), stars: starsTxt_(C), wave: Math.round(waveMs_(C) / 60000),
+    fmt: isScr_(C) ? 'scramble' : lc_(C.FORMAT) === 'single' ? 'single' : 'double', kinds: kindsTxt_(C), stars: starsTxt_(C), wave: Math.round(waveMs_(C) / 60000),
     signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), clubs: snap.entrants ? snap.entrants.length : 0,
     status: snap.done ? 'done' : snap.matches ? 'live' : 'signups', finished: snap.done ? (stateGet_() || {}).done || Date.now() : 0,
     champ: p(snap.champ), runner: p(snap.runner) };
@@ -1194,7 +1226,7 @@ function announceText_(C) {
   C = C || cfg_();
   const close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), f = norm_(C.FORM_LINK), b = boardUrl_(C);
   const lines = ['# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' is open for sign-ups!',
-    'A SmallBall **' + (lc_(C.FORMAT) === 'single' ? 'single-elimination' : 'double-elimination (two losses and you\'re out)') + '** tournament · ' + starsTxt_(C) + ' · ' + kindsTxt_(C) + ' games only · up to ' + (Number(C.MAX_CLUBS) || 32) + ' clubs.',
+    'A SmallBall **' + (isScr_(C) ? '⛳ Two Man Scramble' : lc_(C.FORMAT) === 'single' ? 'single-elimination' : 'double-elimination (two losses and you\'re out)') + '** tournament · ' + starsTxt_(C) + ' · ' + kindsTxt_(C) + ' games only · up to ' + (Number(C.MAX_CLUBS) || 32) + ' clubs.',
     ''];
   if (f) lines.push('📝 **[Sign up here](<' + f + '>)**: played here or on Hold the Hill before? Just submit the blank form.');
   if (close) lines.push('🗓️ Sign-ups close ' + '<t:' + Math.floor(close / 1000) + ':F> (' + tsR_(close) + ').');
@@ -1274,6 +1306,320 @@ function autoHealth_(C) {
   log_('system', issues.some((x) => x.s === 'bad') ? 'Health check: needs you' : 'Health check', issues.length ? issues.map((x) => (x.s === 'bad' ? '❌ ' : '⚠️ ') + x.t + ' → ' + x.fix).join(' | ') : 'All good for the ' + norm_(C.TOURNEY_NAME));
 }
 
+
+// ===================== ⛳ Two Man Scramble (FORMAT = scramble) =====================
+// Single elimination between two-club teams. Partners: name one on the form, or get drawn at random at sign-up close.
+// A match is four BigLeague games, every club against both clubs on the other team:
+//   Front nine: A1 v B1, A2 v B2        Back nine: A1 v B2, A2 v B1
+// Scored as a Nassau (golf's classic three-part bet), from final scores only:
+//   Front 9 = the better of your two clubs' runs in the front-nine games (best ball)
+//   Back 9  = the same for the back nine
+//   Overall = all your runs in all four games
+// One point each (a tie halves it). Most points wins; still level: the biggest single game ("longest drive"), then the higher seed.
+// Each team tees off (starts the game) once on the front nine and once on the back nine.
+const TEAM0_ = 1e9;                                 // team IDs live far above any club ID
+const isScr_ = (C) => lc_((C || cfg_()).FORMAT) === 'scramble';
+const isTeam_ = (id) => Number(id) >= TEAM0_;
+const SCR_GAMES_ = [   // which club of each team plays, and which team tees off
+  { k: 'F1', nine: 'Front', a: 0, b: 0, tee: 'A' },
+  { k: 'F2', nine: 'Front', a: 1, b: 1, tee: 'B' },
+  { k: 'K1', nine: 'Back', a: 0, b: 1, tee: 'B' },
+  { k: 'K2', nine: 'Back', a: 1, b: 0, tee: 'A' },
+];
+const teamOf_ = (T, id) => (T && T.teams ? T.teams[String(id)] : null);
+const teamName_ = (E, tm) => tm.clubs.map((c) => (E[c] ? norm_(E[c].Discord) : String(c))).join(' & ');
+const teamClubs_ = (E, tm) => tm.clubs.map((c) => (E[c] ? norm_(E[c].Club) : 'Club ' + c)).join(' + ');
+
+// The partner box on the form (added once, when a tournament is a scramble).
+function ensurePartnerItem_(C) {
+  if (!norm_(C.FORM_ID)) return;
+  const pr = props_(); if (pr.getProperty('PARTNER_ITEM') === norm_(C.FORM_ID)) return;
+  try {
+    const f = FormApp.openById(norm_(C.FORM_ID)), has = f.getItems().some((it) => norm_(it.getTitle()).indexOf('Partner') === 0);
+    if (!has) f.addTextItem().setTitle(Q.PARTNER).setHelpText('Got a partner in mind? Their Discord name or club ID. They sign up too. Leave it blank to be drawn a partner at random.');
+    pr.setProperty('PARTNER_ITEM', norm_(C.FORM_ID));
+  } catch (e) { log_('system', 'Partner box not added', String(e.message || e)); }
+}
+function ensureCol_(name, col) {
+  const sh = sheet_(name, name === SHEETS.ENTRANTS ? ENTRANT_COLS : null), head = sh.getDataRange().getValues()[0].map(norm_);
+  if (head.indexOf(col) < 0) sh.getRange(1, head.filter(Boolean).length + 1).setValue(col);
+}
+
+// Sign-ups close: make the teams, then a single-elimination bracket between them (random seeds: it's a scramble).
+function drawScramble_(C, E) {
+  const pr = props_(), list = E.slice().sort((a, b) => new Date(a.Joined) - new Date(b.Joined));
+  if (list.length < 4) {
+    if (!pr.getProperty('TOO_FEW_POSTED')) { pr.setProperty('TOO_FEW_POSTED', '1');
+      post_('😬 Only ' + list.length + ' club' + (list.length === 1 ? '' : 's') + ' signed up for the **' + esc_(C.TOURNEY_NAME) + '**: a scramble needs at least 4 (two teams). Sign-ups stay open, and the teams are drawn as soon as there are 4.' + linksLine_(C)); }
+    return null;
+  }
+  const key = (r) => [lc_(r.Discord), lc_(r.Owner), lc_(r.Club), norm_(r.ClubID)].filter(Boolean);
+  const want = (r) => { const p = lc_(r.Partner).replace(/^@/, ''); if (!p) return null; return list.find((o) => o !== r && key(o).indexOf(p) >= 0) || null; };
+  const paired = new Map(), teams = [];
+  const pair = (x, y, how) => { paired.set(x, y); paired.set(y, x); teams.push({ rows: [x, y], how }); };
+  list.forEach((r) => { const w = want(r); if (w && !paired.has(r) && !paired.has(w) && want(w) === r) pair(r, w, 'picked'); });        // asked each other
+  list.forEach((r) => { const w = want(r); if (w && !paired.has(r) && !paired.has(w) && !want(w)) pair(r, w, 'picked'); });            // asked someone who asked nobody
+  let rest = list.filter((r) => !paired.has(r)), alt = null;
+  if (rest.length % 2) { alt = rest[rest.length - 1]; rest = rest.slice(0, -1); }                                                   // the last sign-up waits
+  for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = rest[i]; rest[i] = rest[j]; rest[j] = x; }
+  for (let i = 0; i + 1 < rest.length; i += 2) pair(rest[i], rest[i + 1], 'drawn');
+  // Random seeds, then the bracket.
+  for (let i = teams.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = teams[i]; teams[i] = teams[j]; teams[j] = x; }
+  const T = { fmt: 'scramble', teams: {}, seeds: [], created: Date.now(), wave: 0, matches: [], final: null, alt: alt ? Number(alt.ClubID) : null };
+  teams.forEach((tm, i) => { const id = TEAM0_ + i + 1; T.teams[String(id)] = { id, clubs: tm.rows.map((r) => Number(r.ClubID)), how: tm.how }; T.seeds.push({ club: id, seed: i + 1 }); });
+  Object.assign(T, buildSingle_(T.seeds.map((s) => s.club), {}));
+  settle_(T);
+  return T;
+}
+
+// Waves for a scramble: each match opens with its four tee times.
+function scrLine_(T, m, E) {
+  const a = teamOf_(T, sideClub_(T, m.a)), b = teamOf_(T, sideClub_(T, m.b));
+  m.games = m.games || SCR_GAMES_.map((g) => { const ca = a.clubs[g.a], cb = b.clubs[g.b]; return { k: g.k, nine: g.nine, a: ca, b: cb, tee: g.tee === 'A' ? ca : cb }; });
+  const who = (c) => tag_(E[c]) + ' (*' + esc_(E[c] ? E[c].Club : c) + '*)';
+  const g = (x) => { const other = x.tee === x.a ? x.b : x.a;
+    return '> • ' + who(x.tee) + ' **tees off** vs ' + esc_(E[other] ? E[other].Club : other) + ' `' + other + '` · 👉 [Start it](<https://play.smallball.com/?sbx_as=' + x.tee + '#/team/' + other + '>)'; };
+  return '⛳ **' + esc_(m.label) + '** · all four games by ' + ts_(m.deadline) + ' (' + tsR_(m.deadline) + ')\n> 🏌️ **Team ' + esc_(teamName_(E, a)) + '** vs **Team ' + esc_(teamName_(E, b)) + '**\n' +
+    '> **Front nine**\n' + m.games.filter((x) => x.nine === 'Front').map(g).join('\n') + '\n> **Back nine**\n' + m.games.filter((x) => x.nine === 'Back').map(g).join('\n');
+}
+
+// Find each of the four games. Two look-ups per match cover all four (each club of team A is in two of them).
+function scrDetect_(T, C) {
+  const open = T.matches.filter((m) => m.openAt && !m.winner && !m.void && !m.flag && m.games);
+  if (!open.length) return false;
+  const kinds = norm_(C.ALLOWED_KINDS || 'big').split(',').map(lc_).filter(String), E = entrantMap_(), used = {};
+  T.matches.forEach((m) => (m.games || []).forEach((g) => { if (g.gid) used[g.gid] = 1; }));
+  let changed = false;
+  for (const m of open) {
+    const cache = {};
+    for (const g of m.games) {
+      if (g.gid) continue;
+      let rows = cache[g.a]; if (!rows) { try { rows = cache[g.a] = clubGames_(g.a); } catch (e) { log_('system', 'SmallBall error', String(e.message || e)); continue; } }
+      const hit = rows.filter((x) => { const ft = Date.parse(x.finished_at), ids = [String(x.away_team_id), String(x.home_team_id)];
+        return ids.indexOf(String(g.a)) >= 0 && ids.indexOf(String(g.b)) >= 0 && kinds.indexOf(lc_(x.kind)) >= 0 && ft >= m.openAt - 120000 && ft <= m.deadline && !used[String(x.game_id)] && x.away_runs != null; })
+        .sort((x, y) => Date.parse(x.finished_at) - Date.parse(y.finished_at))[0];
+      if (!hit) continue;
+      const aAway = String(hit.away_team_id) === String(g.a);
+      g.gid = String(hit.game_id); g.ra = Number(aAway ? hit.away_runs : hit.home_runs); g.rb = Number(aAway ? hit.home_runs : hit.away_runs);
+      g.airs = Date.parse(hit.finished_at) + Math.max(0, Number(C.POST_DELAY_MINUTES) || 0) * 60000; used[g.gid] = 1;
+      log_('system', 'Game found', m.id + ' ' + g.k + ' game ' + g.gid);
+      post_('📡 **' + (g.nine === 'Front' ? 'Front' : 'Back') + ' nine** game found in ' + esc_(m.label) + ': ' + esc_(plainName_(E, g.a)) + ' vs ' + esc_(plainName_(E, g.b)) + ' · game `' + g.gid + '`. Scores post when all four games have aired. (No spoilers.)\n📺 Watch it: <' + watchUrl_(g.gid) + '>');
+      changed = true;
+    }
+  }
+  return changed;
+}
+// The Nassau, from whichever games were played.
+function nassau_(m) {
+  const G = {}; (m.games || []).forEach((g) => { G[g.k] = g; });
+  const r = (k, side) => (G[k] && G[k].gid ? (side === 'a' ? G[k].ra : G[k].rb) : null);
+  const best = (x, y) => (x == null && y == null ? 0 : Math.max(x == null ? -1 : x, y == null ? -1 : y));
+  // Team A is "a" in every game; team B is "b".
+  const f = [best(r('F1', 'a'), r('F2', 'a')), best(r('F1', 'b'), r('F2', 'b'))];
+  const k = [best(r('K1', 'a'), r('K2', 'a')), best(r('K1', 'b'), r('K2', 'b'))];
+  const sum = (side) => ['F1', 'F2', 'K1', 'K2'].reduce((s, x) => s + (r(x, side) || 0), 0);
+  const t = [sum('a'), sum('b')];
+  const pt = (p) => (p[0] > p[1] ? [1, 0] : p[0] < p[1] ? [0, 1] : [0.5, 0.5]);
+  const P = [f, k, t].map(pt), p = [P[0][0] + P[1][0] + P[2][0], P[0][1] + P[1][1] + P[2][1]];
+  const big = (side) => Math.max.apply(null, [0].concat(['F1', 'F2', 'K1', 'K2'].map((x) => r(x, side) || 0)));
+  return { f, k, t, p, drive: [big('a'), big('b')], played: (m.games || []).filter((g) => g.gid).length };
+}
+// Score a match once all four games have aired (or, at the deadline, with the games that were played).
+function scrPostDue_(T, C, atDeadline) {
+  const t = Date.now(), E = entrantMap_();
+  let changed = false;
+  for (const m of T.matches) {
+    if (!m.openAt || m.winner || m.void || m.flag || !m.games) continue;
+    const found = m.games.filter((g) => g.gid), airing = found.some((g) => g.airs > t);
+    if (airing) continue;
+    if (found.length < 4 && !(atDeadline && t >= m.deadline)) continue;
+    const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
+    if (!found.length) {
+      if (lc_(C.NO_SHOW) === 'commish') { m.flag = true; post_('⏰ **' + esc_(m.label) + '**: no games were played. The organizer will decide.'); changed = true; continue; }
+      finish_(T, m, seedOf_(T, a) < seedOf_(T, b) ? a : b, null, 'no-show');
+      post_(scrResultText_(T, m, E, C, '⏰ Nobody teed off before the deadline, so the higher seed moves on.')); changed = true; continue;
+    }
+    const n = nassau_(m); let w, how = '';
+    if (n.p[0] !== n.p[1]) w = n.p[0] > n.p[1] ? a : b;
+    else if (n.drive[0] !== n.drive[1]) { w = n.drive[0] > n.drive[1] ? a : b; how = 'longest drive'; }
+    else { w = seedOf_(T, a) < seedOf_(T, b) ? a : b; how = 'higher seed'; }
+    m.nassau = n;
+    finish_(T, m, w, null, how);
+    m.score = w === a ? [n.p[0], n.p[1]] : [n.p[1], n.p[0]];
+    post_(scrResultText_(T, m, E, C, found.length < 4 ? '⏰ ' + (4 - found.length) + ' of the four games weren\'t played before the deadline; they count for nothing.' : ''));
+    changed = true;
+  }
+  return changed;
+}
+const half_ = (x) => (x % 1 ? (Math.floor(x) ? Math.floor(x) : '') + '½' : String(x));
+function scrResultText_(T, m, E, C, note) {
+  const a = sideClub_(T, m.a), b = sideClub_(T, m.b), A = teamOf_(T, a), B = teamOf_(T, b), w = m.winner, n = m.nassau;
+  const W = w === a ? A : B, L = w === a ? B : A;
+  let s = '⛳ **' + esc_(m.label) + '**: Team ' + W.clubs.map((c) => tag_(E[c])).join(' & ') + ' beats Team ' + esc_(teamName_(E, L));
+  if (n) {
+    const row = (lab, p) => '`' + (lab + '         ').slice(0, 9) + '` ' + (w === a ? p[0] + '–' + p[1] : p[1] + '–' + p[0]);
+    s += ' **' + half_(m.score[0]) + '–' + half_(m.score[1]) + '** on the Nassau' + (m.how ? ' (' + m.how + ')' : '') + '.\n' +
+      row('Front 9', n.f) + (n.f[0] === n.f[1] ? ' · halved' : '') + '\n' + row('Back 9', n.k) + (n.k[0] === n.k[1] ? ' · halved' : '') + '\n' + row('Overall', n.t) + (n.t[0] === n.t[1] ? ' · halved' : '') +
+      '\n-# Games: ' + m.games.filter((g) => g.gid).map((g) => '`' + g.gid + '`').join(' ');
+  } else s += (m.how ? ' (' + m.how + ')' : '') + '.';
+  if (note) s += '\n' + note;
+  const next = T.matches.find((x) => !x.winner && !x.void && (sideClub_(T, x.a) === w || sideClub_(T, x.b) === w));
+  if (next && !champion_(T)) s += '\n➡️ They play next in the **' + esc_(next.label) + '**, which opens as soon as their opponents are known.';
+  return s + linksLine_(C);
+}
+function scrCrown_(T, C) {
+  const E = entrantMap_(), c = champion_(T), tm = teamOf_(T, c); T.done = Date.now();
+  const f = T.matches.find((m) => m.id === T.final); T.runner = f ? f.loser : null;
+  const R = teamOf_(T, T.runner);
+  post_('# 🏆 Team ' + esc_(teamName_(E, tm)) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' + tm.clubs.map((x) => tag_(E[x]) + ' (*' + esc_(E[x] ? E[x].Club : x) + '*)').join(' & ') + ' take the trophy. ⛳🎉' +
+    (R ? '\n🥈 Runner-up: Team ' + esc_(teamName_(E, R)) : '') + (norm_(C.PRIZES) ? '\n🎁 Prizes: ' + esc_(C.PRIZES) : '') + '\nThanks for playing, everybody! See you next Sunday. 🐶' + linksLine_(C));
+  log_('system', 'Champion', String(c));
+}
+// The bracket-drawn post for a scramble.
+function scrDrawPost_(T, C) {
+  const E = entrantMap_(), start = when_(C.START, C);
+  const lines = T.seeds.map((s) => { const tm = teamOf_(T, s.club); return s.seed + '. Team ' + tm.clubs.map((c) => tag_(E[c])).join(' & ') + ' · ' + teamClubs_(E, tm) + (tm.how === 'picked' ? ' 🤝' : ' 🎲'); });
+  post_('# ⛳ The ' + esc_(C.TOURNEY_NAME) + ' teams are set!\n**' + T.seeds.length + ' two-man teams · single elimination · Nassau scoring**\n\n' + lines.join('\n') + '\n-# 🤝 picked their partner · 🎲 drawn at random' +
+    (T.alt ? '\n\n🪑 ' + tag_(E[T.alt]) + ' is the alternate this week (odd number of clubs): first in line if anyone drops, and first in next week.' : '') +
+    '\n\n**How a match works**\n> Every club plays both clubs on the other team: four BigLeague games. Each team tees off (starts the game) once on the front nine and once on the back.\n' +
+    '> **Front 9** and **Back 9**: your better score of the two games counts (best ball). **Overall**: every run in all four games. One point each; a tie halves it. **2 points wins.**\n' +
+    '> Still level: the biggest single game (longest drive), then the higher seed. Scores post once all four games have aired: no spoilers.\n\n' +
+    '🔔 First tee time: ' + ts_(start) + ' (' + tsR_(start) + '). Your next match opens the moment your opponents are known.' + linksLine_(C));
+}
+
+const GOLF_HTML_ = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--turf:#1f5a36;--turf2:#24653d;--deep:#0c3322;--cream:#f7f2e4;--paper:#fffdf6;--ink:#1d2a22;--muted:#5e6b62;--sand:#e8d6a6;--flag:#c8102e;--gold:#c9a227;--line:#d9d0b8}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--turf);
+ background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 70px,rgba(0,0,0,.035) 70px 140px),radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.12),transparent 60%);min-height:100vh}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:18px 14px 40px}
+.home{display:inline-block;color:var(--sand);font:600 13px/1 system-ui,sans-serif;text-decoration:none;margin:0 0 10px;opacity:.95}.home:hover{text-decoration:underline}
+header{background:linear-gradient(180deg,#0f3d29,var(--deep));color:var(--cream);border-radius:18px;padding:20px 24px;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between;
+ box-shadow:0 14px 34px rgba(0,0,0,.35),inset 0 0 0 2px rgba(201,162,39,.45),inset 0 0 0 6px var(--deep),inset 0 0 0 7px rgba(201,162,39,.25);position:relative;overflow:hidden}
+header:after{content:"";position:absolute;right:-30px;bottom:-60px;width:220px;height:140px;border-radius:50%;background:radial-gradient(ellipse,rgba(232,214,166,.18),transparent 70%)}
+.kick{font:700 12px/1 system-ui,sans-serif;letter-spacing:3px;color:var(--gold);text-transform:uppercase}
+h1{font:800 clamp(30px,6vw,52px)/1.02 'Playfair Display',Georgia,serif;margin:6px 0 4px;letter-spacing:.3px}
+.sub{color:#cfe0d2;font-size:14px}
+.meta{text-align:right;color:#dfe9df;font-size:14px;position:relative;z-index:1}.meta b{color:#fff}
+.btn{display:inline-block;margin-top:8px;text-decoration:none;font:700 14px system-ui,sans-serif;border-radius:999px;padding:9px 16px;background:var(--sand);color:#2b2410;border:0;cursor:pointer}
+.btn.flag{background:var(--flag);color:#fff}
+h2{font:700 26px/1.1 'Playfair Display',Georgia,serif;color:var(--cream);margin:28px 0 12px;display:flex;align-items:center;gap:10px;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+h2 small{font:600 12px system-ui,sans-serif;background:rgba(0,0,0,.25);color:var(--sand);padding:3px 10px;border-radius:999px;letter-spacing:.5px}
+.card{background:var(--paper);border-radius:12px;box-shadow:0 8px 22px rgba(0,0,0,.25);border:1px solid #efe6cf}
+.champ{margin:18px 0 0;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#fff8dc,#f2e2a8);color:#3b2f08;font:700 24px/1.2 'Playfair Display',Georgia,serif;box-shadow:0 10px 26px rgba(0,0,0,.3);display:flex;gap:14px;align-items:center}
+.champ .t{font-size:40px}.champ small{display:block;font:500 14px system-ui,sans-serif;color:#6b5a1a;margin-top:4px}
+/* tee sheet */
+.tee{padding:6px 0;background-image:repeating-linear-gradient(180deg,transparent 0 37px,#eadfc3 37px 38px)}
+.tee .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 16px;min-height:38px}
+.tee .n{font:700 13px 'IBM Plex Mono',monospace;color:var(--muted);width:26px}
+.tee .who{font-weight:700}.tee .club{color:var(--muted)}
+.cid{display:inline-block;font:700 13px 'IBM Plex Mono',monospace;background:var(--sand);color:#3a2d06;border-radius:6px;padding:2px 7px;text-decoration:none}
+.cid:hover{filter:brightness(.95)}
+.pr{font-size:12px;background:#e6f1e8;color:#1f5a36;border-radius:999px;padding:2px 8px}
+.note{color:var(--muted);font-size:13px;padding:10px 16px 14px}
+/* bracket */
+.rounds{display:flex;gap:18px;overflow-x:auto;padding:4px 2px 12px;align-items:stretch}
+.col{min-width:300px;flex:1;display:flex;flex-direction:column}
+.col h3{font:600 italic 18px 'Playfair Display',Georgia,serif;color:var(--cream);margin:0 0 10px;text-align:center}
+.col .list{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
+.sc{background:var(--paper);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.25);border:1px solid #ece2c8}
+.sc.live{box-shadow:0 0 0 3px rgba(200,16,46,.55),0 6px 18px rgba(0,0,0,.25)}
+.sc .hd{display:flex;justify-content:space-between;align-items:center;background:var(--deep);color:var(--cream);font:600 12px system-ui,sans-serif;padding:7px 10px;letter-spacing:.3px}
+.sc .hd .st{color:var(--sand)}.sc.live .hd .st{color:#ffb3bf}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font:700 10px system-ui,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;padding:5px 4px;border-bottom:1px solid var(--line);background:#f8f3e3}
+th:first-child{text-align:left;padding-left:10px}
+td{padding:7px 4px;border-bottom:1px solid #efe7d2;text-align:center;font:700 15px 'IBM Plex Mono',monospace;color:#2c3a30}
+td.tm{text-align:left;padding-left:10px;font:600 14px system-ui,sans-serif;color:var(--ink);line-height:1.25}
+td.tm .cl{display:block;font:500 12px system-ui,sans-serif;color:var(--muted);margin-top:2px}
+td.tm .cl a{margin-right:4px}
+tr.w td{background:#eef6ef}tr.w td.tm{font-weight:800}tr.w td.pt{color:var(--flag)}
+tr:last-child td{border-bottom:0}
+td.pt{font-size:17px}
+.seed{display:inline-block;min-width:20px;text-align:center;font:700 11px 'IBM Plex Mono',monospace;color:#fff;background:var(--turf);border-radius:4px;padding:1px 4px;margin-right:5px}
+.tbd{color:#9aa39c;font-style:italic;font-weight:500}
+.games{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border-top:1px dashed var(--line);background:#fbf8ee}
+.g{font:600 11px system-ui,sans-serif;border-radius:999px;padding:3px 8px;background:#efe9d6;color:#5b5236;white-space:nowrap}
+.g.f{background:#ffe8ec;color:#8a0f22}.g.d{background:#e2f0e5;color:#1f5a36}
+.g a{text-decoration:none}
+.foot{font:500 12px system-ui,sans-serif;color:var(--muted);padding:6px 10px 9px}
+.foot b{color:var(--ink)}
+/* rules */
+details.rules{margin-top:14px}
+details.rules summary{cursor:pointer;list-style:none;color:var(--cream);font:700 18px 'Playfair Display',Georgia,serif}
+details.rules summary::-webkit-details-marker{display:none}
+.rulebox{padding:16px 18px;margin-top:10px}
+.rulebox h4{margin:12px 0 4px;font:700 15px 'Playfair Display',Georgia,serif;color:var(--deep)}
+.rulebox p,.rulebox li{margin:4px 0;color:#2f3b33}
+.nas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.nas div{background:#f3ecd7;border-radius:10px;padding:10px;text-align:center}
+.nas b{display:block;font:800 18px 'Playfair Display',Georgia,serif;color:var(--deep)}
+.nas span{font-size:12px;color:var(--muted)}
+.pair{font:600 13px 'IBM Plex Mono',monospace;background:#f3ecd7;border-radius:8px;padding:8px 10px;margin:6px 0}
+.empty{color:var(--cream);opacity:.9;padding:12px 0}
+.upd{color:#cfe0d2;font-size:12px;text-align:center;margin-top:20px}
+@media(max-width:640px){header{padding:16px}.meta{text-align:left}.col{min-width:84vw}.nas{grid-template-columns:1fr}}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+var D=__DATA__;
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):''}
+function hf(x){if(x==null)return'';var w=Math.floor(x);return x%1?(w?w:'')+'½':String(x)}
+function cid(c){return '<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank">'+esc(c.id)+'</a>'}
+var HOME=location.host.slice(-9)==='github.io'?location.pathname.split('/').slice(0,2).join('/')+'/tournaments/':'https://slipnsliders.github.io/smallball-tools/tournaments/';
+function teamCell(x,seedOn){
+  if(!x)return '<td class="tm"><span class="tbd">Winner of the last match</span></td>';
+  var cl=(x.clubs||[]).map(function(c){return esc(c.n)+' '+cid(c)}).join(' · ');
+  return '<td class="tm">'+(seedOn&&x.s?'<span class="seed">'+x.s+'</span>':'')+esc(x.n)+'<span class="cl">'+cl+'</span></td>'}
+function card(m){
+  var live=m.open&&!m.w, n=m.nas, aw=m.w&&m.a&&m.w===m.a.id, zw=m.w&&m.z&&m.w===m.z.id;
+  var st=m.w?(m.how==='no-show'?'Walkover':'Final'+(m.how?' · '+m.how:'')):live?(m.found?m.found+' of 4 games found':'On the tee · by '+t(m.dl)):'Waiting';
+  var h='<div class="sc'+(live?' live':'')+'"><div class="hd"><span>'+esc(m.l)+'</span><span class="st">'+esc(st)+'</span></div><table><tr><th>Team</th><th>F9</th><th>B9</th><th>Tot</th><th>Pts</th></tr>';
+  function row(x,i,won){var p=n?[n.f[i],n.k[i],n.t[i],hf(n.p[i])]:['','','',''];
+    return '<tr'+(won?' class="w"':'')+'>'+teamCell(x,true)+'<td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td class="pt">'+(won?'⛳ ':'')+p[3]+'</td></tr>'}
+  h+=row(m.a,0,aw)+row(m.z,1,zw)+'</table>';
+  if(live&&m.games&&m.games.length){h+='<div class="games">'+m.games.map(function(g){
+    var cls=g.aired?'g d':g.g?'g f':'g', ic=g.aired?'✓':g.g?'📡':'○';
+    var lab=(g.nine==='Front'?'Front':'Back')+': '+esc(g.an)+' v '+esc(g.bn);
+    return '<span class="'+cls+'">'+ic+' '+(g.g?'<a href="https://play.smallball.com/training?watch='+esc(g.g)+'" target="_blank">'+lab+'</a>':lab+' · '+esc(g.teen)+' tees off')+'</span>'}).join('')+'</div>'}
+  if(m.w&&n&&m.how!=='no-show')h+='<div class="foot">Front <b>'+n.f.join('–')+'</b> · Back <b>'+n.k.join('–')+'</b> · Overall <b>'+n.t.join('–')+'</b></div>';
+  return h+'</div>'}
+function rules(){return '<details class="rules"'+(D.matches?'':' open')+'><summary>⛳ How the Two Man Scramble works ▾</summary><div class="card rulebox">'+
+  '<p>Teams of two. Name a partner on the sign-up form (they sign up too), or leave it blank and get drawn a partner at random when sign-ups close. Single elimination, random seeds.</p>'+
+  '<h4>A match is four games</h4><p>Every club plays both clubs on the other team, BigLeague games only:</p>'+
+  '<div class="pair">Front nine: A1 v B1 · A2 v B2<br>Back nine:&nbsp; A1 v B2 · A2 v B1</div>'+
+  '<p>Each team tees off (starts the game from its club) once on the front nine and once on the back. The tee times and one-click links post in Discord when your match opens.</p>'+
+  '<h4>Scored as a Nassau</h4><div class="nas"><div><b>Front 9</b><span>Your better score of the two front-nine games</span></div><div><b>Back 9</b><span>Your better score of the two back-nine games</span></div><div><b>Overall</b><span>Every run in all four games</span></div></div>'+
+  '<p>One point each; a tie halves it. Most points wins. Still level: the biggest single game (longest drive), then the higher seed.</p>'+
+  '<h4>Timing</h4><p>All four games inside the match window'+(D.waveMin?' ('+D.waveMin+' minutes)':'')+'. Games not played count for nothing. Scores post once all four games have aired: no spoilers.</p></div></details>'}
+function render(){
+  var h='<a class="home" href="'+HOME+'" target="_top">← 🏆 All tournaments</a><header><div><div class="kick">⛳ Two Man Scramble · Nassau</div><h1>'+esc(D.name||'Scramble')+'</h1><div class="sub">SmallBall · single elimination · two-club teams</div></div><div class="meta">';
+  if(!D.matches)h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'First tee time <b>'+t(D.start)+'</b>':'')+(D.form?'<br><a class="btn flag" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'');
+  else h+=(D.done?'<b>Final</b>':'<b>On the course</b> · '+(D.waveMin||60)+'-minute matches')+'<br>'+(D.seeds||[]).length+' teams'+(D.prizes?'<br>🎁 '+esc(D.prizes):'');
+  h+='</div></header>';
+  if(D.champ)h+='<div class="champ"><span class="t">🏆</span><div>'+esc(D.champ.n)+' win the '+esc(D.name)+'!<small>'+(D.champ.clubs||[]).map(function(c){return esc(c.n)}).join(' + ')+(D.prizes?' · 🎁 '+esc(D.prizes):'')+'</small></div></div>';
+  if(!D.matches){
+    var E=D.entrants||[];
+    h+='<h2>📋 Tee sheet <small>'+E.length+' signed up · '+Math.floor(E.length/2)+' team'+(Math.floor(E.length/2)===1?'':'s')+'</small></h2><div class="card tee">'+
+      (E.length?E.map(function(e,i){return '<div class="row"><span class="n">'+(i+1)+'</span><span class="who">'+esc(e.o)+'</span><span class="club">'+esc(e.n)+'</span>'+cid(e)+(e.p?'<span class="pr">🤝 with '+esc(e.p)+'</span>':'')+'</div>'}).join(''):'<div class="row">Nobody yet. Be the first on the tee sheet!</div>')+
+      '<div class="note">Teams are made when sign-ups close: partners who named each other first, everyone else drawn at random. An odd one out is the alternate.</div></div>';
+    h+=rules();
+  } else {
+    h+='<h2>🏌️ Teams <small>'+(D.seeds||[]).length+'</small></h2><div class="card tee">'+(D.seeds||[]).map(function(x){return '<div class="row"><span class="n">'+x.s+'</span><span class="who">'+esc(x.n)+'</span>'+(x.clubs||[]).map(function(c){return '<span class="club">'+esc(c.n)+'</span>'+cid(c)}).join('')+(x.how==='picked'?'<span class="pr">🤝 picked</span>':'<span class="pr" style="background:#f3ecd7;color:#6b5a1a">🎲 drawn</span>')+'</div>'}).join('')+(D.alt?'<div class="note">🪑 Alternate this week: '+esc(D.alt.o)+' ('+esc(D.alt.n)+'), first in line if anyone drops.</div>':'')+'</div>';
+    var R={},order=[];(D.matches||[]).forEach(function(m){if(m.v)return;if(!R[m.r]){R[m.r]=[];order.push(m.r)}R[m.r].push(m)});
+    h+='<h2>⛳ The draw</h2><div class="rounds">'+order.map(function(r){var L=R[r].filter(function(m){return !m.bye});if(!L.length)return'';
+      var nm=L[0].l.split(' · ')[0];return '<div class="col"><h3>'+esc(nm)+'</h3><div class="list">'+L.map(card).join('')+'</div></div>'}).join('')+'</div>';
+    h+=rules();
+  }
+  if(D.updated)h+='<div class="upd">Updated '+t(D.updated)+' · refreshes by itself</div>';
+  document.getElementById('app').innerHTML=h}
+render();
+if(!/demo=1/.test(location.search))setTimeout(function(){location.reload()},60000);
+</script></body></html>
+`;
 
 // ===================== Demo data for ?demo=1 =====================
 function demoSnap_() {

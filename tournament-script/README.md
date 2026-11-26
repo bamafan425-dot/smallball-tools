@@ -39,3 +39,10 @@ Read-only on SmallBall: it never plays, trains or saves anything there.
 It won't start a new one while a tournament is being played. A tournament that never got played can be replaced (tick *Replace it*).
 
 **Several at once (v2.1):** one Sheet runs as many tournaments as you like side by side. In 🆕 New tournament, leave the first box blank to run the new one **alongside** the others: it gets its own sign-up form, its own tabs (`Config #2`, `Entrants #2`...) and its own page, while the Roster, History and Log are shared. **🔀 Working on** in the menu picks which tournament settle, undo, draw and the health check act on.
+
+## ⛳ Two Man Scramble (v2.3)
+Set `FORMAT` to `scramble` (or pick it in 🆕 New tournament). Single elimination between two-club teams:
+- **Partners:** the form gets an optional *Partner* box. Partners who name each other are paired first; everyone else is drawn at random when sign-ups close. An odd one out is the alternate.
+- **A match is four BigLeague games**, every club against both clubs on the other team (front nine: A1 v B1, A2 v B2; back nine: A1 v B2, A2 v B1). Each team tees off once on each nine.
+- **Nassau scoring:** Front 9 and Back 9 = your better score of the two games (best ball); Overall = every run in all four games. One point each, a tie halves it. Still level: the biggest single game, then the higher seed.
+- **Its own golf-course bracket page:** tee sheet, team list and a scorecard for every match.
