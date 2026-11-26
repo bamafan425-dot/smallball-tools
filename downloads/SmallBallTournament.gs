@@ -1160,7 +1160,7 @@ function archive_(C, T, ents) {
   const out = { name: '', slug: slugOf_(C), taken: {} };
   let list = []; try { list = (JSON.parse(ghGet_(idxPath_(C)) || '{}').list) || []; } catch (e) { }
   list.forEach((x) => { out.taken[x.slug] = 1; });
-  if (!ents.length && !T) return out;
+  if (!ents.length && !T) { try { updateIndex_(null, { drop: out.slug }); } catch (e) { } return out; }   // never played, nobody in: just off the list
   out.name = norm_(C.TOURNEY_NAME);
   const champ = T && T.done ? champion_(T) : null, runner = T && T.runner, seeds = {};
   if (T) T.seeds.forEach((s) => { seeds[s.club] = s.seed; });
