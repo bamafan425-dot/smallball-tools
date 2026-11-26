@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.12: tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -189,7 +189,7 @@ const Q = {
 
 const ACE_CHOICE = '♠ THE ACE (charge the mound: title shot, #1 contender, or lower when the mound is open)';
 const OPEN = ['Pending', 'Accepted', 'Started', 'Review'];
-const BOOK_HELP = 'Play money only: everyone starts the season with 1,000 Brawl Bucks. 🔮 Matchup bets: bet on a charge before it happens. Betting on that matchup closes the moment the charge is made, and the bet is refunded if it isn\'t played within 48 hours. ♠️ Futures: back your own club to finish as the Ace. In a matchup yourself? You can only bet on yourself. Bets settle once the game has aired.';
+const BOOK_HELP = 'Play money only: everyone starts the season with 1,000 Brawl Bucks. 🔮 Matchup bets: bet on a charge before it happens. Betting on that matchup closes the moment the charge is made, and the bet is refunded if it isn\'t played within 48 hours. ♠️ Futures: pick who finishes the season as the Ace. Max bet: 4.2% of your Brawl Bucks (250 BB tops). No betting on yourself or your own games: that\'s what 🤝 head-to-head wagers are for. Bets settle once the game has aired.';
 const FORM_CONFIRM = 'Got it! Check Discord in about a minute: ✅ it posts in #hill-feed (bets in #sportsbook) if it went through, or ❌ a red REJECTED post (and an email) tells you exactly what to fix. Nothing either way after 5 minutes? Ask in #hill-help.';
 const NO_LINES = 'No open lines right now. Lines open when someone charges the hill.';
 const KINDS = { 'BigLeague': 'big', 'Pro League': 'pro', 'Exhibition': 'exhibition' };
@@ -1621,6 +1621,7 @@ function ensureItemsForm_(form) {
     form.moveItem(it.getIndex(), opp.getIndex() + 1);
   }
   // Stake limits are a % of your bankroll now: refresh the stake boxes' help (and drop the old fixed wager cap).
+  try { const pb = form.getItems(FormApp.ItemType.PAGE_BREAK).find(function (p) { return p.getTitle() === ACTIONS.BET; }); if (pb) pb.asPageBreakItem().setHelpText(BOOK_HELP); } catch (e) { }
   form.getItems(FormApp.ItemType.TEXT).forEach(function (it) {
     const t = it.getTitle();
     if (t === Q.W_STAKE) it.asTextItem().setHelpText('Up to ' + pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks (' + pctOf_(C.WAGER_BIG_PCT, 10) + '% with the commish\'s OK).')
@@ -2265,7 +2266,7 @@ function doBet_(sub, C) {
     lockIfOver_(C);
     const f = futChoices_().find(function (o) { return o.label === label; });
     if (!f) fail_('Those futures odds have moved since you loaded the form. Reload it and pick again.');
-    if (f.pick !== lc_(me.Email)) fail_('Futures: you can only back your own club to finish as the Ace.');
+    if (f.pick === lc_(me.Email)) fail_('Futures: No betting on yourself or your own games: that’s what 🤝 head-to-head wagers are for.');
     if (!(stake >= 1)) fail_('Enter a stake of at least 1 Brawl Buck.');
     const brf = bankrolls_(C), havef = (lc_(me.Email) in brf.bank) ? brf.bank[lc_(me.Email)] : brf.base;
     if (stake > havef) fail_('You only have ' + havef + ' Brawl Bucks available.');
@@ -2279,7 +2280,7 @@ function doBet_(sub, C) {
   if (!pick) fail_('That bet is not on the board. Pick one from the list.');
   if (!openLines_().some(function (x) { return x.ChallengeID === L.ChallengeID; })) fail_('Betting on ' + L.ChallengeID + ' is closed.');
   const mine = lc_(me.Email) === lc_(L.AwayEmail) ? 'away' : lc_(me.Email) === lc_(L.HomeEmail) ? 'home' : '';
-  if (mine && (pick.market === 'TOTAL' || pick.pick !== mine)) fail_("You're in this game: you can only bet on yourself to win or cover. No totals, and never against yourself.");
+  if (mine) fail_("You're in this game. No betting on yourself or your own games: that's what 🤝 head-to-head wagers are for.");
   if (!(stake >= 1)) fail_('Enter a stake of at least 1 Brawl Buck.');
   const br = bankrolls_(C), have = (lc_(me.Email) in br.bank) ? br.bank[lc_(me.Email)] : br.base;
   if (stake > have) fail_('You only have ' + have + ' Brawl Bucks available.');
@@ -3151,7 +3152,7 @@ function futuresMovesPost_(rows) {
   const save = {}; rows.forEach(function (x) { save[x.email] = x.pct; });
   if (first) {
     props.setProperty('FUT_POSTED', JSON.stringify(save));
-    postBook_('♠️ **Season Ace futures are live!**\n' + rows.slice(0, 5).map(function (x, i) { return (i + 1) + '. **' + esc_(x.name) + '** ' + fmtOdds_(x.odds) + ' (' + x.pct + '%)'; }).join('\n') + '\nBack your own club on the Hill form.');
+    postBook_('♠️ **Season Ace futures are live!**\n' + rows.slice(0, 5).map(function (x, i) { return (i + 1) + '. **' + esc_(x.name) + '** ' + fmtOdds_(x.odds) + ' (' + x.pct + '%)'; }).join('\n') + '\nBet on who finishes as the Ace on the Hill form (not yourself).');
     return;
   }
   if (!movers.length) return;
@@ -3218,7 +3219,7 @@ function doPotBet_(sub, C, me, label, stake) {
   const open = challenges_().rows.some(function (c) { return OPEN.indexOf(c.Status) >= 0 && potKey_(c.Challenger, c.Defender) === L.key; });
   if (open) fail_('That charge has already been made, so betting on it is locked.');
   const mine = lc_(me.Email) === L.chEmail ? 'away' : lc_(me.Email) === L.dfEmail ? 'home' : '';
-  if (mine && pick.pick !== mine) fail_("You're in that matchup: you can only bet on yourself.");
+  if (mine) fail_("You're in that matchup. No betting on yourself or your own games: that's what 🤝 head-to-head wagers are for.");
   if (!(stake >= 1)) fail_('Enter a stake of at least 1 Brawl Buck.');
   const br = bankrolls_(C), have = (lc_(me.Email) in br.bank) ? br.bank[lc_(me.Email)] : br.base;
   if (stake > have) fail_('You only have ' + have + ' Brawl Bucks available.');
@@ -3779,7 +3780,7 @@ if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div
 +PO.slice(0,24).map(function(L){return '<div class="r" style="grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr) 70px"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title</small>':'')+'</span><b>'+fo(L.a)+'</b><span class="bb" style="text-align:right">@ '+esc(L.df)+'</span><b>'+fo(L.h)+'</b></div>';}).join('')+'</div>';}
 var FU=D.futures;
 if(FU&&FU.rows&&FU.rows.length){var mx=Math.max.apply(null,FU.rows.map(function(x){return x.pct;}))||1;
-h+='<div class="fut cup"><h3 class="bb">♠️ Season '+esc(D.season)+' Ace futures</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Odds to be on the mound when the season ends. The season is played out 2,000 times every hour. Arrows show the move since midnight. Back your own club on the Hill form.</div>'
+h+='<div class="fut cup"><h3 class="bb">♠️ Season '+esc(D.season)+' Ace futures</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Odds to be on the mound when the season ends. The season is played out 2,000 times every hour. Arrows show the move since midnight. Bet on who finishes as the Ace on the Hill form (anyone but yourself).</div>'
 +FU.rows.slice(0,10).map(function(x){var mv=x.move>0?'<span class="up">▲ '+x.move+'</span>':x.move<0?'<span class="dn">▼ '+Math.abs(x.move)+'</span>':'<span style="opacity:.4">–</span>';return '<div class="r"><span class="bb" style="font-size:18px;opacity:.7">'+(x.rank===0?'♠':'#'+x.rank)+'</span><span class="bb">'+esc(x.name)+'<small>'+esc(x.club)+' · '+x.pct+'%</small></span><span class="bar"><i style="width:'+Math.round(x.pct/mx*100)+'%"></i></span><b>'+fo(x.odds)+'</b>'+mv+'</div>';}).join('')+'</div>';}
 window.__BK=BK;window.__fo=fo;}
 var aw=D.awards||[],cp=D.cup||[];
