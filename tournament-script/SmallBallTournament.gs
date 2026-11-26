@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -78,6 +78,51 @@ let CFG_CACHE = null;
 // Roster, History and Log are shared. CUR_ is the slot being worked on (null = the first one).
 let CUR_ = null;
 const PER_T_ = { Config: 1, Entrants: 1, Matches: 1, State: 1, Board: 1 };
+const NEW_HTML_ = `<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_top"><style>
+body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2430;margin:0;padding:4px 6px}
+label{display:block;font-weight:600;margin:10px 0 3px}small{color:#5b6475;font-weight:400}
+input,select,textarea{width:100%;box-sizing:border-box;font:inherit;padding:6px 8px;border:1px solid #c7ccd6;border-radius:6px}
+.row{display:flex;gap:10px}.row>div{flex:1}.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin-top:10px}.chk input{width:auto;margin-top:3px}
+.note{background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;margin:4px 0 8px}.bad{background:#fde8e8;border-color:#f1a3a3}
+button{background:#1a73e8;color:#fff;border:0;border-radius:6px;padding:9px 18px;font:600 14px system-ui;margin-top:14px;cursor:pointer}button[disabled]{opacity:.5}
+#out{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:12px}.kinds label{display:inline-flex;gap:5px;font-weight:400;margin-right:12px}.kinds input{width:auto}
+</style></head><body>
+<div id="state"></div>
+<label>Where</label><select id="slot"></select><div id="slotNote" class="note" style="display:none"></div>
+<label>Name <small>shown everywhere, e.g. "New Year's Knockout"</small></label><input id="name" maxlength="60">
+<div class="row"><div><label>Sign-ups close</label><input id="close" type="datetime-local"></div><div><label>Wave 1 starts</label><input id="start" type="datetime-local"></div></div>
+<div class="row"><div><label>Minutes per match</label><input id="wave" type="number" min="15" max="1440"></div>
+<div><label>Format</label><select id="fmt"><option value="double">Double elimination</option><option value="single">Single elimination</option></select></div></div>
+<label>Game types that count</label><div class="kinds"><label><input type="checkbox" value="big">BigLeague</label><label><input type="checkbox" value="pro">Pro</label><label><input type="checkbox" value="exhibition">Exhibition</label></div>
+<div class="row"><div><label>Stars from</label><input id="minS" type="number" min="0" max="10"></div><div><label>to</label><input id="maxS" type="number" min="0" max="10"></div><div><label>Max clubs</label><input id="max" type="number" min="2" max="64"></div></div>
+<label>Prizes</label><input id="prizes">
+<label>Different Discord channel? <small>paste its webhook; blank = same channel as now</small></label><input id="webhook" placeholder="https://discord.com/api/webhooks/...">
+<label class="chk"><input type="checkbox" id="announce" checked><span>Post the sign-ups-open announcement to Discord</span></label>
+<button id="go">🆕 Start it</button><div id="out"></div>
+<script>
+var I=__INIT__;function $(i){return document.getElementById(i)}
+var st=$('state'),sel=$('slot');
+var o0=document.createElement('option');o0.value='new';o0.textContent='➕ Alongside the others (its own sign-up form)';sel.appendChild(o0);
+I.slots.forEach(function(x){if(x.live)return;var o=document.createElement('option');o.value=x.slot;o.textContent='♻️ Replace: '+x.name+' ('+x.status+') · keeps its sign-up link';sel.appendChild(o);});
+var live=I.slots.filter(function(x){return x.live}).map(function(x){return x.name});
+if(live.length){st.className='note';st.textContent='Being played now: '+live.join(', ')+'. A new one runs alongside without touching '+(live.length>1?'them':'it')+'.';}
+sel.onchange=function(){var x=I.slots.filter(function(y){return String(y.slot)===sel.value})[0],n=$('slotNote');
+  if(!x){n.style.display='none';return}n.style.display='block';n.className='note'+(x.played?'':' bad');
+  n.textContent=x.played?'The '+x.name+' is saved to the History tab and its bracket page stays up for good.':'The '+x.name+' was never played: its '+x.signups+' sign-up(s) go to the History tab and it comes off the Tournaments page.';};
+$('wave').value=I.wave;$('fmt').value=I.fmt;$('minS').value=I.minS;$('maxS').value=I.maxS;$('max').value=I.max;$('prizes').value=I.prizes;
+I.kinds.split(',').forEach(function(k){var b=document.querySelector('.kinds input[value="'+k.trim()+'"]');if(b)b.checked=true});
+$('go').onclick=function(){
+  var kinds=[].slice.call(document.querySelectorAll('.kinds input:checked')).map(function(b){return b.value}).join(',');
+  var o={slot:sel.value,name:$('name').value,close:$('close').value,start:$('start').value,wave:$('wave').value,fmt:$('fmt').value,kinds:kinds,minS:$('minS').value,maxS:$('maxS').value,max:$('max').value,prizes:$('prizes').value,webhook:$('webhook').value,announce:$('announce').checked,replace:sel.value!=='new'};
+  $('go').disabled=true;$('out').textContent='Working… (archiving, setting up the form and page)';
+  google.script.run.withSuccessHandler(function(r){
+    var icon={ok:'✅',warn:'⚠️',bad:'❌'};
+    $('out').textContent='🎉 '+r.name+' is set up'+(r.archived?' ('+r.archived+' saved to History)':'')+(r.alongside?', running alongside the others. The menu now works on it (🔀 to switch; reload the Sheet to see the new menu name).':'.')+'\\n\\nBracket page: '+r.url+'\\nSign-up form'+(r.alongside?' (its own, new link)':' (same link as before)')+': '+r.form+'\\n\\nHealth check:\\n'+r.health.map(function(x){return icon[x.s]+' '+x.t+(x.s!=='ok'&&x.fix?'\\n     → '+x.fix:'')}).join('\\n');
+  }).withFailureHandler(function(e){$('go').disabled=false;var m=String(e&&e.message||e);
+    $('out').textContent=/PERMISSION_DENIED|reading from storage/i.test(m)?'❌ Google blocked this box because Chrome is signed in to several Google accounts and this Sheet\\'s account isn\\'t the main one.\\n\\nFix: open the Sheet in a window signed in only to the account that owns it (an Incognito window works), then try again. Or close this and use 🆕 New tournament (question boxes) from the menu.\\n\\nNothing was changed.':'❌ '+m;}).newTournament(o);
+};
+</script></body></html>`;
+
 const SHARED_PROPS_ = { GITHUB_TOKEN: 1, GH_BAD: 1, SHEET_ID: 1, SLOTS: 1, ADMIN_SLOT: 1 };
 const tab_ = (name) => (CUR_ && PER_T_[name] ? name + ' #' + CUR_ : name);
 function props_() {
@@ -794,6 +839,7 @@ function onOpen() {
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
     .addSeparator()
+    .addItem('🆕 New tournament (question boxes)', 'adminNewTournamentBoxes')
     .addItem('🧹 Start over (clear the bracket, keep sign-ups)', 'adminResetBracket')
     .addToUi();
 }
@@ -944,8 +990,20 @@ function adminSwitch() {
   onOpen();
   ui.alert('Now working on: ' + pick.name);
 }
-// 🆕 New tournament, asked in plain question boxes (they work even when Chrome is signed in to several Google accounts).
+// 🆕 New tournament: a form in a pop-up box.
 function adminNewTournament() {
+  withSlot_(adminSlot_(), () => {
+    const C = cfg_(), init = {
+      slots: slotList_(), fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', wave: Number(C.WAVE_MINUTES) || 60, kinds: norm_(C.ALLOWED_KINDS) || 'big',
+      minS: Number(C.MIN_STARS || 0), maxS: C.MAX_STARS === '' ? 10 : Number(C.MAX_STARS), max: Number(C.MAX_CLUBS) || 32, prizes: norm_(C.PRIZES), tz: tz_(C),
+      gh: !!props_().getProperty('GITHUB_TOKEN') };
+    init.slots.forEach((x) => { x.slot = x.slot || ''; });
+    const html = NEW_HTML_.replace('__INIT__', () => JSON.stringify(init).replace(/</g, '\\u003c'));
+    SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(html).setWidth(540).setHeight(680), '🆕 New tournament');
+  });
+}
+// The same thing as plain question boxes: a backup for browsers where Google blocks the pop-up (several Google accounts signed in).
+function adminNewTournamentBoxes() {
   withUi_((ui) => {
     const ask = (title, msg) => { const r = ui.prompt(title, msg, ui.ButtonSet.OK_CANCEL); if (r.getSelectedButton() !== ui.Button.OK) throw { cancel: true }; return norm_(r.getResponseText()); };
     const L = slotList_(), src = cfg_(), o = { slot: 'new' };
@@ -986,6 +1044,7 @@ function adminNewTournament() {
 // o: { slot ('new' = alongside, '' = the first tournament, '2'... = that one; default: the one you're working on), name, close, start,
 //      wave, fmt, kinds, minS, maxS, max, prizes, webhook, announce, replace }
 function newTournament(o) {
+  if (CUR_ === null && adminSlot_()) return withSlot_(adminSlot_(), () => newTournament(o));   // called from the pop-up
   const lock = LockService.getScriptLock(); lock.waitLock(30000);
   try {
     if (o.slot === 'new') { const src = cfg_(), id = addSlot_(src); const r = withSlot_(id, () => startIn_(o, src)); props_()['setProperty']('ADMIN_SLOT', id); r.alongside = true; return r; }
