@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -40,6 +40,8 @@ const SHEETS = {
   LINES: 'Lines',
   STARS: 'Stars',
   BETS: 'Bets',
+  WAGERS: 'Wagers',
+  LEDGER: 'Ledger',
   LOG: 'Log',
 };
 
@@ -56,11 +58,14 @@ const HEADERS = {
   Lines: ['ChallengeID', 'Season', 'Opened', 'Closes', 'Status', 'Away', 'AwayEmail', 'Home', 'HomeEmail', 'AwayML', 'HomeML', 'Fav', 'FavRL', 'DogRL', 'Total', 'OverOdds', 'UnderOdds', 'Result'],
   Stars: ['ClubID', 'Club', 'Stars', 'Source', 'Updated'],
   Bets: ['BetID', 'Placed', 'Season', 'Email', 'Bettor', 'ChallengeID', 'Market', 'Pick', 'Odds', 'Stake', 'Status', 'Profit'],
+  Wagers: ['WagerID', 'Season', 'Offered', 'Status', 'Maker', 'MakerName', 'MakerClubID', 'Taker', 'TakerName', 'TakerClubID', 'Terms', 'Line',
+    'MakerStake', 'TakerStake', 'Expires', 'AcceptedAt', 'Deadline', 'GameID', 'MakerRuns', 'TakerRuns', 'AirsAt', 'Winner', 'Settled', 'Notes'],
+  Ledger: ['Date', 'Season', 'Email', 'Player', 'Amount', 'Reason'],
   Log: ['Time', 'Actor', 'Action', 'Details'],
 };
 
 // Columns kept as plain text so Sheets never turns IDs into numbers or "5-3" into a date.
-const TEXT_COLUMNS = ['Value', 'Day', 'DiscordID', 'OwnerID', 'ClubID', 'GameID', 'ChallengerReport', 'DefenderReport', 'CommishScore'];
+const TEXT_COLUMNS = ['MakerClubID', 'TakerClubID', 'Line', 'Value', 'Day', 'DiscordID', 'OwnerID', 'ClubID', 'GameID', 'ChallengerReport', 'DefenderReport', 'CommishScore'];
 
 const DEFAULTS = {
   DISCORD_WEBHOOK_URL: ['', 'Discord channel → Edit Channel → Integrations → Webhooks → New Webhook → Copy URL'],
@@ -90,6 +95,11 @@ const DEFAULTS = {
   BOOK_HOLD_HOURS: [48, 'Matchup bets: refunded if that charge is not played within this many hours'],
   BOOK_VIG: [0.045, 'House edge built into the odds (0.045 = 4.5%)'],
   BOOK_POST_BETS: ['TRUE', 'Post each bet in Discord (TRUE/FALSE)'],
+  WAGER_ON: ['TRUE', 'Head-to-head wagers on (TRUE/FALSE). Needs the sportsbook on'],
+  WAGER_MAX: [250, 'Most Brawl Bucks either side can put on one head-to-head wager'],
+  WAGER_OFFER_HOURS: [24, 'Hours a wager offer stays open for the other player to accept'],
+  WAGER_PLAY_HOURS: [48, 'Hours after a wager is accepted to play the game that settles it (else everyone is refunded)'],
+  WAGER_KINDS: ['big', 'Game types that can settle a wager, comma separated: big, pro, exhibition'],
   PRIZES: ['SmallBall Tickets and pictures of dogs', 'Shown on the board and in the awards post'],
   CHALLENGE_REACH: [3, 'How many spots above you that you can challenge'],
   MATCH_HOURS: [1, 'Hours after a challenge is declared to start the game and report it'],
@@ -120,13 +130,15 @@ const DEFAULTS = {
 };
 
 const ACTIONS = {
-  REGISTER: 'Register my club',
-  CHALLENGE: 'Charge the hill (issue a challenge)',
-  REPORT: 'Report my game (game ID and score)',
-  REVENGE: "Declare the Ace's Revenge (dethroned Ace only)",
+  REGISTER: '📝 Register my club (new players start here)',
+  CHALLENGE: '🥊 CHARGE THE HILL (challenge someone above you)',
+  REPORT: '📋 Report my game (only if the Hill missed it)',
+  REVENGE: "🔥 Declare the Ace's Revenge (dethroned Ace only)",
   BET: '🎰 Place a bet (Sportsbook, play money)',
   DISCORD_ID: '🔔 Update my Discord ID (get tagged for alerts)',
   REACH: '🔎 Who can I charge? (your list posts in #hill-help)',
+  WAGER: '🤝 Wager an opponent (head-to-head Brawl Bucks)',
+  WAGER_REPLY: '🤝 Answer a wager (accept, decline or cancel)',
 };
 
 const Q = {
@@ -146,6 +158,13 @@ const Q = {
   STAKE: 'Stake (Brawl Bucks)',
   STARS: 'Club stars (0-10, shown on your SmallBall club page)',
   MY_ID: 'Your numeric Discord user ID',
+  W_OPP: 'Opponent club ID (who you are wagering)',
+  W_STAKE: 'Your stake (Brawl Bucks)',
+  W_TERMS: 'Terms',
+  W_ODDS: 'Odds (only for an odds bet, like 2-1)',
+  W_RUNS: 'Runs (only for a run-line bet)',
+  W_ID: 'Wager # (from the Discord post, like W-0003)',
+  W_REPLY: 'Your answer',
 };
 
 const ACE_CHOICE = '♠ THE ACE (charge the mound: title shot, #1 contender, or lower when the mound is open)';
@@ -296,6 +315,7 @@ const AWARDS = [
   { key: 'giant', icon: '🗡️', name: 'Giant Killer', what: 'Biggest star-gap upset of the season' },
   { key: 'bush', icon: '🌱', name: 'Best of the Bush', what: 'Most Brawl points among lower-star clubs' },
   { key: 'sharp', icon: '💰', name: 'The Sharp', what: 'Biggest Brawl Bucks bankroll (sportsbook)' },
+  { key: 'hustler', icon: '🤝', name: 'The Hustler', what: 'Most Brawl Bucks won head-to-head (wagers)' },
 ];
 
 // ── Open mound: only #1 can charge the Ace, then one more spot opens each day nobody charges.
@@ -437,7 +457,10 @@ function awards_() {
       .sort(function (a, b) { return b.v - a.v; });
     out.sharp = sh.length ? Object.assign(nm(sh[0].email), { value: sh[0].v + ' BB' }) : null;
     out.bookTable = sh.slice(0, 5).map(function (x) { return Object.assign(nm(x.email), { bank: x.v }); });
-  } catch (e) { out.sharp = null; out.bookTable = []; }
+    const hu = Object.keys(bk.hustle || {}).filter(function (e) { return byEmail[e] && bk.hustle[e] > 0; }).map(function (e) { return { email: e, v: bk.hustle[e] }; })
+      .sort(function (a, b) { return b.v - a.v; });
+    out.hustler = hu.length ? Object.assign(nm(hu[0].email), { value: '+' + hu[0].v + ' BB head-to-head' }) : null;
+  } catch (e) { out.sharp = null; out.bookTable = []; out.hustler = null; }
   try {
     const ups = readTable_(SHEETS.PAYOUTS).rows.filter(function (x) { return String(x.Season) === season && /^Upset/.test(String(x.Spot)); });
     let gk = null; ups.forEach(function (x) { if (!gk || num_(x.Pts) > num_(gk.Pts)) gk = x; });
@@ -761,6 +784,8 @@ function actionOf_(raw) {
   const l = v.toLowerCase();
   if (/discord id|tagged|my id/.test(l)) return ACTIONS.DISCORD_ID;
   if (/who can i|in reach|reach/.test(l)) return ACTIONS.REACH;
+  if (/answer a wager|accept|decline/.test(l)) return ACTIONS.WAGER_REPLY;
+  if (/wager|head-to-head/.test(l)) return ACTIONS.WAGER;
   if (/revenge/.test(l)) return ACTIONS.REVENGE;
   if (/\bbet\b|sportsbook/.test(l)) return ACTIONS.BET;
   if (/report/.test(l)) return ACTIONS.REPORT;
@@ -771,7 +796,7 @@ function actionOf_(raw) {
 
 // A rejected form posts in Discord too (people miss emails). Tags the player when we know their Discord ID.
 // Goes to HELP_WEBHOOK_URL (#hill-help) if set, otherwise the main feed. Never shows emails.
-const ACTION_SHORT = { Reach: '🔎 reach check', Register: '📝 sign-up', Charge: '🥊 charge', Report: '📋 game report', Revenge: "🔥 Ace's Revenge", Bet: '🎰 bet' };
+const ACTION_SHORT = { Reach: '🔎 reach check', Register: '📝 sign-up', Charge: '🥊 charge', Report: '📋 game report', Revenge: "🔥 Ace's Revenge", Bet: '🎰 bet', Wager: '🤝 wager', WagerReply: '🤝 wager answer' };
 function rejectPost_(sub, msg) {
   const C = cfg_();
   if (lc_(C.POST_REJECTIONS) === 'false') return;
@@ -780,7 +805,8 @@ function rejectPost_(sub, msg) {
   if (!who) { const d = norm_(sub.f && sub.f[Q.DISCORD]); who = d ? '**' + esc_(d) + '**' : 'Someone'; }
   const a = actionOf_(sub.action);
   const kind = a === ACTIONS.REGISTER ? ACTION_SHORT.Register : a === ACTIONS.CHALLENGE ? ACTION_SHORT.Charge : a === ACTIONS.REPORT ? ACTION_SHORT.Report :
-    a === ACTIONS.REVENGE ? ACTION_SHORT.Revenge : a === ACTIONS.BET ? ACTION_SHORT.Bet : a === ACTIONS.REACH ? ACTION_SHORT.Reach : 'form';
+    a === ACTIONS.REVENGE ? ACTION_SHORT.Revenge : a === ACTIONS.BET ? ACTION_SHORT.Bet : a === ACTIONS.REACH ? ACTION_SHORT.Reach :
+    a === ACTIONS.WAGER ? ACTION_SHORT.Wager : a === ACTIONS.WAGER_REPLY ? ACTION_SHORT.WagerReply : 'form';
   const why = String(msg).replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '(email hidden)');
   const url = norm_(C.HELP_WEBHOOK_URL) || norm_(C.DISCORD_WEBHOOK_URL);
   // Recent rejections also show on the Hill Board for an hour
@@ -819,6 +845,8 @@ function handleSubmission_(sub) {
       case ACTIONS.BET: doBet_(sub, C); break;
       case ACTIONS.DISCORD_ID: doDiscordId_(sub, C); break;
       case ACTIONS.REACH: doReach_(sub, C); break;
+      case ACTIONS.WAGER: doWager_(sub, C); break;
+      case ACTIONS.WAGER_REPLY: doWagerReply_(sub, C); break;
       default: fail_('Unknown action.');
     }
   } catch (err) {
@@ -1327,6 +1355,7 @@ function flushPosts() {
       props.setProperty('FLUSH5_AT', String(t));
       try { tick_(); } catch (err) { log_('system', 'ERROR (deadlines)', String(err && err.stack || err)); }
       try { bookChoicesTick_(); } catch (err) { log_('system', 'ERROR (book)', String(err && err.stack || err)); }
+      try { wagersTick_(); } catch (err) { log_('system', 'ERROR (wagers)', String(err && err.stack || err)); }
       try { flushLog_(); } catch (err) { }
     }
   } finally { lock.releaseLock(); }
@@ -1530,6 +1559,7 @@ function onOpen() {
     .addItem('Finalize selected challenge (uses CommishScore)', 'adminFinalizeSelected')
     .addItem('Void selected challenge', 'adminVoidSelected')
     .addItem('Suspend selected player', 'adminSuspendSelected')
+    .addItem('⚖️ Fine selected player (unfair wagering)', 'adminFineSelected')
     .addSeparator()
     .addItem('Post standings to Discord', 'adminPostStandings')
     .addItem('Post the award race to Discord', 'adminPostAwardRace')
@@ -1548,6 +1578,8 @@ function onOpen() {
     .addItem('Run deadline check now', 'hourlyTick')
     .addItem('Refresh form opponent list', 'refreshFormChoices')
     .addItem('🔎 Add "Who can I charge?" to the form', 'adminAddReach')
+    .addItem('🤝 Add head-to-head wagers to the form', 'adminAddWagers')
+    .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub Hill Board', 'adminConnectGithub')
     .addToUi();
 }
@@ -1567,6 +1599,8 @@ function setup() {
   try { form.setConfirmationMessage(FORM_CONFIRM); } catch (e) { }
   try { ensureIdForm_(form); } catch (e) { log_('commish', 'ID form error', String(e)); }
   try { ensureReachForm_(form); } catch (e) { log_('commish', 'Reach form error', String(e)); }
+  try { ensureWagerForm_(form); } catch (e) { log_('commish', 'Wager form error', String(e)); }
+  try { ensureTidyForm_(form); } catch (e) { log_('commish', 'Tidy form error', String(e)); }
   ScriptApp.getProjectTriggers().forEach(function (tr) {
     if (['onHillFormSubmit', 'hourlyTick', 'flushPosts'].indexOf(tr.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(tr);
   });
@@ -1818,7 +1852,29 @@ function bankrolls_(C) {
     if (b.Status === 'Open') bank[e] -= num_(b.Stake);
     else if (b.Status === 'Won' || b.Status === 'Lost') bank[e] += num_(b.Profit);
   });
-  return { bank: bank, bets: bets, base: base };
+  // Head-to-head wagers: an offer holds the maker's stake; an accepted wager holds both; a settled one moves the loser's stake.
+  const hustle = {}, seat = function (e) { if (!(e in bank)) { bank[e] = base; bets[e] = 0; } if (!(e in hustle)) hustle[e] = 0; };
+  try {
+    readTable_(SHEETS.WAGERS).rows.forEach(function (w) {
+      if (String(w.Season) !== season) return;
+      const m = lc_(w.Maker), k = lc_(w.Taker), ms = num_(w.MakerStake), ts = num_(w.TakerStake);
+      seat(m); seat(k);
+      if (w.Status === 'Offered') bank[m] -= ms;
+      else if (w.Status === 'Accepted' || w.Status === 'Airing') { bank[m] -= ms; bank[k] -= ts; }
+      else if (w.Status === 'Settled') {
+        if (lc_(w.Winner) === m) { bank[m] += ts; bank[k] -= ts; hustle[m] += ts; hustle[k] -= ts; }
+        else { bank[k] += ms; bank[m] -= ms; hustle[k] += ms; hustle[m] -= ms; }
+      }
+    });
+  } catch (e) { }
+  // Commish fines and the league's share of them
+  try {
+    readTable_(SHEETS.LEDGER).rows.forEach(function (x) {
+      if (String(x.Season) !== season) return;
+      const e = lc_(x.Email); seat(e); bank[e] += num_(x.Amount);
+    });
+  } catch (e) { }
+  return { bank: bank, bets: bets, base: base, hustle: hustle };
 }
 
 function doBet_(sub, C) {
@@ -2259,6 +2315,363 @@ function adminResetForLaunch() {
   } finally { lock.releaseLock(); }
 }
 
+
+// ───────────────────────────── 🤝 Head-to-head wagers (Brawl Bucks, player vs player) ─────────────────────────────
+// One player offers a wager on the form (stake up to WAGER_MAX a side; straight up, odds or a run line); the other
+// accepts on the form. The next allowed game between their two clubs within WAGER_PLAY_HOURS settles it, once it
+// has aired. No house cut: the loser's stake goes to the winner. Ties on straight-up and odds wagers, and no game
+// in time, refund both sides. Offers hold the maker's stake; accepted wagers hold both (see bankrolls_).
+const WAGER_TERMS = {
+  even: 'Straight up: we both risk the same',
+  giveOdds: 'Odds: I give odds (I risk more than they do)',
+  getOdds: 'Odds: I get odds (they risk more than I do)',
+  giveRuns: 'Run line: I give runs (I must win by this many or more)',
+  getRuns: 'Run line: I get runs (I win unless I lose by this many or more)',
+};
+const WAGER_REPLIES = ['✅ Accept', '❌ Decline', '🗑️ Cancel my own offer'];
+const WAGER_WARN = '⚠️ Fair play: throwing games, fake wagers to slide Brawl Bucks to a friend, or any other funny business gets your Brawl Bucks taken and split among the rest of the league. Extreme cases get expelled from the Hill.';
+const WAGER_LIVE = ['Offered', 'Accepted', 'Airing'];
+function wagerOn_(C) { return bookOn_(C) && lc_(C.WAGER_ON) !== 'false'; }
+function wagerMax_(C) { return Number(C.WAGER_MAX) || 250; }
+function wagerHelp_(C) {
+  return 'Bet Brawl Bucks straight against another Hill player: up to ' + wagerMax_(C) + ' BB a side, on your terms (straight up, odds or a run line). ' +
+    'They accept on this form. The next BigLeague game between your two clubs within ' + (Number(C.WAGER_PLAY_HOURS) || 48) + ' hours of accepting settles it, once it has aired. ' +
+    'No house cut: the winner takes the loser\'s stake. A tie (straight up or odds) or no game in time = everyone gets their bucks back. ' + WAGER_WARN;
+}
+function bankOf_(br, email) { const e = lc_(email); return e in br.bank ? br.bank[e] : br.base; }
+function wagerId_(raw) {
+  const m = /(\d+)/.exec(norm_(raw));
+  return m ? 'W-' + pad_(Number(m[1])) : '';
+}
+function parseOdds_(raw) {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(?:-|:|\/|to)\s*(\d+(?:\.\d+)?)\s*$/i.exec(norm_(raw));
+  if (!m) return null;
+  let a = Number(m[1]), b = Number(m[2]);
+  if (!(a > 0 && b > 0)) return null;
+  if (a < b) { const x = a; a = b; b = x; }   // "1-2" means the same as "2-1"
+  return { a: a, b: b, txt: a + '-' + b };
+}
+// Short terms for posts and the board, from the maker's side.
+function wagerTerms_(w) {
+  const n = esc_(w.MakerName), L = norm_(w.Line);
+  switch (w.Terms) {
+    case 'giveOdds': return n + ' gives ' + L + ' odds';
+    case 'getOdds': return n + ' gets ' + L + ' odds';
+    case 'giveRuns': return n + ' gives ' + L + (L === '1' ? ' run' : ' runs') + ' (must win by ' + L + '+)';
+    case 'getRuns': return n + ' gets ' + L + (L === '1' ? ' run' : ' runs') + ' (wins unless losing by ' + L + '+)';
+    default: return 'straight up';
+  }
+}
+// Who wins, from the maker's runs minus the taker's. null = refund (a tie on a straight-up or odds wager).
+function wagerWinner_(w, margin) {
+  const n = num_(w.Line);
+  if (w.Terms === 'giveRuns') return margin >= n ? 'maker' : 'taker';
+  if (w.Terms === 'getRuns') return margin > -n ? 'maker' : 'taker';
+  return margin > 0 ? 'maker' : margin < 0 ? 'taker' : null;
+}
+function wagerPair_(w, a, b) {
+  return (lc_(w.Maker) === lc_(a) && lc_(w.Taker) === lc_(b)) || (lc_(w.Maker) === lc_(b) && lc_(w.Taker) === lc_(a));
+}
+
+function doWager_(sub, C) {
+  if (!wagerOn_(C)) fail_('Head-to-head wagers are off right now.');
+  if (!seasonOpen_(C)) fail_('Wagers open when the season starts.');
+  if (seasonOver_(C)) fail_('The season is over: no new wagers.');
+  const pt = players_(), me = activeMe_(pt, sub.email);
+  if (!norm_(me.ClubID)) fail_('Your club ID is missing from the Hill. Register again with it first.');
+  const oppId = norm_(sub.f[Q.W_OPP]).replace(/\D/g, '');
+  if (!oppId) fail_("Enter your opponent's club ID (it's next to their name on the Hill Board).");
+  const opp = pt.rows.find(function (p) { return p.Status === 'Active' && norm_(p.ClubID) === oppId; });
+  if (!opp) fail_('No active Hill player has club ID ' + oppId + '. Both of you need to be on the Hill.');
+  if (lc_(opp.Email) === lc_(me.Email)) fail_("You can't wager against yourself.");
+  const max = wagerMax_(C);
+  const stake = Math.floor(Number(norm_(sub.f[Q.W_STAKE]).replace(/[^\d]/g, '')));
+  if (!(stake >= 1)) fail_('Enter a stake of at least 1 Brawl Buck.');
+  if (stake > max) fail_('The most anyone can put on a wager is ' + max + ' Brawl Bucks.');
+  const label = norm_(sub.f[Q.W_TERMS]);
+  const terms = Object.keys(WAGER_TERMS).find(function (k) { return WAGER_TERMS[k] === label; }) || 'even';
+  let ms = stake, ts = stake, line = '';
+  if (terms === 'giveOdds' || terms === 'getOdds') {
+    const o = parseOdds_(sub.f[Q.W_ODDS]);
+    if (!o) fail_('For an odds bet, enter the odds like 2-1 (whoever gives the odds risks 2 for every 1).');
+    line = o.txt;
+    if (terms === 'giveOdds') ts = Math.max(1, Math.round(stake * o.b / o.a));
+    else {
+      ts = Math.round(stake * o.a / o.b);
+      if (ts > max) fail_('At ' + o.txt + ' they would risk ' + ts + ' BB, over the ' + max + ' BB limit. Lower your stake to ' + Math.floor(max * o.b / o.a) + ' or less.');
+    }
+  }
+  if (terms === 'giveRuns' || terms === 'getRuns') {
+    const n = Math.floor(Number(norm_(sub.f[Q.W_RUNS]).replace(/[^\d]/g, '')));
+    if (!(n >= 1 && n <= 20)) fail_('For a run-line bet, enter the runs as a whole number from 1 to 20.');
+    line = String(n);
+  }
+  const br = bankrolls_(C), have = bankOf_(br, me.Email);
+  if (ms > have) fail_('You only have ' + have + ' Brawl Bucks free (stakes on open bets and wagers are held until they settle).');
+  const wt = readTable_(SHEETS.WAGERS);
+  const going = wt.rows.find(function (w) { return WAGER_LIVE.indexOf(w.Status) >= 0 && wagerPair_(w, me.Email, opp.Email); });
+  if (going) fail_('You two already have a wager going (' + going.WagerID + '). Settle that one first.');
+  const mine = wt.rows.filter(function (w) { return w.Status === 'Offered' && lc_(w.Maker) === lc_(me.Email); }).length;
+  if (mine >= 3) fail_('You already have 3 offers waiting on an answer. Cancel one or wait for them to be answered.');
+  const exp = hoursFrom_(now_(), Number(C.WAGER_OFFER_HOURS) || 24);
+  const w = { WagerID: 'W-' + pad_(wt.rows.length + 1), Season: C.SEASON, Offered: now_(), Status: 'Offered',
+    Maker: me.Email, MakerName: norm_(me.Discord), MakerClubID: norm_(me.ClubID), Taker: opp.Email, TakerName: norm_(opp.Discord), TakerClubID: norm_(opp.ClubID),
+    Terms: terms, Line: line, MakerStake: ms, TakerStake: ts, Expires: exp, AcceptedAt: '', Deadline: '', GameID: '', MakerRuns: '', TakerRuns: '',
+    AirsAt: '', Winner: '', Settled: '', Notes: '' };
+  appendObj_(SHEETS.WAGERS, w);
+  log_(sub.email, 'Wager offered', w.WagerID + ' vs ' + opp.Discord + ' · ' + terms + (line ? ' ' + line : '') + ' · ' + ms + '/' + ts);
+  const form = norm_(C.FORM_LINK);
+  postBook_('🤝 **WAGER OFFERED · `' + w.WagerID + '`**\n' + who_(me) + ' puts **' + ms + ' BB** on beating ' + who_(opp) + ' · ' + wagerTerms_(w) +
+    (ts !== ms ? '\n> ' + esc_(opp.Discord) + ' would risk **' + ts + ' BB** to win **' + ms + ' BB**' : '') +
+    '\n' + tag_(opp) + ': answer on the ' + (form ? '[Hill form](<' + form + '>)' : 'Hill form') + ' → *🤝 Answer a wager* · wager # `' + w.WagerID + '`. Open until ' + ts_(exp) + '.' +
+    '\n-# Your next BigLeague game against each other settles it, once it airs. Funny business costs you your Brawl Bucks.');
+}
+
+function doWagerReply_(sub, C) {
+  if (!wagerOn_(C)) fail_('Head-to-head wagers are off right now.');
+  const pt = players_(), me = activeMe_(pt, sub.email);
+  const id = wagerId_(sub.f[Q.W_ID]);
+  if (!id) fail_('Enter the wager # from the Discord post, like W-0003.');
+  const wt = readTable_(SHEETS.WAGERS);
+  const w = wt.rows.find(function (x) { return x.WagerID === id; });
+  if (!w) fail_('There is no wager ' + id + '.');
+  const ans = norm_(sub.f[Q.W_REPLY]), maker = findBy_(pt, w.Maker), taker = findBy_(pt, w.Taker);
+  const isMaker = lc_(me.Email) === lc_(w.Maker), isTaker = lc_(me.Email) === lc_(w.Taker);
+  if (w.Status !== 'Offered') fail_(id + ' is already ' + String(w.Status).toLowerCase() + '.');
+  if (/cancel/i.test(ans)) {
+    if (!isMaker) fail_('Only ' + w.MakerName + ' can cancel ' + id + '.');
+    w.Status = 'Cancelled'; w.Notes = 'Cancelled by the maker'; writeRow_(wt, w);
+    log_(sub.email, 'Wager cancelled', id);
+    postBook_('🗑️ ' + esc_(w.MakerName) + ' pulled wager `' + id + '` off the table.');
+    return;
+  }
+  if (!isTaker) fail_('Only ' + w.TakerName + ' can answer ' + id + '.' + (isMaker ? ' (To pull your own offer, pick "' + WAGER_REPLIES[2] + '".)' : ''));
+  if (new Date(w.Expires) <= now_()) { w.Status = 'Expired'; writeRow_(wt, w); fail_(id + ' expired before you answered.'); }
+  if (/decline/i.test(ans)) {
+    w.Status = 'Declined'; writeRow_(wt, w);
+    log_(sub.email, 'Wager declined', id);
+    postBook_('❌ ' + esc_(w.TakerName) + ' passed on wager `' + id + '` from ' + esc_(w.MakerName) + '.');
+    return;
+  }
+  if (!maker || maker.Status !== 'Active') fail_(w.MakerName + " isn't active on the Hill anymore, so " + id + ' is off.');
+  const ts = num_(w.TakerStake), br = bankrolls_(C), have = bankOf_(br, me.Email);
+  if (ts > have) fail_('Accepting ' + id + ' takes ' + ts + ' Brawl Bucks and you only have ' + have + ' free.');
+  const dl = hoursFrom_(now_(), Number(C.WAGER_PLAY_HOURS) || 48);
+  w.Status = 'Accepted'; w.AcceptedAt = now_(); w.Deadline = dl; writeRow_(wt, w);
+  log_(sub.email, 'Wager accepted', id);
+  postBook_('✅ **IT\'S ON · `' + id + '`** · ' + (maker ? who_(maker) : esc_(w.MakerName)) + ' vs ' + who_(me) + ' · ' + wagerTerms_(w) +
+    ' · **' + num_(w.MakerStake) + ' BB' + (num_(w.MakerStake) !== ts ? ' vs ' + ts + ' BB' : ' each') + '**' +
+    '\n> The next BigLeague game between club `' + norm_(w.MakerClubID) + '` and club `' + norm_(w.TakerClubID) + '` before ' + ts_(dl) + ' settles it. Either club can host. It pays out once the game has aired.');
+}
+
+// Every 5 minutes: expire old offers, find the game for accepted wagers, settle the ones that have aired.
+function wagersTick_() {
+  const C = cfg_();
+  if (!wagerOn_(C)) return;
+  let wt; try { wt = readTable_(SHEETS.WAGERS); } catch (e) { return; }
+  const t = now_().getTime(), live = wt.rows.filter(function (w) { return WAGER_LIVE.indexOf(w.Status) >= 0; });
+  if (!live.length) return;
+  const pt = players_(), kinds = norm_(C.WAGER_KINDS || 'big').toLowerCase().split(/[\s,]+/).filter(Boolean);
+  const person = function (email, name) { const p = findBy_(pt, email); return p ? tag_(p) : '**' + esc_(name) + '**'; };
+  const used = {}; wt.rows.forEach(function (w) { if (norm_(w.GameID)) used[norm_(w.GameID)] = w.WagerID; });
+  live.forEach(function (w) {
+    if (w.Status === 'Offered') {
+      if (new Date(w.Expires).getTime() <= t) {
+        w.Status = 'Expired'; writeRow_(wt, w);
+        postBook_('⌛ Wager `' + w.WagerID + '` (' + esc_(w.MakerName) + ' vs ' + esc_(w.TakerName) + ') expired. Nobody took it.');
+      }
+      return;
+    }
+    if (w.Status === 'Accepted') {
+      let rows = null;
+      try { rows = clubGames_(norm_(w.MakerClubID)); } catch (e) { rows = null; }
+      if (rows) {
+        const mc = norm_(w.MakerClubID), tc = norm_(w.TakerClubID);
+        const from = new Date(w.AcceptedAt).getTime(), to = new Date(w.Deadline).getTime();   // only a game finished after both sides were in counts
+        const hits = rows.filter(function (g) {
+          const ft = Date.parse(g.finished_at), a = String(g.away_team_id), h = String(g.home_team_id);
+          return ((a === mc && h === tc) || (a === tc && h === mc)) && kinds.indexOf(g.kind) >= 0 && ft >= from && ft <= to &&
+            g.away_runs != null && !(used[String(g.game_id)] && used[String(g.game_id)] !== w.WagerID);
+        }).sort(function (x, y) { return Date.parse(x.finished_at) - Date.parse(y.finished_at); });
+        if (hits.length) {
+          const g = hits[0], makerAway = String(g.away_team_id) === mc;
+          w.GameID = String(g.game_id); used[w.GameID] = w.WagerID;
+          w.MakerRuns = makerAway ? g.away_runs : g.home_runs; w.TakerRuns = makerAway ? g.home_runs : g.away_runs;
+          w.AirsAt = new Date(Date.parse(g.finished_at) + num_(C.POST_DELAY_MINUTES) * 60000);
+          w.Status = 'Airing'; writeRow_(wt, w);
+          log_('system', 'Wager game found', w.WagerID + ' game ' + g.game_id);
+          postBook_('📡 Wager `' + w.WagerID + '`: game `' + g.game_id + '` found. It pays out ' + ts_(w.AirsAt) + ', once it has aired. (No score here: no spoilers.)');
+          return;
+        }
+      }
+      if (new Date(w.Deadline).getTime() <= t) {
+        w.Status = 'Refunded'; w.Notes = 'No game in time'; writeRow_(wt, w);
+        postBook_('↩️ Wager `' + w.WagerID + '` refunded: no BigLeague game between ' + esc_(w.MakerName) + ' and ' + esc_(w.TakerName) + ' in time. Everybody gets their bucks back.');
+      }
+      return;
+    }
+    if (w.Status === 'Airing' && new Date(w.AirsAt).getTime() <= t) {
+      const mr = num_(w.MakerRuns), tr = num_(w.TakerRuns), side = wagerWinner_(w, mr - tr);
+      const score = esc_(w.MakerName) + ' ' + mr + ', ' + esc_(w.TakerName) + ' ' + tr;
+      w.Settled = now_();
+      if (!side) {
+        w.Status = 'Refunded'; w.Notes = 'Tie'; writeRow_(wt, w);
+        postBook_('🤝 Wager `' + w.WagerID + '` is a push: ' + score + '. Bucks back to both.');
+        return;
+      }
+      const mWin = side === 'maker', amt = mWin ? num_(w.TakerStake) : num_(w.MakerStake);
+      w.Status = 'Settled'; w.Winner = mWin ? w.Maker : w.Taker; writeRow_(wt, w);
+      log_('system', 'Wager settled', w.WagerID + ' → ' + (mWin ? w.MakerName : w.TakerName) + ' +' + amt);
+      postBook_('💸 **WAGER `' + w.WagerID + '` PAYS OUT** · ' + (mWin ? person(w.Maker, w.MakerName) : person(w.Taker, w.TakerName)) + ' takes **' + amt + ' BB** from ' +
+        (mWin ? person(w.Taker, w.TakerName) : person(w.Maker, w.MakerName)) + '.\n> Final: ' + score + ' · ' + wagerTerms_(w));
+    }
+  });
+}
+
+// For the Hill Board (names only, no emails).
+function wagerBoard_(C) {
+  let rows = []; try { rows = readTable_(SHEETS.WAGERS).rows.filter(function (w) { return String(w.Season) === String(C.SEASON); }); } catch (e) { rows = []; }
+  const iso = function (d) { return d ? new Date(d).toISOString() : ''; };
+  const pub = function (w) {
+    const mw = lc_(w.Winner) === lc_(w.Maker);
+    return { id: w.WagerID, m: norm_(w.MakerName), t: norm_(w.TakerName), terms: wagerTerms_(w).replace(/\\/g, ''), ms: num_(w.MakerStake), ts: num_(w.TakerStake),
+      st: w.Status, exp: iso(w.Expires), dl: iso(w.Deadline), airs: iso(w.AirsAt),
+      win: w.Status === 'Settled' ? (mw ? norm_(w.MakerName) : norm_(w.TakerName)) : '', amt: w.Status === 'Settled' ? (mw ? num_(w.TakerStake) : num_(w.MakerStake)) : 0 };
+  };
+  const done = rows.filter(function (w) { return w.Status === 'Settled' || (w.Status === 'Refunded' && norm_(w.AcceptedAt)); });
+  return { max: wagerMax_(C), open: rows.filter(function (w) { return w.Status === 'Offered'; }).map(pub),
+    live: rows.filter(function (w) { return w.Status === 'Accepted' || w.Status === 'Airing'; }).map(pub), done: done.slice(-8).reverse().map(pub) };
+}
+
+function ensureWagerForm_(form) {
+  const C = cfg_();
+  const pages = form.getItems(FormApp.ItemType.PAGE_BREAK);
+  let pW = pages.find(function (p) { return p.getTitle() === ACTIONS.WAGER; });
+  if (!pW) {
+    pW = form.addPageBreakItem().setTitle(ACTIONS.WAGER).setHelpText(wagerHelp_(C));
+    pW.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+    form.addTextItem().setTitle(Q.W_OPP).setHelpText("Their club ID number. It's next to their name on the Hill Board.").setRequired(true)
+      .setValidation(FormApp.createTextValidation().requireWholeNumber().setHelpText('The club ID number').build());
+    form.addTextItem().setTitle(Q.W_STAKE).setHelpText('What you put up, ' + 1 + ' to ' + wagerMax_(C) + ' Brawl Bucks.').setRequired(true)
+      .setValidation(FormApp.createTextValidation().requireNumberBetween(1, wagerMax_(C)).setHelpText('A whole number from 1 to ' + wagerMax_(C)).build());
+    form.addMultipleChoiceItem().setTitle(Q.W_TERMS).setChoiceValues(Object.keys(WAGER_TERMS).map(function (k) { return WAGER_TERMS[k]; })).setRequired(true);
+    form.addTextItem().setTitle(Q.W_ODDS).setHelpText('Like 2-1: whoever gives the odds risks 2 for every 1. Leave blank otherwise.');
+    form.addTextItem().setTitle(Q.W_RUNS).setHelpText('A whole number of runs, like 2. Leave blank otherwise.');
+  }
+  pW = pW.asPageBreakItem ? pW.asPageBreakItem() : pW;
+  try { pW.setHelpText(wagerHelp_(C)); } catch (e) { }
+  let pR = form.getItems(FormApp.ItemType.PAGE_BREAK).find(function (p) { return p.getTitle() === ACTIONS.WAGER_REPLY; });
+  if (!pR) {
+    pR = form.addPageBreakItem().setTitle(ACTIONS.WAGER_REPLY)
+      .setHelpText('Got called out? Take it or leave it. Made an offer nobody has answered yet? You can pull it here. ' + WAGER_WARN);
+    pR.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+    form.addTextItem().setTitle(Q.W_ID).setRequired(true);
+    form.addMultipleChoiceItem().setTitle(Q.W_REPLY).setChoiceValues(WAGER_REPLIES).setRequired(true);
+  }
+  pR = pR.asPageBreakItem ? pR.asPageBreakItem() : pR;
+  const action = form.getItems(FormApp.ItemType.MULTIPLE_CHOICE).find(function (i) { return i.getTitle() === Q.ACTION; });
+  if (!action) return;
+  const mc = action.asMultipleChoiceItem(), old = mc.getChoices();
+  if (old.some(function (ch) { return /wager/i.test(ch.getValue()); })) return;
+  const choices = old.map(function (ch) {
+    const pg = ch.getGotoPage(); if (pg) return mc.createChoice(ch.getValue(), pg);
+    const nav = ch.getPageNavigationType(); return mc.createChoice(ch.getValue(), nav || FormApp.PageNavigationType.CONTINUE);
+  });
+  choices.push(mc.createChoice(ACTIONS.WAGER, pW));
+  choices.push(mc.createChoice(ACTIONS.WAGER_REPLY, pR));
+  mc.setChoices(choices);
+}
+
+// The order and look of the first question on the form. Tidy-up renames the old choices and their sections to
+// these labels, keeps every choice pointing at its own section, and puts 🥊 Charge the Hill first.
+const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'REGISTER', 'DISCORD_ID'];
+const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
+  'Only #1 can charge ♠ THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound.\n\n' +
+  'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
+function ensureTidyForm_(form) {
+  const items = form.getItems();
+  const action = items.find(function (i) { return i.getTitle() === Q.ACTION && i.getType() === FormApp.ItemType.MULTIPLE_CHOICE; });
+  if (!action) return 'No "' + Q.ACTION + '" question on the form.';
+  // Rename each section to its action's label (so the section header matches the choice).
+  form.getItems(FormApp.ItemType.PAGE_BREAK).forEach(function (it) {
+    const pb = it.asPageBreakItem(), canon = actionOf_(pb.getTitle());
+    if (Object.keys(ACTIONS).some(function (k) { return ACTIONS[k] === canon; }) && pb.getTitle() !== canon) pb.setTitle(canon);
+    if (canon === ACTIONS.CHALLENGE) pb.setHelpText(CHARGE_HELP);
+  });
+  const mc = action.asMultipleChoiceItem(), old = mc.getChoices(), byCanon = {}, extra = [];
+  old.forEach(function (ch) {
+    const canon = actionOf_(ch.getValue());
+    const pg = ch.getGotoPage(), nav = ch.getPageNavigationType();
+    const make = function (label) { return pg ? mc.createChoice(label, pg) : mc.createChoice(label, nav || FormApp.PageNavigationType.CONTINUE); };
+    if (Object.keys(ACTIONS).some(function (k) { return ACTIONS[k] === canon; }) && !byCanon[canon]) byCanon[canon] = make(canon);
+    else extra.push(make(ch.getValue()));
+  });
+  const ordered = ACTION_ORDER.map(function (k) { return byCanon[ACTIONS[k]]; }).filter(Boolean);
+  mc.setChoices(ordered.concat(extra));
+  mc.setHelpText('🥊 Want to climb? Pick CHARGE THE HILL. New here? Register your club first (bottom of the list).');
+  return 'Form tidied: ' + ordered.length + ' options, 🥊 Charge the Hill first.';
+}
+function adminTidyForm() { withUi_(function () { return ensureTidyForm_(FormApp.openById(cfg_().FORM_ID)); }); }
+function adminAddWagers() {
+  withUi_(function () {
+    ensureSheets_(SpreadsheetApp.getActive());
+    const form = FormApp.openById(cfg_().FORM_ID);
+    ensureWagerForm_(form);
+    ensureTidyForm_(form);
+    return 'Head-to-head wagers are on the form: "' + ACTIONS.WAGER + '" and "' + ACTIONS.WAGER_REPLY + '". New Wagers and Ledger tabs hold the records.';
+  });
+}
+
+// Commish ruling: take Brawl Bucks from a player (a number, or ALL) and split them evenly across every other active
+// player; void their open wagers; optionally expel them. Recorded in the Ledger tab.
+function finePlayer_(email, amountRaw, reason, expel, actor) {
+  const C = cfg_(), pt = players_(), p = findBy_(pt, email);
+  if (!p) fail_('Player not found.');
+  try {
+    const wt = readTable_(SHEETS.WAGERS);
+    wt.rows.filter(function (w) { return WAGER_LIVE.indexOf(w.Status) >= 0 && (lc_(w.Maker) === lc_(email) || lc_(w.Taker) === lc_(email)); })
+      .forEach(function (w) { w.Status = 'Cancelled'; w.Notes = 'Voided by commish ruling'; writeRow_(wt, w); });
+  } catch (e) { }
+  const have = bankOf_(bankrolls_(C), email);
+  const amt = /^all$/i.test(norm_(amountRaw)) ? have : Math.min(have, Math.floor(Number(norm_(amountRaw).replace(/[^\d]/g, ''))));
+  if (!(amt > 0)) fail_(p.Discord + ' has no Brawl Bucks to take (balance ' + have + ').');
+  const others = pt.rows.filter(function (x) { return x.Status === 'Active' && lc_(x.Email) !== lc_(email); })
+    .sort(function (x, y) { return (hasRank_(x) ? Number(x.Rank) : 999) - (hasRank_(y) ? Number(y.Rank) : 999); });
+  const share = others.length ? Math.floor(amt / others.length) : 0, rem = others.length ? amt - share * others.length : 0;
+  const why = 'Commish ruling: unfair wagering' + (norm_(reason) ? ' (' + norm_(reason) + ')' : '');
+  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: norm_(p.Discord), Amount: -amt, Reason: why });
+  others.forEach(function (x, i) {
+    const give = share + (i < rem ? 1 : 0);
+    if (give > 0) appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: x.Email, Player: norm_(x.Discord), Amount: give, Reason: 'Share of ' + norm_(p.Discord) + "'s fine" });
+  });
+  if (expel) {
+    suspendPlayer_(p.Email, actor);
+    const pt2 = players_(), p2 = findBy_(pt2, p.Email); p2.Status = 'Expelled'; writeRow_(pt2, p2);
+  }
+  log_(actor || 'commish', 'Fine', p.Discord + ' -' + amt + ' BB split ' + others.length + ' ways' + (expel ? ' · expelled' : '') + (reason ? ' · ' + reason : ''));
+  const msg = '⚖️ **COMMISH RULING** · ' + tag_(p) + ' loses **' + amt + ' BB** for unfair wagering' + (norm_(reason) ? ': ' + esc_(reason) : '') + '.' +
+    (others.length ? '\n> Split across the league: **+' + share + (rem ? '–' + (share + 1) : '') + ' BB** each to ' + others.length + ' players.' : '') +
+    (expel ? '\n🚫 **' + esc_(p.Discord) + ' is expelled from the Hill.**' : '') + '\n-# ' + WAGER_WARN;
+  post_(msg); postBook_(msg);
+  try { snapshotBoard_(); } catch (e) { }
+  return p.Discord + ' fined ' + amt + ' BB (split ' + others.length + ' ways)' + (expel ? ' and expelled.' : '.');
+}
+function adminFineSelected() {
+  const ui = SpreadsheetApp.getUi();
+  let p;
+  try {
+    const row = selectedRow_(SHEETS.PLAYERS);
+    p = players_().rows.find(function (r) { return r._row === row; });
+    if (!p) fail_('No player on that row.');
+  } catch (err) { ui.alert(err instanceof HillError ? err.message : 'Error: ' + err); return; }
+  const a = ui.prompt('Fine ' + p.Discord + ' for unfair wagering', 'How many Brawl Bucks to take? A number, or ALL. They are split evenly across every other active player.', ui.ButtonSet.OK_CANCEL);
+  if (a.getSelectedButton() !== ui.Button.OK || !norm_(a.getResponseText())) return;
+  const r = ui.prompt('Reason (shown in Discord)', 'Short and factual, like "threw a game to pay a friend".', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const ex = ui.alert('Expel ' + p.Discord + ' from the Hill too?', 'Only for extreme cases. They come off the ladder and can\'t play.', ui.ButtonSet.YES_NO);
+  withUi_(function () { return finePlayer_(p.Email, a.getResponseText(), r.getResponseText(), ex === ui.Button.YES, Session.getActiveUser().getEmail()); });
+}
+
 // ───────────────────────────── 🎰 Sportsbook channel announcements ─────────────────────────────
 function pickOne_(a) { return a[Math.floor(Math.random() * a.length)]; }
 // A bet slip, announced with some flavor.
@@ -2676,6 +3089,7 @@ function snapshotBoard_() {
         snap.awards = AWARDS.map(function (w) { const x = aw[w.key]; return { icon: w.icon, name: w.key === 'ace' ? 'Season ' + C.SEASON + ' Ace' : w.name, what: w.what, who: x ? x.name : '', club: x ? x.club : '', value: x ? x.value : '' }; });
         snap.cup = aw.cupTable.map(function (x) { return { name: x.name, club: x.club, pts: x.pts }; });
         snap.bank = (aw.bookTable || []).map(function (x) { return { name: x.name, bank: x.bank }; });
+        snap.wagers = wagerOn_(C) ? wagerBoard_(C) : null;
         if (bookOn_(C)) { snap.book = bookBoard_(C); const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
@@ -2947,6 +3361,10 @@ h+='<h2 class="bb">🎰 The Sportsbook</h2><div class="book"><div>'+(bo.length?b
 var BK=D.book||{bettors:[],hits:[]};
 h+='<div class="book" style="margin-top:12px"><div class="mine"><h3 class="bb" style="margin:0;color:#ffd166">🎟️ My bets</h3>'+(BK.bettors.length?'<select id="mysel"><option value="">Pick your name…</option>'+BK.bettors.map(function(x,i){return '<option value="'+i+'">'+esc(x.name)+'</option>';}).join('')+'</select><div id="myout" class="empty" style="margin-top:8px">Pick your name to see your balance and bets. Everyone starts with '+(BK.base||1000)+' BB.</div>':'<div class="empty">No bets placed yet this season.</div>')+'</div>'
 +'<div class="cup"><h3 class="bb">💸 Big hits</h3>'+(BK.hits.length?BK.hits.map(function(x){return '<div class="hit">'+esc(x.name)+' · '+esc(x.what)+' ('+fo(x.odds)+') <b>+'+x.profit+'</b></div>';}).join(''):'<div class="empty">No winners yet.</div>')+'</div></div>';
+var WG=D.wagers;
+if(WG){var wrow=function(x,st){return '<div class="r" style="grid-template-columns:62px minmax(0,1fr) auto"><span class="bb" style="opacity:.6;font-size:15px">'+esc(x.id)+'</span><span class="bb">'+esc(x.m)+' <small style="display:inline;opacity:.6">vs</small> '+esc(x.t)+'<small>'+esc(x.terms)+' · '+x.ms+(x.ts!==x.ms?' vs '+x.ts+' BB':' BB each')+'</small></span><b style="text-align:right">'+st+'</b></div>';};
+h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.max||250)+' BB a side, straight up, odds or a run line. They accept on the Hill form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.</b></div>'
++(WG.live.length||WG.open.length||WG.done.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join('')+WG.done.map(function(x){return wrow(x,x.win?'💸 '+esc(x.win)+' +'+x.amt:'↩️ Refunded');}).join(''):'<div class="empty">No wagers yet. Call somebody out on the Hill form.</div>')+'</div>';}
 var PO=D.pot||[];
 if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'</h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.</b> ':'')+'Every charge that could happen right now. Bet on the Hill form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.</div>'
 +PO.slice(0,24).map(function(L){return '<div class="r" style="grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr) 70px"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title</small>':'')+'</span><b>'+fo(L.a)+'</b><span class="bb" style="text-align:right">@ '+esc(L.df)+'</span><b>'+fo(L.h)+'</b></div>';}).join('')+'</div>';}

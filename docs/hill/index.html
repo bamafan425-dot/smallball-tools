@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hold the Hill · SmallBall</title>
-<meta property="og:title" content="Hold the Hill · live board"><meta property="og:description" content="SmallBall's King-of-the-Hill ladder: the Ace, the Climb, open charges, results and the sportsbook.">
+<meta property="og:title" content="Hold the Hill · live board"><meta property="og:description" content="SmallBall's King-of-the-Hill ladder: the Ace, the Climb, open charges, results, the sportsbook and head-to-head wagers.">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}html,body{margin:0}body{background:#0E1B33;color:#F4EBD9;font:500 15px/1.45 Oswald,'Arial Narrow',system-ui,sans-serif;overflow-x:hidden}
@@ -189,6 +189,10 @@ h+='<h2 class="bb">🎰 The Sportsbook<\/h2><div class="book"><div>'+(bo.length?
 var BK=D.book||{bettors:[],hits:[]};
 h+='<div class="book" style="margin-top:12px"><div class="mine"><h3 class="bb" style="margin:0;color:#ffd166">🎟️ My bets<\/h3>'+(BK.bettors.length?'<select id="mysel"><option value="">Pick your name…<\/option>'+BK.bettors.map(function(x,i){return '<option value="'+i+'">'+esc(x.name)+'<\/option>';}).join('')+'<\/select><div id="myout" class="empty" style="margin-top:8px">Pick your name to see your balance and bets. Everyone starts with '+(BK.base||1000)+' BB.<\/div>':'<div class="empty">No bets placed yet this season.<\/div>')+'<\/div>'
 +'<div class="cup"><h3 class="bb">💸 Big hits<\/h3>'+(BK.hits.length?BK.hits.map(function(x){return '<div class="hit">'+esc(x.name)+' · '+esc(x.what)+' ('+fo(x.odds)+') <b>+'+x.profit+'<\/b><\/div>';}).join(''):'<div class="empty">No winners yet.<\/div>')+'<\/div><\/div>';
+var WG=D.wagers;
+if(WG){var wrow=function(x,st){return '<div class="r" style="grid-template-columns:62px minmax(0,1fr) auto"><span class="bb" style="opacity:.6;font-size:15px">'+esc(x.id)+'<\/span><span class="bb">'+esc(x.m)+' <small style="display:inline;opacity:.6">vs<\/small> '+esc(x.t)+'<small>'+esc(x.terms)+' · '+x.ms+(x.ts!==x.ms?' vs '+x.ts+' BB':' BB each')+'<\/small><\/span><b style="text-align:right">'+st+'<\/b><\/div>';};
+h+='<div class="fut cup"><h3 class="bb">🤝 Head-to-head wagers<\/h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">Bet Brawl Bucks straight against another Hill player: up to '+(WG.max||250)+' BB a side, straight up, odds or a run line. They accept on the Hill form, and your next BigLeague game against each other settles it once it airs. No house cut. <b style="color:#ffd166">Funny business costs you your bucks (split across the league), and worse.<\/b><\/div>'
++(WG.live.length||WG.open.length||WG.done.length?WG.live.map(function(x){return wrow(x,x.st==='Airing'?'📺 Airing':'⚾ Game on · '+left(x.dl));}).join('')+WG.open.map(function(x){return wrow(x,'Open · '+left(x.exp));}).join('')+WG.done.map(function(x){return wrow(x,x.win?'💸 '+esc(x.win)+' +'+x.amt:'↩️ Refunded');}).join(''):'<div class="empty">No wagers yet. Call somebody out on the Hill form.<\/div>')+'<\/div>';}
 var PO=D.pot||[];
 if(PO.length){var pre=D.seasonStart&&new Date(D.seasonStart)>new Date();h+='<div class="fut cup"><h3 class="bb">🔮 Matchup lines'+(pre?' · preview':'')+'<\/h3><div style="font-size:13px;opacity:.7;margin-bottom:6px">'+(pre?'<b style="color:#ffd166">Betting opens at kickoff.<\/b> ':'')+'Every charge that could happen right now. Bet on the Hill form before the charge is made: betting locks the moment it is. Not played within 48 hours? Your bet comes back.<\/div>'
 +PO.slice(0,24).map(function(L){return '<div class="r" style="grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr) 70px"><span class="bb">'+esc(L.ch)+(L.t?' <small style="display:inline;color:#ffd166">♠ title<\/small>':'')+'<\/span><b>'+fo(L.a)+'<\/b><span class="bb" style="text-align:right">@ '+esc(L.df)+'<\/span><b>'+fo(L.h)+'<\/b><\/div>';}).join('')+'<\/div>';}
@@ -222,8 +226,8 @@ document.querySelectorAll('.cnt').forEach(function(el){var n=+el.dataset.n,k=0,s
 <script>
 (function(){
 var SRC=['https://api.github.com/repos/slipnsliders/smallball-tools/contents/docs/hill/board.json?ref=main',
- 'https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/docs/hill/board.json','board.json'],last=null,shown=false;
-function run(txt){window.__D=JSON.parse(txt);var s=document.createElement('script');s.text=document.getElementById('hillmain').textContent.replace(/<\\\//g,'</');document.body.appendChild(s);shown=true;}
+ 'https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/docs/hill/board.json','board.json'],last=null;
+function run(txt){window.__D=JSON.parse(txt);var s=document.createElement('script');s.text=document.getElementById('hillmain').textContent.replace(/<\\\//g,'</');document.body.appendChild(s);}
 function get(i,cb){if(i>=SRC.length)return cb(null);var u=SRC[i]+(i?(SRC[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
  fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}}).then(function(r){if(!r.ok)throw r.status;return r.text()}).then(function(x){JSON.parse(x);cb(x)}).catch(function(){get(i+1,cb)});}
 function strip(x){try{var o=JSON.parse(x);delete o.updated;return JSON.stringify(o)}catch(e){return x}}
