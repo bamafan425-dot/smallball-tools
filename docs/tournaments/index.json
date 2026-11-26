@@ -1,6 +1,24 @@
 {
- "updated": 1795670763142,
+ "updated": 1795676716854,
  "list": [
+  {
+   "slug": "sunday-sandlot-scramble",
+   "name": "Sunday Sandlot Scramble",
+   "url": "https://slipnsliders.github.io/smallball-tools/t/sunday-sandlot-scramble/",
+   "form": "https://docs.google.com/forms/d/e/1FAIpQLSf7TL8z1Ww23BQ7s1eNVLh1rAYbuFgdiBLGsxZe4Jsa6JqKSQ/viewform",
+   "prizes": "SmallBall Tickets and pictures of dogs",
+   "fmt": "double",
+   "kinds": "BigLeague",
+   "stars": "Any club",
+   "wave": 60,
+   "signupClose": 1795996800000,
+   "start": 1796000400000,
+   "clubs": 0,
+   "status": "signups",
+   "finished": 0,
+   "champ": null,
+   "runner": null
+  },
   {
    "slug": "black-friday-brawl",
    "name": "Black Friday Brawl",
