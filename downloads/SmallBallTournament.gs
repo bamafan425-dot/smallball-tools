@@ -1096,14 +1096,14 @@ function autoHealth_(C) {
   log_('system', issues.some((x) => x.s === 'bad') ? 'Health check: needs you' : 'Health check', issues.length ? issues.map((x) => (x.s === 'bad' ? '❌ ' : '⚠️ ') + x.t + ' → ' + x.fix).join(' | ') : 'All good for the ' + norm_(C.TOURNEY_NAME));
 }
 
-const NEW_HTML_ = `<!DOCTYPE html><html><head><base target="_top"><style>
+const NEW_HTML_ = `<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_top"><style>
 body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2430;margin:0;padding:4px 6px}
 label{display:block;font-weight:600;margin:10px 0 3px}small{color:#5b6475;font-weight:400}
 input,select,textarea{width:100%;box-sizing:border-box;font:inherit;padding:6px 8px;border:1px solid #c7ccd6;border-radius:6px}
 .row{display:flex;gap:10px}.row>div{flex:1}.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin-top:10px}.chk input{width:auto;margin-top:3px}
 .note{background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;margin:4px 0 8px}.bad{background:#fde8e8;border-color:#f1a3a3}
 button{background:#1a73e8;color:#fff;border:0;border-radius:6px;padding:9px 18px;font:600 14px system-ui;margin-top:14px;cursor:pointer}button[disabled]{opacity:.5}
-#out{white-space:pre-wrap;margin-top:12px}.kinds label{display:inline-flex;gap:5px;font-weight:400;margin-right:12px}.kinds input{width:auto}
+#out{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:12px}.kinds label{display:inline-flex;gap:5px;font-weight:400;margin-right:12px}.kinds input{width:auto}
 </style></head><body>
 <div id="state"></div>
 <label>Name <small>shown everywhere, e.g. "New Year's Knockout"</small></label><input id="name" maxlength="60">
