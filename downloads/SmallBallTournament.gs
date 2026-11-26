@@ -119,7 +119,7 @@ $('go').onclick=function(){
   $('go').disabled=true;$('out').textContent='Working… (archiving, setting up the form and page)';
   google.script.run.withSuccessHandler(function(r){
     var icon={ok:'✅',warn:'⚠️',bad:'❌'};
-    $('out').textContent='🎉 '+r.name+' is set up'+(r.archived?' ('+r.archived+' saved to History)':'')+(r.alongside?', running alongside the others. The menu now works on it (🔀 to switch; reload the Sheet to see the new menu name).':'.')+'\\n\\nBracket page: '+r.url+'\\nSign-up form'+(r.alongside?' (its own, new link)':' (same link as before)')+': '+r.form+'\\n\\nHealth check:\\n'+r.health.map(function(x){return icon[x.s]+' '+x.t+(x.s!=='ok'&&x.fix?'\\n     → '+x.fix:'')}).join('\\n');
+    $('out').textContent='🎉 '+r.name+' is set up'+(r.archived?' ('+r.archived+' saved to History)':'')+(r.alongside?', running alongside the others. The menu now works on it (🔀 to switch; reload the Sheet to see the new menu name).':'.')+'\\n\\nBracket page: '+r.url+'\\nSign-up form'+(r.alongside?' (its own, new link)':' (same link as before)')+': '+r.form+(r.alongside?'\\n👥 One check on the new form: Published → Responders → Anyone with the link (business-account forms start company-only).':'')+'\\n\\nHealth check:\\n'+r.health.map(function(x){return icon[x.s]+' '+x.t+(x.s!=='ok'&&x.fix?'\\n     → '+x.fix:'')}).join('\\n');
   }).withFailureHandler(function(e){$('go').disabled=false;var m=String(e&&e.message||e);
     $('out').textContent=/PERMISSION_DENIED|reading from storage/i.test(m)?'❌ Google blocked this box because Chrome is signed in to several Google accounts and this Sheet\\'s account isn\\'t the main one.\\n\\nFix: open the Sheet in a window signed in only to the account that owns it (an Incognito window works), then try again. Or close this and use 🆕 New tournament (question boxes) from the menu.\\n\\nNothing was changed.':'❌ '+m;}).newTournament(o);
 };
@@ -1073,7 +1073,7 @@ function adminNewTournamentBoxes() {
     const r = newTournament(o);
     try { onOpen(); } catch (e) { }
     return '🎉 ' + r.name + ' is set up' + (r.archived ? ' (' + r.archived + ' saved to History)' : '') + '.' + (r.alongside ? ' It runs alongside the others, and the menu now works on it (🔀 to switch).' : '') +
-      '\n\nSign-up form: ' + r.form + '\nBracket page: ' + r.url + '\n\n' + healthText_(r.health, true);
+      '\n\nSign-up form: ' + r.form + (r.alongside ? '\n👥 One check on the new form: Published → Responders → Anyone with the link (business-account forms start company-only).' : '') + '\nBracket page: ' + r.url + '\n\n' + healthText_(r.health, true);
   });
 }
 
