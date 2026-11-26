@@ -3115,7 +3115,7 @@ function snapshotBoard_() {
 // repo; the page next to it reads that file. Nothing is sent when the board hasn't changed.
 function ghPush_(snap, force) {
   const pr = PropertiesService.getScriptProperties(), tok = pr.getProperty('GITHUB_TOKEN');
-  if (!tok) return false;
+  if (!tok || pr.getProperty('GH_BAD')) return false;   // a dead key stays quiet until it's reconnected
   const C = cfg_(), repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH) || 'docs/hill/board.json';
   const body = JSON.stringify(snap), key = JSON.stringify(Object.assign({}, snap, { updated: 0 }));
   const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, key + repo + path, Utilities.Charset.UTF_8));
@@ -3126,6 +3126,7 @@ function ghPush_(snap, force) {
     let sha = null;
     const g = UrlFetchApp.fetch(api, { headers: headers, muteHttpExceptions: true });
     if (g.getResponseCode() === 200) { try { sha = JSON.parse(g.getContentText()).sha; } catch (e) { } }
+    else if (g.getResponseCode() === 401 || g.getResponseCode() === 403) { pr.setProperty('GH_BAD', '1'); log_('system', 'GitHub key stopped working', 'GitHub said ' + g.getResponseCode() + '. The live page is paused: make a key (or reuse your current one) and use the menu: 🐙 Connect again.'); return false; }
     else if (g.getResponseCode() !== 404) { log_('system', 'GitHub read failed', g.getResponseCode() + ' ' + g.getContentText().slice(0, 200)); return false; }
     const payload = { message: 'Hill Board update', content: Utilities.base64Encode(body, Utilities.Charset.UTF_8) };
     if (sha) payload.sha = sha;
@@ -3148,8 +3149,8 @@ function adminConnectGithub() {
   if (r.getSelectedButton() !== ui.Button.OK) return;
   withUi_(function () {
     const pr = PropertiesService.getScriptProperties(), tok = norm_(r.getResponseText());
-    if (!tok) { pr.deleteProperty('GITHUB_TOKEN'); pr.deleteProperty('GH_HASH'); return 'GitHub disconnected. The board stays on the Google web app.'; }
-    pr.setProperty('GITHUB_TOKEN', tok); pr.deleteProperty('GH_HASH');
+    if (!tok) { pr.deleteProperty('GITHUB_TOKEN'); pr.deleteProperty('GH_HASH'); pr.deleteProperty('GH_BAD'); return 'GitHub disconnected. The board stays on the Google web app.'; }
+    pr.setProperty('GITHUB_TOKEN', tok); pr.deleteProperty('GH_HASH'); pr.deleteProperty('GH_BAD');
     snapshotBoard_();
     if (!pr.getProperty('GH_HASH')) return 'GitHub didn\'t accept that token. Check it has Contents: Read and write on the repo, then try again (the Log tab has the details).';
     const url = ghPageUrl_(cfg_());
