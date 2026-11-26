@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.26.1
+// @version      1.28.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -155,13 +155,13 @@ const SBX_MOBILE = true;
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
     ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
-    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
+    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
   ];
   let FEAT = {}; try { FEAT = JSON.parse(localStorage.getItem("sbx-features") || "{}"); } catch (_) {}
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const MOBILE_KEEP = ["charge", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
   const on = (f) => (MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
@@ -2903,6 +2903,49 @@ const SBX_MOBILE = true;
       .finally(() => { GSUM.busy = false; setTimeout(tick, 0); });
   }
 
+
+  // 🥊 Challenge links from Discord (Hold the Hill, the Brawl, wagers) look like
+  // play.smallball.com/?sbx_as=<your club>#/team/<opponent>. On that opponent's page this shows which club
+  // you're about to play as. If the site has another of your clubs picked, one click switches it (the same
+  // club switcher the site uses). You still press SmallBall's own Play button: the kit never plays for you.
+  const CHARGE = (() => {
+    const as = (new URLSearchParams(location.search).get("sbx_as") || "").replace(/\D/g, "");
+    const vs = (location.hash.match(/^#\/team\/(\d+)/) || [])[1] || "";
+    return { as, vs };
+  })();
+  function mountCharge() {
+    let el = document.getElementById("sbx-charge");
+    const here = CHARGE.as && CHARGE.vs && location.hash.replace(/[?].*$/, "") === "#/team/" + CHARGE.vs;
+    if (!here || CHARGE.closed) { if (el) el.remove(); return; }
+    const sel = document.getElementById("who-team"); if (!sel) return;
+    const opt = (id) => [...sel.options].find((o) => o.value === id);
+    const nm = (id) => (opt(id) ? opt(id).textContent.trim() : "club " + id);
+    const cur = sel.value, mine = !!opt(CHARGE.as), ok = cur === CHARGE.as;
+    const key = CHARGE.as + "|" + cur;
+    if (el && el.dataset.k === key) return;
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-charge";
+      el.style.cssText = "position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:2147483000;max-width:min(680px,94vw);padding:10px 14px;border-radius:12px;font:600 15px/1.35 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.45);display:flex;gap:10px;align-items:center;flex-wrap:wrap";
+      document.body.appendChild(el);
+    }
+    el.dataset.k = key;
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const x = '<button data-x style="margin-left:auto;background:none;border:0;color:inherit;font-size:18px;cursor:pointer;opacity:.7">×</button>';
+    if (!mine) {
+      el.style.background = "#7a1020"; el.style.color = "#fff";
+      el.innerHTML = '<span>🥊 This challenge link is for <b>club ' + esc(CHARGE.as) + '</b>, which isn\'t one of the clubs on this login. Log in as that club\'s owner to play it.</span>' + x;
+    } else if (ok) {
+      el.style.background = "#0f5132"; el.style.color = "#fff";
+      el.innerHTML = '<span>🥊 ✅ You\'re playing as <b>' + esc(nm(CHARGE.as)) + '</b> vs club ' + esc(CHARGE.vs) + '. Hit <b>Play</b> (BigLeague, not Exhibition) when you\'re ready.</span>' + x;
+    } else {
+      el.style.background = "#b45309"; el.style.color = "#fff";
+      el.innerHTML = '<span>🥊 ⚠️ You\'re on <b>' + esc(nm(cur)) + '</b>. This challenge is for <b>' + esc(nm(CHARGE.as)) + '</b>.</span>' +
+        '<button data-sw style="background:#fff;color:#7c2d12;border:0;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer">Switch to ' + esc(nm(CHARGE.as)) + '</button>' + x;
+    }
+    const sw = el.querySelector("[data-sw]");
+    if (sw) sw.onclick = () => { sel.value = CHARGE.as; sel.dispatchEvent(new Event("change", { bubbles: true })); setTimeout(() => { if (location.hash !== "#/team/" + CHARGE.vs) location.hash = "#/team/" + CHARGE.vs; mountCharge(); }, 400); };
+    el.querySelector("[data-x]").onclick = () => { CHARGE.closed = true; el.remove(); };
+  }
   // Keep everything mounted as the page re-renders.
   let busy = false;
   const tick = () => {
@@ -2920,6 +2963,7 @@ const SBX_MOBILE = true;
       safe(mountSquad);
       if (on("notes")) safe(mountNotes);
       safe(paintTitle);
+      if (on("charge")) safe(mountCharge);
     } finally { busy = false; }
   };
   new MutationObserver(tick).observe(document.body, { childList: true, subtree: true });

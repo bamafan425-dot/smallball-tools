@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the Hill Board lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: Hill Board and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -901,7 +901,7 @@ function reachList_(me, C, pt, ct) {
     if (revengeOpen && lc_(p.Email) === exAce) why.push("Ace's Revenge window open");
     let cool = null; try { cool = inCooldown_(me.Email, p.Email, C); } catch (e) { }
     if (cool) why.push('rematch after ' + Utilities.formatDate(cool, 'America/Denver', 'EEE h:mm a') + ' MT');
-    out.push('**#' + p.Rank + '** ' + esc_(p.Discord) + ' · ' + esc_(p.Club) + ' · ' + clubIdTxt_(p) + ': ' +
+    out.push('**#' + p.Rank + '** ' + esc_(p.Discord) + ' · ' + esc_(p.Club) + ' · ' + clubIdTxt_(p) + (norm_(p.ClubID) ? ' [scout](<https://play.smallball.com/#/team/' + norm_(p.ClubID) + '>)' : '') + ': ' +
       (need > 1 ? '**win by ' + need + '+**' : '**just win**') + (sg && need < full ? ' *(Giant Killer: ' + sg + '★ underdog discount)*' : '') +
       (why.length ? ' ⏳ *(' + why.join(', ') + ')*' : ''));
   });
@@ -922,7 +922,7 @@ function doReach_(sub, C) {
     const mine = openFor_(ct, me.Email), list = reachList_(me, C, pt, ct);
     msg = '🔎 ' + tag_(me) + ", you're **#" + me.Rank + '** on the Climb' + (mine ? ' (and already in a fight: finish it before your next charge)' : '') + '. ' +
       (list.length ? 'In reach right now:\n' + list.map(function (x) { return '• ' + x; }).join('\n') : 'Nobody is in reach right now.') +
-      '\n🥊 Charge on the ' + (norm_(C.FORM_LINK || '') ? '[Hill form](<' + norm_(C.FORM_LINK) + '>)' : 'Hill form') + ' · Put the club ID in SmallBall to play.';
+      '\n🥊 Charge on the ' + (norm_(C.FORM_LINK || '') ? '[Hill form](<' + norm_(C.FORM_LINK) + '>)' : 'Hill form') + ' first. Your Start-the-game link comes in the charge post. A game played before you charge doesn\'t count.';
   }
   log_(sub.email, 'Reach check', me.Discord + ' #' + me.Rank);
   post_(msg, 'help');
@@ -1007,13 +1007,13 @@ function doChallenge_(sub, C) {
   try { potTick_(true); } catch (e) { }
   if (type === 'Title') {
     post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
-      ' holds it.' + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + lineTxt);
+      ' holds it.' + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   } else {
     post_('🥊 ' + who_(me) + ' (#' + me.Rank + ') charges the hill at ' + who_(opp) + ' (#' + opp.Rank + ')! Benches clear. ' +
       (ms != null && os != null ? '(' + starTag_(ms) + ' vs ' + starTag_(os) + ') ' : '') +
       (starGap && fullNeed > need ? '🗡️ Giant Killer rule: down ' + starGap + '★, so ' + esc_(me.Discord) + ' needs ' + (need > 1 ? 'only **' + need + '+ runs**' : '**any win**') + ' instead of ' + fullNeed + '+. ' :
         need > 1 ? 'Reaching ' + (Number(me.Rank) - Number(opp.Rank)) + ' spots up, ' + esc_(me.Discord) + ' must win by **' + need + '+ runs** to climb. ' : '') +
-      '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + lineTxt);
+      '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   }
 }
 
@@ -1696,6 +1696,16 @@ function buildForm_(ss) {
 
 // Opponent list on the form: "#2 · philipgonzales3 · Leming Satellites · club ID 640335"
 function oppLabel_(p) { return '#' + p.Rank + ' · ' + norm_(p.Discord) + ' · ' + norm_(p.Club) + (norm_(p.ClubID) ? ' · club ID ' + norm_(p.ClubID) : ''); }
+
+// A link that opens SmallBall on the opponent's page with the big Play button. sbx_as tells the Club Kit which
+// of your clubs should be picked (it shows a banner and a one-click switch); without the kit the page still works.
+function playLink_(meClubId, oppClubId) {
+  return 'https://play.smallball.com/' + (norm_(meClubId) ? '?sbx_as=' + encodeURIComponent(norm_(meClubId)) : '') + '#/team/' + encodeURIComponent(norm_(oppClubId));
+}
+function startLine_(me, opp) {
+  if (!norm_(opp.ClubID)) return '';
+  return '\n👉 **[Start the game in SmallBall](<' + playLink_(me.ClubID, opp.ClubID) + '>)** · check **YOUR CLUB** (top of the page) says *' + esc_(me.Club) + '*, then hit **Play** (not Exhibition).';
+}
 function clubIdTxt_(p) { return norm_(p.ClubID) ? '**club ID `' + norm_(p.ClubID) + '`**' : '*(no club ID on file)*'; }
 
 function refreshFormChoices() {
@@ -2461,7 +2471,8 @@ function doWagerReply_(sub, C) {
   log_(sub.email, 'Wager accepted', id);
   postBook_('✅ **IT\'S ON · `' + id + '`** · ' + (maker ? who_(maker) : esc_(w.MakerName)) + ' vs ' + who_(me) + ' · ' + wagerTerms_(w) +
     ' · **' + num_(w.MakerStake) + ' BB' + (num_(w.MakerStake) !== ts ? ' vs ' + ts + ' BB' : ' each') + '**' +
-    '\n> The next BigLeague game between club `' + norm_(w.MakerClubID) + '` and club `' + norm_(w.TakerClubID) + '` before ' + ts_(dl) + ' settles it. Either club can host. It pays out once the game has aired.');
+    '\n> The next BigLeague game between club `' + norm_(w.MakerClubID) + '` and club `' + norm_(w.TakerClubID) + '` before ' + ts_(dl) + ' settles it. Either club can host. It pays out once the game has aired.' +
+    '\n👉 Start it: [' + esc_(w.MakerName) + '](<' + playLink_(w.MakerClubID, w.TakerClubID) + '>) · [' + esc_(w.TakerName) + '](<' + playLink_(w.TakerClubID, w.MakerClubID) + '>) · check YOUR CLUB before you hit **Play**.');
 }
 
 // Every 5 minutes: expire old offers, find the game for accepted wagers, settle the ones that have aired.
@@ -3264,7 +3275,7 @@ h2{font-size:28px;margin:24px 0 10px;display:flex;align-items:center;gap:12px}h2
 .fut .up{color:#4ade80;font-size:13px}.fut .dn{color:#f87171;font-size:13px}.fut small{display:block;opacity:.6;font-size:12px}@media(max-width:600px){.fut .r{grid-template-columns:24px minmax(0,1fr) 60px 56px}.fut .r .bar{display:none}}
 .ln .g b{font-family:'Bebas Neue',Impact,sans-serif;font-weight:400;font-size:20px;color:#ffd166}.ln .g span{font-size:15px}
 @media(max-width:600px){.brand{flex-direction:column;gap:2px}.hero .brand svg.logo{width:62px;height:62px}.hero{height:340px!important}.flag{top:128px!important}.hero .top{top:8px}.wrap{padding:0 10px 60px}.hero{height:290px}.flag{top:84px}.step{margin-left:calc(var(--i)*4px)}.results{grid-template-columns:1fr 1fr}.res .w{font-size:17px}.fight .vs{font-size:22px}h2{font-size:24px;margin:18px 0 8px}.tick{height:34px}.tick .run{font-size:15px}}
-</style></head><body>
+.cid{color:#ffd166;text-decoration:none;border-bottom:1px dotted #ffd166;font-weight:700}.cid:hover{color:#fff}</style></head><body>
 <div class="hero"><div class="stars" id="stars"></div>
 <svg viewBox="0 0 1200 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
 <defs><radialGradient id="lg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff7d6" stop-opacity=".9"/><stop offset="1" stop-color="#fff7d6" stop-opacity="0"/></radialGradient>
@@ -3352,7 +3363,7 @@ if((D.rejects||[]).length)h+='<div class="rej"><b class="bb">❌ Didn’t go thr
 if(D.formLink)h+='<div class="cta"><a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">📝 Hill form</a><span>Sign up · charge the hill · place a bet</span></div>';
 if(D.seasonStart&&new Date(D.seasonStart)>new Date()){h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+' · OPENS '+day(D.seasonStart).toUpperCase()+'</span><span>Register now. Charges and Brawl points start at kickoff.</span><span class="bb clk">⏱ '+left(D.seasonStart)+'</span></div>';}
 else if(D.seasonEnd){var se=new Date(D.seasonEnd),over=D.seasonClosed||se<=new Date();h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+(D.seasonClosed?' · FINAL':over?' · FINAL BUZZER':'')+'</span><span>'+(over?(D.seasonClosed?'The awards are in.':'No new charges. Charges in flight are being settled.'):'Ends '+when(D.seasonEnd))+'</span>'+(over?'':'<span class="bb clk">⏱ '+left(D.seasonEnd)+'</span>')+'</div>';}
-h+='<div class="cols"><div><h2 class="bb">The Climb</h2><div class="climb">'+(A?'<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">'+esc(A.name)+'<small>'+esc(A.club)+(A.clubId?' · ID '+esc(A.clubId):'')+'</small></span><span class="wl bb">'+(A.since?'<b>'+ndays(A.since)+'</b>'+(ndays(A.since)===1?'day':'days')+' up top':'<b>'+(A.rdef||0)+'</b>defenses')+'</span></div>':'<div class="step ace open"><span class="tag bb">♠ THE ACE</span><span class="rk bb">⛰️</span><span class="who bb">The mound is open<small>Win the title fight to plant the flag</small></span><span class="wl bb"></span></div>')+(lad.length?lad.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(D.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+';animation-delay:'+(i*0.06)+'s"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.clubId?' · ID '+esc(p.clubId):'')+'</small>'+reachTxt(p,i)+'</span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the climb yet. Register on the form and you start at the bottom.</div>')+'</div>'+(lad.length?'<div class="rnote">⤴ Who each spot can charge. Underdogs win by less (1 run off per star behind). Pick 🔎 Who can I charge? on the Hill form for your own list in #hill-help.</div>':'')+'</div>';
+h+='<div class="cols"><div><h2 class="bb">The Climb</h2><div class="climb">'+(A?'<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">'+esc(A.name)+'<small>'+esc(A.club)+(A.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(A.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(A.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+(A.since?'<b>'+ndays(A.since)+'</b>'+(ndays(A.since)===1?'day':'days')+' up top':'<b>'+(A.rdef||0)+'</b>defenses')+'</span></div>':'<div class="step ace open"><span class="tag bb">♠ THE ACE</span><span class="rk bb">⛰️</span><span class="who bb">The mound is open<small>Win the title fight to plant the flag</small></span><span class="wl bb"></span></div>')+(lad.length?lad.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(D.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+';animation-delay:'+(i*0.06)+'s"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(p.clubId)+'</a>':'')+'</small>'+reachTxt(p,i)+'</span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the climb yet. Register on the form and you start at the bottom.</div>')+'</div>'+(lad.length?'<div class="rnote">⤴ Who each spot can charge. Underdogs win by less (1 run off per star behind). Pick 🔎 Who can I charge? on the Hill form for your own list in #hill-help.</div>':'')+'</div>';
 h+='<div><h2 class="bb">Charging the Hill</h2><div class="fights">'+(ch.length?ch.map(function(c,i){return '<div class="fight '+(c.type==='Title'?'title':c.type==='Revenge'?'rev':'')+'" style="animation-delay:'+(i*0.08)+'s"><span class="kind bb">'+(c.type==='Title'?'TITLE FIGHT':c.type==='Revenge'?'ACE\\'S REVENGE':'LADDER')+'</span><div class="vs bb">🥊 '+esc(c.ch)+'<em>VS</em>'+esc(c.df)+'</div><div class="meta"><span>'+(c.status==='Game reported'?'<span class="stamp bb">GAME REPORTED</span>':esc(c.status))+'</span><span class="bb" style="font-size:20px">⏱ '+left(c.deadline)+'</span></div></div>';}).join(''):'<div class="empty">No charges right now. Somebody charge the hill.</div>')+'</div></div></div>';
 h+='<h2 class="bb">Recent results</h2>'+(ms.length?'<div class="results">'+ms.slice(0,9).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'</div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'</div>'+(m.wr!==''?'<div class="s bb">'+esc(m.wr)+' – '+esc(m.lr)+'</div>':'')+'<div class="o">'+esc(m.outcome)+(m.pts?' · +'+m.pts+' pts':'')+'</div></div>';}).join('')+'</div>':'<div class="empty">No results yet. They show up here once each game has aired.</div>');
 h+='<h2 class="bb">Reigns</h2>'+(rg.length?'<div class="reigns">'+rg.map(function(r){return '<div class="rg"><div class="n bb">#'+esc(r.n)+(r.revenge?' 🔥':'')+'</div><div class="nm bb">'+esc(r.name)+'</div><div class="m">'+esc(r.club)+'</div><div class="m">'+day(r.start)+' – '+(r.end?day(r.end):'now')+' · '+ndays(r.start,r.end)+(ndays(r.start,r.end)===1?' day':' days')+'</div><div class="m">'+r.defenses+' defenses · '+r.pts+' pts'+(r.endedBy?' · ended by '+esc(r.endedBy):'')+'</div></div>';}).join('')+'</div>':'<div class="empty">The first reign starts when the first Ace is crowned.</div>');
