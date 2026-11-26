@@ -61,7 +61,7 @@ var L=[];
 function card(t){
   var st=t.status==='live'?'live':Date.now()<t.signupClose?'open':'soon';
   var tag=st==='live'?'<span class="tag live">● Live</span>':st==='open'?'<span class="tag open">Sign-ups open</span>':'<span class="tag soon">Bracket drawn</span>';
-  var h='<div class="card'+(st==='live'?' live':'')+'">'+tag+'<h3>'+esc(t.name)+'</h3><div class="meta"><span>'+(t.fmt==='single'?'Single':'Double')+' elimination</span>'+(t.stars?'<span>'+esc(t.stars)+'</span>':'')+(t.kinds?'<span>'+esc(t.kinds)+' games</span>':'')+(t.wave?'<span>'+t.wave+' min per match</span>':'')+'</div>';
+  var h='<div class="card'+(st==='live'?' live':'')+'">'+tag+'<h3>'+esc(t.name)+'</h3><div class="meta"><span>'+(t.fmt==='scramble'?'⛳ Two Man Scramble':(t.fmt==='single'?'Single':'Double')+' elimination')+'</span>'+(t.stars?'<span>'+esc(t.stars)+'</span>':'')+(t.kinds?'<span>'+esc(t.kinds)+' games</span>':'')+(t.wave?'<span>'+t.wave+' min per match</span>':'')+'</div>';
   if(st==='open')h+='<div class="big"><b>'+(t.clubs||0)+'</b> club'+(t.clubs===1?'':'s')+' in · sign-ups close <b>'+esc(when(t.signupClose))+'</b> (in '+left(t.signupClose)+')</div><div class="big">Wave 1 starts '+esc(when(t.start))+'</div>';
   else if(st==='soon')h+='<div class="big"><b>'+(t.clubs||0)+'</b> clubs · Wave 1 starts <b>'+esc(when(t.start))+'</b> (in '+left(t.start)+')</div>';
   else{h+='<div class="big"><b>'+(t.clubs||0)+'</b> clubs battling it out</div>';
