@@ -1522,7 +1522,7 @@ function playBucks_(C) {
   return out;
 }
 function payPlay_(C, c, W, L, tie) {
-  if (!bookOn_(C)) return '';
+  if (!itemsOn_(C)) return '';   // launches with the shop
   const pb = playBucks_(C);
   if (!pb.played && !pb.win) return '';
   if (tie) { ledger_(C, W, pb.played, 'Played ' + c.ID); ledger_(C, L, pb.played, 'Played ' + c.ID); return '💵 +' + pb.played + ' BB each for playing.'; }
