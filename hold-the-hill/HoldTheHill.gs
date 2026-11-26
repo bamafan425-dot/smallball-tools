@@ -895,26 +895,30 @@ function reachList_(me, C, pt, ct) {
   const reach = Number(C.CHALLENGE_REACH) || 3, ace = ace_(pt);
   const revengeOpen = !!C.STATE_REVENGE_EX_ACE, exAce = revengeOpen ? lc_(C.STATE_REVENGE_EX_ACE) : '';
   const ms = (function () { try { return starsOf_(me); } catch (e) { return null; } })();
-  const out = [];
+  const out = [], itOn = itemsOn_(C), inv = itOn ? inventory_(C) : {};
+  // 🛒 Brass Knuckles waiting on a target (they go on unless that player is cooling down)
+  const kn = function (p) { return itOn && holds_(inv, p.Email, 'knuckles') > 0 && !itemCooling_(C, p.Email) ? ' 🥊 *(wearing Brass Knuckles: +1 run)*' : ''; };
   if (ace && ace !== me) {
     const openTo = moundOpenTo_(C), busy = ct.rows.some(function (c) { return c.Type !== 'Ladder' && OPEN.indexOf(c.Status) >= 0; });
-    if (Number(me.Rank) <= openTo) out.push('♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + esc_(ace.Club) + ' · ' + clubIdTxt_(ace) + ': **title shot, just win**' +
+    if (Number(me.Rank) <= openTo) out.push('♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + esc_(ace.Club) + ' · ' + clubIdTxt_(ace) + (kn(ace) ? ': **title shot, win by 2+**' + kn(ace) : ': **title shot, just win**') +
       (busy ? ' ⏳ *(a title fight is already on: wait for it)*' : revengeOpen ? " ⏳ *(the Ace's Revenge is pending)*" : ''));
   }
   ladder_(pt).forEach(function (p) {
     const gap = Number(me.Rank) - Number(p.Rank);
-    if (p === me || gap < 1 || gap > reach || p.Status !== 'Active') return;
+    const jump = itOn && gap === reach + 1;
+    if (p === me || gap < 1 || (gap > reach && !jump) || p.Status !== 'Active') return;
     let need = needFor_(gap); const full = need;
     let os = null; try { os = starsOf_(p); } catch (e) { }
     const sg = ms != null && os != null ? Math.max(0, os - ms) : 0;
     if (sg) need = Math.max(1, need - sg);
+    if (kn(p)) need += 1;
     const why = [];
     if (openFor_(ct, p.Email)) why.push('in a fight right now');
     if (revengeOpen && lc_(p.Email) === exAce) why.push("Ace's Revenge window open");
     let cool = null; try { cool = inCooldown_(me.Email, p.Email, C); } catch (e) { }
     if (cool) why.push('rematch after ' + Utilities.formatDate(cool, 'America/Denver', 'EEE h:mm a') + ' MT');
     out.push('**#' + p.Rank + '** ' + esc_(p.Discord) + ' · ' + esc_(p.Club) + ' · ' + clubIdTxt_(p) + (norm_(p.ClubID) ? ' [scout](<https://play.smallball.com/#/team/' + norm_(p.ClubID) + '>)' : '') + ': ' +
-      (need > 1 ? '**win by ' + need + '+**' : '**just win**') + (sg && need < full ? ' *(Giant Killer: ' + sg + '★ underdog discount)*' : '') +
+      (need > 1 ? '**win by ' + need + '+**' : '**just win**') + (sg && need < full ? ' *(Giant Killer: ' + sg + '★ underdog discount)*' : '') + kn(p) + (jump ? ' 🪜 *(Ladder Jump only)*' : '') +
       (why.length ? ' ⏳ *(' + why.join(', ') + ')*' : ''));
   });
   return out;
