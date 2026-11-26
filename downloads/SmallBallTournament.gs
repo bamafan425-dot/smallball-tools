@@ -866,7 +866,8 @@ function onOpen() {
     .addItem('🔄 Check SmallBall now', 'adminCheckNow')
     .addItem('✅ Settle a match by hand', 'adminSettle')
     .addItem('↩️ Undo a match result', 'adminUndo')
-    .addItem('📣 Post the bracket to Discord', 'adminPostBracket')
+    .addItem('📣 Post the sign-up announcement', 'adminAnnounce')
+    .addItem('🗂️ Post the bracket to Discord', 'adminPostBracket')
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
@@ -1224,6 +1225,8 @@ function updateIndex_(snap, opt) {
 // The sign-ups-open post for Discord.
 function announceText_(C) {
   C = C || cfg_();
+  if (isScr_(C)) return scrAnnounce_(C);
+  const nIn = (() => { try { return entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length; } catch (e) { return 0; } })();
   const close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), f = norm_(C.FORM_LINK), b = boardUrl_(C);
   const lines = ['# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' is open for sign-ups!',
     'A SmallBall **' + (isScr_(C) ? '⛳ Two Man Scramble' : lc_(C.FORMAT) === 'single' ? 'single-elimination' : 'double-elimination (two losses and you\'re out)') + '** tournament · ' + starsTxt_(C) + ' · ' + kindsTxt_(C) + ' games only · up to ' + (Number(C.MAX_CLUBS) || 32) + ' clubs.',
@@ -1233,8 +1236,42 @@ function announceText_(C) {
   if (start) lines.push('🔔 Wave 1 starts <t:' + Math.floor(start / 1000) + ':F>. Every match gets **' + Math.round(waveMs_(C) / 60000) + ' minutes**, and your next match opens the moment both clubs are known.');
   lines.push('🥊 The lower seed starts the game, the higher seed defends. No reporting: the script finds the game and posts the result once it airs.');
   if (norm_(C.PRIZES)) lines.push('🎁 Prizes: ' + esc_(C.PRIZES));
+  if (nIn) lines.push('🔥 **' + nIn + ' club' + (nIn === 1 ? '' : 's') + '** already in.');
   if (b) lines.push('🗂️ [Live bracket](<' + b + '>) · fills in as people sign up');
   return lines.join('\n');
+}
+
+// The Sunday-best version for a ⛳ Two Man Scramble.
+function scrAnnounce_(C) {
+  const close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), f = norm_(C.FORM_LINK), b = boardUrl_(C);
+  const nIn = (() => { try { return entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length; } catch (e) { return 0; } })();
+  const L = ['# ⛳ The ' + esc_(C.TOURNEY_NAME) + ' tees off!',
+    '**Grab a partner (or let us draw you one) and hit the links.** Two-club teams, four games a match, and golf\'s favorite bet on the line. 🏌️', '',
+    '**🏌️ How it plays**',
+    '> Every club plays both clubs on the other team: two games on the **front nine**, two on the **back nine**.',
+    '> Each team tees off once per nine. One-click start links land right here when your match opens.', '',
+    '**💰 The Nassau**',
+    '> 🟢 **Front 9**: your team\'s better score of the two front-nine games',
+    '> 🔵 **Back 9**: same deal on the back nine',
+    '> 🏆 **Overall**: every run in all four games',
+    '> One point each, a tie halves it. **Take 2 and you move on.** Single elimination, ' + kindsTxt_(C) + ' games only, ' + Math.round(waveMs_(C) / 60000) + ' minutes a match.', ''];
+  if (f) L.push('📝 **[Get on the tee sheet](<' + f + '>)** · got a partner? Put their Discord name in the *Partner* box. Flying solo? We\'ll draw you one. 🎲');
+  if (close) L.push('🗓️ Tee sheet closes <t:' + Math.floor(close / 1000) + ':F> (' + tsR_(close) + ')' + (start ? ' · first tee time <t:' + Math.floor(start / 1000) + ':t>' : ''));
+  if (nIn) L.push('👀 **' + nIn + ' club' + (nIn === 1 ? '' : 's') + '** on the tee sheet already.');
+  if (norm_(C.PRIZES)) L.push('🎁 Prizes: ' + esc_(C.PRIZES));
+  if (b) L.push('🗂️ [The course](<' + b + '>): tee sheet now, live scorecards on Sunday');
+  L.push('-# No spoilers: a match\'s scores post once all four games have aired. Read-only on SmallBall.');
+  return L.join('\n');
+}
+// 📣 Post (or re-post) the sign-up announcement for the tournament you're working on, after a look at it.
+function adminAnnounce() {
+  withUi_((ui) => {
+    const C = cfg_(), txt = announceText_(C);
+    if (!webhook_(C)) return 'No Discord webhook in Config for the ' + norm_(C.TOURNEY_NAME) + '.';
+    if (ui.alert('📣 Post this to Discord?', txt.replace(/<t:(\d+):[A-Za-z]>/g, (m, x) => fmtT_(Number(x) * 1000, C)).replace(/\(<(https?:[^>]+)>\)/g, ' ($1)').slice(0, 1800), ui.ButtonSet.YES_NO) !== ui.Button.YES) return '';
+    post_(txt); log_('organizer', 'Announcement', norm_(C.TOURNEY_NAME));
+    return 'Posted the ' + norm_(C.TOURNEY_NAME) + ' announcement.';
+  });
 }
 
 // ===================== ✅ Health check =====================
