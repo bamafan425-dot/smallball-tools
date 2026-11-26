@@ -887,6 +887,14 @@ h1{margin:0;font-size:46px;line-height:.95}h1 small{display:block;font-size:17px
 .m .s.openspot .n{color:#6f84ab}
 .ents{display:flex;flex-wrap:wrap;gap:8px}.ents span{background:var(--panel);border:1px solid var(--edge);border-radius:999px;padding:5px 12px}
 .empty{color:var(--muted);padding:20px 22px}
+.rules{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:4px 18px 14px}
+.rules summary{cursor:pointer;list-style:none;padding:12px 0 6px}.rules summary::-webkit-details-marker{display:none}
+.rules summary h2{display:inline;margin:0}.rules summary span{color:var(--muted);font-size:13px;margin-left:8px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:6px}
+.rcard{background:rgba(255,255,255,.03);border:1px solid var(--edge);border-radius:10px;padding:10px 14px}
+.rcard h3{margin:0 0 6px;font:600 15px Oswald,sans-serif;color:var(--gold);letter-spacing:.04em}
+.rcard ul{margin:0;padding-left:18px}.rcard li{margin:3px 0;font-size:14px}.rcard b{color:var(--ink)}
+.when{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px}.when span{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.4);border-radius:999px;padding:4px 12px;font-size:13px}
 footer{color:var(--muted);font-size:12px;padding:14px 22px 26px}
 </style></head><body><div id="app"></div>
 <script>
@@ -909,6 +917,21 @@ function cols(list,name){
   var rs={};list.forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});
   return '<div class="cols">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){var ms=rs[r].filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))});if(!ms.length)return'';return '<div class="col"><h3>'+esc(name(r,ms))+'</h3>'+ms.map(box).join('')+'</div>'}).join('')+'</div>';
 }
+function rules(){
+  var w=D.waveMin||60,open=!D.matches;
+  function li(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}
+  function card(t,a){return '<div class="rcard"><h3>'+t+'</h3>'+li(a)+'</div>'}
+  var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
+  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match window: <b>'+w+' minutes</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
+  h+='<div class="rgrid">';
+  h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  h+=card('⏱ Your match window',['Matches run in <b>'+w+'-minute waves</b>, a new wave every hour from Wave 1 until there is a champion.','Your match <b>opens at the start of a wave</b> once both clubs are known. You get tagged in the Brawl channel.','You have <b>until the end of that wave</b> to play. Your next match can open as soon as the next wave starts, so stick around.','Can’t make a wave? Tell your opponent and the organizer in the Brawl channel ahead of time.']);
+  h+=card('🥊 Playing your game',['Either owner can send the challenge in SmallBall. Talk it out in the Brawl channel and go.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
+  h+=card('⚖️ When things go sideways',['<b>No game by the end of the wave:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
+  h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Matches open fast.','Answer challenges quickly and play it straight. No stalling out the clock.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
+  h+='</div>'+(D.prizes?'<p style="margin:12px 2px 0">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</p>':'')+'</details></div>';
+  return h;
+}
 function render(){
   var h='<header><div><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
   if(!D.matches){h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'Wave 1 <b>'+t(D.start)+'</b>':'');}
@@ -918,6 +941,7 @@ function render(){
   if(!D.matches&&D.preview){
     var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw when sign-ups close'}[P.seeding]||'sign-up order';
     h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we\u2019re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who\u2019s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
+    h+=rules();
     var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
     h+='<div class="sec"><h2 class="bb">'+(P.fmt==='double'?'Winners bracket':'Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
     if(PL.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
@@ -932,7 +956,8 @@ function render(){
     if(L.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(L,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
     if(F.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+F.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
-  h+='<footer>Updated '+t(D.updated||Date.now())+' · refreshes every minute · results show once each game has aired (no spoilers) · read-only on SmallBall</footer>';
+  if(D.matches)h+=rules();
+  h+='<footer>Updated '+t(D.updated||Date.now())+' · refreshes on its own · results show once each game has aired (no spoilers) · read-only on SmallBall</footer>';
   document.getElementById('app').innerHTML=h;
 }
 // A picture of the whole bracket, drawn on a canvas (no outside services).
