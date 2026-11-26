@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -2131,6 +2131,8 @@ function adminPostStandings() {
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('⛰️ Hold the Hill')
+    .addItem('🎛️ Commish dashboard', 'adminDashboard')
+    .addSeparator()
     .addItem('Setup / repair', 'setup')
     .addSeparator()
     .addItem('Crown selected player as Ace', 'adminCrownAce')
@@ -3810,6 +3812,246 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+// ───────────────────────────── 🎛️ Commish dashboard ─────────────────────────────
+// A panel in the Sheet (menu: 🎛️ Commish dashboard) with the settings people tune most, in plain words, plus live
+// status and a few buttons. Only people who can edit the Sheet can open it. Saving writes the Config tab.
+const DASH_GROUPS_ = [
+  { id: 'bell', title: '🔔 The Bell', blurb: 'A few random one-hour windows a week when anyone on the climb can charge the Ace.', items: [
+    { k: 'BELL_PER_WEEK', label: 'Rings a week', t: 'range', min: 0, max: 7, step: 1, unit: '', help: '0 turns the Bell off.' },
+    { k: 'BELL_MINUTES', label: 'How long it rings', t: 'range', min: 15, max: 120, step: 15, unit: 'min' },
+    { k: 'BELL_MARGIN', label: 'Win by, to take the title', t: 'range', min: 1, max: 6, step: 1, unit: 'runs', help: 'A smaller win makes the challenger #1 contender.' },
+    { k: 'BELL_BOUNTY', label: 'Ace bounty for a defense', t: 'range', min: 0, max: 200, step: 10, unit: 'BB' },
+    { k: 'BELL_SHIELD_HOURS', label: 'Ace shield after a defense', t: 'range', min: 0, max: 96, step: 6, unit: 'hrs' },
+    { k: 'BELL_GAP_HOURS', label: 'At least this long between rings', t: 'range', min: 12, max: 96, step: 6, unit: 'hrs' },
+    { k: 'BELL_WARN_MINUTES', label: 'Heads-up before it rings', t: 'range', min: 0, max: 60, step: 5, unit: 'min' },
+    { k: 'BELL_WEEKDAY', label: 'Weekday windows (Mon–Fri)', t: 'windows', help: 'Mountain time, like 06:30-08:00, 11:30-13:00' },
+    { k: 'BELL_WEEKEND', label: 'Weekend windows (Sat–Sun)', t: 'windows' },
+    { k: 'BELL_ROLE_ID', label: 'Discord role to ping', t: 'text', help: 'The role ID of an opt-in "Mound Alerts" role. Blank = no ping.' },
+  ] },
+  { id: 'mound', title: '⏰ Open mound', blurb: 'Who can charge the Ace when nobody has for a while.', items: [
+    { k: 'MOUND_FIRST_HOURS', label: '#2 can charge the Ace after', t: 'range', min: 1, max: 48, step: 1, unit: 'hrs' },
+    { k: 'MOUND_STEP_HOURS', label: 'Then one more spot every', t: 'range', min: 4, max: 72, step: 4, unit: 'hrs' },
+    { k: 'MOUND_OPEN_MAX', label: 'Opens down to spot', t: 'range', min: 1, max: 10, step: 1, unit: '#' },
+    { k: 'MOUND_QUIET', label: 'Never opens wider during', t: 'windows', help: 'Mountain time, like 22:30-06:30. Blank = any time.' },
+  ] },
+  { id: 'ladder', title: '🥊 Ladder & charges', blurb: 'The basic rules of the climb.', items: [
+    { k: 'CHALLENGE_REACH', label: 'Charge up to this many spots above you', t: 'range', min: 1, max: 6, step: 1, unit: 'spots' },
+    { k: 'MATCH_HOURS', label: 'Time to start the game after a charge', t: 'range', min: 1, max: 6, step: 1, unit: 'hrs' },
+    { k: 'COOLDOWN_HOURS', label: 'Rematch cooldown', t: 'range', min: 0, max: 72, step: 6, unit: 'hrs' },
+    { k: 'BASE_REWARD', label: 'Points for the first defense', t: 'range', min: 5, max: 50, step: 5, unit: 'pts' },
+    { k: 'DOUBLE_UNTIL', label: 'Defense points double through defense #', t: 'range', min: 1, max: 10, step: 1, unit: '' },
+    { k: 'REVENGE_THRESHOLD', label: "Reign points to earn the Ace's Revenge", t: 'range', min: 100, max: 1000, step: 50, unit: 'pts' },
+    { k: 'EX_ACE_RANK', label: 'A dethroned Ace drops to', t: 'range', min: 1, max: 10, step: 1, unit: '#' },
+    { k: 'TIE_RULE', label: 'A tie', t: 'choice', options: [['HOLD', 'Defender holds'], ['REPLAY', 'Play again']] },
+  ] },
+  { id: 'bucks', title: '💰 Brawl Bucks', blurb: 'What players earn and what the shop costs.', items: [
+    { k: 'PLAY_BUCKS', label: 'Pay for a Hill game', t: 'pairs', parts: [['played', 'Both clubs'], ['win', 'Winner extra'], ['charge', 'Challenger extra']] },
+    { k: 'PAID_GAMES_PER_DAY', label: 'Paid Hill games a day', t: 'range', min: 1, max: 10, step: 1, unit: 'games' },
+    { k: 'STREAK_BUCKS', label: '🔥 Streak pay', t: 'pairs', parts: [['day', 'Any day played'], ['step', '+ per day in a row'], ['max', 'Streak extra tops out at']] },
+    { k: 'STREAK_MILESTONES', label: '🔥 Streak milestones', t: 'text', help: 'days:BB, like 3:25,7:75,14:150' },
+    { k: 'BOOK_BANKROLL', label: 'Starting Brawl Bucks', t: 'number', min: 0, max: 100000 },
+    { k: 'ITEMS_ON', label: '🛒 Items shop', t: 'toggle' },
+    { k: 'ITEM_PRICES', label: 'Item prices', t: 'pairs', parts: [['knuckles', '🥊 Brass Knuckles'], ['eraser', '🧽 Margin Eraser'], ['jump', '🪜 Ladder Jump'], ['jumpplus', '🪜 Ladder Jump+'], ['rain', '🌧️ Rain Delay']] },
+    { k: 'ITEM_ACE_X', label: 'The Ace pays this many times the price', t: 'range', min: 1, max: 4, step: 0.5, unit: '×' },
+    { k: 'ITEM_COOLDOWN_HOURS', label: 'Hours between items', t: 'range', min: 0, max: 72, step: 6, unit: 'hrs' },
+  ] },
+  { id: 'book', title: '🎰 Sportsbook & wagers', blurb: 'Play-money betting limits.', items: [
+    { k: 'BOOK_ON', label: 'Sportsbook', t: 'toggle' },
+    { k: 'WAGER_ON', label: 'Head-to-head wagers', t: 'toggle' },
+    { k: 'BET_MAX_PCT', label: 'Biggest bet, % of Brawl Bucks', t: 'range', min: 1, max: 20, step: 0.1, unit: '%' },
+    { k: 'BET_MAX_FLAT', label: 'Never more than', t: 'range', min: 50, max: 1000, step: 50, unit: 'BB' },
+    { k: 'WAGER_MAX_PCT', label: 'Biggest wager, % of Brawl Bucks', t: 'range', min: 1, max: 20, step: 0.1, unit: '%' },
+    { k: 'WAGER_BIG_PCT', label: 'With your OK, up to', t: 'range', min: 5, max: 50, step: 1, unit: '%' },
+    { k: 'BOOK_POST_BETS', label: 'Post each bet in Discord', t: 'toggle' },
+  ] },
+  { id: 'discord', title: '📣 Discord', blurb: 'Callouts and posts.', items: [
+    { k: 'NUDGES', label: 'Callouts for idle clubs', t: 'toggle' },
+    { k: 'NUDGE_HOURS', label: 'Callout hours (0–23, Mountain)', t: 'text', help: 'Like 11,17,21' },
+    { k: 'NUDGE_IDLE_HOURS', label: 'Call out after this long idle', t: 'range', min: 6, max: 96, step: 6, unit: 'hrs' },
+    { k: 'POST_REJECTIONS', label: 'Post rejected submissions', t: 'toggle' },
+    { k: 'LADDER_POST_SIZE', label: 'Contenders shown in standings posts', t: 'range', min: 5, max: 30, step: 1, unit: '' },
+  ] },
+  { id: 'season', title: '📅 Season', blurb: 'Dates and prizes.', items: [
+    { k: 'SEASON_START', label: 'Season opens', t: 'datetime' },
+    { k: 'SEASON_END', label: 'Season ends', t: 'datetime' },
+    { k: 'VOTE_DAYS', label: '🏟️ Bleacher Vote opens this many days before the end', t: 'range', min: 1, max: 14, step: 1, unit: 'days' },
+    { k: 'PRIZES', label: 'Prizes', t: 'text' },
+  ] },
+];
+const DASH_BELL_KEYS_ = ['BELL_PER_WEEK', 'BELL_MINUTES', 'BELL_WEEKDAY', 'BELL_WEEKEND', 'BELL_GAP_HOURS'];
+function adminDashboard() {
+  const html = HtmlService.createHtmlOutput(DASH_HTML_).setWidth(980).setHeight(720);
+  SpreadsheetApp.getUi().showModelessDialog(html, '🎛️ Commish dashboard');
+}
+function dashFmt_(d) { return d ? Utilities.formatDate(new Date(d), 'America/Denver', "EEE MMM d, h:mm a") : ''; }
+function dashStatus_(C) {
+  const pt = players_(), ace = ace_(pt), B = bellState_(C);
+  return {
+    ace: ace ? norm_(ace.Discord) + ' · ' + norm_(ace.Club) : 'No Ace right now',
+    mound: moundOpenTo_(C) === 1 ? 'Only #1 can charge the Ace' : '#1–#' + moundOpenTo_(C) + ' can charge the Ace',
+    moundNext: moundNext_(C).replace(/\*/g, ''),
+    bell: !B.on ? 'Off' + (PropertiesService.getScriptProperties().getProperty('BELL_PAUSED_PER') ? ' (paused)' : '') :
+      B.open ? (B.used ? 'Ringing until ' + dashFmt_(B.until) + ' · answered' : 'RINGING until ' + dashFmt_(B.until)) :
+      B.next ? 'Next ring: ' + dashFmt_(B.next) : 'Picking the next time…',
+    shield: B.shield ? 'Ace shield until ' + dashFmt_(B.shield) : '',
+    paused: !!PropertiesService.getScriptProperties().getProperty('BELL_PAUSED_PER'),
+    players: ladder_(pt).length + (ace ? 1 : 0),
+  };
+}
+function dashData() {
+  const C = cfg_(), vals = {};
+  DASH_GROUPS_.forEach(function (g) { g.items.forEach(function (it) { vals[it.k] = C[it.k]; }); });
+  return { groups: DASH_GROUPS_, values: vals, status: dashStatus_(C), notes: Object.keys(vals).reduce(function (o, k) { o[k] = (DEFAULTS[k] || ['', ''])[1]; return o; }, {}) };
+}
+function dashClean_(it, v) {
+  const s = String(v == null ? '' : v).trim();
+  if (it.t === 'range' || it.t === 'number') {
+    const n = Number(s); if (!isFinite(n)) throw new Error(it.label + ': not a number');
+    return Math.max(it.min, Math.min(it.max, n));
+  }
+  if (it.t === 'toggle') return /^(true|1|on|yes)$/i.test(s) ? 'TRUE' : 'FALSE';
+  if (it.t === 'choice') { if (!it.options.some(function (o) { return o[0] === s; })) throw new Error(it.label + ': pick one of the options'); return s; }
+  if (it.t === 'windows') {
+    if (!s) return '';
+    s.split(',').forEach(function (w) { if (!/^\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*$/.test(w)) throw new Error(it.label + ': "' + w.trim() + '" should look like 06:30-08:00'); });
+    return s.split(',').map(function (w) { return w.replace(/\s+/g, ''); }).join(', ');
+  }
+  if (it.t === 'datetime') { if (!/^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}$/.test(s)) throw new Error(it.label + ': use YYYY-MM-DD HH:MM'); return s; }
+  if (it.t === 'pairs') {
+    const out = s.split(',').map(function (x) { const kv = x.split(':'); const n = Number(kv[1]); if (!kv[0] || !isFinite(n)) throw new Error(it.label + ': bad value ' + x); return kv[0].trim() + ':' + Math.max(0, n); });
+    return out.join(',');
+  }
+  return s;
+}
+function dashSave(changes) {
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    const C = cfg_(), who = Session.getActiveUser().getEmail() || 'commish', done = [];
+    const byKey = {}; DASH_GROUPS_.forEach(function (g) { g.items.forEach(function (it) { byKey[it.k] = it; }); });
+    Object.keys(changes || {}).forEach(function (k) {
+      const it = byKey[k]; if (!it) throw new Error('Not a dashboard setting: ' + k);
+      const v = dashClean_(it, changes[k]);
+      if (String(v) === String(C[k])) return;
+      setCfg_(k, it.t === 'range' || it.t === 'number' ? v : (it.t === 'datetime' ? v : v));
+      done.push(it.label + ': ' + (C[k] === '' ? '(blank)' : C[k]) + ' → ' + (v === '' ? '(blank)' : v));
+      log_(who, 'Dashboard', k + ': ' + C[k] + ' → ' + v);
+    });
+    if (done.length && Object.keys(changes).some(function (k) { return DASH_BELL_KEYS_.indexOf(k) >= 0; })) {
+      const C2 = cfg_(); if (!bellState_(C2).open) { setCfg_('STATE_BELL_NEXT', ''); setCfg_('STATE_BELL_WARNED', ''); try { bellTick_(cfg_()); } catch (e) { } }
+    }
+    if (done.length) { try { snapshotBoard_(); } catch (e) { } }
+    return { done: done, data: dashData() };
+  } finally { lock.releaseLock(); }
+}
+function dashAction(name) {
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  let msg = '';
+  try {
+    const props = PropertiesService.getScriptProperties(), who = Session.getActiveUser().getEmail() || 'commish';
+    let C = cfg_();
+    if (name === 'ring') {
+      if (!ace_(players_())) throw new Error('There is no Ace to ring the Bell for.');
+      if (bellState_(C).open) throw new Error('The Bell is already ringing.');
+      if (Number(C.BELL_PER_WEEK) <= 0) throw new Error('The Bell is off. Resume it (or set Rings a week above 0) first.');
+      setCfg_('STATE_BELL_SHIELD', ''); setCfg_('STATE_BELL_WARNED', ''); setCfg_('STATE_BELL_NEXT', new Date(now_().getTime() - 1000).toISOString());
+      bellTick_(cfg_());
+      msg = '🔔 The Bell is ringing. Discord has the post.';
+    } else if (name === 'skip') {
+      const B = bellState_(C);
+      if (!B.next) throw new Error('No Bell is scheduled right now.');
+      const nx = bellPick_(C, new Date(B.next.getTime() + 3 * 3600000));
+      setCfg_('STATE_BELL_NEXT', nx ? nx.toISOString() : ''); setCfg_('STATE_BELL_WARNED', '');
+      msg = 'Skipped ' + dashFmt_(B.next) + '. ' + (nx ? 'Next ring: ' + dashFmt_(nx) + '.' : '');
+    } else if (name === 'pause') {
+      if (Number(C.BELL_PER_WEEK) <= 0) throw new Error('The Bell is already off.');
+      props.setProperty('BELL_PAUSED_PER', String(C.BELL_PER_WEEK));
+      setCfg_('BELL_PER_WEEK', 0); bellTick_(cfg_());
+      msg = '⏸️ The Bell is paused. Resume brings back ' + C.BELL_PER_WEEK + ' a week.';
+    } else if (name === 'resume') {
+      const per = Number(props.getProperty('BELL_PAUSED_PER')) || 3;
+      props.deleteProperty('BELL_PAUSED_PER');
+      setCfg_('BELL_PER_WEEK', per); bellTick_(cfg_());
+      msg = '▶️ The Bell is back: ' + per + ' a week.';
+    } else if (name === 'board') {
+      snapshotBoard_(); msg = '📊 The Live Hold the Hill Leaderboard is updated.';
+    } else throw new Error('Unknown button.');
+    log_(who, 'Dashboard', name + ': ' + msg);
+    try { snapshotBoard_(); } catch (e) { }
+    return { msg: msg, data: dashData() };
+  } finally { lock.releaseLock(); }
+}
+const DASH_HTML_ = `<!DOCTYPE html><html><head><base target="_top"><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;background:#0e1b33;color:#f4ebd9;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.top{position:sticky;top:0;z-index:5;background:#0e1b33;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.12)}
+.stat{display:flex;flex-wrap:wrap;gap:8px}.chip{background:rgba(255,255,255,.08);border-radius:999px;padding:6px 12px;font-size:13px}.chip b{color:#fde68a}
+.chip.hot{background:#facc15;color:#1b1300}.chip.hot b{color:#1b1300}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button{font:700 13px/1 system-ui,sans-serif;border:0;border-radius:999px;padding:9px 14px;cursor:pointer;background:rgba(255,255,255,.12);color:inherit}
+button.gold{background:#facc15;color:#1b1300}button.red{background:#c8102e;color:#fff}button:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}.tabs button{background:transparent;border:1px solid rgba(255,255,255,.2)}.tabs button.on{background:#f4ebd9;color:#0e1b33}
+.wrap{padding:12px 16px 90px}.blurb{opacity:.75;margin:2px 0 12px}
+.row{display:grid;grid-template-columns:minmax(200px,1.1fr) 2fr;gap:6px 16px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);margin-bottom:6px}
+.row.ch{background:rgba(250,204,21,.12);outline:1px solid rgba(250,204,21,.5)}
+.row label{font-weight:700}.row .h{grid-column:1/-1;font-size:12px;opacity:.65;margin-top:-2px}
+.ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ctl input[type=range]{flex:1;min-width:160px;accent-color:#facc15}
+.val{min-width:72px;font-weight:800;color:#fde68a;text-align:right}
+input[type=text],input[type=number],input[type=datetime-local],select{font:inherit;background:#13254a;color:#f4ebd9;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 9px}
+input[type=text]{width:100%}.pair{display:flex;flex-direction:column;gap:2px;font-size:12px}.pair input{width:110px}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;background:#475569;cursor:pointer;flex:none}.sw.on{background:#16a34a}.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.sw.on::after{left:23px}
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;align-items:center;padding:10px 16px;background:#13254a;border-top:1px solid rgba(255,255,255,.15)}
+.bar .msg{flex:1;font-size:13px}.ok{color:#86efac}.err{color:#fca5a5}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:9}.modal.on{display:grid}.box{background:#13254a;border-radius:14px;padding:18px;max-width:440px}.box p{margin:0 0 14px}
+</style></head><body>
+<div class="top"><div class="stat" id="stat">Loading…</div><div class="acts" id="acts"></div></div>
+<div class="tabs" id="tabs"></div><div class="wrap" id="wrap"></div>
+<div class="bar"><span class="msg" id="msg">Change anything, then press Save. Nothing changes until you do.</span><button id="undo">Undo changes</button><button class="gold" id="save" disabled>Save</button></div>
+<div class="modal" id="modal"><div class="box"><p id="mq"></p><div style="display:flex;gap:8px;justify-content:flex-end"><button id="mno">Cancel</button><button class="gold" id="myes">Yes, do it</button></div></div></div>
+<script>
+var D=null,cur={},tab='bell',busy=false;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function load(){google.script.run.withSuccessHandler(function(d){D=d;cur={};render();}).withFailureHandler(fail).dashData();}
+function fail(e){busy=false;$('msg').innerHTML='<span class="err">'+esc(e&&e.message||e)+'</span>';setBusy(false);}
+function changed(){var n=0;for(var k in cur){if(String(cur[k])!==String(D.values[k]))n++;}return n;}
+function val(k){return k in cur?cur[k]:D.values[k];}
+function pairsGet(s){var o={};String(s||'').split(',').forEach(function(x){var kv=x.split(':');if(kv[0])o[kv[0].trim()]=kv[1];});return o;}
+function dtToInput(s){var m=String(s||'').match(/^(\\d{4}-\\d{2}-\\d{2}) (\\d{1,2}):(\\d{2})/);if(!m)return '';return m[1]+'T'+(m[2].length<2?'0'+m[2]:m[2])+':'+m[3];}
+function status(){var s=D.status;var hot=/RINGING/.test(s.bell);
+ $('stat').innerHTML='<span class="chip">♠ <b>'+esc(s.ace)+'</b></span><span class="chip">⏰ '+esc(s.mound)+'</span>'+(s.moundNext?'<span class="chip">'+esc(s.moundNext)+'</span>':'')+'<span class="chip'+(hot?' hot':'')+'">🔔 <b>'+esc(s.bell)+'</b></span>'+(s.shield?'<span class="chip">🛡️ '+esc(s.shield)+'</span>':'')+'<span class="chip">'+s.players+' on the Hill</span>';
+ $('acts').innerHTML='<button class="gold" data-a="ring">🔔 Ring the Bell now</button><button data-a="skip">⏭️ Skip the next Bell</button>'+(s.paused?'<button data-a="resume">▶️ Resume the Bell</button>':'<button data-a="pause">⏸️ Pause the Bell</button>')+'<button data-a="board">📊 Update the leaderboard</button><button data-a="refresh">🔄 Refresh</button>';
+ Array.prototype.forEach.call(document.querySelectorAll('[data-a]'),function(b){b.onclick=function(){act(b.getAttribute('data-a'));};});}
+var Q={ring:'Ring the Bell right now? For the next hour anyone on the climb can charge the Ace, and Discord gets the post. It also clears the Ace shield.',skip:'Skip the next scheduled Bell? A new time gets picked after it.',pause:'Pause the Bell? No rings until you resume.',resume:'Turn the Bell back on?',board:'Update the Live Hold the Hill Leaderboard now?'};
+function ask(q,yes){$('mq').textContent=q;$('modal').className='modal on';$('myes').onclick=function(){$('modal').className='modal';yes();};$('mno').onclick=function(){$('modal').className='modal';};}
+function act(a){if(a==='refresh'){load();return;}ask(Q[a],function(){setBusy(true);$('msg').textContent='Working…';google.script.run.withSuccessHandler(function(r){D=r.data;setBusy(false);status();$('msg').innerHTML='<span class="ok">'+esc(r.msg)+'</span>';}).withFailureHandler(fail).dashAction(a);});}
+function setBusy(b){busy=b;Array.prototype.forEach.call(document.querySelectorAll('button'),function(x){if(x.id!=='mno'&&x.id!=='myes')x.disabled=b;});if(!b)$('save').disabled=!changed();}
+function render(){status();
+ $('tabs').innerHTML=D.groups.map(function(g){return '<button class="'+(g.id===tab?'on':'')+'" data-t="'+g.id+'">'+esc(g.title)+'</button>';}).join('');
+ Array.prototype.forEach.call(document.querySelectorAll('[data-t]'),function(b){b.onclick=function(){tab=b.getAttribute('data-t');render();};});
+ var g=D.groups.filter(function(x){return x.id===tab;})[0];
+ var h='<div class="blurb">'+esc(g.blurb)+'</div>';
+ g.items.forEach(function(it){var v=val(it.k),c=(it.k in cur&&String(cur[it.k])!==String(D.values[it.k]));h+='<div class="row'+(c?' ch':'')+'"><label>'+esc(it.label)+'</label><div class="ctl">'+ctl(it,v)+'</div>'+(it.help||D.notes[it.k]?'<div class="h">'+esc(it.help||D.notes[it.k])+'</div>':'')+'</div>';});
+ $('wrap').innerHTML=h;wire(g);$('save').disabled=busy||!changed();
+ var n=changed();if(n)$('msg').textContent=n+' unsaved change'+(n>1?'s':'')+'. Press Save to keep '+(n>1?'them':'it')+'.';}
+function ctl(it,v){
+ if(it.t==='range')return '<input type="range" min="'+it.min+'" max="'+it.max+'" step="'+it.step+'" value="'+esc(v)+'" data-k="'+it.k+'"><span class="val">'+esc(v)+' '+esc(it.unit||'')+'</span>';
+ if(it.t==='number')return '<input type="number" min="'+it.min+'" max="'+it.max+'" value="'+esc(v)+'" data-k="'+it.k+'">';
+ if(it.t==='toggle')return '<div class="sw'+(/^true$/i.test(v)?' on':'')+'" data-k="'+it.k+'" data-sw="1"></div><span>'+(/^true$/i.test(v)?'On':'Off')+'</span>';
+ if(it.t==='choice')return '<select data-k="'+it.k+'">'+it.options.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===v?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>';
+ if(it.t==='datetime')return '<input type="datetime-local" value="'+dtToInput(v)+'" data-k="'+it.k+'" data-dt="1"> <span style="opacity:.7">Mountain time</span>';
+ if(it.t==='pairs'){var o=pairsGet(v);return it.parts.map(function(p){return '<span class="pair">'+esc(p[1])+'<input type="number" min="0" value="'+esc(o[p[0]]==null?'':o[p[0]])+'" data-k="'+it.k+'" data-p="'+p[0]+'"></span>';}).join('');}
+ return '<input type="text" value="'+esc(v)+'" data-k="'+it.k+'">';}
+function wire(g){
+ Array.prototype.forEach.call(document.querySelectorAll('#wrap [data-k]'),function(el){var k=el.getAttribute('data-k'),it=g.items.filter(function(x){return x.k===k;})[0];
+  if(el.getAttribute('data-sw')){el.onclick=function(){cur[k]=/^true$/i.test(val(k))?'FALSE':'TRUE';render();};return;}
+  if(el.getAttribute('data-p')){el.onchange=function(){var o=pairsGet(val(k));o[el.getAttribute('data-p')]=el.value;cur[k]=it.parts.map(function(p){return p[0]+':'+(o[p[0]]==null?0:o[p[0]]);}).concat(Object.keys(o).filter(function(x){return !it.parts.some(function(p){return p[0]===x;});}).map(function(x){return x+':'+o[x];})).join(',');render();};return;}
+  if(el.getAttribute('data-dt')){el.onchange=function(){cur[k]=el.value.replace('T',' ');render();};return;}
+  if(el.type==='range'){el.oninput=function(){el.nextElementSibling.textContent=el.value+' '+(it.unit||'');};el.onchange=function(){cur[k]=Number(el.value);render();};return;}
+  el.onchange=function(){cur[k]=el.type==='number'?Number(el.value):el.value;render();};});}
+$('save').onclick=function(){var ch={};for(var k in cur){if(String(cur[k])!==String(D.values[k]))ch[k]=cur[k];}if(!Object.keys(ch).length)return;setBusy(true);$('msg').textContent='Saving…';
+ google.script.run.withSuccessHandler(function(r){D=r.data;cur={};setBusy(false);render();$('msg').innerHTML='<span class="ok">✓ Saved: '+esc(r.done.join(' · ')||'nothing changed')+'</span>';}).withFailureHandler(fail).dashSave(ch);};
+$('undo').onclick=function(){cur={};render();$('msg').textContent='Changes undone.';};
+load();setInterval(function(){if(!busy&&!changed())google.script.run.withSuccessHandler(function(d){D=d;status();}).dashData();},60000);
+</script></body></html>`;
 function adminRefreshBoard() { withUi_(function () { snapshotBoard_(); return 'Board updated.'; }); }
 
 const BOARD_HTML_ = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="60">
