@@ -43,7 +43,10 @@
     #sbx-radio .sw { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; }
     #sbx-radio .note { font-size: 12px; opacity: .6; margin: 6px 0 0; }
     #sbx-radio .rhow ol { padding-left: 18px; margin: 4px 0 8px; opacity: .85; } #sbx-radio .rhow li { margin: 0 0 4px; }
-    #sbx-radio details summary { cursor: pointer; font-weight: 700; margin: 2px 0 8px; opacity: .85; }`;
+    #sbx-radio details summary { cursor: pointer; font-weight: 700; margin: 2px 0 8px; opacity: .85; }
+    #sbx-radio .kbox { margin: -2px 0 10px; padding: 8px 9px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; }
+    #sbx-radio .kbox .kstat { margin: 0 0 8px; }
+    #sbx-radio .kbar { height: 6px; margin-top: 6px; border-radius: 999px; background: #1e293b; overflow: hidden; } #sbx-radio .kbar i { display: block; height: 100%; background: #22c55e; }`;
   document.documentElement.appendChild(css);
   const ov = document.createElement("div"); ov.id = "sbx-radio"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "SmallBall Radio");
   ov.innerHTML = `<div class="hd"><b>📻 SmallBall Radio</b><span class="note" data-k="game" style="margin:0"></span><button type="button" class="x" aria-label="Close">✕</button></div>
@@ -107,7 +110,7 @@
   // Every line has a shelf life. A stale line is skipped, and a big play cuts a joke off, so the booth stays
   // with the pitch instead of drifting behind it. Speech is the browser's own; nothing is sent anywhere.
   const RKEY = "tk-radio-v1";
-  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true } };
+  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true }, engine: "browser", kdev: "auto" };
   let R; try { R = Object.assign({}, RDEF, JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (_) { R = Object.assign({}, RDEF); }
   R.guests = Object.assign({}, RDEF.guests, R.guests || {});
   if (R.pitches === "auto") R.pitches = "some";            // 0.8: the booth is a show now; the old Auto becomes Some
@@ -735,11 +738,16 @@
   // engine and retry it once on a voice that lives on this computer.
   const KEEP = [], BADV = new Set(); let lastErr = "", heard = 0, fails = 0, speechDown = false;
   function say(who, text, pri, o = {}) {
-    const it = { who, text, pri, at: Date.now(), maxAge: o.maxAge || 6000, ev: o.ev, seg: !!o.seg, ms: o.ms || 0, on: o.on };
+    // Kokoro: a stock pitch call with more after it ("Ball one. 92 on the gun.") goes out as the stock call, which
+    // is already made, plus the rest as its own line, so the call itself never waits.
+    const st = who === "p" && K.st === "ready" && kLive() ? kStockText(text) : "";
+    if (st) { say(who, st, pri, Object.assign({}, o, { cap: text })); return say(who, text.slice(st.length).trim(), pri, { maxAge: o.maxAge, cont: true }); }
+    const it = { who, text, pri, at: Date.now(), maxAge: o.maxAge || 6000, ev: o.ev, seg: !!o.seg, ms: o.ms || 0, on: o.on, cap: o.cap, cont: !!o.cont };
     if (o.front) { let i = 0; while (i < RQ.length && RQ[i].pri >= pri && !RQ[i].seg) i++; RQ.splice(i, 0, it); } else RQ.push(it);
     while (RQ.length > 12 || RQ.filter((x) => !x.seg).length > 5) { let i = RQ.findIndex((x) => x.pri === 0 && !x.seg); if (i < 0) i = RQ.findIndex((x) => x.pri === 1 && !x.seg); if (i < 0) i = RQ.findIndex((x) => !x.seg); if (i < 0) i = RQ.length - 1; RQ.splice(i, 1); }
     if (o.cut) for (let i = RQ.length - 1; i >= 0; i--) if (RQ[i] !== it && RQ[i].pri < 2 && !RQ[i].seg) RQ.splice(i, 1);   // a big play clears the jokes waiting in line (no mid-sentence cancel: it can crash ChromeOS speech)
     pump();
+    if (K.st === "ready") kTick();   // Kokoro: start making the next line while this one plays
   }
   let VO = [];
   function loadVoices() { VO = TTS ? speechSynthesis.getVoices() : []; if (isOpen()) paintRadio(); }
@@ -758,12 +766,13 @@
     if (Date.now() - cutAt < 120) { setTimeout(pump, 130); return; }
     const it = RQ.shift();
     if (Date.now() - it.at > it.maxAge) return pump();
-    if (it.on) { try { it.on(); } catch (_) {} }   // Stream Mode cards go up the moment their line is spoken
+    if (it.on && !(kLive() && !it.kbad)) { try { it.on(); } catch (_) {} }   // Stream Mode cards go up the moment their line is spoken
     if (it.who === "pause") {           // a beat of silence (trivia thinking time)
       speaking = it; const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = it.text ? esc(it.text) : "🤔 …"; tvCap("", "");
       setTimeout(() => { if (speaking === it) { speaking = null; pump(); } }, it.ms || 5000); return;
     }
-    if (speechDown) { const nm0 = who2name(it.who, radioGame()); const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `🔇 <b>${esc(nm0)}:</b> ${esc(it.text)}`; tvCap(nm0, it.text); if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nm0}: ${it.text}`); speaking = it; setTimeout(() => { if (speaking === it) { speaking = null; pump(); } }, 900 + it.text.length * 45); return; }
+    if (kLive() && !it.kbad) return kSpeak(it);    // Kokoro voices (it fires it.on when the line actually starts)
+    if (speechDown || !TTS) { const nm0 = who2name(it.who, radioGame()); const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `🔇 <b>${esc(nm0)}:</b> ${esc(it.text)}`; tvCap(nm0, it.text); if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nm0}: ${it.text}`); speaking = it; setTimeout(() => { if (speaking === it) { speaking = null; pump(); } }, 900 + it.text.length * 45); return; }
     const synth = speechSynthesis;
     const id = radioGame(), G = it.who === "g" ? GUESTS[(GS[id] || {}).guest] : null;
     const u = new SpeechSynthesisUtterance(it.text), v = voiceFor(it.who, it.retry);
@@ -800,7 +809,11 @@
     if (speechDown) { el.innerHTML = `<b>This computer's text-to-speech isn't working</b> (${esc(lastErr || "no sound")}), so the booth is showing captions only. Every voice failed, so it's not the kit. Fix: restart Chrome (on a Chromebook, restart the Chromebook), then check the voice speaks in your system's text-to-speech settings. Then press Test the booth.`; return; }
     el.textContent = lastErr ? `Speech trouble: ${lastErr}. ${BADV.size ? `Skipping ${[...BADV].join(", ")}; using voices on this computer.` : ""}` : heard ? `Speech OK (${heard} lines heard).` : "";
   }
-  function hush() { RQ.length = 0; speaking = null; clearTimeout(rT); cutAt = Date.now(); try { speechSynthesis.cancel(); } catch (_) {} }
+  function hush() {
+    if (speaking && speaking.kT) clearTimeout(speaking.kT);
+    RQ.length = 0; speaking = null; clearTimeout(rT); cutAt = Date.now(); try { speechSynthesis.cancel(); } catch (_) {}
+    if (K.src) { try { K.src.onended = null; K.src.stop(); } catch (_) {} K.src = null; }   // Kokoro: stop the line mid-word
+  }
 
   // A short original organ sting for the big moments.
   let AC = null;
@@ -819,6 +832,204 @@
         }
       });
     } catch (_) {}
+  }
+
+  // ---------- 🧠 Kokoro voices (optional, off to start) ----------
+  // A neural voice for each member of the booth, made on this computer by Kokoro-82M (Apache-2.0). The kit
+  // ships the code (kokoro/); the model and voice files download once, from Hugging Face, only after Kokoro is
+  // picked under Voices, and stay in the browser. Picked or not, nothing about the game leaves the computer.
+  // The speech engine runs in a hidden frame at the extension's own origin (kokoro/engine.html) with the model
+  // in a worker, so the page and the game never wait on it. Until it's ready, or if it can't start, or if it's
+  // too slow on this computer to keep up with the game, the booth uses the browser's own voices as before.
+  // Each line still has its shelf life: a line is only made if it can be ready in time, and a line that
+  // arrives late is skipped, never played behind the picture.
+  const XAPI = (() => { try { const b = globalThis.browser; if (b && b.runtime && b.runtime.getURL) return b; const c = globalThis.chrome; if (c && c.runtime && c.runtime.getURL && c.runtime.id) return c; } catch (_) {} return null; })();
+  const K_OK = !!XAPI && typeof MessageChannel !== "undefined" && typeof WebAssembly !== "undefined" && !!(window.AudioContext || window.webkitAudioContext);
+  // The cast: one Kokoro voice per character, always the same one. (Kokoro has no pitch control; the voices differ instead.)
+  const KV = { p: "am_michael", c: "bm_george", quiz: "am_puck", qb: "am_fenrir", obvious: "bm_fable" };
+  const KSP = { p: 1.1, c: 0.95, quiz: 1.05, qb: 1.0, obvious: 0.92 };
+  const KVN = { am_michael: "Michael (US)", bm_george: "George (UK)", am_puck: "Puck (US)", am_fenrir: "Fenrir (US)", bm_fable: "Fable (UK)" };
+  const K = { st: "off", frame: null, port: null, init: false, dev: "", dtype: "", phase: "", loaded: 0, total: 0, err: "", note: "", busy: null, seq: 0, mem: new Map(), memBytes: 0, gens: [], fails: 0, rtf: 1, slow: false, late: 0, made: 0, hits: 0, disk: new Set(), stock: null, src: null, usage: null, offT: 0, helloT: 0, after: null };
+  const kWant = () => K_OK && R.engine === "kokoro";
+  const kLive = () => kWant() && K.st === "ready" && !(K.slow && TTS);
+  const kCast = (who, id) => (who === "p" || who === "c" ? who : (GS[id] || {}).guest || Object.keys(GUESTS).find((g) => R.guests[g]) || "quiz");
+  const kKey = (v, sp, text) => `${v}|${sp}|${text}`;
+  function kJob(it) {
+    if (it.kkey) return it;
+    const c = kCast(it.who, radioGame()), v = KV[c] || KV.p, sp = KSP[c] || 1;
+    it.kv = v; it.ksp = sp; it.kkey = kKey(v, sp, it.text); return it;
+  }
+  const kEst = (text) => K.rtf * (800 + 68 * text.length);              // how long a line takes to make here: speed (learned as it goes) × how long it runs
+  function kAC() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume().catch(() => {}); return AC; } catch (_) { return null; } }
+  function kMemGet(k) { const c = K.mem.get(k); if (c) { K.mem.delete(k); K.mem.set(k, c); } return c; }
+  function kMemPut(k, c) {
+    if (K.mem.has(k)) return; K.mem.set(k, c); K.memBytes += c.pcm.byteLength;
+    while (K.memBytes > 24e6 && K.mem.size > 1) { const [k0, c0] = K.mem.entries().next().value; K.mem.delete(k0); K.memBytes -= c0.pcm.byteLength; }   // ~4 minutes of speech in memory
+  }
+  // The pitch calls are a small, fixed set and they're the most time-critical lines in the show, so Kokoro
+  // makes them ahead of time (in Mack's voice) whenever it's idle, and keeps them for the next game.
+  // These mirror the ball/strike/contact calls in watchBoard().
+  function kStock() {
+    if (K.stock) return K.stock;
+    const a = [...L_PBP.contact], add = (s) => { if (!a.includes(s)) a.push(s); };
+    [1, 2].forEach((n) => { add(`Strike ${say1(1)}.`); add(`Ball ${say1(n)}.`); add(`Strike ${say1(1)}, on the corner.`); add(`Outside, ball ${say1(n)}.`); add(`Low. Ball ${say1(n)}.`); });
+    add("Ball three. Full count!"); add("Strike two. Full count!");
+    for (let b1 = 0; b1 <= 3; b1++) for (let s1 = 0; s1 <= 2; s1++) {
+      if (b1 === 3 && s1 === 2) continue;
+      const cw = capF(countWords(b1, s1));
+      if (b1 >= 1 && !(s1 === 0 && b1 < 3)) { add(`Ball. ${cw}.`); add(`Misses. ${cw}.`); }
+      if (s1 >= 1 && !(b1 === 0 && s1 < 2)) { add(`Strike. ${cw}.`); add(`Gets him. ${cw}.`); }
+    }
+    K.stockTx = a.slice().sort((x, y) => y.length - x.length);
+    return (K.stock = a.map((t) => kKey(KV.p, KSP.p, t)));
+  }
+  function kStockText(text) {   // the stock call a line starts with, if Kokoro has it made
+    kStock();
+    const s = K.stockTx.find((x) => text.length > x.length && text.startsWith(x + " "));
+    if (!s) return "";
+    const k = kKey(KV.p, KSP.p, s);
+    return K.mem.has(k) || K.disk.has(k) ? s : "";
+  }
+  function kSend(m, tr) { try { K.port && K.port.postMessage(m, tr || []); } catch (_) {} }
+  function kStart(load) {
+    if (!K_OK) return;
+    if (load && K.st === "failed") kStop();   // try again from scratch
+    clearTimeout(K.offT);
+    if (load) K.init = true;
+    if (K.frame) { if (load && K.port && K.st === "off") { K.st = "loading"; K.phase = "start"; kSend({ t: "init", device: R.kdev, voices: Object.values(KV) }); kPaint(); } return; }
+    let url; try { url = XAPI.runtime.getURL("kokoro/engine.html"); } catch (_) { K.st = "failed"; K.err = "the extension was reloaded; refresh the page"; kPaint(); return; }
+    const f = document.createElement("iframe");
+    f.src = url; f.setAttribute("aria-hidden", "true"); f.tabIndex = -1; f.title = "SmallBall Radio voice engine";
+    f.style.cssText = "display:none!important";
+    K.frame = f; K.st = load ? "loading" : "off"; K.phase = "start"; K.err = "";
+    f.addEventListener("load", () => {
+      if (K.frame !== f) return;
+      const ch = new MessageChannel(); K.port = ch.port1;
+      ch.port1.onmessage = (e) => kMsg(e.data || {});
+      try { f.contentWindow.postMessage({ t: "sbx-kokoro-hello" }, new URL(url).origin, [ch.port2]); } catch (e) { kFail("couldn't reach the voice engine (" + e.message + ")"); }
+    });
+    K.helloT = setTimeout(() => { if (K.frame === f && !K.port) kFail("the voice engine didn't open"); }, 20000);
+    (document.body || document.documentElement).appendChild(f);
+    kPaint();
+  }
+  function kStop() {   // unload the model and free its memory (the downloads stay)
+    clearTimeout(K.offT); clearTimeout(K.helloT);
+    if (K.src) { try { K.src.onended = null; K.src.stop(); } catch (_) {} K.src = null; }
+    try { K.port && K.port.close(); } catch (_) {}
+    if (K.frame) K.frame.remove();
+    Object.assign(K, { frame: null, port: null, st: "off", init: false, busy: null, phase: "", after: null });
+    kPaint();
+  }
+  function kFail(why) { K.st = "failed"; K.err = why; K.busy = null; if (speaking && speaking.kw) { clearTimeout(speaking.kT); speaking = null; setTimeout(pump, 50); } kPaint(); paintDiag(); }
+  function kMsg(m) {
+    if (m.t === "hello") { clearTimeout(K.helloT); if (K.init) { K.st = "loading"; kSend({ t: "init", device: R.kdev, voices: Object.values(KV) }); } kSend({ t: "usage" }); if (K.after) { const a = K.after; K.after = null; a(); } }
+    else if (m.t === "progress") { K.phase = m.phase; if (m.phase === "download") { K.loaded = m.loaded; K.total = m.total; } kPaint(); }
+    else if (m.t === "note") { K.note = m.text; kPaint(); }
+    else if (m.t === "ready") {
+      K.st = "ready"; K.dev = m.device; K.dtype = m.dtype; K.phase = ""; K.err = "";
+      if (m.rtf > 0) K.rtf = m.rtf;   // the warm-up line is the first measure of speed
+      kSend({ t: "has", id: "stock", keys: kStock() }); kSend({ t: "usage" });
+      kPaint(); paintDiag(); kTick();
+    }
+    else if (m.t === "error") { if (K.st === "loading" || K.st === "off") kFail(m.error || "Kokoro couldn't start"); else { K.err = m.error || ""; kPaint(); } }
+    else if (m.t === "has") { (m.keys || []).forEach((k) => K.disk.add(k)); kTick(); }
+    else if (m.t === "usage" || m.t === "cleared") { K.usage = m; if (m.t === "cleared") { K.disk.clear(); K.mem.clear(); K.memBytes = 0; K.note = "Kokoro's downloads and saved clips are cleared."; kStop(); } kPaint(); }
+    else if (m.t === "audio" || m.t === "fail") {
+      const job = K.busy && K.busy.id === m.id ? K.busy : null; if (job) K.busy = null;
+      if (m.t === "audio") {
+        let pcm; try { pcm = new Float32Array(m.pcm); } catch (_) { pcm = Float32Array.from(m.pcm || []); }
+        const clip = { sr: m.sr || 24000, pcm };
+        kMemPut(m.key, clip);
+        K.fails = 0;
+        if (m.cached) { K.hits++; K.disk.add(m.key); }
+        else if (m.gen > 0) {
+          K.made++; if (job && job.keep) K.disk.add(m.key);
+          const dur = (pcm.length / clip.sr) * 1000, r = m.gen / Math.max(1, dur);
+          K.rtf = K.rtf * 0.6 + r * 0.4;
+          K.gens.push(r); if (K.gens.length > 8) K.gens.shift();
+          // Can this computer keep up? If making a line takes longer than saying it, the booth falls behind the game.
+          if (K.gens.length >= 6 && TTS) { const s = K.gens.slice().sort((a, b) => a - b), med = s[Math.floor(s.length / 2)]; if (med > 1) { K.slow = true; K.note = `Kokoro is too slow on this computer (it takes ${med.toFixed(1)}× as long to make a line as to say it), so the booth is back on your browser's voices.`; paintDiag(); } }
+        }
+        if (speaking && speaking.kw && speaking.kkey === m.key && !speaking.kSrc) kPlay(speaking, clip);
+      } else if (m.error !== "miss") {
+        // Kokoro couldn't make this line: say it with the browser's voice instead, and give up on Kokoro after a few
+        K.err = m.error; if (++K.fails >= 3) return kFail(m.error || "it kept failing");
+        if (speaking && speaking.kw && speaking.kkey === m.key) { clearTimeout(speaking.kT); const it = speaking; speaking = null; it.kw = false; it.kbad = true; RQ.unshift(it); setTimeout(pump, 0); }
+      }
+      kPaint(); kTick();
+    }
+  }
+  // What to make next: the line on deck first, then the queue in order, skipping any line that can't be ready
+  // before it goes stale. With nothing to do, make the stock pitch calls.
+  function kTick() {
+    if (K.st !== "ready" || K.busy || !K.port || !talking()) return;
+    const now = Date.now(), list = (speaking && speaking.kw ? [speaking] : []).concat(RQ.filter((x) => x.who !== "pause"));
+    for (const it of list) {
+      kJob(it);
+      if (K.mem.has(it.kkey)) continue;
+      const fromDisk = K.disk.has(it.kkey);
+      if (!fromDisk && now + kEst(it.text) > it.at + it.maxAge) continue;
+      return kReq(it.kkey, it.text, it.kv, it.ksp, it.text.length <= 240);
+    }
+    if (!speaking && !RQ.length && R.on) { const k = (K.stock || []).find((x) => !K.disk.has(x) && !K.mem.has(x)); if (k) kReq(k, k.split("|").slice(2).join("|"), KV.p, KSP.p, true); }
+  }
+  function kReq(key, text, voice, speed, keep) { K.busy = { id: "j" + ++K.seq, key, text, keep }; kSend({ t: "say", id: K.busy.id, key, text, voice, speed, keep }); }
+  // Speak a line with Kokoro: right away if it's made, otherwise wait for it, but never past its shelf life.
+  function kSpeak(it) {
+    kJob(it); speaking = it; it.kw = true;
+    const hit = kMemGet(it.kkey); if (hit) return kPlay(it, hit);
+    const left = it.at + it.maxAge - Date.now();
+    if (!K.disk.has(it.kkey) && !(K.busy && K.busy.key === it.kkey) && kEst(it.text) > left) { speaking = null; it.kw = false; K.late++; return pump(); }
+    it.kT = setTimeout(() => { if (speaking === it && !it.kSrc) { speaking = null; it.kw = false; K.late++; pump(); } }, Math.max(0, left));
+    kTick();
+  }
+  function kPlay(it, clip) {
+    clearTimeout(it.kT);
+    if (Date.now() - it.at > it.maxAge) { speaking = null; it.kw = false; K.late++; return pump(); }   // made, but too late: the moment's gone
+    const ac = kAC(); if (!ac) { speaking = null; it.kw = false; it.kbad = true; RQ.unshift(it); return pump(); }
+    const id = radioGame();
+    try {
+      const buf = ac.createBuffer(1, clip.pcm.length, clip.sr); buf.getChannelData(0).set(clip.pcm);
+      const src = ac.createBufferSource(), gn = ac.createGain(); src.buffer = buf; gn.gain.value = Math.max(0.05, R.vol);
+      src.connect(gn).connect(ac.destination);
+      it.kSrc = src; K.src = src;
+      src.onended = () => { if (K.src === src) K.src = null; lastSpoke = Date.now(); if (speaking !== it) return; speaking = null; setTimeout(pump, it.who === "p" ? 120 : 280); };
+      if (it.on) { try { it.on(); } catch (_) {} }
+      src.start(); heard++; lastSpoke = Date.now();
+    } catch (e) { speaking = null; it.kw = false; it.kbad = true; RQ.unshift(it); K.err = String(e.message || e); return pump(); }
+    const nmw = who2name(it.who, id), said = it.cap || it.text;
+    if (!it.cont) {   // the second half of a split line is already on the caption
+      if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nmw}: ${said}`);
+      const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `<b>${esc(nmw)}:</b> ${esc(said)}`;
+      tvCap(nmw, said);
+    }
+    kTick();
+  }
+  const mb = (n) => (n >= 1e6 ? Math.round(n / 1e6) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB");
+  function kStatus() {
+    if (K.st === "failed") return `⚠️ Kokoro couldn't start (${esc(K.err)}). The booth is using your browser's voices.`;
+    if (K.st === "loading") {
+      if (K.phase === "download" && K.total) { const p = Math.min(100, Math.round((K.loaded / K.total) * 100)); return `⏬ Getting the Kokoro voices: ${p}% (${mb(K.loaded)} of ${mb(K.total)}). Your browser's voices fill in until they're ready.<div class="kbar"><i style="width:${p}%"></i></div>`; }
+      if (K.phase === "warmup") return "⚙️ Warming up the Kokoro voices…";
+      return "⚙️ Starting Kokoro…";
+    }
+    if (K.st === "ready") {
+      if (K.slow && TTS) return `🐢 ${esc(K.note)} <button class="mini" data-act="kretry">Try Kokoro again</button>`;
+      return `✅ Kokoro is on, running on the ${K.dev === "webgpu" ? "graphics card (WebGPU)" : "processor (WASM)"}. ${K.made + K.hits} lines so far${K.hits ? `, ${K.hits} from saved clips` : ""}${K.late ? `, ${K.late} skipped as too late` : ""}.`;
+    }
+    return K.init ? "" : `Not downloaded yet. Kokoro needs about 90 MB on the processor (WASM), or about 330 MB with a graphics card (WebGPU), downloaded once from Hugging Face and kept in this browser. It starts when you turn the radio on, or <button class="mini" data-act="kload">download now</button>.`;
+  }
+  function kPaint() {
+    if (!isOpen()) return;
+    const el = ov.querySelector(".kstat"); if (el) el.innerHTML = kStatus() + (K.note && !(K.slow && K.st === "ready") ? ` <span class="note">${esc(K.note)}</span>` : "");
+    const u = ov.querySelector(".kuse"); if (u) u.textContent = K.usage ? `Stored by Kokoro in this browser: ${mb(K.usage.total || 0)}${K.usage.clips ? ` (saved clips: ${mb(K.usage.clips)})` : ""}.` : "";
+  }
+  function kClear() {
+    const go = () => kSend({ t: "clear" });
+    R.engine = "browser"; rsave();
+    if (K.port) go(); else { K.after = go; kStart(false); }
+    if (K.src) { try { K.src.stop(); } catch (_) {} }
+    paintRadio();
   }
 
   function radioIntro() {
@@ -861,7 +1072,14 @@
     const seg = (key, vals) => `<span class="seg" data-seg="${key}">${vals.map(([v, l]) => `<button data-v="${v}" class="${R[key] === v ? "on" : ""}">${l}</button>`).join("")}</span>`;
     box.innerHTML = `
       <div class="rrow"><b>📻 SmallBall Radio</b><span class="note">Mack calls it, Dewey colors it, a guest drops by.</span></div>
-      ${TTS ? "" : `<p class="note">This browser has no speech voices, so the radio can't talk here.</p>`}
+      ${TTS ? "" : `<p class="note">This browser has no speech voices${K_OK ? ", so the radio needs the Kokoro voices below to talk here" : ", so the radio can't talk here"}.</p>`}
+      ${K_OK ? `<div class="rrow"><span class="lbl">Voices</span>${seg("engine", [["browser", "Browser"], ["kokoro", "Kokoro (neural)"]])}</div>` : ""}
+      ${kWant() ? `<div class="kbox">
+        <p class="note kstat" style="opacity:.9"></p>
+        <div class="rrow"><span class="lbl">Runs on</span>${seg("kdev", [["auto", "Automatic"], ["webgpu", "Graphics card"], ["wasm", "Processor"]])}</div>
+        <p class="note">The cast: Mack ${KVN[KV.p]}, Dewey ${KVN[KV.c]}, Chet ${KVN[KV.quiz]}, Brock ${KVN[KV.qb]}, Gary ${KVN[KV.obvious]}. Made on this computer; nothing about the game is sent anywhere. The voices below are the backup.</p>
+        <div class="rrow"><button class="mini" data-act="kclear">Clear Kokoro downloads</button><span class="note kuse"></span></div>
+      </div>` : ""}
       <div class="rrow"><span class="lbl">Mack</span><select data-r="pbp">${opts(R.pbp, "p")}</select></div>
       <div class="rrow"><span class="lbl">Dewey</span><select data-r="color">${opts(R.color, "c")}</select></div>
       <div class="rrow"><span class="lbl">Guest</span><select data-r="guestVoice">${opts(R.guestVoice, "g")}</select></div>
@@ -890,12 +1108,13 @@
         <li><b>Play-by-play style</b> calls more of the game and talks less. <b>Mack</b> is a shameless home-team homer, or play it down the middle.</li>
       </ol></details>
       <p class="note">The players' crowd noise is the Crowd button inside the player.</p>`;
-    paintDiag();
+    paintDiag(); kPaint();
   }
   function radioToggle() {
-    if (!TTS) { R.on = false; return; }
+    if (!TTS && !kWant()) { R.on = false; return; }
     R.on = !R.on;
-    if (!R.on) hush(); else { loadVoices(); if (live) radioIntro(); }
+    if (!R.on) { hush(); clearTimeout(K.offT); if (K.frame) K.offT = setTimeout(() => { if (!R.on) kStop(); }, 90000); }   // Kokoro: let go of the model after a while off the air
+    else { if (kWant()) { kAC(); kStart(true); } loadVoices(); if (live) radioIntro(); }
     const box = ov.querySelector(".rpanel"); if (box && R.on) box.hidden = false;
     paintRadio(); paintStage();
   }
@@ -903,6 +1122,7 @@
   const talking = () => !document.getElementById("tk-ov") && (R.on || Date.now() - testing < 25000);
   function radioTest() {
     hush(); testing = Date.now(); speechDown = false; fails = 0; BADV.clear(); lastErr = "";
+    if (kWant()) { kAC(); kStart(true); K.slow = false; K.gens = []; }
     say("p", "Testing, one two. Mack Ramsey here. Two and one... swung on, and that ball is outta here!", 3, { maxAge: 30000 }); organ(2);
     say("c", "And I'm Dewey Seeds. They've asked me to stop eating the microphone foam.", 3, { maxAge: 30000 });
     say("g", "And I'm the guest. What is... a microphone check?", 3, { maxAge: 30000 });
@@ -954,7 +1174,16 @@
     if (e.target.closest(".x")) { ov.classList.remove("open"); return; }
     const b = e.target.closest("button"); if (!b) return;
     const seg = b.closest(".seg");
-    if (seg && ["quips", "pitches", "style", "updates", "sit", "air", "lean"].includes(seg.dataset.seg)) { R[seg.dataset.seg] = b.dataset.v; rsave(); paintRadio(); return; }
+    if (seg && ["quips", "pitches", "style", "updates", "sit", "air", "lean", "engine", "kdev"].includes(seg.dataset.seg)) {
+      const k = seg.dataset.seg, was = R[k]; R[k] = b.dataset.v; rsave();
+      if (was !== R[k] && (k === "engine" || k === "kdev")) {   // Kokoro: start, stop or restart on the new processor
+        if (!kWant()) kStop(); else if (k === "kdev" && K.frame) { const go = K.init || R.on; kStop(); if (go) kStart(true); } else if (R.on) { kAC(); kStart(true); }
+      }
+      paintRadio(); return;
+    }
+    if (b.dataset.act === "kload") { kAC(); kStart(true); return; }
+    if (b.dataset.act === "kclear") { kClear(); return; }
+    if (b.dataset.act === "kretry") { K.slow = false; K.gens = []; K.note = ""; kPaint(); return; }
     if (b.dataset.act === "radio") radioToggle();
     else if (b.dataset.act === "rtest") radioTest();
   });

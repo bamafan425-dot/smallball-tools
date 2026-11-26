@@ -36,7 +36,14 @@ A little make-over for play.smallball.com. Everything stays in your own browser.
   (inning, outs and score before every batter), Dead air (Some quiet, Steady, Nonstop), Mack (home-team
   homer or down the middle), volume and the organ. "Test the booth" checks your speakers.
   Speech is your browser's own, and nothing is sent anywhere. Skill numbers only come up for your own
-  clubs. It's the same booth as the Broadcast Kit's radio and shares its settings; when the Broadcast
+  clubs.
+  🧠 Kokoro voices (optional, off to start): in ⚙ Booth settings, Voices → Kokoro (neural) gives Mack, Dewey
+  and each guest his own natural-sounding voice, made on your computer by the free Kokoro model. Nothing to
+  install, no account. The first time, it downloads about 90 MB (about 330 MB if your graphics card can run
+  it) from Hugging Face and keeps it in the browser; your browser's voices fill in until it's ready. Runs on:
+  Automatic picks your graphics card (WebGPU) when it can, otherwise the processor. If your computer can't
+  make the lines fast enough to keep up with the game, the booth goes back to your browser's voices and says
+  so. "Clear Kokoro downloads" removes everything it stored. Still nothing about the game is sent anywhere. It's the same booth as the Broadcast Kit's radio and shares its settings; when the Broadcast
   window is open, the Broadcast Kit has the microphone. Turn the button off in ⚙ under Features.
 
 ⛰️ REPORT TO HOLD THE HILL (new in 1.24.0)

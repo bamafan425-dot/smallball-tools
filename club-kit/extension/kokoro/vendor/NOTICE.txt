@@ -1,0 +1,14 @@
+Third-party software in this folder
+
+kokoro-js 1.2.1 (hexgrad, Xenova) ............ Apache License 2.0 — see LICENSE-kokoro-js.txt
+  https://github.com/hexgrad/kokoro/tree/main/kokoro.js
+@huggingface/transformers 3.5.1 (bundled) ..... Apache License 2.0 — same text as LICENSE-kokoro-js.txt
+  https://github.com/huggingface/transformers.js
+phonemizer 1.2.1 (Xenova, bundled) ........... published as Apache License 2.0 — https://github.com/xenova/phonemizer.js
+  It contains a WebAssembly build of eSpeak NG (https://github.com/espeak-ng/espeak-ng), which is
+  licensed GPL-3.0-or-later. Its source is available from that repository.
+ONNX Runtime Web 1.22.0-dev.20250409-89f8206ba4 (Microsoft) ... MIT License — see LICENSE-onnxruntime-web.txt
+  https://github.com/microsoft/onnxruntime
+
+Downloaded at run time (not included): Kokoro-82M v1.0 (hexgrad), ONNX export
+onnx-community/Kokoro-82M-v1.0-ONNX — Apache License 2.0.
