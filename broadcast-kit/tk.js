@@ -6,7 +6,7 @@
   if (document.getElementById("tk-launch")) return;
 
   const KEY = "tk-state-v1";
-  const DEF = { clubs: [], queue: [], air: [], watched: {}, meta: {}, shield: true, layout: "quad", main: 0 };
+  const DEF = { clubs: [], queue: [], air: [], watched: {}, meta: {}, shield: true, layout: "quad", main: 0, autoNext: true };
   let S;
   try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (_) { S = Object.assign({}, DEF); }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} };
@@ -26,6 +26,9 @@
   const label = (m) => m ? `${esc(nm(m.away))} <span class="at">at</span> ${esc(nm(m.home))}` : "Game";
   const tags = (m) => m ? `${m.tag ? `<span class="tag trn">🏆 ${esc(m.tag)}</span>` : ""}<span class="tag">${KIND[m.kind] || esc(m.kind || "")}</span>${m.good ? `<span class="tag good">good match</span>` : ""}<span class="when">${when(m.at)}</span>` : "";
   const unwatched = () => S.queue.filter((id) => !S.watched[id]);
+  // What plays next: queued, unwatched and not on a tile, in queue order.
+  const upNext = () => S.queue.filter((id) => !S.watched[id] && !S.air.includes(id));
+  const maxTiles = () => (S.layout === "single" ? 1 : 4);
 
   // ---------- Watch list: new games from the tournament clubs join the queue, results unseen ----------
   let polling = false;
@@ -142,6 +145,11 @@
     #tk-ov .tile iframe { width: 100%; height: 100%; border: 0; background: #000; }
     #tk-ov .tile .wait { display: grid; place-items: center; text-align: center; padding: 16px; opacity: .8; font-size: 15px; }
     #tk-ov .empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; opacity: .6; font-size: 16px; padding: 24px; }
+    #tk-ov .quick { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 8px; padding: 8px; border-radius: 10px; background: #111827; }
+    #tk-ov .quick .go { padding: 8px 14px; font-size: 14px; }
+    #tk-ov .chips { display: flex; flex-direction: column; gap: 6px; }
+    #tk-ov .chip { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #1f2937; border-radius: 10px; font-size: 12.5px; } #tk-ov .chip b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #tk-ov .mini.on { background: #b91c1c; border-color: #ef4444; color: #fff; }
     #tk-ov .foot { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #0b1220; border-top: 1px solid #1f2937; }
     #tk-ov .go { background: #16a34a; color: #fff; border: 0; border-radius: 999px; padding: 10px 22px; font-weight: 900; font-size: 15px; }
     #tk-ov .go:disabled { opacity: .4; cursor: default; }
@@ -222,6 +230,20 @@
   launch.onclick = () => open();
   document.body.appendChild(launch);
   function paintBadge() { const n = unwatched().length; launch.innerHTML = `📺 Broadcast${n ? ` <span class="n">${n}</span>` : ""}`; }
+  // On a game's own watch page: one click puts that game in the Broadcast queue.
+  const qThis = document.createElement("button"); qThis.id = "tk-qthis"; qThis.type = "button";
+  qThis.style.cssText = "position:fixed;left:16px;bottom:20px;z-index:2147483000;padding:7px 12px;border-radius:999px;border:1px solid #ef4444;background:#111827;color:#fff;font:700 12.5px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)";
+  function paintQThis() {
+    const gid = Number(new URLSearchParams(location.search).get("watch")) || 0;
+    if (!gid || !/^\/training/.test(location.pathname) || isOpen()) { qThis.remove(); return; }
+    const inQ = S.queue.includes(gid) || S.air.includes(gid);
+    qThis.textContent = inQ ? "📺 In the Broadcast queue" : "📺＋ Add this game to the Broadcast";
+    qThis.disabled = inQ; qThis.style.opacity = inQ ? ".7" : "1";
+    qThis.onclick = async () => { await addIds(String(gid)); paintQThis(); };
+    if (!qThis.isConnected) document.body.appendChild(qThis);
+    const lr = launch.getBoundingClientRect(); if (lr.width) { qThis.style.left = Math.round(lr.right + 8) + "px"; qThis.style.bottom = Math.round(window.innerHeight - lr.bottom + (lr.height - qThis.offsetHeight) / 2) + "px"; }
+  }
+  setInterval(paintQThis, 2000); setTimeout(paintQThis, 800);
   paintBadge();
 
   let ov = null, browse = null, browseClub = 0;
@@ -254,6 +276,7 @@
     ov.addEventListener("click", onClick);
     ov.querySelector('[data-k="shield"]').checked = S.shield;
     ov.querySelector('[data-k="shield"]').onchange = (e) => { S.shield = e.target.checked; save(); shield(); };
+    ov.addEventListener("change", (e) => { if (e.target.dataset && e.target.dataset.k === "autoNext") { S.autoNext = e.target.checked; save(); paintSide(); } });
     ov.addEventListener("input", (e) => { const gk = e.target.dataset && e.target.dataset.g; if (gk) { R.guests[gk] = e.target.checked; rsave(); return; } const k = e.target.dataset && e.target.dataset.r; if (!k) return; R[k] = e.target.type === "checkbox" ? e.target.checked : e.target.type === "range" ? Number(e.target.value) : e.target.value; rsave(); if (k === "pbp" || k === "color" || k === "guestVoice") paintRadio(); });
     paintSeg(); paintSide(); paintStage(); paintRadio();
   }
@@ -274,18 +297,31 @@
     const club = (c) => `<div class="item"><span class="t">${esc(c.name || "Club " + c.id)}</span><span class="m">#${c.id} · since ${when(c.since)}</span><span class="b"><button class="mini" data-act="unclub" data-id="${c.id}" title="Stop following">✕</button></span></div>`;
     const game = (id, extra) => { const m = S.meta[id]; return `<div class="item${S.watched[id] ? " watched" : ""}"><span class="t">${label(m)}</span><span class="m">${tags(m)}${S.watched[id] ? `<span class="tag">watched</span>` : ""}</span><span class="b">${extra}</span></div>`; };
     const q = S.queue.filter((id) => !S.air.includes(id));
+    const free = maxTiles() - S.air.length, nUp = upNext().length;
+    // Your own clubs, from the site's club picker: follow or browse with one click.
+    const mine = [...document.querySelectorAll("#who-team option")].map((o) => ({ id: Number(o.value), name: (o.textContent || "").replace(/\s*\d+\s*$/, "").trim() })).filter((c) => c.id > 0).slice(0, 8);
+    const chips = mine.length ? `<div class="chips">${mine.map((c) => `<span class="chip"><b>${esc(c.name || "Club " + c.id)}</b>${S.clubs.some((x) => x.id === c.id) ? `<span class="note">following</span>` : `<button class="mini" data-act="fclub" data-id="${c.id}" title="Follow: its new games join the queue by themselves">Follow</button>`}<button class="mini" data-act="bclub" data-id="${c.id}" title="Pick from its recent games">Games</button></span>`).join("")}</div>` : "";
     side.innerHTML = `
+      <div class="quick">${nUp && free > 0 ? `<button class="go" data-act="fill">▶ Watch the next ${Math.min(free, nUp)}${live ? "" : " now"}</button>` : !nUp ? `<span class="note">Add games below and they'll line up here.</span>` : `<span class="note">All tiles in use. ✓ Done on a tile frees it${S.autoNext ? " (or it frees itself at the final)" : ""}.</span>`}
+        <button class="mini" data-act="rlive" title="Pick a random game that's on the air right now, among the clubs you follow, your clubs and the clubs they've played lately">🎲 Random live game</button>
+        <button class="mini" data-act="slive" title="List the games on the air right now around your clubs">● Live now</button>
+        <label class="sw" title="When a game reaches its final, mark it watched and put the next game from the queue on that tile"><input type="checkbox" data-k="autoNext" ${S.autoNext ? "checked" : ""}> Auto next</label></div>
+      ${liveMsg ? `<p class="note">${esc(liveMsg)}</p>` : ""}
+      ${liveList && liveList.length ? `<h4>On the air now · ${liveList.length}</h4>${liveList.map((x) => game(x.id, `<span class="note">${Math.max(1, Math.round((x.until - Date.now()) / 60e3))} min left</span><button class="mini on" data-act="wnow" data-id="${x.id}" title="Watch it now">▶ Watch</button>`)).join("")}<button class="mini" data-act="hlive">Hide the list</button>` : ""}
+      <h4>Queue · ${q.filter((id) => !S.watched[id]).length} to watch</h4>
+      ${q.length ? q.map((id, qi) => game(id, `${S.watched[id] ? "" : `<button class="mini on" data-act="air" data-id="${id}" title="${live ? "Play it now on a free tile" : "Put it on a tile; Start plays them all together"}">${live ? "▶ Play" : "＋ Tile"}</button>${qi ? `<button class="mini" data-act="top" data-id="${id}" title="Move to the front of the queue">⤒</button>` : ""}`}<button class="mini" data-act="drop" data-id="${id}" title="Remove from the queue">✕</button>`)).join("") : `<p class="note">Empty. Follow clubs or add games above.</p>`}
+      ${Object.keys(S.watched).length ? `<h4>Watched</h4><p class="note">${Object.keys(S.watched).length} game${Object.keys(S.watched).length === 1 ? "" : "s"} marked watched. <button class="mini" data-act="clearw">Forget them</button></p>` : ""}
+      ${chips ? `<h4>Your clubs</h4>${chips}` : ""}
+      ${browse ? `<div data-k="browselist">${browse}</div>` : ""}
       <h4>Clubs to watch</h4>
       <div class="add"><input data-k="club" inputmode="numeric" placeholder="Club number, e.g. 3249"><button data-act="club">Follow</button></div>
       ${S.clubs.map(club).join("")}
       <p class="note">New games these clubs play from now on join the queue by themselves, about once a minute, with the results hidden.</p>
       <h4>Add games</h4>
-      <div class="add"><input data-k="ids" placeholder="Game numbers: 4821, 4806"><button data-act="ids">Add</button></div>
+      <div class="add"><input data-k="ids" placeholder="Game numbers or watch links: 4821, 4806"><button data-act="ids">Add</button></div>
       <div class="add" style="margin-top:6px"><input data-k="browse" inputmode="numeric" placeholder="Browse a club's games: number"><button data-act="browse">Browse</button></div>
-      ${browse ? `<div data-k="browselist">${browse}</div>` : ""}
-      <h4>Queue · ${q.filter((id) => !S.watched[id]).length} to watch</h4>
-      ${q.length ? q.map((id) => game(id, `${S.watched[id] ? "" : `<button class="mini" data-act="air" data-id="${id}" title="Put this game on a tile">On air</button>`}<button class="mini" data-act="drop" data-id="${id}" title="Remove from the queue">✕</button>`)).join("") : `<p class="note">Empty. Follow clubs or add games above.</p>`}
-      ${Object.keys(S.watched).length ? `<h4>Watched</h4><p class="note">${Object.keys(S.watched).length} game${Object.keys(S.watched).length === 1 ? "" : "s"} marked watched. <button class="mini" data-act="clearw">Forget them</button></p>` : ""}`;
+
+`;
     for (const i of side.querySelectorAll("input[data-k]")) if (typed[i.dataset.k] != null) i.value = typed[i.dataset.k];
     if (focus) side.querySelector(`input[data-k="${focus}"]`)?.focus();
   }
@@ -304,7 +340,7 @@
     const ids = S.air.slice(0, max);
     st.querySelector(".empty")?.remove();
     for (const t of st.querySelectorAll(".tile")) if (!ids.includes(Number(t.dataset.id))) t.remove();
-    if (!ids.length) { live = false; st.insertAdjacentHTML("beforeend", `<div class="empty">Pick up to ${max} game${max > 1 ? "s" : ""} from the queue with <b>&nbsp;On air&nbsp;</b>, then press <b>&nbsp;Start&nbsp;</b>.<br>Everyone who starts together sees the same pitch at the same time.</div>`); paintFoot(); return; }
+    if (!ids.length) { live = false; st.insertAdjacentHTML("beforeend", `<div class="empty"><div>Press <b>▶ Watch the next</b> on the left to fill ${max > 1 ? "the tiles" : "the tile"} from the queue and start, or pick games with <b>＋ Tile</b> and press <b>Start</b>.<br><span class="note">Everyone who starts together sees the same pitch at the same time.${S.autoNext ? " With Auto next on, each finished game makes way for the next one." : ""}</span></div></div>`); paintFoot(); return; }
     if (S.main >= ids.length) S.main = 0;
     ids.forEach((id, i) => {
       let t = st.querySelector(`.tile[data-id="${id}"]`);
@@ -316,7 +352,7 @@
       const slot = t.querySelector(".slot");
       if (live && !slot.querySelector("iframe")) {
         slot.innerHTML = `<iframe allow="autoplay; fullscreen" src="/training?watch=${id}"></iframe>`;
-        const f = slot.firstChild; f.addEventListener("load", () => { tidyTile(f); attachLog(f, id); });
+        const f = slot.firstChild; f.addEventListener("load", () => { tidyTile(f); attachLog(f, id); watchEnd(f, id); });
       } else if (!live && !slot.querySelector(".wait")) slot.innerHTML = `<div class="wait">${label(S.meta[id])}<br><span class="note">Ready. Press Start.</span></div>`;
     });
     paintFoot();
@@ -414,7 +450,7 @@
   // Every line has a shelf life. A stale line is skipped, and a big play cuts a joke off, so the booth stays
   // with the pitch instead of drifting behind it. Speech is the browser's own; nothing is sent anywhere.
   const RKEY = "tk-radio-v1";
-  const RDEF = { on: false, style: "show", quips: "some", updates: "half", air: "steady", sit: "some", lean: "homer", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "some", guests: { quiz: true, qb: true, obvious: true } };
+  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true } };
   let R; try { R = Object.assign({}, RDEF, JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (_) { R = Object.assign({}, RDEF); }
   R.guests = Object.assign({}, RDEF.guests, R.guests || {});
   if (R.pitches === "auto") R.pitches = "some";            // 0.8: the booth is a show now; the old Auto becomes Some
@@ -1245,6 +1281,57 @@
     }
     save(); paintBadge(); paintSide(); shield();
   }
+  // ---------- 🎲 Live now: games on the air right now among the clubs you follow, your clubs, and the clubs
+  // those have played lately. Only "is it on the air, and since when" is read: never a score.
+  let liveList = null, liveBusy = false, liveMsg = "";
+  async function scanLive() {
+    if (liveBusy) return liveList; liveBusy = true;
+    try {
+      const mine = [...document.querySelectorAll("#who-team option")].map((o) => Number(o.value)).filter((x) => x > 0);
+      const seeds = [...new Set(S.clubs.map((c) => c.id).concat(mine))];
+      if (!seeds.length) { liveMsg = "Follow a club (or open SmallBall signed in) so there's somewhere to look."; return (liveList = []); }
+      const pool = new Set(seeds), rowsBy = {}, now = Date.now();
+      liveMsg = `Looking around ${seeds.length} club${seeds.length === 1 ? "" : "s"}…`; paintSide();
+      for (const c of seeds) {        // their opponents join the pool
+        try { const rows = (await getJSON(`/games/all?club=${c}`)).rows || []; rowsBy[c] = rows; for (const g of rows.slice(0, 15)) { pool.add(Number(g.home_team_id)); pool.add(Number(g.away_team_id)); } } catch (_) {}
+        await sleep(200);
+      }
+      const ids = [...pool].filter((x) => x > 0).slice(0, 40), cand = {};
+      liveMsg = `Checking ${ids.length} clubs for games on the air…`; paintSide();
+      for (const c of ids) {
+        let rows = rowsBy[c];
+        if (!rows) { try { rows = (await getJSON(`/games/all?club=${c}`)).rows || []; } catch (_) { rows = []; } await sleep(200); }
+        for (const g of rows.slice(0, 5)) {
+          const t = Date.parse(g.first_pitch_at || g.finished_at || ""); if (!t || now - t > 30 * 60e3 || now - t < -60e3) continue;
+          if (!S.watched[g.game_id]) cand[g.game_id] = g;
+        }
+      }
+      const out = [];
+      for (const g of Object.values(cand).slice(0, 14)) {
+        try {
+          const d = await getJSON(`/games/${g.game_id}`), until = Date.parse(d.live_until || "") || 0;
+          if (until > Date.now() + 2 * 60e3) { if (!S.meta[g.game_id]) remember(g); out.push({ id: g.game_id, until, start: Date.parse(g.first_pitch_at || g.finished_at || "") || 0 }); }
+        } catch (_) {}
+        await sleep(150);
+      }
+      out.sort((a, b) => b.start - a.start);          // freshest first
+      liveMsg = out.length ? "" : "Nothing on the air around your clubs right now. Try again in a few minutes.";
+      return (liveList = out);
+    } finally { liveBusy = false; paintSide(); }
+  }
+  // Put one game on the air now: a free tile, and start (or join the running broadcast).
+  async function watchNow(id) {
+    if (!S.queue.includes(id)) S.queue.unshift(id); else S.queue = [id].concat(S.queue.filter((x) => x !== id));
+    if (S.air.length >= maxTiles()) { if (maxTiles() === 1) S.air = []; else { liveMsg = "All tiles are in use: ✓ Done or ✕ one first."; save(); paintSide(); return; } }
+    if (!S.air.includes(id)) S.air.push(id);
+    save(); paintBadge(); shield(); paintSide(); paintStage();
+    if (!live) await goLive();
+  }
+  async function randomLive() {
+    const L = await scanLive(); if (!L || !L.length) return;
+    const fresh = L.filter((x) => x.until - Date.now() > 8 * 60e3), pick = (fresh.length ? fresh : L)[Math.floor(Math.random() * (fresh.length || L.length))];
+    await watchNow(pick.id);
+  }
   async function doBrowse(club) {
     browseClub = club; browse = `<p class="note">Loading…</p>`; paintSide();
     try {
@@ -1275,11 +1362,19 @@
     else if (act === "ids") await addIds(val("ids"));
     else if (act === "browse") { const cid = Number(val("browse")); if (cid) await doBrowse(cid); }
     else if (act === "unbrowse") { browse = null; browseClub = 0; paintSide(); }
+    else if (act === "fill") await fillTiles();
+    else if (act === "rlive") await randomLive();
+    else if (act === "slive") await scanLive();
+    else if (act === "wnow") await watchNow(id);
+    else if (act === "hlive") { liveList = null; liveMsg = ""; paintSide(); }
+    else if (act === "fclub") { if (!S.clubs.some((c) => c.id === id)) { let name = ""; try { name = (await getJSON(`/teams/${id}/profile`)).name; } catch (_) {} S.clubs.push({ id, name, since: Date.now() }); save(); paintSide(); poll(); } }
+    else if (act === "bclub") await doBrowse(id);
+    else if (act === "top") { S.queue = [id].concat(S.queue.filter((x) => x !== id)); save(); paintSide(); }
     else if (act === "q") { if (!S.queue.includes(id)) S.queue.push(id); save(); paintBadge(); if (browseClub) await doBrowse(browseClub); else paintSide(); shield(); }
     else if (act === "drop") { S.queue = S.queue.filter((x) => x !== id); save(); paintBadge(); paintSide(); }
     else if (act === "air") {
       const max = S.layout === "single" ? 1 : 4;
-      if (S.air.length >= max) { const f = ov.querySelector('[data-k="foot"]'); f.textContent = `All ${max} tile${max > 1 ? "s are" : " is"} in use. Take one off first.`; return; }
+      if (S.air.length >= max) { const f = ov.querySelector('[data-k="foot"]'); f.textContent = `All ${max} tile${max > 1 ? "s are" : " is"} in use. Press ✓ Done or ✕ on a tile to free one${max === 1 ? ", or switch the layout to 2×2" : ""}.`; return; }
       if (!S.air.includes(id)) S.air.push(id); save(); paintSide(); paintStage();
     }
     else if (act === "off") { S.air = S.air.filter((x) => x !== id); save(); paintSide(); paintStage(); }
@@ -1296,6 +1391,32 @@
     else if (act === "go") await goLive();
     else if (act === "stream") streamToggle(true);
     else if (act === "smexit") streamToggle(false);
+  }
+  // One click: put the next games from the queue on the free tiles, and start (or join the running broadcast).
+  async function fillTiles() {
+    const free = maxTiles() - S.air.length; if (free <= 0) return;
+    const next = upNext().slice(0, free); if (!next.length) return;
+    S.air = S.air.concat(next); save(); paintSide(); paintStage();
+    if (!live) await goLive();
+  }
+  // Auto next: when a tile's game shows its final for 20 seconds, it's watched; the next queued game takes the tile.
+  function watchEnd(f, id) {
+    let seen = 0;
+    const iv = setInterval(() => {
+      if (!f.isConnected || !S.air.includes(id)) { clearInterval(iv); return; }
+      if (SM || !S.autoNext) return;                 // Stream Mode runs its own auto-pilot
+      let inn = ""; try { inn = ((f.contentDocument.querySelector("#inning") || {}).textContent || "").trim(); } catch (_) { return; }
+      if (!/final/i.test(inn)) { seen = 0; return; }
+      if (!seen) { seen = Date.now(); return; }
+      if (Date.now() - seen < 20000) return;
+      clearInterval(iv);
+      S.watched[id] = Date.now();
+      const slot = S.air.indexOf(id), nx = upNext()[0];
+      S.air = S.air.filter((x) => x !== id);
+      if (nx) S.air.splice(slot, 0, nx);
+      if (R.game === id) R.game = nx || 0;
+      save(); paintBadge(); shield(); paintSide(); paintStage();
+    }, 2000);
   }
   async function goLive() { hush(); for (const id of S.air) { delete LOG[id]; delete GS[id]; delete BS[id]; } radioIntro(); live = false; for (const sl of ov.querySelectorAll(".stage .slot")) sl.innerHTML = ""; paintStage(); await countdown(); }
 

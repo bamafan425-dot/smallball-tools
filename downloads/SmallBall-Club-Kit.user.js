@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.25.2
-// @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
+// @version      1.35.2
+// @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
 // @inject-into  page
 // @grant        none
 // @noframes
+// @updateURL    https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/downloads/SmallBall-Club-Kit.user.js
+// @downloadURL  https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/downloads/SmallBall-Club-Kit.user.js
 // ==/UserScript==
 // SmallBall Club Kit: freeze records and stats until a game's report airs (⚙ → "Freeze records and stats…").
 // Timed games: a game is simulated in a moment but airs for about 20 minutes, and SmallBall adds its result
@@ -151,19 +153,22 @@ const SBX_MOBILE = true;
   const FEATURES = [
     ["tabs", "Quick tabs"], ["selector", "Club selector: readable, recent first"], ["logos", "Club logos"],
     ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"],
-    ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["games", "Season games views"],
+    ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["hillcard", "⛰️ Hold the Hill card (bottom right): your ladder spot, who you can charge, your Brawl Bucks"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
-    ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"],
-    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
+    ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
+    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["live", "🏆 Tournaments button, with a card for each tournament you're in (your match, deadline, Start button)"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
   ];
   let FEAT = {}; try { FEAT = JSON.parse(localStorage.getItem("sbx-features") || "{}"); } catch (_) {}
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const MOBILE_KEEP = ["hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
-  const on = (f) => (MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
+  // iPad edition (a Safari userscript): the full kit, minus what a userscript can't do there.
+  const TABLET = typeof SBX_TABLET !== "undefined" && !!SBX_TABLET;
+  const TABLET_OFF = ["skinbtn", "radio", "optimizer"];
+  const on = (f) => (TABLET && TABLET_OFF.includes(f) ? false : MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
   // One switch for every tool: count good matches only (games between clubs with the same star rating).
   const GOOD_KEY = "sbx-good-only";
@@ -237,6 +242,10 @@ const SBX_MOBILE = true;
       }
     }
     L.snap = { at: now, tp, sk };
+    // "Last trained" as seen at each read. The site's trainer moves it; a Quick Train doesn't. That's how
+    // the kit tells the two apart (one reading every 20 minutes at most, plus every change, last 300).
+    const lt = Date.parse(d.last_trained_at || 0) || 0, O = L.lto || (L.lto = []), lo = O[O.length - 1];
+    if (!lo || lo[1] !== lt || now - lo[0] > 20 * 6e4) { O.push([now, lt]); if (O.length > 300) O.splice(0, O.length - 300); }
     // Club average of each skill over time, for the progress charts (one point every 3 hours at most,
     // plus one whenever skills change).
     const ids = Object.keys(sk), avg = SK.map((_, i) => ids.length ? Math.round(ids.reduce((a, id) => a + sk[id][i], 0) / ids.length * 10) / 10 : 0);
@@ -484,6 +493,38 @@ const SBX_MOBILE = true;
       .sbx-gsum .chips i.w { background: rgba(22,163,74,.22); color: #16a34a; }
       .sbx-gsum .chips i.l { background: rgba(220,38,38,.18); color: #dc2626; }
       .sbx-gsum .chips i.t { background: rgba(127,127,127,.2); }
+      .sbx-hide { display: none !important; }
+      .sbx-suspects { position: relative; }
+      .sbx-suspects::after { content: ""; position: absolute; pointer-events: none; left: 0; top: var(--sus-top, 0px); bottom: 0; width: var(--sus-w, 44px); mix-blend-mode: multiply; background-image: repeating-linear-gradient(180deg, transparent 0 calc(var(--sus-rh, 40px) / 4 - 1px), rgba(20,20,20,.55) calc(var(--sus-rh, 40px) / 4 - 1px) calc(var(--sus-rh, 40px) / 4)), repeating-linear-gradient(180deg, transparent 0 calc(var(--sus-rh, 40px) - 2px), rgba(0,0,0,.85) calc(var(--sus-rh, 40px) - 2px) var(--sus-rh, 40px)); }
+      #sbx-sus { margin: 10px 0 14px; padding: 14px 16px; border-radius: 12px; color: #f4efe2; background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 4px), linear-gradient(135deg, #17130d, #2a2116 60%, #17130d); border: 1px solid rgba(250,204,21,.35); box-shadow: 0 6px 20px rgba(0,0,0,.35); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+      #sbx-sus .sus-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      #sbx-sus .sus-file { font: 800 11px/1 ui-monospace, monospace; letter-spacing: .18em; color: #facc15; text-transform: uppercase; }
+      #sbx-sus .sus-q { flex: 1 1 360px; min-height: 2.6em; transition: opacity .6s; }
+      #sbx-sus .sus-q q { display: block; font: italic 600 19px/1.3 Georgia, "Times New Roman", serif; quotes: "“" "”"; }
+      #sbx-sus .sus-q small { display: block; margin-top: 4px; font-size: 12px; opacity: .7; letter-spacing: .05em; }
+      #sbx-sus .sus-go { flex: none; border: 0; border-radius: 999px; padding: 9px 16px; font: 800 14px/1 system-ui, sans-serif; background: #facc15; color: #1b1300; cursor: pointer; box-shadow: 0 3px 10px rgba(250,204,21,.25); }
+      #sbx-sus .sus-go:hover { filter: brightness(1.08); }
+      #sbx-sus .sus-game { margin-top: 12px; border-top: 1px dashed rgba(250,204,21,.35); padding-top: 12px; }
+      #sbx-sus .sus-help { font-size: 13px; opacity: .9; margin-bottom: 10px; }
+      #sbx-sus .sus-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+      #sbx-sus .sus-man { position: relative; border: 1px solid rgba(255,255,255,.18); border-radius: 10px; padding: 8px 4px 6px; text-align: center; cursor: pointer; color: inherit; font: inherit; background: repeating-linear-gradient(180deg, transparent 0 9px, rgba(0,0,0,.35) 9px 10px), #cfc8b4; color: #1b1300; transition: transform .15s; }
+      #sbx-sus .sus-man:hover:not(:disabled) { transform: translateY(-3px); }
+      #sbx-sus .sus-man:disabled { cursor: default; }
+      #sbx-sus .sus-man b { position: absolute; top: 4px; left: 6px; font: 800 12px/1 ui-monospace, monospace; }
+      #sbx-sus .sus-man img { width: 44px; height: 52px; object-fit: contain; display: block; margin: 0 auto 4px; }
+      #sbx-sus .sus-man span { display: block; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #sbx-sus .sus-man em { display: block; font-size: 10px; font-style: normal; opacity: .7; }
+      #sbx-sus .sus-man.is-soze { outline: 3px solid #ef4444; background: repeating-linear-gradient(180deg, transparent 0 9px, rgba(0,0,0,.35) 9px 10px), #fca5a5; }
+      #sbx-sus .sus-man.is-pick { box-shadow: 0 0 0 3px #facc15; }
+      #sbx-sus .sus-man.is-out { opacity: .4; }
+      #sbx-sus .sus-res { margin-top: 12px; font-size: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      #sbx-sus .sus-res b { font-size: 17px; }
+      .sbx-medal { margin-top: 6px; font-size: 12px; line-height: 1.35; opacity: .92; }
+      .sbx-medal .bar { height: 4px; border-radius: 2px; background: rgba(127,127,127,.25); margin-top: 3px; overflow: hidden; }
+      .sbx-medal .bar i { display: block; height: 100%; background: #e0a04a; }
+      .sbx-tour { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 2px 0 10px; font-size: 13px; }
+      .sbx-tour button { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(127,127,127,.45); background: transparent; color: inherit; cursor: pointer; }
+      .sbx-movednote { font-size: 12px; opacity: .7; margin: 2px 0 12px; }
       .sbx-park-list { margin: 10px 0 14px; padding: 10px 12px; border: 1px solid rgba(127,127,127,.3); border-radius: 10px; font-size: 13px; }
       .sbx-park-list .hd { font-weight: 800; margin-bottom: 4px; }
       .sbx-park-list .ln { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px solid rgba(127,127,127,.18); font-variant-numeric: tabular-nums; }
@@ -523,7 +564,7 @@ const SBX_MOBILE = true;
       #sbx-box .row.wait { opacity: .75; }
       .sbx-gid { font-size: 11.5px; opacity: .55; margin-right: 8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .sbx-bxcell { margin-left: 6px; } .sbx-bxl { cursor: pointer; white-space: nowrap; }
-      #sbx-boxtoast { position: fixed; right: 16px; bottom: 16px; z-index: 2147483003; display: flex; flex-direction: column; gap: 8px; }
+      #sbx-boxtoast { position: fixed; right: 16px; bottom: calc(16px + var(--sbx-live-h, 0px)); z-index: 2147483003; display: flex; flex-direction: column; gap: 8px; }
       #sbx-boxtoast button { display: flex; align-items: center; gap: 10px; max-width: 360px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb; font: 600 13.5px/1.35 system-ui, sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,.45); cursor: pointer; }
       #sbx-boxtoast button b { color: #fde68a; }
       :is(#sbx-dash, .sbx-tabbody) .acts .trn { background: transparent; color: inherit; border: 1px solid rgba(127,127,127,.45); }
@@ -897,7 +938,7 @@ const SBX_MOBILE = true;
 
   // 🏟 Skins: stadium skins in their own window, opened from a launcher at the bottom left (stacked above
   // the Broadcast and Tournament Kit buttons when those are installed). Computer editions only.
-  const STENCILS = "https://github.com/bamafan425-dot/smallball-tools/raw/main/downloads/SmallBall-Skin-Maker-Stencils.zip";
+  const STENCILS = "https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Skin-Maker-Stencils.zip";
   function openSkins() {
     if (MOBILE) return;
     let ov = document.getElementById("sbx-skins"); if (ov) { ov.remove(); return; }
@@ -1181,7 +1222,7 @@ const SBX_MOBILE = true;
       let cell = a.parentElement.querySelector(":scope > .sbx-bxcell");
       if (!cell) {
         cell = document.createElement("span"); cell.className = "sbx-bxcell";
-        cell.innerHTML = `<span class="sbx-gid" title="Game number">#${gid}</span><button type="button" class="btn small sbx-bxl" data-boxg="${gid}" title="Box score for game ${gid}">📰 Box score</button>${on("hill") && bs_hillRow(a) ? `<button type="button" class="btn small sbx-hill" data-hill="${gid}" title="Open the Hold the Hill form with this game filled in">⛰️ Report</button>` : ""}`;
+        cell.innerHTML = `<span class="sbx-gid" title="Game number">#${gid}</span><button type="button" class="btn small sbx-bxl" data-boxg="${gid}" title="Box score for game ${gid}">📰 Box score</button>${on("hill") && bs_hillRow(a) ? `<button type="button" class="btn small sbx-hill" data-hill="${gid}" title="Open the Hold the Master Form with this game filled in">⛰️ Report</button>` : ""}`;
         a.parentElement.insertBefore(cell.firstChild, a); a.after(cell);
       }
       const b = cell.querySelector(".sbx-bxl"), u = CD_UNTIL[gid], locked = u != null && u > now;
@@ -1191,7 +1232,7 @@ const SBX_MOBILE = true;
   }
   setInterval(bs_listTick, 1000);
   // ⛰️ Report to Hold the Hill: on your own club's page, a BigLeague game gets a button that opens the Hold the
-  // Hill form with the game ID, the game type and both scores filled in from SmallBall's own game record.
+  // Master Form with the game ID, the game type and both scores filled in from SmallBall's own game record.
   // You just press Next and Submit (the form is how the Hill knows it's you). Both players still report.
   const HILL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfO1EMJ6w017hFyqQFXfda_3J9rM3ivU_o1PYgffN7zX7Xmdg/viewform";
   const HILL_E = { action: "898353382", gid: "2005048912", kind: "649585690", my: "1022644951", opp: "784642772" };
@@ -2149,6 +2190,18 @@ const SBX_MOBILE = true;
     for (const [id, t, r] of ts) { if (Math.abs(t - mid) > 2 * 36e5) continue; const v = Math.min(max, r * (t - lastT)); spent[id] = Math.round(v); total += v; }
     return { total: Math.round(total), spent, trained: d.trained, est: true };
   }
+  // Trainer or Quick Train? The trainer moves the club's "last trained" time; a Quick Train never does.
+  // "qt": the kit saw "last trained" sitting before the session at a reading after it. "trainer": it moved
+  // into the session's window. "": the kit wasn't watching closely enough to say.
+  function sessionKind(team, e) {
+    const from = (e.log ? e.log.from : e.from) - 36e5, to = (e.log ? e.log.to : e.to) + 36e5;
+    const O = ((tpLogAll()[team] || {}).lto || []).slice();
+    const d = PROF[team] && PROF[team].data; if (d) O.push([Date.parse(d.server_time || "") || PROF[team].at || Date.now(), Date.parse(d.last_trained_at || 0) || 0]);
+    if (O.some(([, lt]) => lt && lt >= from && lt <= to)) return "trainer";
+    const after = O.filter(([at]) => at >= to - 36e5).sort((a, b) => a[0] - b[0])[0];
+    if (after && after[1] < from) return "qt";
+    return "";
+  }
   const FX_MIN = 3;
   // Each man's skills right now, from the club page.
   function profSkills(team) {
@@ -2269,7 +2322,9 @@ const SBX_MOBILE = true;
       html += EV.slice().reverse().map((e, idx, arr) => {
         const gains = Object.entries(e.gains).sort((a, b) => b[1] - a[1]);
         const total = gains.reduce((a, x) => a + x[1], 0), [main, mainGain] = gains[0];
-        const kind = mainGain / total >= 0.7 ? `${SK_NAME[main]} Quick Train` : `Training: ${gains.slice(0, 2).map(([k]) => SK_NAME[k]).join(" and ")}`;
+        const how = sessionKind(team, e), focus = gains.filter(([, v], i) => i === 0 || v / total >= 0.2).slice(0, 2).map(([k]) => SK_NAME[k]).join(" and ");
+        const kind = how === "qt" ? `⚡ Quick Train: ${focus}` : how === "trainer" ? `🏋️ Trainer: ${focus}` : `Training: ${focus}`;
+        const kindTip = how === "qt" ? "A Quick Train: the club's \"last trained\" time didn't move." : how === "trainer" ? "The site's trainer: the club's \"last trained\" time moved to this session." : "Trainer or Quick Train? The kit can't tell for this one: it didn't read the club right before and after. It tells them apart from sessions it sees from now on.";
         const before = e.log ? e.log.before : cardAt(team, desc, (g) => g.f <= e.from), after = e.log ? e.log.after : cardAt(team, asc, (g) => g.f >= e.to);
         const nextEv = arr[idx - 1], prevEv = arr[idx + 1];
         const afterGames = L.filter((g) => g.f >= e.to && (!nextEv || g.f < nextEv.from));
@@ -2327,7 +2382,7 @@ const SBX_MOBILE = true;
           }).join("")}</div><p class="sbx-muted">${n} games before vs ${n} after (${TA.rec} → ${TB.rec}). Opponents change from game to game, so the checks only call a change once it's bigger than normal swing; "Leaning" means the right direction but not proven yet.</p>`
           : `<p class="sbx-muted">${!afterGames.length ? "No games since this session yet." : !beforeGames.length ? "No games before this session to compare with." : `Only ${afterGames.length} game${afterGames.length === 1 ? "" : "s"} since this session.`} The game checks fill in once there are ${FX_MIN} games on each side.</p>`;
         const other = gains.filter(([k]) => !keys.includes(k)).map(([k, v]) => `${SK_NAME[k]} +${v}`).join(" · ");
-        return `<section class="rc-card"><header><span class="tag">${esc(kind)}</span><span class="when">${e.log ? `${e.log.total ? "≈ " : "between " + t(e.log.from) + " and "}${t(e.log.total ? e.at || e.from : e.log.to)}` : `${t(e.from)} – ${t(e.to)}`}</span></header>
+        return `<section class="rc-card"><header><span class="tag" title="${esc(kindTip)}">${esc(kind)}</span><span class="when">${e.log ? `${e.log.total ? "≈ " : "between " + t(e.log.from) + " and "}${t(e.log.total ? e.at || e.from : e.log.to)}` : `${t(e.from)} – ${t(e.to)}`}</span></header>
           <div class="rc-head"><span>${tpTxt} across ${e.men} ${e.men === 1 ? "man" : "men"}</span>${pay}</div>
           ${sections}${other ? `<p class="sbx-muted">Also: ${esc(other)}</p>` : ""}
           ${tiles}</section>`;
@@ -2770,6 +2825,193 @@ const SBX_MOBILE = true;
     if (PR.rows && grid.dataset.sbxPainted !== `${team}|${PR.scope}|${PR.kind}|${PR.others}|${PR.rows.length}`) paintParks(team);
   }
 
+  // 🕵️ For rgbartley and The Usual Suspects: on their club pages the lineup gets a height chart behind it.
+  // Easter egg for The Usual Suspects TUS (rgbartley's club): a case-file banner with rotating lines from the movie,
+  // a one-guess "Find Keyser Söze" game over the nine starters, and a mugshot height chart behind the portraits.
+  const SUS_QUOTES = [
+    ["The greatest trick the Devil ever pulled was convincing the world he didn't exist.", "Verbal Kint"],
+    ["How do you shoot the Devil in the back? What if you miss?", "Verbal Kint"],
+    ["I believe in God, and the only thing that scares me is Keyser Söze.", "Verbal Kint"],
+    ["Who is Keyser Söze?", "Agent Kujan"],
+    ["And like that… he's gone.", "Verbal Kint"],
+  ];
+  const SUS_KEY = "sbx-soze";
+  const SUS = { q: Math.floor(Math.random() * SUS_QUOTES.length), timer: 0, round: null };
+  const susRec = () => { try { return JSON.parse(localStorage.getItem(SUS_KEY)) || { w: 0, l: 0 }; } catch (_) { return { w: 0, l: 0 }; } };
+  function susLineup(box) {
+    if (!box) return [];
+    const ths = [...box.querySelectorAll("thead th")].map((t) => t.textContent.trim().toLowerCase());
+    const iPos = ths.indexOf("pos"), iName = ths.indexOf("name");
+    if (iName < 0) return [];
+    return [...box.querySelectorAll("tbody tr")].map((tr) => {
+      const td = tr.children, img = tr.querySelector("img");
+      return { pos: iPos >= 0 && td[iPos] ? td[iPos].textContent.trim() : "", name: (td[iName] ? td[iName].firstChild && td[iName].firstChild.textContent || td[iName].textContent : "").trim().replace(/\.$/, ""), img: img ? img.src : "" };
+    }).filter((p) => p.name && !/bench/i.test(p.pos)).slice(0, 9);
+  }
+  function susQuote(el) {
+    const [q, who] = SUS_QUOTES[SUS.q % SUS_QUOTES.length];
+    el.innerHTML = "<q>" + esc(q) + "</q><small>— " + esc(who) + ", <i>The Usual Suspects</i> (1995)</small>";
+  }
+  function susGame(wrap, men) {
+    const r = SUS.round;
+    const rec = susRec();
+    const done = r.pick != null;
+    let res = "";
+    if (done) {
+      const won = r.pick === r.soze, s = men[r.soze];
+      res = '<div class="sus-res">' + (won
+        ? "<b>🎯 You found him.</b> It was #" + (r.soze + 1) + " " + esc(s.name) + ". Kujan never got this close."
+        : "<b>💨 And like that… he's gone.</b> Keyser Söze was #" + (r.soze + 1) + " " + esc(s.name) + ".") +
+        '<span style="opacity:.75;font-size:13px">Your record: ' + rec.w + "–" + rec.l + "</span>" +
+        '<button class="sus-go" data-sus="again">🔁 New lineup</button></div>';
+    }
+    wrap.innerHTML = '<div class="sus-help">' + (done ? "The lineup is over." : "Nine suspects. One of them is Keyser Söze. <b>You get one guess.</b>") + "</div>" +
+      '<div class="sus-row">' + men.map((p, i) => '<button class="sus-man' + (done && i === r.soze ? " is-soze" : "") + (done && i === r.pick ? " is-pick" : "") + (done && i !== r.soze && i !== r.pick ? " is-out" : "") + '" data-man="' + i + '"' + (done ? " disabled" : "") + ' title="' + (done ? "" : "Point at #" + (i + 1)) + '"><b>' + (i + 1) + "</b>" +
+        (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div style="height:52px;font-size:30px;line-height:52px">🕴️</div>') + "<span>" + esc(p.name) + "</span><em>" + esc(p.pos) + "</em></button>").join("") + "</div>" + res;
+    wrap.querySelectorAll("[data-man]").forEach((b) => { b.onclick = () => {
+      if (SUS.round.pick != null) return;
+      SUS.round.pick = Number(b.dataset.man);
+      const rc = susRec(); if (SUS.round.pick === SUS.round.soze) rc.w++; else rc.l++;
+      try { localStorage.setItem(SUS_KEY, JSON.stringify(rc)); } catch (_) {}
+      susGame(wrap, men);
+    }; });
+    const again = wrap.querySelector('[data-sus="again"]');
+    if (again) again.onclick = () => { SUS.round = { soze: Math.floor(Math.random() * men.length), pick: null }; susGame(wrap, men); };
+  }
+  function mountSuspects() {
+    const m = location.hash.match(/^#\/team\/(\d+)/);
+    const head = document.querySelector("main .teamhead");
+    const yes = !!(m && head && /usual suspects/i.test(head.textContent));
+    let ban = document.getElementById("sbx-sus");
+    const h = [...document.querySelectorAll("main h2")].find((x) => /^(lineup|the squad)/i.test(x.textContent.trim()));
+    let box = h ? h.nextElementSibling : null;
+    while (box && box.tagName !== "H2" && !(box.matches("table") || box.querySelector("table"))) box = box.nextElementSibling;
+    if (box && box.tagName === "H2") box = null;
+    if (!yes) {
+      if (ban) ban.remove();
+      document.querySelectorAll(".sbx-suspects").forEach((x) => x.classList.remove("sbx-suspects"));
+      if (SUS.timer) { clearInterval(SUS.timer); SUS.timer = 0; }
+      SUS.round = null;
+      return;
+    }
+    if (box) {
+      box.classList.add("sbx-suspects");
+      const tr = box.querySelector("tbody tr"), td = tr && tr.querySelector("td"), th = box.querySelector("thead");
+      if (tr && td) {
+        const bt = box.getBoundingClientRect().top;
+        box.style.setProperty("--sus-rh", tr.getBoundingClientRect().height.toFixed(2) + "px");
+        box.style.setProperty("--sus-top", ((th ? th.getBoundingClientRect().bottom : tr.getBoundingClientRect().top) - bt).toFixed(1) + "px");
+        box.style.setProperty("--sus-w", td.getBoundingClientRect().width.toFixed(1) + "px");
+      }
+    }
+    if (ban && ban.isConnected && ban.previousElementSibling === head) return;
+    if (!ban) {
+      ban = document.createElement("div"); ban.id = "sbx-sus";
+      ban.innerHTML = '<div class="sus-top"><div style="flex:1 1 360px"><div class="sus-file">🕵️ Case file · The Usual Suspects</div><div class="sus-q"></div></div>' +
+        '<button class="sus-go" data-sus="open" title="One guess. Can you spot him?">🔎 Find Keyser Söze</button></div><div class="sus-game" hidden></div>';
+      ban.querySelector('[data-sus="open"]').onclick = () => {
+        const g = ban.querySelector(".sus-game"), men = susLineup(box || document.querySelector(".sbx-suspects"));
+        if (!g.hidden) { g.hidden = true; return; }
+        if (men.length < 2) { g.hidden = false; g.innerHTML = '<div class="sus-help">The suspects aren\'t in the room yet (open the Skills view of the squad).</div>'; return; }
+        if (!SUS.round || SUS.round.soze >= men.length) SUS.round = { soze: Math.floor(Math.random() * men.length), pick: null };
+        g.hidden = false; susGame(g, men);
+      };
+    }
+    head.insertAdjacentElement("afterend", ban);
+    const qel = ban.querySelector(".sus-q"); susQuote(qel);
+    if (!SUS.timer) SUS.timer = setInterval(() => {
+      const el = document.querySelector("#sbx-sus .sus-q"); if (!el) return;
+      el.style.opacity = "0";
+      setTimeout(() => { SUS.q++; susQuote(el); el.style.opacity = "1"; }, 600);
+    }, 9000);
+  }
+
+
+
+  // 6b. Tidy the commish's Achievements section (his drawing, rearranged; nothing is recalculated):
+  //     - his Stadiums wall: each park's medal and "next" goal go onto the stadium cards above, and the wall folds away
+  //     - Country tour: only countries you've played, best first, with a one-line summary and "Show all"
+  //     - Earned badges move to the top of the section
+  //     If his layout changes and something isn't found, that part is left alone.
+  const TOUR_ALL = "sbx-tour-all";
+  function achParts() {
+    const h = [...document.querySelectorAll("main h2")].find((x) => /^achievements/i.test(x.textContent.trim()));
+    if (!h) return null;
+    const P = { h, prog: null, parkH: null, parkWall: null, tourH: null, tourWall: null, earnH: null, earned: null };
+    for (let n = h.nextElementSibling; n && n.tagName !== "H2"; n = n.nextElementSibling) {
+      const t = n.textContent.trim().toLowerCase();
+      if (n.tagName === "H3") { if (/^stadiums/.test(t)) P.parkH = n; else if (/^country tour/.test(t)) P.tourH = n; else if (/^earned/.test(t)) P.earnH = n; continue; }
+      if (n.querySelector(".achnext") || n.classList.contains("achnext")) P.prog = n;
+      else if (n.classList.contains("parkwall")) { if (P.tourH) P.tourWall = n; else if (P.parkH) P.parkWall = n; }
+      else if (n.classList.contains("achs") && P.earnH) P.earned = n;
+    }
+    return P;
+  }
+  function pwInfo(pw) {
+    const body = pw.querySelector(".pw-body") || pw, txt = body.innerText || body.textContent || "";
+    const name = ((body.querySelector("b, strong, h4, .pw-name") || {}).textContent || txt.split("\n")[0] || "").trim();
+    const m = txt.match(/(\d+)\s+wins?\s*·\s*(\d+)\s+games?/i);
+    const nx = txt.match(/next:\s*([^\n]+)/i);
+    const medal = /gold/.test(pw.className) || /🥇/.test(txt) ? "🥇" : /silver/.test(pw.className) || /🥈/.test(txt) ? "🥈" : /bronze/.test(pw.className) || /🥉/.test(txt) ? "🥉" : "";
+    const goal = nx ? (nx[1].match(/(\d+)\s+wins?/) || [])[1] : null;
+    return { pw, name, wins: m ? Number(m[1]) : 0, games: m ? Number(m[2]) : 0, next: nx ? nx[1].trim() : "", medal, goal: goal ? Number(goal) : (nx && /first win/i.test(nx[1]) ? 1 : 0) };
+  }
+  function medalHtml(x) {
+    const pct = x.goal ? Math.min(100, Math.round(100 * x.wins / x.goal)) : 100;
+    return `<div class="sbx-medal" title="From the Achievements section: official wins in this stadium, all seasons">${x.medal ? x.medal + " " : "🏅 "}<b>${x.wins}</b> official win${x.wins === 1 ? "" : "s"} all-time${x.next ? " · next: " + esc(x.next) : ""}<div class="bar"><i style="width:${pct}%"></i></div></div>`;
+  }
+  function mountAchTidy() {
+    const P = achParts();
+    if (!P) return;
+    // 1. Earned badges first
+    if (P.earnH && P.earned && P.h.nextElementSibling !== P.earnH) {
+      P.h.insertAdjacentElement("afterend", P.earned);
+      P.h.insertAdjacentElement("afterend", P.earnH);
+    }
+    // 2. Stadium medals onto the stadium cards
+    if (P.parkWall) {
+      const info = {};
+      P.parkWall.querySelectorAll(".pw").forEach((pw) => { const x = pwInfo(pw); if (x.name) info[x.name.toLowerCase()] = x; });
+      let hit = 0;
+      document.querySelectorAll("main .parks .park").forEach((card) => {
+        const nameEl = card.querySelector(".pk-body b, .pk-body strong, b, strong");
+        const x = nameEl && info[nameEl.textContent.trim().toLowerCase()];
+        if (!x) return;
+        hit++;
+        const sig = `${x.wins}|${x.games}|${x.next}|${x.medal}`;
+        const old = card.querySelector(".sbx-medal");
+        if (old && old.dataset.sig === sig) return;
+        old?.remove();
+        const body = card.querySelector(".pk-body") || card, btn = body.querySelector("button");
+        if (btn) btn.insertAdjacentHTML("beforebegin", medalHtml(x)); else body.insertAdjacentHTML("beforeend", medalHtml(x));
+        card.querySelector(".sbx-medal").dataset.sig = sig;
+      });
+      if (hit && !P.parkWall.classList.contains("sbx-hide")) {
+        P.parkWall.classList.add("sbx-hide"); P.parkH?.classList.add("sbx-hide");
+        P.parkWall.insertAdjacentHTML("afterend", `<div class="sbx-movednote">🏟️ Stadium medals are on your stadium cards in the Stadiums section above (Club Kit).</div>`);
+      }
+    }
+    // 3. Country tour: where you've played, best first
+    if (P.tourWall) {
+      const cards = [...P.tourWall.querySelectorAll(".pw")].map(pwInfo);
+      const played = cards.filter((x) => x.games > 0).sort((a, b) => b.wins - a.wins || b.games - a.games);
+      let all = false; try { all = localStorage.getItem(TOUR_ALL) === "1"; } catch (_) {}
+      cards.forEach((x) => { x.pw.style.order = x.games ? String(-(x.wins * 1000 + x.games)) : "0"; x.pw.classList.toggle("sbx-hide", !all && !x.games); });
+      const glob = P.prog ? [...P.prog.querySelectorAll(".an")].find((a) => /globetrotter/i.test(a.textContent)) : null;
+      const gm = glob && glob.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+      const beaten = played.filter((x) => x.wins > 0).length;
+      const sig = `${played.length}|${beaten}|${cards.length}|${all}|${gm ? gm[0] : ""}`;
+      let bar = P.tourWall.previousElementSibling;
+      if (!bar || !bar.classList.contains("sbx-tour")) { bar = document.createElement("div"); bar.className = "sbx-tour"; P.tourWall.insertAdjacentElement("beforebegin", bar); }
+      if (bar.dataset.sig !== sig) {
+        bar.dataset.sig = sig;
+        bar.innerHTML = `<span>🌍 <b>${played.length}</b> of ${cards.length} countries played · <b>${beaten}</b> beaten${gm ? ` · Globetrotter ${gm[1]}/${gm[2]}` : ""}</span>` +
+          `<button type="button">${all ? "Only where you've played" : `Show all ${cards.length}`}</button>`;
+        bar.querySelector("button").onclick = () => { try { localStorage.setItem(TOUR_ALL, all ? "0" : "1"); } catch (_) {} bar.dataset.sig = ""; mountAchTidy(); };
+      }
+    }
+  }
+
   // 7. Fold the long "This season's games" list on club pages. Starts folded, with a summary in its place;
   //    remembers your choice.
   const GAMES_OPEN = "sbx-games-open";
@@ -2885,6 +3127,218 @@ const SBX_MOBILE = true;
       .finally(() => { GSUM.busy = false; setTimeout(tick, 0); });
   }
 
+
+  // 🥊 Challenge links from Discord (Hold the Hill, the Brawl, wagers) look like
+  // play.smallball.com/?sbx_as=<your club>#/team/<opponent>. On that opponent's page this shows which club
+  // you're about to play as. If the site has another of your clubs picked, one click switches it (the same
+  // club switcher the site uses). You still press SmallBall's own Play button: the kit never plays for you.
+  const CHARGE = (() => {
+    const as = (new URLSearchParams(location.search).get("sbx_as") || "").replace(/\D/g, "");
+    const vs = (location.hash.match(/^#\/team\/(\d+)/) || [])[1] || "";
+    return { as, vs };
+  })();
+  function mountCharge() {
+    let el = document.getElementById("sbx-charge");
+    const here = CHARGE.as && CHARGE.vs && location.hash.replace(/[?].*$/, "") === "#/team/" + CHARGE.vs;
+    if (!here || CHARGE.closed) { if (el) el.remove(); return; }
+    const sel = document.getElementById("who-team"); if (!sel) return;
+    const opt = (id) => [...sel.options].find((o) => o.value === id);
+    const nm = (id) => (opt(id) ? opt(id).textContent.trim() : "club " + id);
+    const cur = sel.value, mine = !!opt(CHARGE.as), ok = cur === CHARGE.as;
+    const key = CHARGE.as + "|" + cur;
+    if (el && el.dataset.k === key) return;
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-charge";
+      el.style.cssText = "position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:2147483000;max-width:min(680px,94vw);padding:10px 14px;border-radius:12px;font:600 15px/1.35 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.45);display:flex;gap:10px;align-items:center;flex-wrap:wrap";
+      document.body.appendChild(el);
+    }
+    el.dataset.k = key;
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const x = '<button data-x style="margin-left:auto;background:none;border:0;color:inherit;font-size:18px;cursor:pointer;opacity:.7">×</button>';
+    if (!mine) {
+      el.style.background = "#7a1020"; el.style.color = "#fff";
+      el.innerHTML = '<span>🥊 This challenge link is for <b>club ' + esc(CHARGE.as) + '</b>, which isn\'t one of the clubs on this login. Log in as that club\'s owner to play it.</span>' + x;
+    } else if (ok) {
+      el.style.background = "#0f5132"; el.style.color = "#fff";
+      el.innerHTML = '<span>🥊 ✅ You\'re playing as <b>' + esc(nm(CHARGE.as)) + '</b> vs club ' + esc(CHARGE.vs) + '. Hit <b>Play</b> (BigLeague, not Exhibition) when you\'re ready.</span>' + x;
+    } else {
+      el.style.background = "#b45309"; el.style.color = "#fff";
+      el.innerHTML = '<span>🥊 ⚠️ You\'re on <b>' + esc(nm(cur)) + '</b>. This challenge is for <b>' + esc(nm(CHARGE.as)) + '</b>.</span>' +
+        '<button data-sw style="background:#fff;color:#7c2d12;border:0;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer">Switch to ' + esc(nm(CHARGE.as)) + '</button>' + x;
+    }
+    const sw = el.querySelector("[data-sw]");
+    if (sw) sw.onclick = () => { sel.value = CHARGE.as; sel.dispatchEvent(new Event("change", { bubbles: true })); setTimeout(() => { if (location.hash !== "#/team/" + CHARGE.vs) location.hash = "#/team/" + CHARGE.vs; mountCharge(); }, 400); };
+    el.querySelector("[data-x]").onclick = () => { CHARGE.closed = true; el.remove(); };
+  }
+  // 🏆 Live tournament chip. Every tournament run by the SmallBall tournament script publishes its bracket on
+  // GitHub, plus a list of all tournaments. The kit reads those public files (no login, nothing is sent) and, when
+  // one of your clubs has a match open, shows who you play, the deadline and a Start button (a 🥊 challenge link).
+  // Results only appear there once Discord has posted them, so it never spoils a game still on the air.
+  const LIVE = { at: 0, busy: false, items: [], key: "" };
+  const LIVE_REPO = "slipnsliders/smallball-tools";
+  const LIVE_PAIRS = [{ nine: "Front", a: 0, b: 0, tee: "A" }, { nine: "Front", a: 1, b: 1, tee: "B" }, { nine: "Back", a: 0, b: 1, tee: "B" }, { nine: "Back", a: 1, b: 0, tee: "A" }];
+  async function liveGet(path) {
+    // raw.githubusercontent first (no rate limit; a few minutes behind at most), the GitHub API as a backup
+    const urls = ["https://raw.githubusercontent.com/" + LIVE_REPO + "/main/" + path + "?t=" + Math.floor(Date.now() / 60000), "https://api.github.com/repos/" + LIVE_REPO + "/contents/" + path + "?ref=main"];
+    for (let i = 0; i < urls.length; i++) {
+      try { const r = await fetch(urls[i], { cache: "no-store", credentials: "omit", headers: i ? { Accept: "application/vnd.github.raw+json" } : {} }); if (r.ok) return await r.json(); } catch (_) {}
+    }
+    return null;
+  }
+  const liveWhen = (ms) => (ms ? new Date(ms).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "");
+  const liveStart = (me, opp) => "https://play.smallball.com/?sbx_as=" + me + "#/team/" + opp;
+  function liveItems(D, t, mine) {
+    const out = [], url = t.url || "", scr = D.fmt === "scramble", has = (id) => mine.has(String(id));
+    const icon = scr ? "⛳" : "🏆";
+    if (!D.matches) {   // sign-ups still open
+      (D.entrants || []).filter((e) => has(e.id)).forEach((e) => out.push({ k: t.slug + ":su:" + e.id, scr, title: icon + " " + D.name, lines: [{ t: "📝 <b>" + esc(e.n) + "</b> is signed up" + (D.start ? " · first match " + esc(liveWhen(D.start)) : "") }], url }));
+      return out;
+    }
+    if (D.done) {
+      const c = D.champ; const won = c && (has(c.id) || (c.clubs || []).some((x) => has(x.id)));
+      if (won) out.push({ k: t.slug + ":champ", scr, title: "👑 " + D.name, lines: [{ t: "You won it! 🎉" }], url });
+      return out;
+    }
+    for (const m of D.matches) {
+      if (m.w || m.v || m.bye || !m.a || !m.z) {
+        // through to a match whose opponent isn't known yet
+        if (!m.w && !m.v && (m.a || m.z) && !(m.a && m.z)) {
+          const x = m.a || m.z, me = scr ? (x.clubs || []).find((c) => has(c.id)) : has(x.id) ? x : null;
+          if (me) out.push({ k: t.slug + ":wait:" + m.id, scr, title: icon + " " + D.name + " · " + m.l, lines: [{ t: "⏳ <b>" + esc(me.n) + "</b> is through. This match opens the moment your opponent is known." }], url: url + (scr ? "#m=" + m.id : "") });
+        }
+        continue;
+      }
+      if (!m.open) continue;
+      const dl = m.dl ? " · play by <b>" + esc(liveWhen(m.dl)) + "</b>" : "";
+      if (scr) {
+        const A = m.a, B = m.z, side = (A.clubs || []).some((c) => has(c.id)) ? "A" : (B.clubs || []).some((c) => has(c.id)) ? "B" : "";
+        if (!side) continue;
+        const lines = [];
+        LIVE_PAIRS.forEach((p, i) => {
+          const ca = A.clubs[p.a], cb = B.clubs[p.b], me = side === "A" ? ca : cb, opp = side === "A" ? cb : ca;
+          if (!has(me.id)) return;
+          const g = (m.games || [])[i] || {}, iTee = p.tee === side;
+          const st = g.aired ? "✓ played" : g.g ? "📡 found, airing" : iTee ? "you tee off" : "they tee off";
+          lines.push({ t: p.nine + ": <b>" + esc(me.n) + "</b> vs " + esc(opp.n) + " <code>" + esc(opp.id) + "</code> · " + st, go: !g.g && iTee ? liveStart(me.id, opp.id) : "" });
+        });
+        out.push({ k: t.slug + ":" + m.id, scr, title: "⛳ " + D.name + " · " + m.l, sub: "Team " + esc((side === "A" ? A : B).n.replace(/^Team /, "")) + " vs " + esc((side === "A" ? B : A).n) + dl, lines, url: url + "#m=" + m.id });
+      } else {
+        const me = has(m.a.id) ? m.a : has(m.z.id) ? m.z : null; if (!me) continue;
+        const opp = me === m.a ? m.z : m.a, starts = (me.s || 99) > (opp.s || 99);
+        const line = m.live || m.g ? { t: "📡 Game found. The result posts once it has aired." }
+          : starts ? { t: "🥊 You <b>start the game</b> (BigLeague, not Exhibition)", go: liveStart(me.id, opp.id) }
+          : { t: "🛡️ " + esc(opp.n) + " starts the game. Be ready to play." };
+        out.push({ k: t.slug + ":" + m.id, scr, title: "🏆 " + D.name + " · " + m.l, sub: "<b>" + esc(me.n) + "</b> vs " + esc(opp.n) + " <code>" + esc(opp.id) + "</code>" + dl, lines: [line], url });
+      }
+    }
+    return out;
+  }
+  // ⛰️ Hold the Hill: one card per club of yours on the Hill (from the public HtH Leaderboard data).
+  const HILL_BOARD = "https://slipnsliders.github.io/smallball-tools/hill/";
+  // A club name that opens its SmallBall club page (same tab, like SmallBall's own links)
+  const clubA = (name, id) => '<a href="#/team/' + encodeURIComponent(id) + '" title="Open ' + esc(name) + '\'s club page" style="color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px">' + esc(name) + "</a>";
+  const hillNeed = (gap) => (gap <= 1 ? 1 : gap + 1);
+  function hillItems(H, mine) {
+    if (!H || !H.ladder) return [];
+    const all = (H.ace ? [H.ace] : []).concat(H.ladder), reach = Number(H.reach) || 3, form = H.formLink || HILL_BOARD;
+    const wal = {}; (H.wallet || []).forEach((w) => { wal[w.name] = w; });
+    const out = [];
+    all.filter((p) => mine.has(String(p.clubId))).forEach((me) => {
+      const r = Number(me.rank), w = wal[me.name];
+      const sub = "<b>" + clubA(me.name, me.clubId) + "</b> · " + esc(me.club) + " · " + me.w + "–" + me.l +
+        (w ? " · 💰 <b>" + w.bank + "</b> BB" + (w.streak ? " · 🔥 " + w.streak : "") + (w.items && w.items.length ? " · " + w.items.join(" ") : "") : "");
+      const lines = [];
+      const ch = (H.charges || []).find((c) => c.ch === me.name || c.df === me.name);
+      if (ch) {
+        const opp = all.find((p) => p.name === (ch.ch === me.name ? ch.df : ch.ch));
+        const by = ch.deadline ? " · play by <b>" + esc(liveWhen(Date.parse(ch.deadline))) + "</b>" : "";
+        if (/reported|airing/i.test(ch.status || "")) lines.push({ t: "📡 Your Hill game is in. The result posts once it has aired." });
+        else if (ch.ch === me.name) lines.push({ t: "🥊 You charged <b>" + (opp ? clubA(ch.df, opp.clubId) : esc(ch.df)) + "</b>" + (opp ? " <code>" + esc(opp.clubId) + "</code>" : "") + by + ". Start a BigLeague game as the visitor.", go: opp ? liveStart(me.clubId, opp.clubId) : "" });
+        else lines.push({ t: "🛡️ <b>" + (opp ? clubA(ch.ch, opp.clubId) : esc(ch.ch)) + "</b> charged you" + by + ". They start the game; be ready." });
+      } else if (r === 0) {
+        lines.push({ t: "♠ You hold the mound. Defend it" + (me.next ? ": the next defense is worth <b>+" + me.next + "</b>" : "") + "." });
+      } else {
+        const tg = [];
+        const openTo = Number(H.moundOpenTo) || 0;
+        if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: "♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> (the Ace) <code>" + esc(H.ace.clubId) + "</code> · title shot" });
+        H.ladder.filter((p) => r - Number(p.rank) >= 1 && r - Number(p.rank) <= reach).sort((a, b) => a.rank - b.rank).forEach((p) => {
+          const n = hillNeed(r - Number(p.rank)); tg.push({ t: "#" + p.rank + " <b>" + clubA(p.name, p.clubId) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win") });
+        });
+        const j = H.ladder.find((p) => r - Number(p.rank) === reach + 1);
+        if (j) tg.push({ t: "🪜 #" + j.rank + " <b>" + clubA(j.name, j.clubId) + "</b> with a Ladder Jump" });
+        if (tg.length) { lines.push({ t: "You can charge:" }); tg.forEach((x) => lines.push(x)); lines.push({ t: '<span style="opacity:.75;font-size:12px">The Master Form\'s 🔎 Who can I charge? has the exact list (cooldowns, items).</span>', go: form, btn: "🥊 Charge", ext: 1 }); }
+        else lines.push({ t: "Nobody in reach right now. Win a defense or wait for the ladder to move." });
+      }
+      lines.push({ t: '<span style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px"><a href="' + esc(form) + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📝 Master Form</a><a href="' + HILL_BOARD + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📊 Live Hold the Hill Leaderboard</a></span>' });
+      out.push({ k: "hill:" + me.clubId, hill: true, title: r === 0 ? "⛰️ Hold the Hill · ♠ The Ace" : "⛰️ Hold the Hill · #" + r + " of " + H.ladder.length, sub, lines, url: HILL_BOARD });
+    });
+    return out;
+  }
+  async function liveRefresh(force) {
+    if (LIVE.busy || (document.hidden && !force) || !on("live")) return;
+    const mine = ownIds();
+    LIVE.busy = true;
+    try {
+      const idx = await liveGet("docs/tournaments/index.json"), list = (idx && idx.list) || [], items = [];
+      LIVE.signups = list.filter((t) => t.status === "signups" && !(t.signupClose && t.signupClose < Date.now())).length;
+      for (const t of list) {
+        if (!mine.size) break;
+        if (t.status === "done" && !(t.finished && Date.now() - t.finished < 864e5)) continue;
+        const m = /github\.io\/[^/]+\/(.*)$/.exec(t.url || ""); if (!m) continue;
+        const D = await liveGet("docs/" + m[1].replace(/\/?$/, "/") + "bracket.json");
+        if (D && D.name) { try { items.push(...liveItems(D, t, mine)); } catch (_) {} }
+      }
+      if (on("hillcard") && mine.size) { try { const H = await liveGet("docs/hill/board.json"); items.unshift(...hillItems(H, mine)); } catch (_) {} }
+      LIVE.items = items; LIVE.at = Date.now(); mountLive();
+    } finally { LIVE.busy = false; }
+  }
+  const LIVE_HIDE_KEY = "sbx-live-hidden";
+  const liveHidden = () => { try { return JSON.parse(sessionStorage.getItem(LIVE_HIDE_KEY) || "{}"); } catch (_) { return {}; } };
+  // Box-score toasts share the bottom-right corner, so they sit just above the chip.
+  function liveLift() { const el = document.getElementById("sbx-live"); document.documentElement.style.setProperty("--sbx-live-h", el ? (el.offsetHeight + 8) + "px" : "0px"); }
+  // The 🏆 Tournaments button (always there: it opens the Tournaments page) with a card above it for each
+  // tournament you're in. ▾ on the button folds the cards away; the button then shows how many are waiting.
+  const TOURNEY_HOME = "https://slipnsliders.github.io/smallball-tools/tournaments/";
+  const LIVE_MIN_KEY = "sbx-live-min";
+  const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) === "1"; } catch (_) { return false; } };
+  function mountLive() {
+    if (!on("live")) return;
+    let el = document.getElementById("sbx-live");
+    const hidden = liveHidden(), items = LIVE.items.filter((x) => hidden[x.k] !== JSON.stringify(x.lines));
+    const min = liveMin(), su = LIVE.signups || 0;
+    const key = JSON.stringify(items) + min + su;
+    if (el && el.isConnected && el.dataset.key === key) return;
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-live";
+      el.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147482990;width:min(380px,calc(100vw - 24px));display:flex;flex-direction:column;align-items:stretch;gap:8px;font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;pointer-events:none";
+    }
+    if (!el.isConnected) document.body.appendChild(el);
+    el.dataset.key = key;
+    const pill = "white-space:nowrap;flex:none;border:0;border-radius:999px;font:800 14px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center;gap:6px";
+    const cards = min ? "" : items.map((x, i) => {
+      const bg = x.hill ? "linear-gradient(180deg,#7a1f2b,#2b0d12)" : x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
+      const edge = x.hill ? "#ef4444" : x.scr ? "#4ade80" : "#facc15";
+      const ln = x.lines.map((l) => '<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="flex:1;min-width:180px">' + l.t + "</span>" +
+        (l.go ? '<a href="' + esc(l.go) + '"' + (l.ext ? ' target="_blank" rel="noopener"' : "") + ' style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">' + (l.btn || "▶ Start") + "</a>" : "") + "</div>").join("");
+      return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:11px 12px 11px 14px;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);border-left:5px solid ' + edge + '">' +
+        '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
+        '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.hill ? "📊 HtH Leaderboard" : x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
+        '<button data-x="' + i + '" title="Hide this card until something changes" style="background:rgba(255,255,255,.12);border:0;color:inherit;cursor:pointer;font-size:14px;line-height:1;border-radius:999px;width:24px;height:24px">×</button></div>' +
+        (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
+    }).join("");
+    const fold = items.length ? '<button data-fold title="' + (min ? "Show your cards" : "Tuck these cards away (the button stays)") + '" style="' + pill + ';padding:9px 14px;background:#0b1220;color:#fde68a;border:1px solid #475569">' +
+      (min ? "▴ Show " + items.length + " card" + (items.length === 1 ? "" : "s") : "▾ Hide cards") + "</button>" : "";
+    const home = '<a data-home href="' + TOURNEY_HOME + '" target="_blank" rel="noopener" title="SmallBall tournaments: brackets, sign-ups, the Hall of Champions" style="' + pill + ';padding:10px 16px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#1c1917">🏆 Tournaments' +
+      (su ? '<span style="font:700 11px/1 system-ui,sans-serif;background:#14532d;color:#bbf7d0;border-radius:999px;padding:4px 7px">sign-ups open</span>' : "") + "</a>";
+    el.innerHTML = cards + '<div style="display:flex;justify-content:flex-end;gap:8px">' + fold + home + "</div>";
+    el.querySelectorAll("[data-x]").forEach((b) => { b.onclick = () => { const x = items[Number(b.dataset.x)], h = liveHidden(); h[x.k] = JSON.stringify(x.lines); try { sessionStorage.setItem(LIVE_HIDE_KEY, JSON.stringify(h)); } catch (_) {} mountLive(); }; });
+    const fb = el.querySelector("[data-fold]"); if (fb) fb.onclick = () => { try { sessionStorage.setItem(LIVE_MIN_KEY, min ? "0" : "1"); } catch (_) {} mountLive(); };
+    el.querySelectorAll("code").forEach((c) => { c.style.cssText = "font:700 12px ui-monospace,monospace;background:rgba(250,204,21,.18);color:#fde68a;border-radius:5px;padding:1px 5px"; });
+    liveLift();
+  }
+  setTimeout(() => liveRefresh(true), 3000);
+  setInterval(() => liveRefresh(false), 180000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - LIVE.at > 60000) liveRefresh(false); });
   // Keep everything mounted as the page re-renders.
   let busy = false;
   const tick = () => {
@@ -2897,11 +3351,15 @@ const SBX_MOBILE = true;
       if (on("dash")) safe(mountDash);
       if (on("logos")) safe(decorate);
       if (on("parks")) safe(mountParkRecords);
+      if (on("achtidy")) safe(mountAchTidy);
+      safe(mountSuspects);
       if (on("games")) safe(mountGamesFold);
       if (on("livebar")) safe(mountLiveCtl);
       safe(mountSquad);
       if (on("notes")) safe(mountNotes);
       safe(paintTitle);
+      if (on("charge")) safe(mountCharge);
+      if (on("live")) safe(mountLive);
     } finally { busy = false; }
   };
   new MutationObserver(tick).observe(document.body, { childList: true, subtree: true });

@@ -1,6 +1,24 @@
 SmallBall Club Kit
 A little make-over for play.smallball.com. Everything stays in your own browser.
 
+🧪 PLAYEROPTIMIZER III BY JON2S (new in 1.26.0, computer editions)
+  Jon2s's lineup optimizer, built in with his blessing. Open one of your clubs and scroll to LINEUP:
+  AUTO-OPTIMIZE (blue, next to Save) suggests positions and a 1-9 batting order, with the reasons.
+  It fills in the form only: review it, then press Save yourself. Turn it off in ⚙ under Features.
+  His own notes are in PlayerOptimizer-III-README.txt. Thanks, Jon2s! 🙌
+
+🔁 ROTATE BENCH (new in 1.26.0, computer editions)
+  For Passive Training clubs, next to Save on your lineup editor: games train the men who play and spend
+  their TP, so one click swaps up to three bench men with the most TP in for the most drained starters,
+  each taking that starter's position. Your pitcher stays, and a swap only happens when the bench man has
+  20+ more TP. It fills in the form only; press Save yourself. Turn it off in ⚙ under Features.
+
+🏋️ TRAINER OR QUICK TRAIN? (1.26.0)
+  Training Effectiveness now tells the two apart. ⚡ Quick Train: the club's "last trained" time didn't move.
+  🏋️ Trainer: it moved to that session (so one skill in the trainer is no longer called a Quick Train).
+  Plain "Training" means the kit wasn't reading the club right before and after, so it can't tell.
+  It knows for sessions from now on; hover the label for why.
+
 📻 SMALLBALL RADIO (new in 1.25.0, updated in 1.25.1, computer editions)
   Watching a game in SmallBall's own player (any Watch button, or a live game)? A 📻 Radio button sits at
   the bottom left, above 🏟 Skins. Open it and press "Turn the radio on": Mack Ramsey (play-by-play, a
@@ -11,6 +29,8 @@ A little make-over for play.smallball.com. Everything stays in your own browser.
   and it keeps talking; the button turns red with ON AIR while it's on. Switch games and it follows.
   Score updates at every change of half-inning, and the booth fills the quiet between plays with the
   situation, who's hot, the pitch count, banter and lore. "📋 How the show goes" in the settings has the rundown.
+  Starts on Play-by-play with every pitch called, score updates every half, Nonstop (no dead air) and
+  Mack down the middle (1.26.1). Change any of it; your choices stick.
   ⚙ Booth settings: pick each voice, which guests can visit, The show or straight Play-by-play, how many
   jokes, how many pitches get called, Score updates (every half, every inning, off), Situation
   (inning, outs and score before every batter), Dead air (Some quiet, Steady, Nonstop), Mack (home-team

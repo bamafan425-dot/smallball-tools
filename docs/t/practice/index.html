@@ -1,0 +1,286 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practice Round · live bracket</title>
+<meta property="og:title" content="Practice Round · live bracket"><meta property="og:description" content="A SmallBall double-elimination tournament. Sign up, see the bracket, follow every result.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='36%' cy='30%' r='72%'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.65' stop-color='%23edf0f2'/%3E%3Cstop offset='1' stop-color='%23aeb7be'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='29' fill='url(%23g)' stroke='%237d8890' stroke-width='2.5'/%3E%3Ccircle cx='24' cy='20' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='34' cy='16' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='44' cy='22' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='18' cy='30' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='29' cy='28' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='40' cy='31' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='50' cy='33' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='22' cy='41' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='33' cy='39' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='44' cy='43' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='28' cy='50' r='2.6' fill='%23c3cbd1'/%3E%3Ccircle cx='39' cy='52' r='2.6' fill='%23c3cbd1'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--turf:#1f5a36;--turf2:#24653d;--deep:#0c3322;--cream:#f7f2e4;--paper:#fffdf6;--ink:#1d2a22;--muted:#5e6b62;--sand:#e8d6a6;--flag:#c8102e;--gold:#c9a227;--line:#d9d0b8}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--turf);
+ background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 70px,rgba(0,0,0,.035) 70px 140px),radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.12),transparent 60%);min-height:100vh}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:18px 14px 40px}
+.home{display:inline-block;color:var(--sand);font:600 13px/1 system-ui,sans-serif;text-decoration:none;margin:0 0 10px;opacity:.95}.home:hover{text-decoration:underline}
+header{background:linear-gradient(180deg,#0f3d29,var(--deep));color:var(--cream);border-radius:18px;padding:20px 24px;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between;
+ box-shadow:0 14px 34px rgba(0,0,0,.35),inset 0 0 0 2px rgba(201,162,39,.45),inset 0 0 0 6px var(--deep),inset 0 0 0 7px rgba(201,162,39,.25);position:relative;overflow:hidden}
+header:after{content:"";position:absolute;right:-30px;bottom:-60px;width:220px;height:140px;border-radius:50%;background:radial-gradient(ellipse,rgba(232,214,166,.18),transparent 70%)}
+.kick{font:700 12px/1 system-ui,sans-serif;letter-spacing:3px;color:var(--gold);text-transform:uppercase}
+h1{font:800 clamp(30px,6vw,52px)/1.02 'Playfair Display',Georgia,serif;margin:6px 0 4px;letter-spacing:.3px}
+.sub{color:#cfe0d2;font-size:14px}
+.meta{text-align:right;color:#dfe9df;font-size:14px;position:relative;z-index:1}.meta b{color:#fff}
+.btn{display:inline-block;margin-top:8px;text-decoration:none;font:700 14px system-ui,sans-serif;border-radius:999px;padding:9px 16px;background:var(--sand);color:#2b2410;border:0;cursor:pointer}
+.btn.flag{background:var(--flag);color:#fff}
+h2{font:700 26px/1.1 'Playfair Display',Georgia,serif;color:var(--cream);margin:28px 0 12px;display:flex;align-items:center;gap:10px;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+h2 small{font:600 12px system-ui,sans-serif;background:rgba(0,0,0,.25);color:var(--sand);padding:3px 10px;border-radius:999px;letter-spacing:.5px}
+.card{background:var(--paper);border-radius:12px;box-shadow:0 8px 22px rgba(0,0,0,.25);border:1px solid #efe6cf}
+.champ{margin:18px 0 0;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#fff8dc,#f2e2a8);color:#3b2f08;font:700 24px/1.2 'Playfair Display',Georgia,serif;box-shadow:0 10px 26px rgba(0,0,0,.3);display:flex;gap:14px;align-items:center}
+.champ .t{font-size:40px}.champ small{display:block;font:500 14px system-ui,sans-serif;color:#6b5a1a;margin-top:4px}
+/* tee sheet */
+.tee{padding:6px 0;background-image:repeating-linear-gradient(180deg,transparent 0 37px,#eadfc3 37px 38px)}
+.tee .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 16px;min-height:38px}
+.tee .n{font:700 13px 'IBM Plex Mono',monospace;color:var(--muted);width:26px}
+.tee .who{font-weight:700}.tee .club{color:var(--muted)}
+.cid{display:inline-block;font:700 13px 'IBM Plex Mono',monospace;background:var(--sand);color:#3a2d06;border-radius:6px;padding:2px 7px;text-decoration:none}
+.cid:hover{filter:brightness(.95)}
+.pr{font-size:12px;background:#e6f1e8;color:#1f5a36;border-radius:999px;padding:2px 8px}
+.note{color:var(--muted);font-size:13px;padding:10px 16px 14px}
+/* bracket */
+.rounds{display:flex;gap:18px;overflow-x:auto;padding:4px 2px 12px;align-items:stretch}
+.col{min-width:300px;flex:1;display:flex;flex-direction:column}
+.col h3{font:600 italic 18px 'Playfair Display',Georgia,serif;color:var(--cream);margin:0 0 10px;text-align:center}
+.col .list{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:16px}
+.sc{background:var(--paper);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.25);border:1px solid #ece2c8}
+.sc.live{box-shadow:0 0 0 3px rgba(200,16,46,.55),0 6px 18px rgba(0,0,0,.25)}
+.sc .hd{display:flex;justify-content:space-between;align-items:center;background:var(--deep);color:var(--cream);font:600 12px system-ui,sans-serif;padding:7px 10px;letter-spacing:.3px}
+.sc .hd .st{color:var(--sand)}.sc.live .hd .st{color:#ffb3bf}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font:700 10px system-ui,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;padding:5px 4px;border-bottom:1px solid var(--line);background:#f8f3e3}
+th:first-child{text-align:left;padding-left:10px}
+td{padding:7px 4px;border-bottom:1px solid #efe7d2;text-align:center;font:700 15px 'IBM Plex Mono',monospace;color:#2c3a30}
+td.tm{text-align:left;padding-left:10px;font:600 14px system-ui,sans-serif;color:var(--ink);line-height:1.25}
+td.tm .cl{display:block;font:500 12px system-ui,sans-serif;color:var(--muted);margin-top:2px}
+td.tm .cl a{margin-right:4px}
+tr.w td{background:#eef6ef}tr.w td.tm{font-weight:800}tr.w td.pt{color:var(--flag)}
+tr:last-child td{border-bottom:0}
+td.pt{font-size:17px}
+.seed{display:inline-block;min-width:20px;text-align:center;font:700 11px 'IBM Plex Mono',monospace;color:#fff;background:var(--turf);border-radius:4px;padding:1px 4px;margin-right:5px}
+.tbd{color:#9aa39c;font-style:italic;font-weight:500}
+.games{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border-top:1px dashed var(--line);background:#fbf8ee}
+.g{font:600 11px system-ui,sans-serif;border-radius:999px;padding:3px 8px;background:#efe9d6;color:#5b5236;white-space:nowrap}
+.g.f{background:#ffe8ec;color:#8a0f22}.g.d{background:#e2f0e5;color:#1f5a36}
+.g a{text-decoration:none}
+.foot{font:500 12px system-ui,sans-serif;color:var(--muted);padding:6px 10px 9px}
+.foot b{color:var(--ink)}
+/* rules */
+details.rules{margin-top:14px}
+details.rules summary{cursor:pointer;list-style:none;color:var(--cream);font:700 18px 'Playfair Display',Georgia,serif}
+details.rules summary::-webkit-details-marker{display:none}
+.rulebox{padding:16px 18px;margin-top:10px}
+.rulebox h4{margin:12px 0 4px;font:700 15px 'Playfair Display',Georgia,serif;color:var(--deep)}
+.rulebox p,.rulebox li{margin:4px 0;color:#2f3b33}
+.nas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.nas div{background:#f3ecd7;border-radius:10px;padding:10px;text-align:center}
+.nas b{display:block;font:800 18px 'Playfair Display',Georgia,serif;color:var(--deep)}
+.nas span{font-size:12px;color:var(--muted)}
+.pair{font:600 13px 'IBM Plex Mono',monospace;background:#f3ecd7;border-radius:8px;padding:8px 10px;margin:6px 0}
+.empty{color:var(--cream);opacity:.9;padding:12px 0}
+.upd{color:#cfe0d2;font-size:12px;text-align:center;margin-top:20px}
+.sc.tap{cursor:pointer}.sc.tap:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.mu{font:600 11px system-ui,sans-serif;color:var(--sand);text-decoration:none;margin-left:8px;opacity:.9}
+.ov{position:fixed;inset:0;background:rgba(6,24,15,.78);z-index:20;overflow:auto;padding:18px 10px;display:flex;flex-direction:column;align-items:center}
+.ov .bar{display:flex;gap:10px;margin:0 0 12px;flex-wrap:wrap;justify-content:center}
+.mc{width:min(900px,100%);background:var(--paper);border-radius:18px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.4)}
+.mc .top{background:linear-gradient(180deg,#0f3d29,var(--deep));color:var(--cream);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mc .top .k{font:700 11px system-ui,sans-serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase}
+.mc .top h3{margin:4px 0 0;font:800 24px 'Playfair Display',Georgia,serif}
+.mc .top .t{text-align:right;font-size:13px;color:#dfe9df}.mc .top .t b{display:block;color:#fff;font-size:16px}
+.mc .vs{display:grid;grid-template-columns:1fr 70px 1fr;align-items:center;padding:16px 20px 4px;gap:8px}
+.mc .team h4{margin:0 0 6px;font:800 22px/1.15 'Playfair Display',Georgia,serif;color:var(--deep)}.mc .team.r{text-align:right}
+.mc .club{margin-top:4px;font-size:14px}.mc .club b{font:700 12px 'IBM Plex Mono',monospace;color:var(--muted)}
+.mc .mid{text-align:center;font:italic 700 28px 'Playfair Display',Georgia,serif;color:var(--gold)}
+.mc .course{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:12px 20px 16px}
+.mc .nine{border-radius:14px;padding:12px 14px;background:linear-gradient(180deg,#2c7a46,#23663a);color:#fff;position:relative;overflow:hidden}
+.mc .nine:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,rgba(255,255,255,.06) 0 26px,transparent 26px 52px)}
+.mc .nine h5{position:relative;margin:0 0 8px;font:700 italic 18px 'Playfair Display',Georgia,serif;color:var(--sand)}
+.mc .pair{position:relative;display:grid;grid-template-columns:1fr 34px 1fr;align-items:center;background:rgba(0,0,0,.2);border-radius:14px;padding:8px 12px;margin:7px 0;font:700 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.2}
+.mc .pair .b{text-align:right}.mc .pair small{display:block;font:600 11px 'IBM Plex Mono',monospace;color:#cfe6d4}
+.mc .pair .fl{text-align:center;font-size:18px}
+.mc .tee{display:inline-block;background:var(--flag);color:#fff;font:700 9px system-ui,sans-serif;letter-spacing:.5px;border-radius:999px;padding:2px 6px;margin:2px 0 0;vertical-align:1px}
+.mc .gs{display:block;font:600 10px system-ui,sans-serif;color:#ffe6a6;margin-top:3px}
+.mc .score{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px dashed #e2d7ba;margin:0 20px;padding:12px 0 14px;text-align:center}
+.mc .score div{font:700 11px system-ui,sans-serif;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.mc .score b{display:block;font:700 24px 'IBM Plex Mono',monospace;color:var(--ink);letter-spacing:0;margin-top:2px}
+.mc .score .p b{color:var(--flag)}
+.mc .foot{background:#f3ecd7;color:var(--muted);font-size:12px;padding:9px 20px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ov img.shot{max-width:min(900px,100%);border-radius:12px;margin-top:12px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.ov .hint{color:var(--cream);font-size:13px;margin-top:8px;text-align:center}
+@media(max-width:640px){.mc .course{grid-template-columns:1fr}.mc .vs{grid-template-columns:1fr;text-align:center}.mc .team.r{text-align:center}.mc .score b{font-size:19px}}
+.c18{width:100%;border-collapse:collapse;font:600 13px 'IBM Plex Mono',monospace;margin:4px 0}
+.c18 th{font:700 10px system-ui,sans-serif;color:var(--muted);background:#f3ecd7;padding:5px 2px;text-align:center;border:1px solid #e6dcc0;letter-spacing:.5px}
+.c18 td{padding:4px 2px;text-align:center;border:1px solid #efe7d2;color:#2c3a30;font:700 13px 'IBM Plex Mono',monospace}
+.c18 td.nm{text-align:left;padding-left:8px;font:700 12px system-ui,sans-serif;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.c18 td.sum{background:#f8f3e3;color:var(--deep)}
+.c18 .r{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%}
+.c18 .b1{box-shadow:0 0 0 1.5px var(--flag)}
+.c18 .b2{box-shadow:0 0 0 1.5px var(--flag),0 0 0 3px #fff,0 0 0 4.5px var(--flag)}
+.c18 .b3{background:var(--flag);color:#fff}
+.c18 .par{color:#a7ae9f}
+.c18 tr.ms td{font:700 9px system-ui,sans-serif;color:var(--muted);background:#fbf8ee;padding:3px 1px}
+.c18 tr.ms td.ua{color:#1f5a36}.c18 tr.ms td.ub{color:#8a5a00}
+.c18 td.cl{background:#fff3c4}
+.res18{text-align:center;font:700 italic 20px 'Playfair Display',Georgia,serif;color:var(--deep);padding:6px 0 2px}
+.legend{font:500 11px system-ui,sans-serif;color:var(--muted);text-align:center;padding:2px 0 8px}
+.wrap18{overflow-x:auto;padding:4px 20px 8px}
+@media(max-width:640px){header{padding:16px}.meta{text-align:left}.col{min-width:84vw}.nas{grid-template-columns:1fr}}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+var D={"name":"Practice Round"};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):''}
+function tp(n){return n===0?'E':n>0?'+'+n:'−'+(-n)}
+function hf(x){if(x==null)return'';var w=Math.floor(x);return x%1?(w?w:'')+'½':String(x)}
+function cid(c){return '<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank">'+esc(c.id)+'</a>'}
+var HOME=location.host.slice(-9)==='github.io'?location.pathname.split('/').slice(0,2).join('/')+'/tournaments/':'https://slipnsliders.github.io/smallball-tools/tournaments/';
+function teamCell(x,seedOn){
+  if(!x)return '<td class="tm"><span class="tbd">Winner of the last match</span></td>';
+  var cl=(x.clubs||[]).map(function(c){return esc(c.n)+' '+cid(c)}).join(' · ');
+  return '<td class="tm">'+(seedOn&&x.s?'<span class="seed">'+x.s+'</span>':'')+esc(x.n)+'<span class="cl">'+cl+'</span></td>'}
+function mpCard(m,tap){
+  var M=m.mp,aw=m.a&&m.w===m.a.id;
+  var h='<div class="sc tap" data-m="'+esc(m.id)+'"><div class="hd"><span>'+esc(m.l)+'<span class="mu">🔎 Scorecard</span></span><span class="st">Final · '+esc(M.res==='AS'?'AS, '+(m.how==='to par'?'on total':m.how):M.res)+'</span></div><table><tr><th>Team</th><th>Out</th><th>In</th><th>Tot</th><th></th></tr>';
+  function row(x,c,won){return '<tr'+(won?' class="w"':'')+'>'+teamCell(x,true)+'<td>'+tp(c.out)+'</td><td>'+tp(c.inn)+'</td><td>'+tp(c.par)+'</td><td class="pt">'+(won?'⛳ '+esc(M.res==='AS'?'AS':M.res):'')+'</td></tr>'}
+  return h+row(m.a,M.ca,aw)+row(m.z,M.cb,!aw)+'</table><div class="foot">'+(function(){var b=M.ca.bird+M.cb.bird,e=M.ca.eagle+M.cb.eagle,a=M.ca.alb+M.cb.alb,o=[];if(b)o.push('🐦 '+b+' birdie'+(b>1?'s':''));if(e)o.push('🦅 '+e+' eagle'+(e>1?'s':''));if(a)o.push(a+' albatross'+(a>1?'es':''));return o.length?o.join(' · ')+' in this match':'All pars: a defensive grind'})()+'</div></div>'}
+function card(m){
+  var live=m.open&&!m.w, n=m.nas, aw=m.w&&m.a&&m.w===m.a.id, zw=m.w&&m.z&&m.w===m.z.id;
+  var st=m.w?(m.how==='no-show'?'Walkover':'Final'+(m.how?' · '+m.how:'')):live?(m.found?m.found+' of 4 games found':'On the tee · by '+t(m.dl)):'Waiting';
+  var tap=canMU(m);if(m.mp)return mpCard(m,tap);var h='<div class="sc'+(live?' live':'')+(tap?' tap':'')+'" data-m="'+esc(m.id)+'"><div class="hd"><span>'+esc(m.l)+(tap?'<span class="mu">🔎 Matchup</span>':'')+'</span><span class="st">'+esc(st)+'</span></div><table><tr><th>Team</th><th>F9</th><th>B9</th><th>Tot</th><th>Pts</th></tr>';
+  function row(x,i,won){var p=n?[n.f[i],n.k[i],n.t[i],hf(n.p[i])]:['','','',''];
+    return '<tr'+(won?' class="w"':'')+'>'+teamCell(x,true)+'<td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td class="pt">'+(won?'⛳ ':'')+p[3]+'</td></tr>'}
+  h+=row(m.a,0,aw)+row(m.z,1,zw)+'</table>';
+  if(live&&m.games&&m.games.length){h+='<div class="games">'+m.games.map(function(g){
+    var cls=g.aired?'g d':g.g?'g f':'g', ic=g.aired?'✓':g.g?'📡':'○';
+    var lab=(g.nine==='Front'?'Front':'Back')+': '+esc(g.an)+' v '+esc(g.bn);
+    return '<span class="'+cls+'">'+ic+' '+(g.g?'<a href="https://play.smallball.com/training?watch='+esc(g.g)+'" target="_blank">'+lab+'</a>':lab+' · '+esc(g.teen)+' tees off')+'</span>'}).join('')+'</div>'}
+  if(m.w&&n&&m.how!=='no-show')h+='<div class="foot">Front <b>'+n.f.join('–')+'</b> · Back <b>'+n.k.join('–')+'</b> · Overall <b>'+n.t.join('–')+'</b></div>';
+  return h+'</div>'}
+function rules(){return '<details class="rules"'+(D.matches?'':' open')+'><summary>⛳ How the Two Man Scramble works ▾</summary><div class="card rulebox">'+
+  '<p>Teams of two. Name a partner on the sign-up form (they sign up too), or leave it blank and get drawn a partner at random when sign-ups close. Single elimination, random seeds.</p>'+
+  '<h4>A match is four games</h4><p>Every club plays both clubs on the other team, BigLeague games only:</p>'+
+  '<div class="pair">Front nine: A1 v B1 · A2 v B2<br>Back nine:&nbsp; A1 v B2 · A2 v B1</div>'+
+  '<p>Each team tees off (starts the game from its club) once on the front nine and once on the back. The tee times and one-click links post in Discord when your match opens.</p>'+
+  '<h4>18 holes of match play</h4><p>Holes 1–9 are innings 1–9 of your front-nine games; holes 10–18 are your back-nine games. On every hole your team takes its <b>better inning</b> of your two clubs (that’s the scramble). More runs wins the hole, the same halves it, and most holes won takes the match: <i>3 &amp; 2</i> means 3 up with 2 to play.</p>'+
+  '<div class="nas"><div><b>Birdie</b><span>1 run on a hole</span></div><div><b>Eagle</b><span>2 runs</span></div><div><b>Albatross</b><span>3 or more</span></div></div>'+
+  '<p>No runs is par. A home club that didn’t need its bottom of the 9th gets a gimme (1 run). Extra innings don’t count. All square after 18: the lower total score wins, then the biggest single game, then the higher seed.</p>'+
+  '<p style="font-size:13px;color:#5e6b62">If the box scores can’t be read, a match is scored as a Nassau instead: Front 9 and Back 9 = your better score of the two games, Overall = every run; one point each, 2 points wins.</p>'+
+  '<h4>Timing</h4><p>All four games inside the match window'+(D.waveMin?' ('+D.waveMin+' minutes)':'')+'. Games not played count for nothing. Scores post once all four games have aired: no spoilers.</p></div></details>'}
+var PAIRS=[{k:'F1',nine:'Front',a:0,b:0,tee:'A'},{k:'F2',nine:'Front',a:1,b:1,tee:'B'},{k:'K1',nine:'Back',a:0,b:1,tee:'B'},{k:'K2',nine:'Back',a:1,b:0,tee:'A'}];
+function findM(id){return (D.matches||[]).filter(function(m){return m.id===id})[0]}
+function canMU(m){return m&&m.a&&m.z&&m.a.clubs&&m.z.clubs&&!m.bye}
+function muData(m){
+  var A=m.a,B=m.z,G={};(m.games||[]).forEach(function(g,i){G[PAIRS[i].k]=g});
+  var ps=PAIRS.map(function(p){var ca=A.clubs[p.a],cb=B.clubs[p.b],g=G[p.k];
+    return{nine:p.nine,a:ca,b:cb,teeA:p.tee==='A',st:g?(g.aired?'Played':g.g?'Game found, airing':'Not played yet'):''}});
+  var n=m.nas,st=m.w?(m.how==='no-show'?'Walkover':'Final'+(m.how?' ('+m.how+')':'')):m.open?'All four games by':'Tee times when both teams are set';
+  return{A:A,B:B,ps:ps,n:n,head:st,when:m.open&&!m.w?t(m.dl):'',w:m.w}}
+function sc18(m){
+  var M=m.mp,A=m.a,B=m.z,i,h='<div class="res18">'+esc(m.w===A.id?A.n:B.n)+' win '+esc(M.res==='AS'?'(all square, on '+(m.how==='to par'?'total score':m.how)+')':M.res)+'</div><div class="wrap18"><table class="c18"><tr><th>Hole</th>';
+  for(i=1;i<=18;i++){h+='<th>'+i+'</th>';if(i===9)h+='<th>Out</th>'}h+='<th>In</th><th>Tot</th></tr>';
+  function cell(v,cl){var k=v==null?'':v>=3?'b3':v===2?'b2':v===1?'b1':'par';return '<td'+(cl?' class="cl"':'')+'><span class="r '+k+'">'+(v==null?'·':v===0?'–':v)+'</span></td>'}
+  function row(T,x,c){var r='<tr><td class="nm">'+esc(T.n.replace(/^Team /,''))+'</td>';for(i=0;i<18;i++){r+=cell(x[i],M.clinch===i+1);if(i===8)r+='<td class="sum">'+tp(c.out)+'</td>'}return r+'<td class="sum">'+tp(c.inn)+'</td><td class="sum">'+tp(c.par)+'</td></tr>'}
+  var ms='<tr class="ms"><td class="nm">Match</td>';for(i=0;i<18;i++){var d=M.run[i];ms+='<td class="'+(d>0?'ua':d<0?'ub':'')+'">'+(d?Math.abs(d)+(d>0?'▲':'▼'):'AS')+'</td>';if(i===8)ms+='<td></td>'}ms+='<td></td><td></td></tr>';
+  return h+row(A,M.a,M.ca)+ms+row(B,M.b,M.cb)+'</table></div><div class="legend">Runs on each hole (your team’s better inning): ◯ birdie (1) · ◎ eagle (2) · ● albatross (3+) · – par · ▲ '+esc(A.n.replace(/^Team /,''))+' up · ▼ '+esc(B.n.replace(/^Team /,''))+' up'+(M.clinch?' · yellow = match decided':'')+'</div>'}
+function openM(id){
+  var m=findM(id);if(!canMU(m))return;
+  if(location.hash!=='#m='+id)history.replaceState(null,'','#m='+id);
+  var d=muData(m),A=d.A,B=d.B,n=d.n;
+  function club(c,lab,r){return '<div class="club">'+(r?esc(c.n)+' '+cid(c)+' <b>'+lab+'</b>':'<b>'+lab+'</b> '+esc(c.n)+' '+cid(c))+'</div>'}
+  function pair(p){return '<div class="pair"><div class="a">'+esc(p.a.n)+(p.teeA?' <span class="tee">TEES OFF</span>':'')+'<small>'+esc(p.a.id)+'</small></div><div class="fl">⛳</div><div class="b">'+(p.teeA?'':'<span class="tee">TEES OFF</span> ')+esc(p.b.n)+'<small>'+esc(p.b.id)+'</small></div>'+(p.st&&!n?'<span class="gs" style="grid-column:1/4;text-align:center">'+esc(p.st)+'</span>':'')+'</div>'}
+  function sc(lab,v,cls){return '<div'+(cls?' class="'+cls+'"':'')+'>'+lab+'<b>'+(v?v[0]+' · '+v[1]:'– · –')+'</b></div>'}
+  var h='<div class="bar"><button class="btn flag" onclick="shotM()">📷 Save image</button><button class="btn" onclick="closeM()">✕ Close</button></div>'+
+   '<div class="mc" id="mc"><div class="top"><div><div class="k">⛳ '+esc(D.name||'Scramble')+'</div><h3>'+esc(m.l)+'</h3></div><div class="t">'+esc(d.head)+(d.when?'<b>'+esc(d.when)+'</b>':'')+'</div></div>'+
+   '<div class="vs"><div class="team"><h4>'+(A.s?'<span class="seed">'+A.s+'</span>':'')+esc(A.n)+(d.w===A.id?' ⛳':'')+'</h4>'+club(A.clubs[0],'A1')+club(A.clubs[1],'A2')+'</div><div class="mid">vs</div>'+
+   '<div class="team r"><h4>'+(d.w===B.id?'⛳ ':'')+esc(B.n)+(B.s?' <span class="seed">'+B.s+'</span>':'')+'</h4>'+club(B.clubs[0],'B1',1)+club(B.clubs[1],'B2',1)+'</div></div>'+
+   '<div class="course"><div class="nine"><h5>Front nine</h5>'+d.ps.filter(function(p){return p.nine==='Front'}).map(pair).join('')+'</div><div class="nine"><h5>Back nine</h5>'+d.ps.filter(function(p){return p.nine==='Back'}).map(pair).join('')+'</div></div>'+
+   (m.mp?sc18(m):'<div class="score">'+sc('Front 9',n&&n.f)+sc('Back 9',n&&n.k)+sc('Overall',n&&n.t)+sc('Points',n&&[hf(n.p[0]),hf(n.p[1])],'p')+'</div>')+
+   '<div class="foot"><span>'+(m.mp?'Each hole: your team’s better inning · more runs wins the hole · birdie 1 run, eagle 2, albatross 3+':'Front 9 &amp; Back 9: better of your two games · Overall: every run · 2 points wins')+'</span><span>'+esc(location.host+location.pathname)+'</span></div></div><div id="shotbox"></div>';
+  var ov=document.getElementById('ov');if(!ov){ov=document.createElement('div');ov.id='ov';ov.className='ov';ov.onclick=function(e){if(e.target===ov)closeM()};document.body.appendChild(ov)}
+  ov.innerHTML=h;ov.setAttribute('data-id',id)}
+function closeM(){var ov=document.getElementById('ov');if(ov)ov.remove();if(/^#m=/.test(location.hash))history.replaceState(null,'',location.pathname+location.search)}
+function rr(x,X,Y,W,H,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+W,Y,X+W,Y+H,r);x.arcTo(X+W,Y+H,X,Y+H,r);x.arcTo(X,Y+H,X,Y,r);x.arcTo(X,Y,X+W,Y,r);x.closePath()}
+function fit(x,s,w){s=String(s);while(s.length>3&&x.measureText(s).width>w)s=s.slice(0,-2)+'…';return s}
+function shotM(){
+  var id=(document.getElementById('ov')||{}).getAttribute?document.getElementById('ov').getAttribute('data-id'):'',m=findM(id);if(!canMU(m))return;
+  var d=muData(m),A=d.A,B=d.B,n=d.n,W=1200,H=m.mp?880:760,k=2,c=document.createElement('canvas');c.width=W*k;c.height=H*k;var x=c.getContext('2d');x.scale(k,k);
+  var SERIF="'Playfair Display', Georgia, serif",SANS='system-ui, -apple-system, Segoe UI, Roboto, sans-serif',MONO="'IBM Plex Mono', monospace";
+  x.fillStyle='#1f5a36';x.fillRect(0,0,W,H);for(var i=0;i<W;i+=140){x.fillStyle='rgba(255,255,255,.045)';x.fillRect(i,0,70,H)}
+  rr(x,30,30,W-60,H-60,22);x.fillStyle='#fffdf6';x.fill();x.save();rr(x,30,30,W-60,H-60,22);x.clip();
+  var g=x.createLinearGradient(0,30,0,130);g.addColorStop(0,'#0f3d29');g.addColorStop(1,'#0c3322');x.fillStyle=g;x.fillRect(30,30,W-60,100);
+  x.fillStyle='#c9a227';x.font='700 15px '+SANS;x.fillText(('⛳ '+(D.name||'Scramble')).toUpperCase(),60,68);
+  x.fillStyle='#f7f2e4';x.font='800 36px '+SERIF;x.fillText(fit(x,m.l,700),60,110);
+  x.textAlign='right';x.fillStyle='#dfe9df';x.font='15px '+SANS;x.fillText(d.head,W-60,74);if(d.when){x.fillStyle='#fff';x.font='700 22px '+SANS;x.fillText(d.when,W-60,104)}x.textAlign='left';
+  function team(T,X,al,labs){x.textAlign=al;x.fillStyle='#0c3322';x.font='800 32px '+SERIF;x.fillText(fit(x,(T.s?'#'+T.s+' ':'')+T.n+(d.w===T.id?' ⛳':''),470),X,180);
+    x.font='18px '+SANS;T.clubs.forEach(function(cc,j){x.fillStyle='#1d2a22';x.fillText(fit(x,labs[j]+'  '+cc.n+'  ·  '+cc.id,470),X,214+j*28)});x.textAlign='left'}
+  team(A,60,'left',['A1','A2']);team(B,W-60,'right',['B1','B2']);
+  x.textAlign='center';x.fillStyle='#c9a227';x.font='italic 700 40px '+SERIF;x.fillText('vs',W/2,196);x.textAlign='left';
+  [['Front nine',60],['Back nine',W/2+10]].forEach(function(nn,ni){var X=nn[1],Y=280,PW=W/2-70,PH=250;
+    x.save();rr(x,X,Y,PW,PH,18);x.clip();var gg=x.createLinearGradient(0,Y,0,Y+PH);gg.addColorStop(0,'#2c7a46');gg.addColorStop(1,'#23663a');x.fillStyle=gg;x.fillRect(X,Y,PW,PH);
+    for(var s=-PH;s<PW;s+=52){x.fillStyle='rgba(255,255,255,.06)';x.beginPath();x.moveTo(X+s,Y+PH);x.lineTo(X+s+26,Y+PH);x.lineTo(X+s+26+PH*0.18,Y);x.lineTo(X+s+PH*0.18,Y);x.fill()}
+    x.fillStyle='#e8d6a6';x.font='italic 700 24px '+SERIF;x.fillText(nn[0],X+20,Y+38);
+    d.ps.filter(function(p){return p.nine===(ni?'Back':'Front')}).forEach(function(p,pi){var py=Y+62+pi*90;rr(x,X+16,py,PW-32,76,16);x.fillStyle='rgba(0,0,0,.2)';x.fill();
+      x.fillStyle='#fff';x.font='700 19px '+SANS;x.fillText(fit(x,p.a.n,PW/2-70),X+32,py+32);x.textAlign='right';x.fillText(fit(x,p.b.n,PW/2-70),X+PW-32,py+32);
+      x.fillStyle='#cfe6d4';x.font='600 13px '+MONO;x.fillText(String(p.b.id),X+PW-32,py+54);x.textAlign='left';x.fillText(String(p.a.id),X+32,py+54);
+      x.textAlign='center';x.font='26px '+SANS;x.fillText('⛳',X+PW/2,py+46);
+      var tx=p.teeA?X+32+Math.min(x.measureText('').width,0):X+PW-32,lab='TEES OFF';x.font='700 11px '+SANS;var tw=x.measureText(lab).width+14;
+      var bx=p.teeA?X+32+ (function(){x.font='600 13px '+MONO;var w=x.measureText(String(p.a.id)).width;return w+10})():X+PW-32-(function(){x.font='600 13px '+MONO;return x.measureText(String(p.b.id)).width+10})()-tw;
+      x.font='700 11px '+SANS;rr(x,bx,py+42,tw,17,8);x.fillStyle='#c8102e';x.fill();x.fillStyle='#fff';x.textAlign='left';x.fillText(lab,bx+7,py+54);x.textAlign='left'});
+    x.restore()});
+  x.strokeStyle='#e2d7ba';x.lineWidth=2;x.setLineDash([8,6]);x.beginPath();x.moveTo(60,560);x.lineTo(W-60,560);x.stroke();x.setLineDash([]);
+  if(m.mp){var M=m.mp;x.textAlign='center';x.fillStyle='#0c3322';x.font='italic 700 26px '+SERIF;x.fillText((m.w===A.id?A.n:B.n)+' win '+(M.res==='AS'?'(all square, on '+(m.how==='to par'?'total score':m.how)+')':M.res),W/2,598);
+    var cols=[];for(var q=0;q<18;q++){cols.push(q);if(q===8)cols.push('out')}cols.push('in','tot');
+    var X0=200,CW=(W-60-X0)/cols.length,Y0=618,RH=40;
+    x.fillStyle='#f3ecd7';x.fillRect(60,Y0,W-120,26);x.fillStyle='#5e6b62';x.font='700 12px '+SANS;x.textAlign='left';x.fillText('HOLE',72,Y0+18);x.textAlign='center';
+    cols.forEach(function(cc,ci){x.fillText(cc==='out'?'OUT':cc==='in'?'IN':cc==='tot'?'TOT':String(cc+1),X0+CW*ci+CW/2,Y0+18)});
+    [[A,M.a,M.ca],[B,M.b,M.cb]].forEach(function(T,ti){var y=Y0+26+ti*(RH+18);x.textAlign='left';x.fillStyle='#1d2a22';x.font='700 15px '+SANS;x.fillText(fit(x,T[0].n.replace(/^Team /,''),125),72,y+26);x.textAlign='center';
+      cols.forEach(function(cc,ci){var cx=X0+CW*ci+CW/2,cy=y+20;
+        if(typeof cc==='number'){var v=T[1][cc];if(M.clinch===cc+1){x.fillStyle='#fff3c4';x.fillRect(X0+CW*ci,y,CW,RH)}
+          if(v>=1){x.strokeStyle='#c8102e';x.lineWidth=1.6;if(v>=3){x.fillStyle='#c8102e';x.beginPath();x.arc(cx,cy,13,0,7);x.fill()}else{x.beginPath();x.arc(cx,cy,13,0,7);x.stroke();if(v===2){x.beginPath();x.arc(cx,cy,17,0,7);x.stroke()}}}
+          x.fillStyle=v>=3?'#fff':v===0?'#a7ae9f':'#1d2a22';x.font='700 15px '+MONO;x.fillText(v==null?'·':v===0?'–':String(v),cx,cy+5)}
+        else{var c=T[2],val=cc==='out'?c.out:cc==='in'?c.inn:c.par;x.fillStyle='#f8f3e3';x.fillRect(X0+CW*ci,y,CW,RH);x.fillStyle='#0c3322';x.font='700 15px '+MONO;x.fillText(tp(val),cx,cy+5)}});
+      if(!ti){var my=y+RH+12;cols.forEach(function(cc,ci){if(typeof cc!=='number')return;var dd=M.run[cc];x.fillStyle=dd>0?'#1f5a36':dd<0?'#8a5a00':'#5e6b62';x.font='700 11px '+SANS;x.fillText(dd?Math.abs(dd)+(dd>0?'▲':'▼'):'AS',X0+CW*ci+CW/2,my)})}});
+    x.textAlign='left';x.fillStyle='#5e6b62';x.font='13px '+SANS;x.fillText('◯ birdie (1 run)  ◎ eagle (2)  ● albatross (3+)  – par   ▲ / ▼ who is up',72,Y0+26+2*(RH+18)+14);
+  } else
+  [['FRONT 9',n&&n.f],['BACK 9',n&&n.k],['OVERALL',n&&n.t],['POINTS',n&&[hf(n.p[0]),hf(n.p[1])]]].forEach(function(s,si){var cx=60+(W-120)/8*(si*2+1);x.textAlign='center';
+    x.fillStyle='#5e6b62';x.font='700 14px '+SANS;x.fillText(s[0],cx,594);x.fillStyle=si===3?'#c8102e':'#1d2a22';x.font='700 34px '+MONO;x.fillText(s[1]?s[1][0]+' · '+s[1][1]:'– · –',cx,636)});
+  x.textAlign='left';x.fillStyle='#f3ecd7';x.fillRect(30,H-80,W-60,50);x.fillStyle='#5e6b62';x.font='15px '+SANS;x.fillText(m.mp?'Each hole: your team’s better inning · more runs wins the hole':'Front 9 & Back 9: better of your two games · Overall: every run · 2 points wins',60,H-49);
+  x.textAlign='right';x.fillText(location.host+location.pathname,W-60,H-49);x.textAlign='left';x.restore();
+  var url=c.toDataURL('image/png'),a=document.createElement('a');a.href=url;a.download=(m.l||'matchup').replace(/[^A-Za-z0-9]+/g,'-')+'.png';
+  try{a.click()}catch(e){}
+  var box=document.getElementById('shotbox');if(box)box.innerHTML='<img id="shot" class="shot" src="'+url+'" alt="Matchup card"><div class="hint">📷 Saved. If it didn’t download, right-click the picture (or long-press on a phone) to save it, then post it in Discord.</div>'}
+window.addEventListener('hashchange',function(){var h=/^#m=(.+)$/.exec(location.hash);if(h)openM(decodeURIComponent(h[1]))});
+
+document.addEventListener('click',function(e){var el=e.target.closest?e.target.closest('.sc.tap'):null;if(el&&!e.target.closest('a'))openM(el.getAttribute('data-m'))});
+function render(){
+  var h='<a class="home" href="'+HOME+'" target="_top">← 🏆 All tournaments</a><header><div><div class="kick">⛳ Two Man Scramble · Match play</div><h1>'+esc(D.name||'Scramble')+'</h1><div class="sub">SmallBall · single elimination · two-club teams</div></div><div class="meta">';
+  if(!D.matches)h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'First tee time <b>'+t(D.start)+'</b>':'')+(D.form?'<br><a class="btn flag" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'');
+  else h+=(D.done?'<b>Final</b>':'<b>On the course</b> · '+(D.waveMin||60)+'-minute matches')+'<br>'+(D.seeds||[]).length+' teams'+(D.prizes?'<br>🎁 '+esc(D.prizes):'');
+  h+='</div></header>';
+  if(D.champ)h+='<div class="champ"><span class="t">🏆</span><div>'+esc(D.champ.n)+' win the '+esc(D.name)+'!<small>'+(D.champ.clubs||[]).map(function(c){return esc(c.n)}).join(' + ')+(D.prizes?' · 🎁 '+esc(D.prizes):'')+'</small></div></div>';
+  if(!D.matches){
+    var E=D.entrants||[];
+    h+='<h2>📋 Tee sheet <small>'+E.length+' signed up · '+Math.floor(E.length/2)+' team'+(Math.floor(E.length/2)===1?'':'s')+'</small></h2><div class="card tee">'+
+      (E.length?E.map(function(e,i){return '<div class="row"><span class="n">'+(i+1)+'</span><span class="who">'+esc(e.o)+'</span><span class="club">'+esc(e.n)+'</span>'+cid(e)+(e.p?'<span class="pr">🤝 with '+esc(e.p)+'</span>':'')+'</div>'}).join(''):'<div class="row">Nobody yet. Be the first on the tee sheet!</div>')+
+      '<div class="note">Teams are made when sign-ups close: partners who named each other first, everyone else drawn at random. An odd one out is the alternate.</div></div>';
+    h+=rules();
+  } else {
+    h+='<h2>🏌️ Teams <small>'+(D.seeds||[]).length+'</small></h2><div class="card tee">'+(D.seeds||[]).map(function(x){return '<div class="row"><span class="n">'+x.s+'</span><span class="who">'+esc(x.n)+'</span>'+(x.clubs||[]).map(function(c){return '<span class="club">'+esc(c.n)+'</span>'+cid(c)}).join('')+(x.how==='picked'?'<span class="pr">🤝 picked</span>':'<span class="pr" style="background:#f3ecd7;color:#6b5a1a">🎲 drawn</span>')+'</div>'}).join('')+(D.alt?'<div class="note">🪑 Alternate this week: '+esc(D.alt.o)+' ('+esc(D.alt.n)+'), first in line if anyone drops.</div>':'')+'</div>';
+    var R={},order=[];(D.matches||[]).forEach(function(m){if(m.v)return;if(!R[m.r]){R[m.r]=[];order.push(m.r)}R[m.r].push(m)});
+    h+='<h2>⛳ The draw</h2><div class="rounds">'+order.map(function(r){var L=R[r].filter(function(m){return !m.bye});if(!L.length)return'';
+      var nm=L[0].l.split(' · ')[0];return '<div class="col"><h3>'+esc(nm)+'</h3><div class="list">'+L.map(card).join('')+'</div></div>'}).join('')+'</div>';
+    h+=rules();
+  }
+  if(D.updated)h+='<div class="upd">Updated '+t(D.updated)+' · refreshes by itself</div>';
+  document.getElementById('app').innerHTML=h;
+  var hm=/^#m=(.+)$/.exec(location.hash);if(hm&&!document.getElementById('shot'))openM(decodeURIComponent(hm[1]))}
+var SRC=["https://api.github.com/repos/slipnsliders/smallball-tools/contents/docs/t/practice/bracket.json?ref=main","https://raw.githubusercontent.com/slipnsliders/smallball-tools/main/docs/t/practice/bracket.json","bracket.json"],last='';
+function load(i){
+  i=i||0;if(i>=SRC.length)return;
+  var u=SRC[i]+(i?(SRC[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
+  fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}})
+    .then(function(r){if(!r.ok)throw r.status;return r.text()})
+    .then(function(txt){var d=JSON.parse(txt);if(txt!==last&&!document.getElementById('shot')){var op=document.querySelector('details.rules');last=txt;D=d;render();var np=document.querySelector('details.rules');if(op&&np)np.open=op.open;}})
+    .catch(function(){load(i+1)});
+}
+render();load();
+setInterval(function(){if(!document.hidden)load()},90000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
+</script></body></html>

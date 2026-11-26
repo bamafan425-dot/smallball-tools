@@ -1,5 +1,27 @@
 (Renamed from the Tournament Kit in 0.8.0. Your settings and queue carry over: remove the old Tournament Kit in chrome://extensions before loading this one.)
 
+🎲 RANDOM LIVE GAME (0.11.0)
+  🎲 Random live game   Picks a game that's on the air right now and starts it on a free tile. It looks at the
+                        clubs you follow, your own clubs, and the clubs those have played lately.
+  ● Live now            Lists those games with the minutes left on the air; ▶ Watch plays one right away.
+  Only "is it on the air" is read, never a score. Games with 8+ minutes left get picked first.
+
+⚡ SMOOTHER WATCHING (0.10.0)
+  ▶ Watch the next   One button at the top of the panel fills the free tiles from the queue and starts the
+                     countdown (or, mid-broadcast, plays them on the free tiles straight away).
+  Auto next          On to start: when a tile's game reaches its final (and sits there 20 seconds), it's marked
+                     watched and the next game in the queue takes that tile. Leave it running and it works through
+                     the queue on its own.
+  Queue first        The queue sits at the top of the panel. ＋ Tile (or ▶ Play while live) puts one game on a
+                     tile; ⤒ moves a game to the front.
+  Your clubs         Your own clubs (from the site's club picker) with Follow and Games buttons: no typing numbers.
+  On a watch page    "📺＋ Add this game to the Broadcast" sits next to the Broadcast button.
+  Paste links        The Add games box takes game numbers or watch links.
+
+📻 NEW RADIO DEFAULTS (0.9.5)
+  Fresh installs start on Play-by-play, every pitch called, score updates every half, situation now and
+  then, Nonstop (no dead air), and Mack down the middle. Settings you've already changed stay yours.
+
 📻 RADIO UPDATES (0.9.4)
   Score updates at every change of half-inning (or after each full inning), read straight off the
   scoreboard. No more dead air: between plays the booth keeps talking (the situation, who's hot, the pitch
@@ -65,7 +87,7 @@ USING IT
   "Bottom 3rd" breaks, ready to paste into Discord. Restart together starts those games' transcripts over.
 
 📻 THE SHOW (0.8)
-  The booth is entertainment first now. Booth style "The show" (the default) calls the highlights (hits,
+  The booth is entertainment first now. Booth style "The show" calls the highlights (hits,
   runs, homers, big strikeouts), a pitch now and then and every full count, skips most routine outs, and
   fills the game with quips and stories. Between half-innings it runs segments:
     after the 2nd, 4th and 8th   a SmallBall story, a little two-man bit from the old days
