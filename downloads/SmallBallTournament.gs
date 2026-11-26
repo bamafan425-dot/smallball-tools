@@ -1299,12 +1299,18 @@ function adminConnectSmallBall() {
   const ui = SpreadsheetApp.getUi(), pr = PropertiesService['getScriptProperties']();
   const r = ui.prompt('🔑 Connect SmallBall box scores',
     'The Scramble scores hole by hole from each game\'s box score, which SmallBall only shows to someone logged in. Paste your SmallBall login here and the script reads box scores with it (read-only, nothing else). It\'s kept in the script\'s private settings, not on any tab.\n\n' +
-    'How to copy it: on play.smallball.com press Ctrl+Shift+I → Network tab → reload the page → click any row that starts with "games" or "account" → Headers → under Request Headers, copy everything after "cookie:".\n\nLeave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
+    'Easiest way: on play.smallball.com (logged in) press Ctrl+Shift+I → Network tab → reload the page → right-click any row (like "live" or "all?club=…") → Copy → Copy as cURL, then paste the whole thing here. The script picks out the part it needs.\n\nLeave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK) return;
-  const v = norm_(r.getResponseText()).replace(/^cookie:\s*/i, '');
+  const v = sbCookieFrom_(r.getResponseText());
   if (!v) { pr.deleteProperty('SB_COOKIE'); pr.deleteProperty('SB_BAD'); ui.alert('SmallBall box scores disconnected. Scramble matches are scored as a Nassau.'); return; }
   pr.setProperty('SB_COOKIE', v); pr.deleteProperty('SB_BAD');
   ui.alert(sbTest_().msg);
+}
+// Accepts the cookie line itself, "cookie: ..." or a whole "Copy as cURL" / "Copy as fetch" paste.
+function sbCookieFrom_(txt) {
+  const t = String(txt || '').trim();
+  const m = /-H\s+\$?['"]cookie:\s*([^'"]+)['"]/i.exec(t) || /-b\s+\$?['"]([^'"]+)['"]/i.exec(t) || /["']cookie["']\s*:\s*["']([^"']+)["']/i.exec(t);
+  return (m ? m[1] : t.replace(/^cookie:\s*/i, '')).trim();
 }
 // Reads one real box score with the connected login.
 function sbTest_() {
