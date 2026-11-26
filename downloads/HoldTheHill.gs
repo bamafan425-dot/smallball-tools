@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -132,7 +132,10 @@ const DEFAULTS = {
   REVENGE_THRESHOLD: [500, "Reign points needed to earn the Ace's Revenge"],
   REVENGE_DECLARE_HOURS: [12, "Hours a dethroned Ace has to declare the Ace's Revenge"],
   EX_ACE_RANK: [3, 'Ladder spot a dethroned Ace drops to'],
-  MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; each day with no title charge opens it one more spot, down to this spot'],
+  MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; with no title charge it opens one more spot at a time, down to this spot'],
+  MOUND_FIRST_HOURS: [8, 'Open mound: hours with no title charge before #2 can charge the Ace too'],
+  MOUND_STEP_HOURS: [24, 'Open mound: after that, hours for each further spot (#3, #4...)'],
+  MOUND_QUIET: ['22:30-06:30', 'Open mound: the mound never opens wider during these Mountain hours (it waits for morning). Blank = any time'],
   DAILY_POINTS: ['10,5,4,3,2,2,1,1,1,1,1', 'Brawl points paid once a day for where you sit: the Ace, then #1, #2, #3 … (comma separated)'],
   LADDER_POST_SIZE: [15, 'How many contenders to show in Discord standings'],
   EMAIL_REJECTIONS: ['TRUE', 'Email players when a submission is rejected (TRUE/FALSE)'],
@@ -345,7 +348,8 @@ const AWARDS = [
   { key: 'bleacher', icon: '🏟️', name: 'The Bleacher Vote', what: 'Voted by the players: who made the season the most fun' },
 ];
 
-// ── Open mound: only #1 can charge the Ace, then one more spot opens each day nobody charges.
+// ── Open mound: only #1 can charge the Ace; with no title charge, #2 joins after MOUND_FIRST_HOURS (8),
+//    then one more spot every MOUND_STEP_HOURS (24), down to MOUND_OPEN_MAX. It never widens overnight (MOUND_QUIET).
 function lastTitle_(C) {
   let t;
   if (C.STATE_LAST_TITLE_ACTIVITY) t = new Date(C.STATE_LAST_TITLE_ACTIVITY);
@@ -353,9 +357,28 @@ function lastTitle_(C) {
   const st = seasonStart_(C);
   return st && st > t ? st : t;   // the open-mound clock never starts before the season does
 }
+function moundQuiet_(C) {
+  const m = norm_(C.MOUND_QUIET).match(/^(\d{1,2}):?(\d{2})\s*-\s*(\d{1,2}):?(\d{2})$/);
+  if (!m) return false;
+  const hm = Utilities.formatDate(now_(), 'America/Denver', 'HH:mm').split(':');
+  const t = Number(hm[0]) * 60 + Number(hm[1]), a = Number(m[1]) * 60 + Number(m[2]), b = Number(m[3]) * 60 + Number(m[4]);
+  return a <= b ? (t >= a && t < b) : (t >= a || t < b);
+}
+function moundRaw_(C) {
+  const h = (now_() - lastTitle_(C)) / 3600000, first = Number(C.MOUND_FIRST_HOURS) || 24, step = Number(C.MOUND_STEP_HOURS) || 24;
+  const to = h < first ? 1 : 2 + Math.floor((h - first) / step);
+  return Math.max(1, Math.min(Number(C.MOUND_OPEN_MAX) || 1, to));
+}
 function moundOpenTo_(C) {
-  const days = Math.floor((now_() - lastTitle_(C)) / 86400000);
-  return Math.max(1, Math.min(Number(C.MOUND_OPEN_MAX) || 1, 1 + days));
+  const raw = moundRaw_(C), was = Math.max(1, Number(C.STATE_MOUND_OPEN_TO) || 1);
+  return raw > was && moundQuiet_(C) ? was : raw;   // overnight it holds where it was; it widens in the morning
+}
+function moundNext_(C) {   // words for when the next spot opens, e.g. "#2 joins in about 5 hours"
+  const to = moundOpenTo_(C), max = Number(C.MOUND_OPEN_MAX) || 1;
+  if (to >= max) return '';
+  const first = Number(C.MOUND_FIRST_HOURS) || 24, step = Number(C.MOUND_STEP_HOURS) || 24;
+  const at = lastTitle_(C).getTime() + 3600000 * (first + step * (to - 1)), hrs = Math.max(0, (at - now_()) / 3600000);
+  return '#' + (to + 1) + ' joins ' + (hrs < 1 ? 'within the hour' : 'in about ' + Math.round(hrs) + ' hours') + ' if nobody charges (never overnight).';
 }
 
 // ── Daily Brawl points: paid once a day (just after midnight Mountain) for the day before, by spot.
@@ -1019,7 +1042,7 @@ function doChallenge_(sub, C) {
   if (choice === ACE_CHOICE) {
     if (!ace) fail_('There is no Ace right now. The commish will crown one.');
     const openTo = moundOpenTo_(C);
-    if (Number(me.Rank) > openTo) fail_('The mound is open to ' + (openTo === 1 ? 'the #1 contender only' : '#1–#' + openTo) + ' right now. You are #' + me.Rank + '. It opens one more spot each day nobody charges.');
+    if (Number(me.Rank) > openTo) fail_('The mound is open to ' + (openTo === 1 ? 'the #1 contender only' : '#1–#' + openTo) + ' right now. You are #' + me.Rank + '. ' + moundNext_(C));
     if (ct.rows.some(function (c) { return c.Type !== 'Ladder' && OPEN.indexOf(c.Status) >= 0; })) fail_('Someone is already charging the mound. Wait for that fight to settle.');
     if (revengeOpen) fail_("The Ace's Revenge is pending. Title challenges reopen once it is settled.");
     type = 'Title'; opp = ace;
@@ -1879,8 +1902,9 @@ function tick_() {
       if (to > was && !titleOpen) {
         const lad = ladder_(pt0);
         const who = lad.filter(function (p) { return Number(p.Rank) <= to; }).map(function (p) { return tag_(p); }).join(', ');
-        post_('⏰ **The mound is open to #1–#' + to + '.** Nobody has charged the Ace in ' + (to - 1) + (to === 2 ? ' day' : ' days') +
-          '. ' + who + ': any of you can charge the hill. Any win takes it.');
+        const hrs = Math.round((now_() - lastTitle_(C)) / 3600000);
+        post_('⏰ **The mound is open to #1–#' + to + '.** Nobody has charged the Ace in ' + (hrs < 48 ? hrs + ' hours' : Math.floor(hrs / 24) + ' days') +
+          '. ' + who + ': any of you can charge the hill. Any win takes it. ' + moundNext_(C));
       }
     }
   }
@@ -2116,7 +2140,7 @@ function buildForm_(ss) {
     .setValidation(FormApp.createTextValidation().requireNumberBetween(0, 10).setHelpText('A number from 0 to 10').build());
 
   const pCh = form.addPageBreakItem().setTitle(ACTIONS.CHALLENGE)
-    .setHelpText('Charge anyone up to 3 spots above you. 1 spot up: just win. 2 spots up: win by 3+. 3 spots up: win by 4+. Only #1 can charge THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound. One open challenge at a time. No accepting needed: once you declare it, you start the game in SmallBall as the visitor and report the game ID and score. The defender only reports to dispute.');
+    .setHelpText('Charge anyone up to 3 spots above you. 1 spot up: just win. 2 spots up: win by 3+. 3 spots up: win by 4+. Only #1 can charge THE ACE at first; if nobody does, #2 joins after 8 hours, then one more spot each day, down to #5 (never overnight). Any win takes the mound. One open challenge at a time. No accepting needed: once you declare it, you start the game in SmallBall as the visitor and report the game ID and score. The defender only reports to dispute.');
   pCh.setGoToPage(SUBMIT);
   form.addListItem().setTitle(Q.OPPONENT).setChoiceValues([ACE_CHOICE]).setRequired(true);
 
@@ -3091,7 +3115,7 @@ function ensureWagerForm_(form) {
 // these labels, keeps every choice pointing at its own section, and puts 🥊 Charge the Hill first.
 const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'SHOP', 'VOTE', 'REGISTER', 'DISCORD_ID'];
 const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
-  'Only #1 can charge ♠ THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound.\n\n' +
+  'Only #1 can charge ♠ THE ACE at first; if nobody does, #2 joins after 8 hours, then one more spot each day, down to #5 (never overnight). Any win takes the mound.\n\n' +
   'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
 const CHARGE_ITEMS_HELP = '\n\n🛒 Items (optional, Brawl Bucks): 🧽 Margin Eraser = any win will do. 🪜 Ladder Jump = charge one spot past your reach (win by 5+); 🪜 Ladder Jump+ = the same, and any win will do. If the player you charge wears 🥊 Brass Knuckles, you need 1 more run (2+ against the Ace), unless you swing the Eraser.';
 function ensureTidyForm_(form) {
@@ -3922,7 +3946,7 @@ h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">🥊 Charge the hill</h3><p>Pick a fight with anyone up to <b>3 spots above you</b>. Reach higher, win bigger.</p><div class="reach"><div class="no">#2 · too far</div><div class="ok">#3 · win by 4+</div><div class="ok">#4 · win by 3+</div><div class="ok">#5 · just win</div><div class="me">#6 · YOU</div></div></div>'
 +'<div class="card"><h3 class="bb">⚾ Play it, report it</h3><div class="steps3"><div><b>1</b>Charge on the form. The clock starts.</div><div><b>2</b>The challenger starts the game in SmallBall as the visitor, at the defender\\'s park. The first game counts.</div><div><b>3</b>Nothing to report: the Hill finds the game on SmallBall by itself. Hand reports still work as a backup. Results post once the game has aired: no spoilers.</div></div><p style="opacity:.75;font-size:13px">Win by enough and you take their spot. Win short of the margin and nobody moves. Lose and you drop one. A tie: the defender holds.</p></div>'
 +'<div class="card"><h3 class="bb">♠ Points per defense</h3><p>Every title defense pays double the last, up to 320.</p><div class="bars">'+pts.map(function(p,i){return '<div style="height:'+(p/320*100)+'%;animation-delay:'+(i*0.1)+'s"><span>'+p+'</span><i>D'+(i+1)+'</i></div>';}).join('')+'</div><p style="margin-top:28px">Hold it six times and every defense after that is worth 320.</p></div>'
-+'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. Every day nobody charges, one more spot gets a title shot, down to <b>#5</b>. Any win takes the hill: no margins on the mound.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
++'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
 +'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
 +'<div class="card"><h3 class="bb"><span class="flame">🔥</span> The Ace\\'s Revenge</h3><p>An Ace who built <b>500+ reign points</b> and loses the hill gets one shot back, declared within 12 hours.</p><p>The catch: they must win by <b>more runs than they lost by</b>. Lost 5–3? You need a 3-run win.</p><p style="opacity:.75;font-size:13px">A dethroned Ace without revenge drops to #3..</p></div>'
 +'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Master Form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
