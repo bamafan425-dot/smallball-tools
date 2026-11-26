@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (iPad)
 // @namespace    slipnsliders.smallball.ipad
-// @version      1.36.1
+// @version      1.36.2
 // @description  The full SmallBall Club Kit for iPad Safari: dashboard, stadium records, season games, squad views, box scores, your Hold the Hill card, tournament cards and Rotate Bench. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -3248,7 +3248,7 @@ const SBX_TABLET = true;
       const r = Number(me.rank), w = wal[me.name];
       const sub = "<b>" + clubA(me.name, me.clubId) + "</b> · " + esc(me.club) + " · " + me.w + "–" + me.l +
         (w ? " · 💰 <b>" + w.bank + "</b> BB" + (w.streak ? " · 🔥 " + w.streak : "") + (w.items && w.items.length ? " · " + w.items.join(" ") : "") : "");
-      const lines = [];
+      const lines = [], B = H.bell || null, bellUntil = B && B.until ? esc(liveWhen(Date.parse(B.until))) : "", bellAt = B && B.next ? esc(liveWhen(Date.parse(B.next))) : "";
       const ch = (H.charges || []).find((c) => c.ch === me.name || c.df === me.name);
       if (ch) {
         const opp = all.find((p) => p.name === (ch.ch === me.name ? ch.df : ch.ch));
@@ -3258,9 +3258,13 @@ const SBX_TABLET = true;
         else lines.push({ t: "🛡️ <b>" + (opp ? clubA(ch.ch, opp.clubId) : esc(ch.ch)) + "</b> charged you" + by + ". They start the game; be ready." });
       } else if (r === 0) {
         lines.push({ t: "♠ You hold the mound. Defend it" + (me.next ? ": the next defense is worth <b>+" + me.next + "</b>" : "") + "." });
+        if (B && B.open) lines.push({ t: "🔔 <b>The Bell is ringing</b> until <b>" + bellUntil + "</b>: anyone on the climb can charge you (they need to win by " + (B.margin || 3) + "+)." });
+        else if (B && B.soon) lines.push({ t: "🔔 The Bell rings at <b>" + bellAt + "</b>. For an hour, anyone on the climb can charge you." });
       } else {
         const tg = [];
         const openTo = Number(H.moundOpenTo) || 0;
+        if (H.ace && B && B.open && !(r === 1 || (openTo && r <= openTo))) lines.push({ t: "🔔 <b>THE BELL IS RINGING</b> until <b>" + bellUntil + "</b>! Charge ♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> <code>" + esc(H.ace.clubId) + "</code>: win by " + (B.margin || 3) + "+ for the title, a smaller win makes you #1 contender. First one in.", go: form, btn: "🔔 Charge", ext: 1 });
+        else if (H.ace && B && B.soon && !(r === 1 || (openTo && r <= openTo))) lines.push({ t: "🔔 The Bell rings at <b>" + bellAt + "</b>: for an hour, anyone can charge the Ace." });
         if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: "♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> (the Ace) <code>" + esc(H.ace.clubId) + "</code> · title shot" });
         H.ladder.filter((p) => r - Number(p.rank) >= 1 && r - Number(p.rank) <= reach).sort((a, b) => a.rank - b.rank).forEach((p) => {
           const n = hillNeed(r - Number(p.rank)); tg.push({ t: "#" + p.rank + " <b>" + clubA(p.name, p.clubId) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win") });
@@ -3271,7 +3275,7 @@ const SBX_TABLET = true;
         else lines.push({ t: "Nobody in reach right now. Win a defense or wait for the ladder to move." });
       }
       lines.push({ t: '<span style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px"><a href="' + esc(form) + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📝 Master Form</a><a href="' + HILL_BOARD + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📊 Live Hold the Hill Leaderboard</a></span>' });
-      out.push({ k: "hill:" + me.clubId, hill: true, title: r === 0 ? "⛰️ Hold the Hill · ♠ The Ace" : "⛰️ Hold the Hill · #" + r + " of " + H.ladder.length, sub, lines, url: HILL_BOARD });
+      out.push({ k: "hill:" + me.clubId, hill: true, bell: !!(B && B.open), title: r === 0 ? "⛰️ Hold the Hill · ♠ The Ace" : "⛰️ Hold the Hill · #" + r + " of " + H.ladder.length, sub, lines, url: HILL_BOARD });
     });
     return out;
   }
@@ -3317,8 +3321,8 @@ const SBX_TABLET = true;
     el.dataset.key = key;
     const pill = "white-space:nowrap;flex:none;border:0;border-radius:999px;font:800 14px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center;gap:6px";
     const cards = min ? "" : items.map((x, i) => {
-      const bg = x.hill ? "linear-gradient(180deg,#7a1f2b,#2b0d12)" : x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
-      const edge = x.hill ? "#ef4444" : x.scr ? "#4ade80" : "#facc15";
+      const bg = x.bell ? "linear-gradient(180deg,#8a6200,#3b2400)" : x.hill ? "linear-gradient(180deg,#7a1f2b,#2b0d12)" : x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
+      const edge = x.bell ? "#facc15" : x.hill ? "#ef4444" : x.scr ? "#4ade80" : "#facc15";
       const ln = x.lines.map((l) => '<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="flex:1;min-width:180px">' + l.t + "</span>" +
         (l.go ? '<a href="' + esc(l.go) + '"' + (l.ext ? ' target="_blank" rel="noopener"' : "") + ' style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">' + (l.btn || "▶ Start") + "</a>" : "") + "</div>").join("");
       return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:11px 12px 11px 14px;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);border-left:5px solid ' + edge + '">' +

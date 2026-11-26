@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -135,6 +135,21 @@ const DEFAULTS = {
   MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; with no title charge it opens one more spot at a time, down to this spot'],
   MOUND_FIRST_HOURS: [8, 'Open mound: hours with no title charge before #2 can charge the Ace too'],
   MOUND_STEP_HOURS: [24, 'Open mound: after that, hours for each further spot (#3, #4...)'],
+  BELL_PER_WEEK: [3, '🔔 The Bell: open-mound windows a week (0 = off). While it rings, anyone on the climb can charge the Ace'],
+  BELL_MINUTES: [60, '🔔 The Bell: how long each window lasts'],
+  BELL_WEEKDAY: ['06:30-08:00, 11:30-13:00, 21:00-22:30', '🔔 The Bell: Mountain-time windows it can ring in, Mon–Fri'],
+  BELL_WEEKEND: ['08:00-10:00, 13:00-15:00, 21:00-22:30', '🔔 The Bell: Mountain-time windows it can ring in, Sat–Sun'],
+  BELL_GAP_HOURS: [36, '🔔 The Bell: at least this many hours between rings'],
+  BELL_WARN_MINUTES: [30, '🔔 The Bell: heads-up post this many minutes before it rings'],
+  BELL_MARGIN: [3, '🔔 The Bell: win by this much to take the title. A smaller win makes you the #1 contender'],
+  BELL_SHIELD_HOURS: [48, '🔔 The Bell: after the Ace beats a Bell charge, no Bell rings for this long'],
+  BELL_BOUNTY: [50, '🔔 The Bell: Brawl Bucks to the Ace for beating a Bell charge'],
+  BELL_ROLE_ID: ['', '🔔 The Bell: Discord role ID to ping when it rings (an opt-in "Mound Alerts" role). Blank = no ping'],
+  STATE_BELL_NEXT: ['', 'Managed by script'],
+  STATE_BELL_WARNED: ['', 'Managed by script'],
+  STATE_BELL_UNTIL: ['', 'Managed by script'],
+  STATE_BELL_USED: ['', 'Managed by script'],
+  STATE_BELL_SHIELD: ['', 'Managed by script'],
   MOUND_QUIET: ['22:30-06:30', 'Open mound: the mound never opens wider during these Mountain hours (it waits for morning). Blank = any time'],
   DAILY_POINTS: ['10,5,4,3,2,2,1,1,1,1,1', 'Brawl points paid once a day for where you sit: the Ace, then #1, #2, #3 … (comma separated)'],
   LADDER_POST_SIZE: [15, 'How many contenders to show in Discord standings'],
@@ -372,6 +387,74 @@ function moundRaw_(C) {
 function moundOpenTo_(C) {
   const raw = moundRaw_(C), was = Math.max(1, Number(C.STATE_MOUND_OPEN_TO) || 1);
   return raw > was && moundQuiet_(C) ? was : raw;   // overnight it holds where it was; it widens in the morning
+}
+// ── 🔔 The Bell: a few random one-hour windows a week, at sane Mountain hours, when anyone on the climb can
+//    charge the Ace. Win by BELL_MARGIN to take the hill; a smaller win makes you the #1 contender. Beat a Bell
+//    charge and the Ace earns BELL_BOUNTY Brawl Bucks and a BELL_SHIELD_HOURS break from the Bell.
+function bellState_(C) {
+  const t = now_(), until = C.STATE_BELL_UNTIL ? new Date(C.STATE_BELL_UNTIL) : null, next = C.STATE_BELL_NEXT ? new Date(C.STATE_BELL_NEXT) : null;
+  const warn = (Number(C.BELL_WARN_MINUTES) || 30) * 60000;
+  return { on: Number(C.BELL_PER_WEEK) > 0, open: !!(until && until > t), until: until, used: !!norm_(C.STATE_BELL_USED), next: next,
+    soon: !!(next && next - t <= warn && next > t), shield: C.STATE_BELL_SHIELD && new Date(C.STATE_BELL_SHIELD) > t ? new Date(C.STATE_BELL_SHIELD) : null };
+}
+function bellWindows_(C, d) {   // [[startMin, endMin], ...] for that Mountain day
+  const dow = Number(Utilities.formatDate(d, 'America/Denver', 'u'));   // 1 = Mon … 7 = Sun
+  return norm_(dow >= 6 ? C.BELL_WEEKEND : C.BELL_WEEKDAY).split(',').map(function (x) {
+    const m = x.trim().match(/^(\d{1,2}):?(\d{2})\s*-\s*(\d{1,2}):?(\d{2})$/);
+    return m ? [Number(m[1]) * 60 + Number(m[2]), Number(m[3]) * 60 + Number(m[4])] : null;
+  }).filter(Boolean);
+}
+function bellFits_(C, d) {   // can a Bell start at d and finish inside the same window?
+  const hm = Utilities.formatDate(d, 'America/Denver', 'HH:mm').split(':'), t = Number(hm[0]) * 60 + Number(hm[1]), len = Number(C.BELL_MINUTES) || 60;
+  return bellWindows_(C, d).some(function (w) { return t >= w[0] && t + len <= w[1]; });
+}
+function bellPick_(C, from) {   // a random 15-minute start between from and ~2 average gaps later
+  const per = Math.max(1, Number(C.BELL_PER_WEEK) || 3), avg = 168 / per, gap = Number(C.BELL_GAP_HOURS) || 0;
+  const span = Math.max(12, 2 * Math.max(0, avg - gap)) * 3600000;
+  const q = 15 * 60000, start = new Date(Math.ceil(from.getTime() / q) * q);
+  for (let tries = 0; tries < 4; tries++) {
+    const ok = [];
+    for (let x = start.getTime(); x <= start.getTime() + span * (tries + 1); x += q) { const d = new Date(x); if (bellFits_(C, d)) ok.push(d); }
+    if (ok.length) return ok[Math.floor(Math.random() * ok.length)];
+  }
+  return null;
+}
+function bellTxt_(C) { return 'win by **' + (Number(C.BELL_MARGIN) || 3) + '+** to take the hill; a smaller win makes you the **#1 contender**'; }
+function bellTick_(C) {
+  const t = now_(), B = bellState_(C), pt = players_(), ace = ace_(pt);
+  if (!B.on) { if (C.STATE_BELL_NEXT || C.STATE_BELL_UNTIL) { setCfg_('STATE_BELL_NEXT', ''); setCfg_('STATE_BELL_UNTIL', ''); setCfg_('STATE_BELL_WARNED', ''); } return; }
+  if (B.until && !B.open) {   // closing time
+    const used = norm_(C.STATE_BELL_USED);
+    setCfg_('STATE_BELL_UNTIL', ''); setCfg_('STATE_BELL_USED', ''); setCfg_('STATE_BELL_NEXT', '');
+    post_(used ? '🔔 The Bell is done. One challenger answered it; that fight plays out as charged.' : '🔕 The Bell is done. Nobody answered it' + (ace ? ': ' + esc_(ace.Discord) + ' rests easy.' : '.'));
+    C = cfg_();
+  }
+  if (B.open) return;
+  const blocked = !ace || !seasonOpen_(C) || seasonOver_(C) || !!C.STATE_REVENGE_EX_ACE;
+  let next = C.STATE_BELL_NEXT ? new Date(C.STATE_BELL_NEXT) : null;
+  const lastEnd = B.until || null, gap = (Number(C.BELL_GAP_HOURS) || 0) * 3600000;
+  const earliest = new Date(Math.max(t.getTime() + 6 * 3600000, lastEnd ? lastEnd.getTime() + gap : 0, B.shield ? B.shield.getTime() : 0));
+  if (!next || (B.shield && next < B.shield)) {
+    if (blocked) return;
+    next = bellPick_(C, earliest);
+    if (next) { setCfg_('STATE_BELL_NEXT', next.toISOString()); setCfg_('STATE_BELL_WARNED', ''); }
+    return;
+  }
+  const warn = (Number(C.BELL_WARN_MINUTES) || 30) * 60000;
+  if (!blocked && t >= new Date(next.getTime() - warn) && norm_(C.STATE_BELL_WARNED) !== next.toISOString() && t < next) {
+    setCfg_('STATE_BELL_WARNED', next.toISOString());
+    post_('🔔 **The Bell rings at ' + ts_(next) + '.** For ' + (Number(C.BELL_MINUTES) || 60) + ' minutes, anyone on the climb can charge ♠ ' + who_(ace) + ': ' + bellTxt_(C) + '.');
+  }
+  if (t >= next) {
+    setCfg_('STATE_BELL_NEXT', ''); setCfg_('STATE_BELL_WARNED', '');
+    if (blocked) return;   // no Ace, revenge pending or season closed: skip this one, the next gets picked
+    const until = new Date(t.getTime() + (Number(C.BELL_MINUTES) || 60) * 60000);
+    setCfg_('STATE_BELL_UNTIL', until.toISOString()); setCfg_('STATE_BELL_USED', '');
+    const role = norm_(C.BELL_ROLE_ID).replace(/\D/g, '');
+    post_((role ? '<@&' + role + '> ' : '') + '🔔🔔 **THE BELL! THE MOUND IS OPEN TO EVERYONE** until ' + ts_(until) + '.\n' +
+      'Anyone on the climb can charge ♠ ' + who_(ace) + ' (' + clubIdTxt_(ace) + '). First one in gets the shot: ' + bellTxt_(C) + '.\n' +
+      '📝 Pick **♠ THE ACE** on the Master Form' + (norm_(C.FORM_LINK) ? ': <' + norm_(C.FORM_LINK) + '>' : '.'));
+  }
 }
 function moundNext_(C) {   // words for when the next spot opens, e.g. "#2 joins in about 5 hours"
   const to = moundOpenTo_(C), max = Number(C.MOUND_OPEN_MAX) || 1;
@@ -715,7 +798,7 @@ function post_(content, where) {
 function sendChunk_(url, name, chunk) {
   const send = function (text) {
     return UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-      payload: JSON.stringify({ content: text, username: name, allowed_mentions: { parse: ['users'] } }) });
+      payload: JSON.stringify({ content: text, username: name, allowed_mentions: { parse: ['users', 'roles'] } }) });
   };
   let res, code;
   try { res = send(chunk); code = res.getResponseCode(); } catch (e) { log_('system', 'Discord error', String(e)); return 0; }
@@ -952,6 +1035,9 @@ function reachList_(me, C, pt, ct) {
   const kn = function (p) { return itOn && holds_(inv, p.Email, 'knuckles') > 0 && !itemCooling_(C, p.Email) ? ' 🥊 *(wearing Brass Knuckles: +1 run)*' : ''; };
   if (ace && ace !== me) {
     const openTo = moundOpenTo_(C), busy = ct.rows.some(function (c) { return c.Type !== 'Ladder' && OPEN.indexOf(c.Status) >= 0; });
+    const Bw = bellState_(C);
+    if (Number(me.Rank) > openTo && Bw.open && !Bw.used && !Bw.shield) out.push('🔔 **The Bell is ringing** until ' + ts_(Bw.until) + ': ♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + clubIdTxt_(ace) + ': ' + bellTxt_(C) +
+      (busy ? ' ⏳ *(a title fight is already on: wait for it)*' : ''));
     if (Number(me.Rank) <= openTo) out.push('♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + esc_(ace.Club) + ' · ' + clubIdTxt_(ace) + (kn(ace) ? ': **title shot, win by 2+**' + kn(ace) : ': **title shot, just win**') +
       (busy ? ' ⏳ *(a title fight is already on: wait for it)*' : revengeOpen ? " ⏳ *(the Ace's Revenge is pending)*" : ''));
   }
@@ -1038,11 +1124,15 @@ function doChallenge_(sub, C) {
 
   const choice = norm_(sub.f[Q.OPPONENT]);
   const pick = itemKeyOf_(sub.f[Q.USE_ITEM]);
-  let type, opp, need = 1, gap = 0;
+  let type, opp, need = 1, gap = 0, viaBell = false;
   if (choice === ACE_CHOICE) {
     if (!ace) fail_('There is no Ace right now. The commish will crown one.');
-    const openTo = moundOpenTo_(C);
-    if (Number(me.Rank) > openTo) fail_('The mound is open to ' + (openTo === 1 ? 'the #1 contender only' : '#1–#' + openTo) + ' right now. You are #' + me.Rank + '. ' + moundNext_(C));
+    const openTo = moundOpenTo_(C), B = bellState_(C);
+    if (Number(me.Rank) > openTo) {
+      if (B.open && !B.used && !B.shield) viaBell = true;
+      else fail_('The mound is open to ' + (openTo === 1 ? 'the #1 contender only' : '#1–#' + openTo) + ' right now. You are #' + me.Rank + '. ' + moundNext_(C) +
+        (B.open && B.used ? ' 🔔 The Bell rang, but someone already answered it.' : ''));
+    }
     if (ct.rows.some(function (c) { return c.Type !== 'Ladder' && OPEN.indexOf(c.Status) >= 0; })) fail_('Someone is already charging the mound. Wait for that fight to settle.');
     if (revengeOpen) fail_("The Ace's Revenge is pending. Title challenges reopen once it is settled.");
     type = 'Title'; opp = ace;
@@ -1070,9 +1160,11 @@ function doChallenge_(sub, C) {
   if (type === 'Ladder' && starGap) need = Math.max(1, need - starGap);
   const needBefore = need, IT = chargeItems_(C, me, opp, type, gap, need, pick);   // 🛒 Brawl Bucks items (may buy on the spot)
   need = IT.need;
+  if (viaBell) need = Math.max(need, Number(C.BELL_MARGIN) || 3);   // 🔔 the Bell's margin; items can't go under it
   const deadline = hoursFrom_(now_(), C.MATCH_HOURS);
-  const note = [need > 1 ? 'Must win by ' + need + '+' : '', ms != null && os != null ? 'Stars ' + ms + 'v' + os : '', IT.notes.length ? 'Items ' + IT.notes.join(' ') : ''].filter(Boolean).join(' · ');
+  const note = [viaBell ? '🔔 Bell' : '', need > 1 ? 'Must win by ' + need + '+' : '', ms != null && os != null ? 'Stars ' + ms + 'v' + os : '', IT.notes.length ? 'Items ' + IT.notes.join(' ') : ''].filter(Boolean).join(' · ');
   const c = newChallenge_(ct, type, 'Accepted', me, opp, deadline, note);
+  if (viaBell) setCfg_('STATE_BELL_USED', c.ID);
   useItems_(C, IT.used, c.ID);
   const itemTxt = IT.post.length ? '\n' + IT.post.join('\n') + (need !== needBefore || IT.notes.length ? ' ' + esc_(me.Discord) + ' needs ' + (need > 1 ? '**' + need + '+ runs**' : '**any win**') + '.' : '') : '';
   log_(sub.email, 'Challenge', c.ID + ' ' + type + ': ' + me.Discord + ' → ' + opp.Discord + (IT.notes.length ? ' (items ' + IT.notes.join(' ') + ')' : ''));
@@ -1080,8 +1172,8 @@ function doChallenge_(sub, C) {
   try { if (bookOn_(C)) { const Lc = readTable_(SHEETS.LINES).rows.filter(function (x) { return x.ChallengeID === c.ID; })[0]; betsClosedPost_(c, me, opp, Lc); } } catch (e) { }
   try { potTick_(true); } catch (e) { }
   if (type === 'Title') {
-    post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
-      ' holds it.' + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
+    post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : viaBell ? ', from #' + me.Rank + ', answers 🔔 THE BELL and' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
+      ' holds it.' + (viaBell ? ' 🔔 Bell rules: win by **' + need + '+** to take the hill; a smaller win makes ' + esc_(me.Discord) + ' the **#1 contender**.' : '') + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   } else {
     post_('🥊 ' + who_(me) + ' (#' + me.Rank + ') charges the hill at ' + who_(opp) + ' (#' + opp.Rank + ')! Benches clear. ' +
       (ms != null && os != null ? '(' + starTag_(ms) + ' vs ' + starTag_(os) + ') ' : '') +
@@ -1221,8 +1313,14 @@ function finalize_(ct, c, cr, dr, source) {
     const rt = readTable_(SHEETS.REIGNS);
     const reign = currentReign_(rt);
     if (!reign) fail_('No active reign on file. The commish should crown the Ace again.');
-    const tNeed = needOf_(c);
-    if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small changes nothing
+    const tNeed = needOf_(c), isBell = /🔔 Bell/.test(String(c.Notes || ''));
+    if (isBell && chWins && !forfeit && margin < tNeed) {   // 🔔 a Bell win that's too small: #1 contender, the Ace keeps the hill
+      if (Number(ch.Rank) !== 1) { removeFrom_(lad, ch); insertAt_(lad, ch, 1); }
+      setLadder_(lad);
+      outcome = 'Bell: won by ' + margin + ', needed ' + tNeed + '+: #1 contender';
+      headline = '🔔 ' + who_(ch) + ' answers the Bell and beats ' + who_(df) + ' ' + scoreTxt + '! Not by **' + tNeed + '+**, so ♠️ ' + who_(df) +
+        ' keeps the hill, but ' + esc_(ch.Discord) + ' jumps to **#1 contender**.';
+    } else if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small changes nothing
       dropOne_(lad, ch);
       setLadder_(lad);
       outcome = 'Won by ' + margin + ', needed ' + tNeed + '+: the Ace holds';
@@ -1243,6 +1341,12 @@ function finalize_(ct, c, cr, dr, source) {
       outcome = 'Defense #' + n + ' (+' + points + ')';
       headline = '♠️ **The Ace holds the hill!** ' + who_(df) + ' beats ' + who_(ch) + ' ' + scoreTxt +
         '. Defense #' + n + ', **+' + points + '** pts (reign total ' + reign.ReignPts + ').';
+      if (isBell) {
+        const bounty = Number(C.BELL_BOUNTY) || 0, sh = hoursFrom_(now_(), Number(C.BELL_SHIELD_HOURS) || 0);
+        if (bounty) ledger_(C, df, bounty, '🔔 Bell defense bounty (' + c.ID + ')');
+        setCfg_('STATE_BELL_SHIELD', sh.toISOString());
+        extra.push('🔔 Bell defense: ' + (bounty ? '**+' + bounty + ' BB** bounty, and ' : '') + '🛡️ no Bell rings again until ' + ts_(sh) + '.');
+      }
       if (before < C.REVENGE_THRESHOLD && reign.ReignPts >= C.REVENGE_THRESHOLD) {
         extra.push('🛡️ ' + esc_(df.Discord) + ' has passed ' + C.REVENGE_THRESHOLD + " reign points and earned the **Ace's Revenge** if dethroned.");
       }
@@ -1889,6 +1993,9 @@ function tick_() {
     log_('system', 'Revenge expired', C.STATE_REVENGE_EX_ACE);
     post_("⌛ The Ace's Revenge window for " + esc_(ex ? ex.Discord : 'the former Ace') + ' has closed. Title challenges are open again.');
   }
+
+  // 🔔 The Bell
+  try { bellTick_(cfg_()); } catch (e) { log_('system', 'Bell error', String(e && e.message || e)); }
 
   // Open mound: announce each time it opens one more spot
   C = cfg_();
@@ -3115,7 +3222,7 @@ function ensureWagerForm_(form) {
 // these labels, keeps every choice pointing at its own section, and puts 🥊 Charge the Hill first.
 const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'SHOP', 'VOTE', 'REGISTER', 'DISCORD_ID'];
 const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
-  'Only #1 can charge ♠ THE ACE at first; if nobody does, #2 joins after 8 hours, then one more spot each day, down to #5 (never overnight). Any win takes the mound.\n\n' +
+  'Only #1 can charge ♠ THE ACE at first; if nobody does, #2 joins after 8 hours, then one more spot each day, down to #5 (never overnight). Any win takes the mound. 🔔 When the Bell rings (a few random hours a week), anyone can charge the Ace: win by 3+ for the title, less makes you #1 contender.\n\n' +
   'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
 const CHARGE_ITEMS_HELP = '\n\n🛒 Items (optional, Brawl Bucks): 🧽 Margin Eraser = any win will do. 🪜 Ladder Jump = charge one spot past your reach (win by 5+); 🪜 Ladder Jump+ = the same, and any win will do. If the player you charge wears 🥊 Brass Knuckles, you need 1 more run (2+ against the Ace), unless you swing the Eraser.';
 function ensureTidyForm_(form) {
@@ -3599,7 +3706,7 @@ function snapshotBoard_() {
     let bookOpen = [];
     try { if (bookOn_(C)) bookOpen = openLines_().map(function (L) { return { id: L.ChallengeID, away: L.Away, home: L.Home, aml: L.AwayML, hml: L.HomeML, fav: L.Fav, frl: L.FavRL, drl: L.DogRL, total: L.Total, ou: L.OverOdds, closes: iso(L.Closes) }; }); } catch (e) { bookOpen = []; }
     let rjs = []; try { rjs = JSON.parse(PropertiesService.getScriptProperties().getProperty('REJECTS') || '[]').filter(function (x) { return now_() - new Date(x.at) < 3600e3; }); } catch (e) { rjs = []; }
-    const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), bookOn: bookOn_(C), bookOpen: bookOpen, moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
+    const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), bookOn: bookOn_(C), bookOpen: bookOpen, bell: (function () { const B = bellState_(C); return B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null; })(), moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
     if (!pending.length || !prev.ladder) {   // a result still waiting to air keeps the standings as they were
       const pt = players_();
       const pub = function (p) { return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), best: num_(p.BestReignPts), pts: num_(p.CareerPts) }; };
@@ -3801,7 +3908,7 @@ body{background-color:#0E1B33;background-image:repeating-linear-gradient(90deg,r
 @keyframes run{to{transform:translateX(-100%)}}
 .foot{margin-top:22px;opacity:.55;font-size:12px;text-align:center}
 .rej{margin:14px 0 0;background:rgba(200,16,46,.18);border:2px solid #C8102E;padding:10px 14px}.rej b{font-size:22px;color:#ff6b7d;display:block;margin-bottom:4px}.rej div{font-size:14px;padding:2px 0}.rej small{opacity:.6}
-.cta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;margin:14px 0 0}.cta a{background:#C8102E;color:#F4EBD9;text-decoration:none;padding:8px 18px;font-family:'Bebas Neue',Impact,sans-serif;font-size:22px;letter-spacing:.04em;box-shadow:0 4px 0 #000}.cta a:hover{background:#e01535}.cta span{font-size:13px;opacity:.75}
+.bell{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:0 0 14px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,#3b2a00,#1e1600);border:2px solid #facc15;color:#fde68a}.bell b{font-size:20px;letter-spacing:.04em}.bell span{flex:1 1 260px;color:#f4ebd9}.bell a{background:#facc15;color:#1b1300;font-weight:700;padding:8px 16px;border-radius:999px;text-decoration:none}.bell.on{animation:bellpulse 1.6s ease-in-out infinite}@keyframes bellpulse{50%{box-shadow:0 0 0 6px rgba(250,204,21,.25)}}.cta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;margin:14px 0 0}.cta a{background:#C8102E;color:#F4EBD9;text-decoration:none;padding:8px 18px;font-family:'Bebas Neue',Impact,sans-serif;font-size:22px;letter-spacing:.04em;box-shadow:0 4px 0 #000}.cta a:hover{background:#e01535}.cta span{font-size:13px;opacity:.75}
 .sea{margin:18px 0 0;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#14532d,#0E1B33);border-left:5px solid #ffd166;padding:10px 16px;box-shadow:0 4px 0 #000}
 .sea .big{font-size:22px;color:#ffd166}.sea .clk{font-size:26px}
 .hw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px}@media(max-width:820px){.hw{grid-template-columns:1fr}}
@@ -3909,6 +4016,7 @@ if(D.revenge)h+='<div class="alert bb">🔥 ACE\\'S REVENGE PENDING: '+esc(D.rev
 var lad=D.ladder||[],ch=D.charges||[],ms=D.matches||[],rg=D.reigns||[];
 if((D.rejects||[]).length)h+='<div class="rej"><b class="bb">❌ Didn’t go through</b>'+D.rejects.slice().reverse().map(function(x){return '<div><span class="bb">'+esc(x.who)+'</span> · '+esc(x.kind)+' · <i>'+esc(x.why)+'</i> <small>'+when(x.at)+'</small></div>';}).join('')+'<div style="font-size:12px;opacity:.7">Fix it and send the Master Form again. Shows for an hour.</div></div>';
 if(D.formLink)h+='<div class="cta"><a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">📝 Master Form</a><span>The one form for everything: sign up, charge, report, bet, shop</span></div>';
+var BL=D.bell;if(BL&&(BL.open||BL.soon||BL.answered))h+='<div class="bell'+(BL.open?' on':'')+'"><b class="bb">'+(BL.open?'🔔 THE BELL IS RINGING':BL.answered?'🔔 THE BELL WAS ANSWERED':'🔔 THE BELL RINGS AT '+esc(when(BL.next)).toUpperCase())+'</b><span>'+(BL.open?'Anyone on the climb can charge the Ace until '+esc(when(BL.until))+'. Win by '+esc(BL.margin)+'+ for the title; a smaller win makes you the #1 contender. First one in.':BL.answered?'A challenger took the shot. Watch for the result.':'For an hour, anyone on the climb can charge the Ace. Win by '+esc(BL.margin)+'+ for the title.')+'</span>'+(BL.open&&D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">🔔 Charge the Ace</a>':'')+'</div>';
 if(D.seasonStart&&new Date(D.seasonStart)>new Date()){h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+' · OPENS '+day(D.seasonStart).toUpperCase()+'</span><span>Register now. Charges and Brawl points start at kickoff.</span><span class="bb clk">⏱ '+left(D.seasonStart)+'</span></div>';}
 else if(D.seasonEnd){var se=new Date(D.seasonEnd),over=D.seasonClosed||se<=new Date();h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+(D.seasonClosed?' · FINAL':over?' · FINAL BUZZER':'')+'</span><span>'+(over?(D.seasonClosed?'The awards are in.':'No new charges. Charges in flight are being settled.'):'Ends '+when(D.seasonEnd))+'</span>'+(over?'':'<span class="bb clk">⏱ '+left(D.seasonEnd)+'</span>')+'</div>';}
 h+='<div class="cols"><div><h2 class="bb">The Climb</h2><div class="climb">'+(A?'<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">'+esc(A.name)+'<small>'+esc(A.club)+(A.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(A.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(A.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+(A.since?'<b>'+ndays(A.since)+'</b>'+(ndays(A.since)===1?'day':'days')+' up top':'<b>'+(A.rdef||0)+'</b>defenses')+'</span></div>':'<div class="step ace open"><span class="tag bb">♠ THE ACE</span><span class="rk bb">⛰️</span><span class="who bb">The mound is open<small>Win the title fight to plant the flag</small></span><span class="wl bb"></span></div>')+(lad.length?lad.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(D.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+';animation-delay:'+(i*0.06)+'s"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(p.clubId)+'</a>':'')+'</small>'+reachTxt(p,i)+'</span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the climb yet. Register on the form and you start at the bottom.</div>')+'</div>'+(lad.length?'<div class="rnote">⤴ Who each spot can charge. Underdogs win by less (1 run off per star behind). Pick 🔎 Who can I charge? on the Master Form for your own list in #hill-help.</div>':'')+'</div>';
@@ -3946,7 +4054,7 @@ h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">🥊 Charge the hill</h3><p>Pick a fight with anyone up to <b>3 spots above you</b>. Reach higher, win bigger.</p><div class="reach"><div class="no">#2 · too far</div><div class="ok">#3 · win by 4+</div><div class="ok">#4 · win by 3+</div><div class="ok">#5 · just win</div><div class="me">#6 · YOU</div></div></div>'
 +'<div class="card"><h3 class="bb">⚾ Play it, report it</h3><div class="steps3"><div><b>1</b>Charge on the form. The clock starts.</div><div><b>2</b>The challenger starts the game in SmallBall as the visitor, at the defender\\'s park. The first game counts.</div><div><b>3</b>Nothing to report: the Hill finds the game on SmallBall by itself. Hand reports still work as a backup. Results post once the game has aired: no spoilers.</div></div><p style="opacity:.75;font-size:13px">Win by enough and you take their spot. Win short of the margin and nobody moves. Lose and you drop one. A tie: the defender holds.</p></div>'
 +'<div class="card"><h3 class="bb">♠ Points per defense</h3><p>Every title defense pays double the last, up to 320.</p><div class="bars">'+pts.map(function(p,i){return '<div style="height:'+(p/320*100)+'%;animation-delay:'+(i*0.1)+'s"><span>'+p+'</span><i>D'+(i+1)+'</i></div>';}).join('')+'</div><p style="margin-top:28px">Hold it six times and every defense after that is worth 320.</p></div>'
-+'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
++'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p>🔔 <b>The Bell:</b> a few times a week, at random but never at night, the Bell rings for an hour (30-minute heads-up in Discord). While it rings, <b>anyone</b> on the climb can charge the Ace, first one in. Win by <b>3+</b> to take the hill; a smaller win makes you the <b>#1 contender</b>. If the Ace wins, they earn a <b>50 BB</b> bounty and two days off from the Bell.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
 +'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
 +'<div class="card"><h3 class="bb"><span class="flame">🔥</span> The Ace\\'s Revenge</h3><p>An Ace who built <b>500+ reign points</b> and loses the hill gets one shot back, declared within 12 hours.</p><p>The catch: they must win by <b>more runs than they lost by</b>. Lost 5–3? You need a 3-run win.</p><p style="opacity:.75;font-size:13px">A dethroned Ace without revenge drops to #3..</p></div>'
 +'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Master Form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
