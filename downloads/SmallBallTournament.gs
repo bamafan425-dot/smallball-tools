@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -17,7 +17,7 @@ const DEFAULTS = {
   TOURNEY_NAME: ['Black Friday Brawl', 'Shown everywhere'],
   DISCORD_WEBHOOK_URL: ['', 'Discord channel → Edit Channel → Integrations → Webhooks → New Webhook → Copy URL'],
   LOG_WEBHOOK_URL: ['', 'Optional: a private channel that gets the Log (errors, rejections)'],
-  FORMAT: ['double', 'double (double elimination), single (single elimination) or scramble (⛳ two-club teams, Nassau scoring)'],
+  FORMAT: ['double', 'double (double elimination), single (single elimination) or scramble (⛳ two-club teams, 18 holes of match play)'],
   GRAND_FINAL_RESET: ['yes', 'Double elimination: if the losers-bracket champ wins the grand final, play once more (yes/no)'],
   SEEDING: ['signup', 'signup (sign-up order), stars (most stars first) or random'],
   SIGNUP_CLOSE: ['2026-11-26 21:00', 'Sign-ups close and the bracket is drawn (yyyy-MM-dd HH:mm, Mountain time)'],
@@ -40,6 +40,7 @@ const DEFAULTS = {
   GITHUB_REPO: ['slipnsliders/smallball-tools', 'Optional: the GitHub repo that hosts the bracket page (owner/repo). Connect it from the 🏆 Tournament menu'],
   GITHUB_PATH: ['docs/brawl/bracket.json', 'Where the bracket data goes in that repo (the page sits next to it)'],
   SLUG: ['', 'Short web name for this tournament (set by 🆕 New tournament)'],
+  SCRAMBLE_SCORING: ['holes', 'Scramble only: holes (18 holes of match play from the box scores; needs 🔑 Connect SmallBall box scores) or nassau'],
   TOURNAMENTS_PATH: ['docs/tournaments/index.json', 'The Tournaments page\'s list in the GitHub repo. Every tournament adds itself; past champions stay'],
 };
 const SHEETS = { CONFIG: 'Config', ROSTER: 'Roster', ENTRANTS: 'Entrants', MATCHES: 'Matches', LOG: 'Log', STATE: 'State', BOARD: 'Board' };
@@ -124,7 +125,7 @@ $('go').onclick=function(){
 };
 </script></body></html>`;
 
-const SHARED_PROPS_ = { GITHUB_TOKEN: 1, GH_BAD: 1, SHEET_ID: 1, SLOTS: 1, ADMIN_SLOT: 1 };
+const SHARED_PROPS_ = { GITHUB_TOKEN: 1, GH_BAD: 1, SHEET_ID: 1, SLOTS: 1, ADMIN_SLOT: 1, SB_COOKIE: 1, SB_BAD: 1 };
 const tab_ = (name) => (CUR_ && PER_T_[name] ? name + ' #' + CUR_ : name);
 function props_() {
   const p = PropertiesService['getScriptProperties'](), k = (key) => (CUR_ && !SHARED_PROPS_[key] ? key + '#' + CUR_ : key);
@@ -754,7 +755,7 @@ function snapshot_(T) {
     snap.matches = T.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: club(sideClub_(T, m.a)), z: club(sideClub_(T, m.b)),
       byeA: sideClub_(T, m.a) === BYE, byeZ: sideClub_(T, m.b) === BYE, w: m.winner > 0 ? m.winner : null, sc: m.score || null, how: m.how || '', bye: !!m.bye, v: !!m.void,
       open: !!m.openAt && !m.winner && !m.void, dl: m.deadline || 0, g: m.pend ? m.pend.gid : (m.gid || ''), live: !!m.pend, flag: !!m.flag,
-      nas: m.winner && m.nassau ? m.nassau : null, found: (m.games || []).filter((g) => g.gid).length,
+      nas: m.winner && m.nassau ? m.nassau : null, mp: m.winner && m.mp ? { a: m.mp.a, b: m.mp.b, run: m.mp.run, res: m.mp.res, clinch: m.mp.clinch, ca: m.mp.ca, cb: m.mp.cb } : null, found: (m.games || []).filter((g) => g.gid).length,
       games: m.games && !m.winner ? m.games.map((g) => ({ nine: g.nine, an: plainName_(E, g.a), bn: plainName_(E, g.b), teen: E[g.tee] ? norm_(E[g.tee].Discord) : '', g: g.gid || '', aired: !!(g.gid && g.airs <= Date.now()) })) : null }));
     if (T.fmt === 'scramble') { snap.fmt = 'scramble'; snap.alt = T.alt && E[T.alt] ? { n: norm_(E[T.alt].Club), o: norm_(E[T.alt].Discord) } : null; }
   }
@@ -871,6 +872,7 @@ function onOpen() {
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
+    .addItem('🔑 Connect SmallBall box scores (Scramble)', 'adminConnectSmallBall')
     .addSeparator()
     .addItem('🆕 New tournament (question boxes)', 'adminNewTournamentBoxes')
     .addItem('🧹 Start over (clear the bracket, keep sign-ups)', 'adminResetBracket')
@@ -972,8 +974,8 @@ function adminUndo() {
     if (r1.getSelectedButton() !== ui.Button.OK) return '';
     const m = done.find((x) => x.id === norm_(r1.getResponseText())); if (!m) return 'No such finished match.';
     // Clear this match and everything that depends on it.
-    const clear = (id) => { T.matches.forEach((x) => { if ((x.a.from === id || x.b.from === id || x.resetOf === id) && (x.winner || x.openAt || x.void || x.pend)) { clear(x.id); } if (x.a.from === id || x.b.from === id || x.resetOf === id) { delete x.winner; delete x.loser; delete x.score; delete x.gid; delete x.how; delete x.bye; delete x.void; delete x.pend; delete x.openAt; delete x.deadline; delete x.flag; delete x.games; delete x.nassau; } }); };
-    clear(m.id); delete m.games; delete m.nassau; delete m.winner; delete m.loser; delete m.score; delete m.gid; delete m.how; m.pend = null; m.flag = false; delete T.done;
+    const clear = (id) => { T.matches.forEach((x) => { if ((x.a.from === id || x.b.from === id || x.resetOf === id) && (x.winner || x.openAt || x.void || x.pend)) { clear(x.id); } if (x.a.from === id || x.b.from === id || x.resetOf === id) { delete x.winner; delete x.loser; delete x.score; delete x.gid; delete x.how; delete x.bye; delete x.void; delete x.pend; delete x.openAt; delete x.deadline; delete x.flag; delete x.games; delete x.nassau; delete x.mp; } }); };
+    clear(m.id); delete m.games; delete m.nassau; delete m.mp; delete m.winner; delete m.loser; delete m.score; delete m.gid; delete m.how; m.pend = null; m.flag = false; delete T.done;
     m.deadline = Math.max(m.deadline || 0, Date.now() + waveMs_(cfg_()));
     settle_(T); stateSet_(T); snapshot_(T); wake_();
     post_('↩️ The organizer reopened **' + esc_(m.label) + '**.' + linksLine_(cfg_()));
@@ -1241,20 +1243,95 @@ function announceText_(C) {
   return lines.join('\n');
 }
 
+// ----- 18 holes of match play, from each game's inning-by-inning box score -----
+// Holes 1-9 are innings 1-9 of the front-nine games, holes 10-18 the back-nine games. On each hole a team takes its
+// better inning of its two clubs (the scramble). More runs wins the hole; the same halves it. Golf names on the card:
+// 0 runs = par, 1 = birdie, 2 = eagle, 3+ = albatross. A home club that didn't need its bottom of the 9th gets a gimme.
+// Box scores need a SmallBall login, so the organizer connects one (🔑 in the menu). Without it: the Nassau.
+const GIMME_RUNS_ = 1;
+function sbCookie_() { return PropertiesService['getScriptProperties']().getProperty('SB_COOKIE') || ''; }
+function gameRecord_(gid) {
+  const ck = sbCookie_(); if (!ck) return { err: 'no login connected' };
+  let r; try { r = UrlFetchApp.fetch('https://play.smallball.com/games/' + encodeURIComponent(gid), { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } }); } catch (e) { return { err: String(e.message || e) }; }
+  const code = r.getResponseCode();
+  if (code === 401 || code === 403) { PropertiesService['getScriptProperties']().setProperty('SB_BAD', String(Date.now())); return { err: 'the SmallBall login has expired' }; }
+  if (code !== 200) return { err: 'SmallBall answered ' + code };
+  try { const g = JSON.parse(r.getContentText()); return g && g.result && g.result.line ? { g } : { err: 'no box score in the game record' }; } catch (e) { return { err: 'unreadable game record' }; }
+}
+// Read the box scores of a match's games (each game once). Returns '' when all were read, or why not.
+function readLines_(m) {
+  for (const g of (m.games || [])) {
+    if (!g.gid || g.la) continue;
+    const x = gameRecord_(g.gid); if (x.err) return x.err;
+    const L = x.g.result.line, aAway = String(x.g.away_team_id) === String(g.a);
+    g.la = (aAway ? L.away : L.home || []).slice(0, 9); g.lb = (aAway ? L.home : L.away || []).slice(0, 9); g.aAway = aAway;
+  }
+  return '';
+}
+function holes_(m) {
+  const G = {}; (m.games || []).forEach((g) => { G[g.k] = g; });
+  const inn = (g, side, i) => {   // one club's runs in one inning; null = no game
+    if (!g || !g.gid || !g.la) return null;
+    const line = side === 'a' ? g.la : g.lb, home = side === 'a' ? !g.aAway : g.aAway, v = line[i];
+    if (v == null || v === '' || String(v).toLowerCase() === 'x') return i === 8 && home ? GIMME_RUNS_ : 0;
+    return Number(v) || 0;
+  };
+  const team = (side) => { const out = [];
+    for (let h = 0; h < 18; h++) { const ks = h < 9 ? ['F1', 'F2'] : ['K1', 'K2'], v = ks.map((k) => inn(G[k], side, h % 9)).filter((x) => x != null);
+      out.push(v.length ? Math.max.apply(null, v) : null); }
+    return out; };
+  const A = team('a'), B = team('b');
+  let diff = 0, res = '', clinch = 0; const run = [];
+  for (let h = 0; h < 18; h++) {
+    const a = A[h] == null ? -1 : A[h], b = B[h] == null ? -1 : B[h];
+    diff += a > b ? 1 : a < b ? -1 : 0; run.push(diff);
+    if (!res && Math.abs(diff) > 17 - h) { res = Math.abs(diff) + (17 - h ? ' & ' + (17 - h) : ' UP'); clinch = h + 1; }
+  }
+  if (!res) res = diff ? Math.abs(diff) + ' UP' : 'AS';
+  const sum = (x) => x.reduce((s, v) => s + (v || 0), 0), cnt = (x, f) => x.filter((v) => v != null && f(v)).length;
+  const card = (x) => ({ out: -sum(x.slice(0, 9)), inn: -sum(x.slice(9)), par: -sum(x), bird: cnt(x, (v) => v === 1), eagle: cnt(x, (v) => v === 2), alb: cnt(x, (v) => v >= 3) });
+  const lead = diff > 0 ? 'a' : diff < 0 ? 'b' : (sum(A) !== sum(B) ? (sum(A) > sum(B) ? 'a' : 'b') : '');
+  return { a: A, b: B, run, res, clinch, lead, tieBy: diff ? '' : lead ? 'to par' : '', ca: card(A), cb: card(B) };
+}
+const toPar_ = (n) => (n === 0 ? 'E' : n > 0 ? '+' + n : String(n).replace('-', '−'));
+// 🔑 Connect a SmallBall login, so Scramble matches can be scored hole by hole from the box scores.
+function adminConnectSmallBall() {
+  const ui = SpreadsheetApp.getUi(), pr = PropertiesService['getScriptProperties']();
+  const r = ui.prompt('🔑 Connect SmallBall box scores',
+    'The Scramble scores hole by hole from each game\'s box score, which SmallBall only shows to someone logged in. Paste your SmallBall login here and the script reads box scores with it (read-only, nothing else). It\'s kept in the script\'s private settings, not on any tab.\n\n' +
+    'How to copy it: on play.smallball.com press Ctrl+Shift+I → Network tab → reload the page → click any row that starts with "games" or "account" → Headers → under Request Headers, copy everything after "cookie:".\n\nLeave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const v = norm_(r.getResponseText()).replace(/^cookie:\s*/i, '');
+  if (!v) { pr.deleteProperty('SB_COOKIE'); pr.deleteProperty('SB_BAD'); ui.alert('SmallBall box scores disconnected. Scramble matches are scored as a Nassau.'); return; }
+  pr.setProperty('SB_COOKIE', v); pr.deleteProperty('SB_BAD');
+  ui.alert(sbTest_().msg);
+}
+// Reads one real box score with the connected login.
+function sbTest_() {
+  if (!sbCookie_()) return { ok: false, msg: 'No SmallBall login connected.' };
+  let gid = '';
+  try { slots_().some((sl) => withSlot_(sl, () => entrants_().rows.some((e) => { const rows = clubGames_(norm_(e.ClubID)); if (rows.length) { gid = String(rows[0].game_id); return true; } return false; }))); } catch (e) { }
+  if (!gid) try { gid = String(clubGames_('8897')[0].game_id); } catch (e) { }
+  if (!gid) return { ok: false, msg: 'Couldn\'t find a game to test with. Try again in a minute.' };
+  const x = gameRecord_(gid);
+  if (x.err) return { ok: false, msg: '❌ That didn\'t work (' + x.err + '). Copy the cookie line again and paste it in, making sure you\'re logged in to SmallBall first.' };
+  return { ok: true, msg: '✅ Connected! Read the box score of game ' + gid + ' (' + x.g.result.line.away.join('') + ' / ' + x.g.result.line.home.join('') + '). Scramble matches will be scored hole by hole.' };
+}
+
 // The Sunday-best version for a ⛳ Two Man Scramble.
 function scrAnnounce_(C) {
   const close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), f = norm_(C.FORM_LINK), b = boardUrl_(C);
   const nIn = (() => { try { return entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length; } catch (e) { return 0; } })();
   const L = ['# ⛳ The ' + esc_(C.TOURNEY_NAME) + ' tees off!',
-    '**Grab a partner (or let us draw you one) and hit the links.** Two-club teams, four games a match, and golf\'s favorite bet on the line. 🏌️', '',
+    '**Grab a partner (or let us draw you one) and hit the links.** Two-club teams, four games a match, 18 holes of match play. 🏌️', '',
     '**🏌️ How it plays**',
     '> Every club plays both clubs on the other team: two games on the **front nine**, two on the **back nine**.',
     '> Each team tees off once per nine. One-click start links land right here when your match opens.', '',
-    '**💰 The Nassau**',
-    '> 🟢 **Front 9**: your team\'s better score of the two front-nine games',
-    '> 🔵 **Back 9**: same deal on the back nine',
-    '> 🏆 **Overall**: every run in all four games',
-    '> One point each, a tie halves it. **Take 2 and you move on.** Single elimination, ' + kindsTxt_(C) + ' games only, ' + Math.round(waveMs_(C) / 60000) + ' minutes a match.', ''];
+    '**⛳ 18 holes of match play**',
+    '> Every inning is a hole: innings 1–9 of your front-nine games, then your back nine. Your team plays its **better inning** on each one.',
+    '> More runs wins the hole. Most holes takes the match, golf style: *3 & 2*, *1 up*.',
+    '> 🐦 **Birdie** = 1 run · 🦅 **Eagle** = 2 · 💥 **Albatross** = 3+. Full scorecards with every birdie circled after each match.',
+    '> Single elimination, ' + kindsTxt_(C) + ' games only, ' + Math.round(waveMs_(C) / 60000) + ' minutes a match.', ''];
   if (f) L.push('📝 **[Get on the tee sheet](<' + f + '>)** · got a partner? Put their Discord name in the *Partner* box. Flying solo? We\'ll draw you one. 🎲');
   if (close) L.push('🗓️ Tee sheet closes <t:' + Math.floor(close / 1000) + ':F> (' + tsR_(close) + ')' + (start ? ' · first tee time <t:' + Math.floor(start / 1000) + ':t>' : ''));
   if (nIn) L.push('👀 **' + nIn + ' club' + (nIn === 1 ? '' : 's') + '** on the tee sheet already.');
@@ -1321,6 +1398,11 @@ function health_(C) {
   const url = boardUrl_(C);
   if (url) { let code = 0; try { code = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true }).getResponseCode(); } catch (e) { }
     code === 200 ? add('ok', 'Bracket page loads') : add('warn', 'Bracket page didn\'t load (' + (code || 'no answer') + ')', 'Right after 🆕 New tournament, GitHub needs a minute. Otherwise check BOARD_LINK'); }
+  // Scramble box scores
+  if (isScr_(C) && lc_(C.SCRAMBLE_SCORING || 'holes') !== 'nassau') {
+    if (!sbCookie_()) add('warn', 'No SmallBall login connected, so Scramble matches are scored as a Nassau', 'Menu → 🔑 Connect SmallBall box scores, for 18 holes of match play');
+    else { const x = sbTest_(); x.ok ? add('ok', 'SmallBall box scores readable: 18 holes of match play') : add('bad', 'SmallBall login stopped working, so Scramble matches fall back to a Nassau', 'Menu → 🔑 Connect SmallBall box scores, and paste a fresh one'); }
+  }
   // Returning players
   if (norm_(C.HILL_SHEET_ID)) { let ok = false; try { ok = !!SpreadsheetApp.openById(norm_(C.HILL_SHEET_ID)).getSheetByName('Players'); } catch (e) { }
     ok ? add('ok', 'Hill Sheet readable: Hill players can sign up with a blank form') : add('bad', 'Can\'t read the Hold the Hill Sheet', 'Share the Hill Sheet (Viewer is enough) with the account that runs this script'); }
@@ -1477,14 +1559,31 @@ function scrPostDue_(T, C, atDeadline) {
       finish_(T, m, seedOf_(T, a) < seedOf_(T, b) ? a : b, null, 'no-show');
       post_(scrResultText_(T, m, E, C, '⏰ Nobody teed off before the deadline, so the higher seed moves on.')); changed = true; continue;
     }
-    const n = nassau_(m); let w, how = '';
-    if (n.p[0] !== n.p[1]) w = n.p[0] > n.p[1] ? a : b;
-    else if (n.drive[0] !== n.drive[1]) { w = n.drive[0] > n.drive[1] ? a : b; how = 'longest drive'; }
-    else { w = seedOf_(T, a) < seedOf_(T, b) ? a : b; how = 'higher seed'; }
+    const n = nassau_(m); let w, how = '', mp = null, why = '';
+    if (lc_(C.SCRAMBLE_SCORING || 'holes') !== 'nassau') {
+      why = readLines_(m);
+      // SmallBall having a bad minute: try again on the next tick (for up to half an hour past the deadline).
+      if (why && !/expired|no login|no box score/.test(why) && t < Math.max(m.deadline, Math.max.apply(null, found.map((g) => g.airs))) + 30 * 60000) continue;
+      if (!why) mp = holes_(m);
+    }
     m.nassau = n;
-    finish_(T, m, w, null, how);
-    m.score = w === a ? [n.p[0], n.p[1]] : [n.p[1], n.p[0]];
-    post_(scrResultText_(T, m, E, C, found.length < 4 ? '⏰ ' + (4 - found.length) + ' of the four games weren\'t played before the deadline; they count for nothing.' : ''));
+    if (mp) {
+      m.mp = mp;
+      if (mp.lead) { w = mp.lead === 'a' ? a : b; how = mp.tieBy; }
+      else if (n.drive[0] !== n.drive[1]) { w = n.drive[0] > n.drive[1] ? a : b; how = 'longest drive'; }
+      else { w = seedOf_(T, a) < seedOf_(T, b) ? a : b; how = 'higher seed'; }
+      finish_(T, m, w, null, how); m.score = [mp.res];
+    } else {
+      if (n.p[0] !== n.p[1]) w = n.p[0] > n.p[1] ? a : b;
+      else if (n.drive[0] !== n.drive[1]) { w = n.drive[0] > n.drive[1] ? a : b; how = 'longest drive'; }
+      else { w = seedOf_(T, a) < seedOf_(T, b) ? a : b; how = 'higher seed'; }
+      finish_(T, m, w, null, how);
+      m.score = w === a ? [n.p[0], n.p[1]] : [n.p[1], n.p[0]];
+    }
+    const notes = [];
+    if (found.length < 4) notes.push('⏰ ' + (4 - found.length) + ' of the four games weren\'t played before the deadline; they count for nothing.');
+    if (!mp && why) { notes.push('📋 Box scores weren\'t available (' + why + '), so this one is scored as a Nassau.'); log_('system', 'Scored as a Nassau', m.id + ': ' + why); }
+    post_(scrResultText_(T, m, E, C, notes.join('\n')));
     changed = true;
   }
   return changed;
@@ -1494,7 +1593,13 @@ function scrResultText_(T, m, E, C, note) {
   const a = sideClub_(T, m.a), b = sideClub_(T, m.b), A = teamOf_(T, a), B = teamOf_(T, b), w = m.winner, n = m.nassau;
   const W = w === a ? A : B, L = w === a ? B : A;
   let s = '⛳ **' + esc_(m.label) + '**: Team ' + W.clubs.map((c) => tag_(E[c])).join(' & ') + ' beats Team ' + esc_(teamName_(E, L));
-  if (n) {
+  const mp = m.mp;
+  if (mp) {
+    const cw = w === a ? mp.ca : mp.cb, cl = w === a ? mp.cb : mp.ca;
+    const line = (nm, c) => '`' + (nm + '              ').slice(0, 14) + ' ' + (toPar_(c.par) + '   ').slice(0, 4) + '` OUT ' + toPar_(c.out) + ' · IN ' + toPar_(c.inn) + (c.bird + c.eagle + c.alb ? ' · ' + [c.bird && c.bird + ' birdie' + (c.bird > 1 ? 's' : ''), c.eagle && c.eagle + ' eagle' + (c.eagle > 1 ? 's' : ''), c.alb && c.alb + ' albatross' + (c.alb > 1 ? 'es' : '')].filter(Boolean).join(', ') : '');
+    s += ' **' + (mp.res === 'AS' ? 'all square after 18, wins on ' + (m.how === 'to par' ? 'total score' : m.how || 'the tiebreak') : mp.res) + '** in match play.\n' + line(teamName_(E, W).slice(0, 14), cw) + '\n' + line(teamName_(E, L).slice(0, 14), cl) +
+      (boardUrl_(C) ? '\n📋 [Full scorecard](<' + boardUrl_(C) + '#m=' + m.id + '>)' : '') + '\n-# Games: ' + m.games.filter((g) => g.gid).map((g) => '`' + g.gid + '`').join(' ');
+  } else if (n) {
     const row = (lab, p) => '`' + (lab + '         ').slice(0, 9) + '` ' + (w === a ? p[0] + '–' + p[1] : p[1] + '–' + p[0]);
     s += ' **' + half_(m.score[0]) + '–' + half_(m.score[1]) + '** on the Nassau' + (m.how ? ' (' + m.how + ')' : '') + '.\n' +
       row('Front 9', n.f) + (n.f[0] === n.f[1] ? ' · halved' : '') + '\n' + row('Back 9', n.k) + (n.k[0] === n.k[1] ? ' · halved' : '') + '\n' + row('Overall', n.t) + (n.t[0] === n.t[1] ? ' · halved' : '') +
@@ -1517,11 +1622,11 @@ function scrCrown_(T, C) {
 function scrDrawPost_(T, C) {
   const E = entrantMap_(), start = when_(C.START, C);
   const lines = T.seeds.map((s) => { const tm = teamOf_(T, s.club); return s.seed + '. Team ' + tm.clubs.map((c) => tag_(E[c])).join(' & ') + ' · ' + teamClubs_(E, tm) + (tm.how === 'picked' ? ' 🤝' : ' 🎲'); });
-  post_('# ⛳ The ' + esc_(C.TOURNEY_NAME) + ' teams are set!\n**' + T.seeds.length + ' two-man teams · single elimination · Nassau scoring**\n\n' + lines.join('\n') + '\n-# 🤝 picked their partner · 🎲 drawn at random' +
+  post_('# ⛳ The ' + esc_(C.TOURNEY_NAME) + ' teams are set!\n**' + T.seeds.length + ' two-man teams · single elimination · 18 holes of match play**\n\n' + lines.join('\n') + '\n-# 🤝 picked their partner · 🎲 drawn at random' +
     (T.alt ? '\n\n🪑 ' + tag_(E[T.alt]) + ' is the alternate this week (odd number of clubs): first in line if anyone drops, and first in next week.' : '') +
     '\n\n**How a match works**\n> Every club plays both clubs on the other team: four BigLeague games. Each team tees off (starts the game) once on the front nine and once on the back.\n' +
-    '> **Front 9** and **Back 9**: your better score of the two games counts (best ball). **Overall**: every run in all four games. One point each; a tie halves it. **2 points wins.**\n' +
-    '> Still level: the biggest single game (longest drive), then the higher seed. Scores post once all four games have aired: no spoilers.\n\n' +
+    '> **18 holes of match play:** holes 1–9 are the innings of your front-nine games, 10–18 your back nine. Each hole, your team takes its **better inning** of your two clubs; more runs wins the hole. Most holes wins (*3 & 2* = 3 up with 2 to play).\n' +
+    '> 🐦 birdie = 1 run · 🦅 eagle = 2 · albatross = 3+. Scores post once all four games have aired: no spoilers.\n\n' +
     '🔔 First tee time: ' + ts_(start) + ' (' + tsR_(start) + '). Your next match opens the moment your opponents are known.' + linksLine_(C));
 }
 
@@ -1630,12 +1735,29 @@ details.rules summary::-webkit-details-marker{display:none}
 .ov img.shot{max-width:min(900px,100%);border-radius:12px;margin-top:12px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .ov .hint{color:var(--cream);font-size:13px;margin-top:8px;text-align:center}
 @media(max-width:640px){.mc .course{grid-template-columns:1fr}.mc .vs{grid-template-columns:1fr;text-align:center}.mc .team.r{text-align:center}.mc .score b{font-size:19px}}
+.c18{width:100%;border-collapse:collapse;font:600 13px 'IBM Plex Mono',monospace;margin:4px 0}
+.c18 th{font:700 10px system-ui,sans-serif;color:var(--muted);background:#f3ecd7;padding:5px 2px;text-align:center;border:1px solid #e6dcc0;letter-spacing:.5px}
+.c18 td{padding:4px 2px;text-align:center;border:1px solid #efe7d2;color:#2c3a30;font:700 13px 'IBM Plex Mono',monospace}
+.c18 td.nm{text-align:left;padding-left:8px;font:700 12px system-ui,sans-serif;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.c18 td.sum{background:#f8f3e3;color:var(--deep)}
+.c18 .r{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%}
+.c18 .b1{box-shadow:0 0 0 1.5px var(--flag)}
+.c18 .b2{box-shadow:0 0 0 1.5px var(--flag),0 0 0 3px #fff,0 0 0 4.5px var(--flag)}
+.c18 .b3{background:var(--flag);color:#fff}
+.c18 .par{color:#a7ae9f}
+.c18 tr.ms td{font:700 9px system-ui,sans-serif;color:var(--muted);background:#fbf8ee;padding:3px 1px}
+.c18 tr.ms td.ua{color:#1f5a36}.c18 tr.ms td.ub{color:#8a5a00}
+.c18 td.cl{background:#fff3c4}
+.res18{text-align:center;font:700 italic 20px 'Playfair Display',Georgia,serif;color:var(--deep);padding:6px 0 2px}
+.legend{font:500 11px system-ui,sans-serif;color:var(--muted);text-align:center;padding:2px 0 8px}
+.wrap18{overflow-x:auto;padding:4px 20px 8px}
 @media(max-width:640px){header{padding:16px}.meta{text-align:left}.col{min-width:84vw}.nas{grid-template-columns:1fr}}
 </style></head><body><div class="wrap" id="app"></div>
 <script>
 var D=__DATA__;
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):''}
+function tp(n){return n===0?'E':n>0?'+'+n:'−'+(-n)}
 function hf(x){if(x==null)return'';var w=Math.floor(x);return x%1?(w?w:'')+'½':String(x)}
 function cid(c){return '<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank">'+esc(c.id)+'</a>'}
 var HOME=location.host.slice(-9)==='github.io'?location.pathname.split('/').slice(0,2).join('/')+'/tournaments/':'https://slipnsliders.github.io/smallball-tools/tournaments/';
@@ -1643,10 +1765,15 @@ function teamCell(x,seedOn){
   if(!x)return '<td class="tm"><span class="tbd">Winner of the last match</span></td>';
   var cl=(x.clubs||[]).map(function(c){return esc(c.n)+' '+cid(c)}).join(' · ');
   return '<td class="tm">'+(seedOn&&x.s?'<span class="seed">'+x.s+'</span>':'')+esc(x.n)+'<span class="cl">'+cl+'</span></td>'}
+function mpCard(m,tap){
+  var M=m.mp,aw=m.a&&m.w===m.a.id;
+  var h='<div class="sc tap" data-m="'+esc(m.id)+'"><div class="hd"><span>'+esc(m.l)+'<span class="mu">🔎 Scorecard</span></span><span class="st">Final · '+esc(M.res==='AS'?'AS, '+(m.how==='to par'?'on total':m.how):M.res)+'</span></div><table><tr><th>Team</th><th>Out</th><th>In</th><th>Tot</th><th></th></tr>';
+  function row(x,c,won){return '<tr'+(won?' class="w"':'')+'>'+teamCell(x,true)+'<td>'+tp(c.out)+'</td><td>'+tp(c.inn)+'</td><td>'+tp(c.par)+'</td><td class="pt">'+(won?'⛳ '+esc(M.res==='AS'?'AS':M.res):'')+'</td></tr>'}
+  return h+row(m.a,M.ca,aw)+row(m.z,M.cb,!aw)+'</table><div class="foot">'+(function(){var b=M.ca.bird+M.cb.bird,e=M.ca.eagle+M.cb.eagle,a=M.ca.alb+M.cb.alb,o=[];if(b)o.push('🐦 '+b+' birdie'+(b>1?'s':''));if(e)o.push('🦅 '+e+' eagle'+(e>1?'s':''));if(a)o.push(a+' albatross'+(a>1?'es':''));return o.length?o.join(' · ')+' in this match':'All pars: a defensive grind'})()+'</div></div>'}
 function card(m){
   var live=m.open&&!m.w, n=m.nas, aw=m.w&&m.a&&m.w===m.a.id, zw=m.w&&m.z&&m.w===m.z.id;
   var st=m.w?(m.how==='no-show'?'Walkover':'Final'+(m.how?' · '+m.how:'')):live?(m.found?m.found+' of 4 games found':'On the tee · by '+t(m.dl)):'Waiting';
-  var tap=canMU(m),h='<div class="sc'+(live?' live':'')+(tap?' tap':'')+'" data-m="'+esc(m.id)+'"><div class="hd"><span>'+esc(m.l)+(tap?'<span class="mu">🔎 Matchup</span>':'')+'</span><span class="st">'+esc(st)+'</span></div><table><tr><th>Team</th><th>F9</th><th>B9</th><th>Tot</th><th>Pts</th></tr>';
+  var tap=canMU(m);if(m.mp)return mpCard(m,tap);var h='<div class="sc'+(live?' live':'')+(tap?' tap':'')+'" data-m="'+esc(m.id)+'"><div class="hd"><span>'+esc(m.l)+(tap?'<span class="mu">🔎 Matchup</span>':'')+'</span><span class="st">'+esc(st)+'</span></div><table><tr><th>Team</th><th>F9</th><th>B9</th><th>Tot</th><th>Pts</th></tr>';
   function row(x,i,won){var p=n?[n.f[i],n.k[i],n.t[i],hf(n.p[i])]:['','','',''];
     return '<tr'+(won?' class="w"':'')+'>'+teamCell(x,true)+'<td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td class="pt">'+(won?'⛳ ':'')+p[3]+'</td></tr>'}
   h+=row(m.a,0,aw)+row(m.z,1,zw)+'</table>';
@@ -1661,8 +1788,10 @@ function rules(){return '<details class="rules"'+(D.matches?'':' open')+'><summa
   '<h4>A match is four games</h4><p>Every club plays both clubs on the other team, BigLeague games only:</p>'+
   '<div class="pair">Front nine: A1 v B1 · A2 v B2<br>Back nine:&nbsp; A1 v B2 · A2 v B1</div>'+
   '<p>Each team tees off (starts the game from its club) once on the front nine and once on the back. The tee times and one-click links post in Discord when your match opens.</p>'+
-  '<h4>Scored as a Nassau</h4><div class="nas"><div><b>Front 9</b><span>Your better score of the two front-nine games</span></div><div><b>Back 9</b><span>Your better score of the two back-nine games</span></div><div><b>Overall</b><span>Every run in all four games</span></div></div>'+
-  '<p>One point each; a tie halves it. Most points wins. Still level: the biggest single game (longest drive), then the higher seed.</p>'+
+  '<h4>18 holes of match play</h4><p>Holes 1–9 are innings 1–9 of your front-nine games; holes 10–18 are your back-nine games. On every hole your team takes its <b>better inning</b> of your two clubs (that\u2019s the scramble). More runs wins the hole, the same halves it, and most holes won takes the match: <i>3 &amp; 2</i> means 3 up with 2 to play.</p>'+
+  '<div class="nas"><div><b>Birdie</b><span>1 run on a hole</span></div><div><b>Eagle</b><span>2 runs</span></div><div><b>Albatross</b><span>3 or more</span></div></div>'+
+  '<p>No runs is par. A home club that didn\u2019t need its bottom of the 9th gets a gimme (1 run). Extra innings don\u2019t count. All square after 18: the lower total score wins, then the biggest single game, then the higher seed.</p>'+
+  '<p style="font-size:13px;color:#5e6b62">If the box scores can\u2019t be read, a match is scored as a Nassau instead: Front 9 and Back 9 = your better score of the two games, Overall = every run; one point each, 2 points wins.</p>'+
   '<h4>Timing</h4><p>All four games inside the match window'+(D.waveMin?' ('+D.waveMin+' minutes)':'')+'. Games not played count for nothing. Scores post once all four games have aired: no spoilers.</p></div></details>'}
 var PAIRS=[{k:'F1',nine:'Front',a:0,b:0,tee:'A'},{k:'F2',nine:'Front',a:1,b:1,tee:'B'},{k:'K1',nine:'Back',a:0,b:1,tee:'B'},{k:'K2',nine:'Back',a:1,b:0,tee:'A'}];
 function findM(id){return (D.matches||[]).filter(function(m){return m.id===id})[0]}
@@ -1673,6 +1802,13 @@ function muData(m){
     return{nine:p.nine,a:ca,b:cb,teeA:p.tee==='A',st:g?(g.aired?'Played':g.g?'Game found, airing':'Not played yet'):''}});
   var n=m.nas,st=m.w?(m.how==='no-show'?'Walkover':'Final'+(m.how?' ('+m.how+')':'')):m.open?'All four games by':'Tee times when both teams are set';
   return{A:A,B:B,ps:ps,n:n,head:st,when:m.open&&!m.w?t(m.dl):'',w:m.w}}
+function sc18(m){
+  var M=m.mp,A=m.a,B=m.z,i,h='<div class="res18">'+esc(m.w===A.id?A.n:B.n)+' win '+esc(M.res==='AS'?'(all square, on '+(m.how==='to par'?'total score':m.how)+')':M.res)+'</div><div class="wrap18"><table class="c18"><tr><th>Hole</th>';
+  for(i=1;i<=18;i++){h+='<th>'+i+'</th>';if(i===9)h+='<th>Out</th>'}h+='<th>In</th><th>Tot</th></tr>';
+  function cell(v,cl){var k=v==null?'':v>=3?'b3':v===2?'b2':v===1?'b1':'par';return '<td'+(cl?' class="cl"':'')+'><span class="r '+k+'">'+(v==null?'·':v===0?'–':v)+'</span></td>'}
+  function row(T,x,c){var r='<tr><td class="nm">'+esc(T.n.replace(/^Team /,''))+'</td>';for(i=0;i<18;i++){r+=cell(x[i],M.clinch===i+1);if(i===8)r+='<td class="sum">'+tp(c.out)+'</td>'}return r+'<td class="sum">'+tp(c.inn)+'</td><td class="sum">'+tp(c.par)+'</td></tr>'}
+  var ms='<tr class="ms"><td class="nm">Match</td>';for(i=0;i<18;i++){var d=M.run[i];ms+='<td class="'+(d>0?'ua':d<0?'ub':'')+'">'+(d?Math.abs(d)+(d>0?'▲':'▼'):'AS')+'</td>';if(i===8)ms+='<td></td>'}ms+='<td></td><td></td></tr>';
+  return h+row(A,M.a,M.ca)+ms+row(B,M.b,M.cb)+'</table></div><div class="legend">Runs on each hole (your team’s better inning): ◯ birdie (1) · ◎ eagle (2) · ● albatross (3+) · – par · ▲ '+esc(A.n.replace(/^Team /,''))+' up · ▼ '+esc(B.n.replace(/^Team /,''))+' up'+(M.clinch?' · yellow = match decided':'')+'</div>'}
 function openM(id){
   var m=findM(id);if(!canMU(m))return;
   if(location.hash!=='#m='+id)history.replaceState(null,'','#m='+id);
@@ -1685,8 +1821,8 @@ function openM(id){
    '<div class="vs"><div class="team"><h4>'+(A.s?'<span class="seed">'+A.s+'</span>':'')+esc(A.n)+(d.w===A.id?' ⛳':'')+'</h4>'+club(A.clubs[0],'A1')+club(A.clubs[1],'A2')+'</div><div class="mid">vs</div>'+
    '<div class="team r"><h4>'+(d.w===B.id?'⛳ ':'')+esc(B.n)+(B.s?' <span class="seed">'+B.s+'</span>':'')+'</h4>'+club(B.clubs[0],'B1',1)+club(B.clubs[1],'B2',1)+'</div></div>'+
    '<div class="course"><div class="nine"><h5>Front nine</h5>'+d.ps.filter(function(p){return p.nine==='Front'}).map(pair).join('')+'</div><div class="nine"><h5>Back nine</h5>'+d.ps.filter(function(p){return p.nine==='Back'}).map(pair).join('')+'</div></div>'+
-   '<div class="score">'+sc('Front 9',n&&n.f)+sc('Back 9',n&&n.k)+sc('Overall',n&&n.t)+sc('Points',n&&[hf(n.p[0]),hf(n.p[1])],'p')+'</div>'+
-   '<div class="foot"><span>Front 9 &amp; Back 9: better of your two games · Overall: every run · 2 points wins</span><span>'+esc(location.host+location.pathname)+'</span></div></div><div id="shotbox"></div>';
+   (m.mp?sc18(m):'<div class="score">'+sc('Front 9',n&&n.f)+sc('Back 9',n&&n.k)+sc('Overall',n&&n.t)+sc('Points',n&&[hf(n.p[0]),hf(n.p[1])],'p')+'</div>')+
+   '<div class="foot"><span>'+(m.mp?'Each hole: your team’s better inning · more runs wins the hole · birdie 1 run, eagle 2, albatross 3+':'Front 9 &amp; Back 9: better of your two games · Overall: every run · 2 points wins')+'</span><span>'+esc(location.host+location.pathname)+'</span></div></div><div id="shotbox"></div>';
   var ov=document.getElementById('ov');if(!ov){ov=document.createElement('div');ov.id='ov';ov.className='ov';ov.onclick=function(e){if(e.target===ov)closeM()};document.body.appendChild(ov)}
   ov.innerHTML=h;ov.setAttribute('data-id',id)}
 function closeM(){var ov=document.getElementById('ov');if(ov)ov.remove();if(/^#m=/.test(location.hash))history.replaceState(null,'',location.pathname+location.search)}
@@ -1694,7 +1830,7 @@ function rr(x,X,Y,W,H,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+W,Y,X+W,Y+H,r);
 function fit(x,s,w){s=String(s);while(s.length>3&&x.measureText(s).width>w)s=s.slice(0,-2)+'…';return s}
 function shotM(){
   var id=(document.getElementById('ov')||{}).getAttribute?document.getElementById('ov').getAttribute('data-id'):'',m=findM(id);if(!canMU(m))return;
-  var d=muData(m),A=d.A,B=d.B,n=d.n,W=1200,H=760,k=2,c=document.createElement('canvas');c.width=W*k;c.height=H*k;var x=c.getContext('2d');x.scale(k,k);
+  var d=muData(m),A=d.A,B=d.B,n=d.n,W=1200,H=m.mp?880:760,k=2,c=document.createElement('canvas');c.width=W*k;c.height=H*k;var x=c.getContext('2d');x.scale(k,k);
   var SERIF="'Playfair Display', Georgia, serif",SANS='system-ui, -apple-system, Segoe UI, Roboto, sans-serif',MONO="'IBM Plex Mono', monospace";
   x.fillStyle='#1f5a36';x.fillRect(0,0,W,H);for(var i=0;i<W;i+=140){x.fillStyle='rgba(255,255,255,.045)';x.fillRect(i,0,70,H)}
   rr(x,30,30,W-60,H-60,22);x.fillStyle='#fffdf6';x.fill();x.save();rr(x,30,30,W-60,H-60,22);x.clip();
@@ -1719,9 +1855,23 @@ function shotM(){
       x.font='700 11px '+SANS;rr(x,bx,py+42,tw,17,8);x.fillStyle='#c8102e';x.fill();x.fillStyle='#fff';x.textAlign='left';x.fillText(lab,bx+7,py+54);x.textAlign='left'});
     x.restore()});
   x.strokeStyle='#e2d7ba';x.lineWidth=2;x.setLineDash([8,6]);x.beginPath();x.moveTo(60,560);x.lineTo(W-60,560);x.stroke();x.setLineDash([]);
+  if(m.mp){var M=m.mp;x.textAlign='center';x.fillStyle='#0c3322';x.font='italic 700 26px '+SERIF;x.fillText((m.w===A.id?A.n:B.n)+' win '+(M.res==='AS'?'(all square, on '+(m.how==='to par'?'total score':m.how)+')':M.res),W/2,598);
+    var cols=[];for(var q=0;q<18;q++){cols.push(q);if(q===8)cols.push('out')}cols.push('in','tot');
+    var X0=200,CW=(W-60-X0)/cols.length,Y0=618,RH=40;
+    x.fillStyle='#f3ecd7';x.fillRect(60,Y0,W-120,26);x.fillStyle='#5e6b62';x.font='700 12px '+SANS;x.textAlign='left';x.fillText('HOLE',72,Y0+18);x.textAlign='center';
+    cols.forEach(function(cc,ci){x.fillText(cc==='out'?'OUT':cc==='in'?'IN':cc==='tot'?'TOT':String(cc+1),X0+CW*ci+CW/2,Y0+18)});
+    [[A,M.a,M.ca],[B,M.b,M.cb]].forEach(function(T,ti){var y=Y0+26+ti*(RH+18);x.textAlign='left';x.fillStyle='#1d2a22';x.font='700 15px '+SANS;x.fillText(fit(x,T[0].n.replace(/^Team /,''),125),72,y+26);x.textAlign='center';
+      cols.forEach(function(cc,ci){var cx=X0+CW*ci+CW/2,cy=y+20;
+        if(typeof cc==='number'){var v=T[1][cc];if(M.clinch===cc+1){x.fillStyle='#fff3c4';x.fillRect(X0+CW*ci,y,CW,RH)}
+          if(v>=1){x.strokeStyle='#c8102e';x.lineWidth=1.6;if(v>=3){x.fillStyle='#c8102e';x.beginPath();x.arc(cx,cy,13,0,7);x.fill()}else{x.beginPath();x.arc(cx,cy,13,0,7);x.stroke();if(v===2){x.beginPath();x.arc(cx,cy,17,0,7);x.stroke()}}}
+          x.fillStyle=v>=3?'#fff':v===0?'#a7ae9f':'#1d2a22';x.font='700 15px '+MONO;x.fillText(v==null?'·':v===0?'–':String(v),cx,cy+5)}
+        else{var c=T[2],val=cc==='out'?c.out:cc==='in'?c.inn:c.par;x.fillStyle='#f8f3e3';x.fillRect(X0+CW*ci,y,CW,RH);x.fillStyle='#0c3322';x.font='700 15px '+MONO;x.fillText(tp(val),cx,cy+5)}});
+      if(!ti){var my=y+RH+12;cols.forEach(function(cc,ci){if(typeof cc!=='number')return;var dd=M.run[cc];x.fillStyle=dd>0?'#1f5a36':dd<0?'#8a5a00':'#5e6b62';x.font='700 11px '+SANS;x.fillText(dd?Math.abs(dd)+(dd>0?'▲':'▼'):'AS',X0+CW*ci+CW/2,my)})}});
+    x.textAlign='left';x.fillStyle='#5e6b62';x.font='13px '+SANS;x.fillText('◯ birdie (1 run)  ◎ eagle (2)  ● albatross (3+)  – par   ▲ / ▼ who is up',72,Y0+26+2*(RH+18)+14);
+  } else
   [['FRONT 9',n&&n.f],['BACK 9',n&&n.k],['OVERALL',n&&n.t],['POINTS',n&&[hf(n.p[0]),hf(n.p[1])]]].forEach(function(s,si){var cx=60+(W-120)/8*(si*2+1);x.textAlign='center';
     x.fillStyle='#5e6b62';x.font='700 14px '+SANS;x.fillText(s[0],cx,594);x.fillStyle=si===3?'#c8102e':'#1d2a22';x.font='700 34px '+MONO;x.fillText(s[1]?s[1][0]+' · '+s[1][1]:'– · –',cx,636)});
-  x.textAlign='left';x.fillStyle='#f3ecd7';x.fillRect(30,H-80,W-60,50);x.fillStyle='#5e6b62';x.font='15px '+SANS;x.fillText('Front 9 & Back 9: better of your two games · Overall: every run · 2 points wins',60,H-49);
+  x.textAlign='left';x.fillStyle='#f3ecd7';x.fillRect(30,H-80,W-60,50);x.fillStyle='#5e6b62';x.font='15px '+SANS;x.fillText(m.mp?'Each hole: your team’s better inning · more runs wins the hole':'Front 9 & Back 9: better of your two games · Overall: every run · 2 points wins',60,H-49);
   x.textAlign='right';x.fillText(location.host+location.pathname,W-60,H-49);x.textAlign='left';x.restore();
   var url=c.toDataURL('image/png'),a=document.createElement('a');a.href=url;a.download=(m.l||'matchup').replace(/[^A-Za-z0-9]+/g,'-')+'.png';
   try{a.click()}catch(e){}
@@ -1730,7 +1880,7 @@ window.addEventListener('hashchange',function(){var h=/^#m=(.+)$/.exec(location.
 
 document.addEventListener('click',function(e){var el=e.target.closest?e.target.closest('.sc.tap'):null;if(el&&!e.target.closest('a'))openM(el.getAttribute('data-m'))});
 function render(){
-  var h='<a class="home" href="'+HOME+'" target="_top">← 🏆 All tournaments</a><header><div><div class="kick">⛳ Two Man Scramble · Nassau</div><h1>'+esc(D.name||'Scramble')+'</h1><div class="sub">SmallBall · single elimination · two-club teams</div></div><div class="meta">';
+  var h='<a class="home" href="'+HOME+'" target="_top">← 🏆 All tournaments</a><header><div><div class="kick">⛳ Two Man Scramble · Match play</div><h1>'+esc(D.name||'Scramble')+'</h1><div class="sub">SmallBall · single elimination · two-club teams</div></div><div class="meta">';
   if(!D.matches)h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'First tee time <b>'+t(D.start)+'</b>':'')+(D.form?'<br><a class="btn flag" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'');
   else h+=(D.done?'<b>Final</b>':'<b>On the course</b> · '+(D.waveMin||60)+'-minute matches')+'<br>'+(D.seeds||[]).length+' teams'+(D.prizes?'<br>🎁 '+esc(D.prizes):'');
   h+='</div></header>';

@@ -40,9 +40,10 @@ It won't start a new one while a tournament is being played. A tournament that n
 
 **Several at once (v2.1):** one Sheet runs as many tournaments as you like side by side. In 🆕 New tournament, leave the first box blank to run the new one **alongside** the others: it gets its own sign-up form, its own tabs (`Config #2`, `Entrants #2`...) and its own page, while the Roster, History and Log are shared. **🔀 Working on** in the menu picks which tournament settle, undo, draw and the health check act on.
 
-## ⛳ Two Man Scramble (v2.3)
+## ⛳ Two Man Scramble (v2.5)
 Set `FORMAT` to `scramble` (or pick it in 🆕 New tournament). Single elimination between two-club teams:
 - **Partners:** the form gets an optional *Partner* box. Partners who name each other are paired first; everyone else is drawn at random when sign-ups close. An odd one out is the alternate.
 - **A match is four BigLeague games**, every club against both clubs on the other team (front nine: A1 v B1, A2 v B2; back nine: A1 v B2, A2 v B1). Each team tees off once on each nine.
-- **Nassau scoring:** Front 9 and Back 9 = your better score of the two games (best ball); Overall = every run in all four games. One point each, a tie halves it. Still level: the biggest single game, then the higher seed.
-- **Its own golf-course bracket page:** tee sheet, team list and a scorecard for every match.
+- **18 holes of match play** from the box scores: holes 1–9 are the innings of the front-nine games, 10–18 the back nine. Each hole, a team takes its better inning of its two clubs; more runs wins the hole; most holes wins (3 & 2, 1 up). Birdie = 1 run, eagle = 2, albatross = 3+. A home club that didn't need its bottom of the 9th gets a 1-run gimme. All square: lower total, then the biggest single game, then the higher seed.
+- **Box scores need a SmallBall login:** 🏆 Tournament → 🔑 Connect SmallBall box scores (paste your SmallBall cookie; kept in the script's private settings). Without it, or if it expires, matches are scored as a **Nassau** from final scores (Front 9 / Back 9 best ball, Overall total; 2 points wins) and the result post says so.
+- **Its own golf-course bracket page:** tee sheet, team list, scorecards, and a 🔎 matchup card for every match with 📷 Save image.
