@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.28.0
+// @version      1.29.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, plus quick tabs and a one-tap Play button. Read-only: it never plays, trains or saves for you.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -155,13 +155,13 @@ const SBX_MOBILE = true;
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
     ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"],
-    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
+    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["live", "🏆 Live tournament chip: your open tournament match, the deadline and a Start button"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
   ];
   let FEAT = {}; try { FEAT = JSON.parse(localStorage.getItem("sbx-features") || "{}"); } catch (_) {}
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["charge", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const MOBILE_KEEP = ["charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
   const on = (f) => (MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
@@ -2946,6 +2946,122 @@ const SBX_MOBILE = true;
     if (sw) sw.onclick = () => { sel.value = CHARGE.as; sel.dispatchEvent(new Event("change", { bubbles: true })); setTimeout(() => { if (location.hash !== "#/team/" + CHARGE.vs) location.hash = "#/team/" + CHARGE.vs; mountCharge(); }, 400); };
     el.querySelector("[data-x]").onclick = () => { CHARGE.closed = true; el.remove(); };
   }
+  // 🏆 Live tournament chip. Every tournament run by the SmallBall tournament script publishes its bracket on
+  // GitHub, plus a list of all tournaments. The kit reads those public files (no login, nothing is sent) and, when
+  // one of your clubs has a match open, shows who you play, the deadline and a Start button (a 🥊 challenge link).
+  // Results only appear there once Discord has posted them, so it never spoils a game still on the air.
+  const LIVE = { at: 0, busy: false, items: [], key: "" };
+  const LIVE_REPO = "slipnsliders/smallball-tools";
+  const LIVE_PAIRS = [{ nine: "Front", a: 0, b: 0, tee: "A" }, { nine: "Front", a: 1, b: 1, tee: "B" }, { nine: "Back", a: 0, b: 1, tee: "B" }, { nine: "Back", a: 1, b: 0, tee: "A" }];
+  async function liveGet(path) {
+    // raw.githubusercontent first (no rate limit; a few minutes behind at most), the GitHub API as a backup
+    const urls = ["https://raw.githubusercontent.com/" + LIVE_REPO + "/main/" + path + "?t=" + Math.floor(Date.now() / 60000), "https://api.github.com/repos/" + LIVE_REPO + "/contents/" + path + "?ref=main"];
+    for (let i = 0; i < urls.length; i++) {
+      try { const r = await fetch(urls[i], { cache: "no-store", credentials: "omit", headers: i ? { Accept: "application/vnd.github.raw+json" } : {} }); if (r.ok) return await r.json(); } catch (_) {}
+    }
+    return null;
+  }
+  const liveWhen = (ms) => (ms ? new Date(ms).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "");
+  const liveStart = (me, opp) => "https://play.smallball.com/?sbx_as=" + me + "#/team/" + opp;
+  function liveItems(D, t, mine) {
+    const out = [], url = t.url || "", scr = D.fmt === "scramble", has = (id) => mine.has(String(id));
+    const icon = scr ? "⛳" : "🏆";
+    if (!D.matches) {   // sign-ups still open
+      (D.entrants || []).filter((e) => has(e.id)).forEach((e) => out.push({ k: t.slug + ":su:" + e.id, scr, title: icon + " " + D.name, lines: [{ t: "📝 <b>" + esc(e.n) + "</b> is signed up" + (D.start ? " · first match " + esc(liveWhen(D.start)) : "") }], url }));
+      return out;
+    }
+    if (D.done) {
+      const c = D.champ; const won = c && (has(c.id) || (c.clubs || []).some((x) => has(x.id)));
+      if (won) out.push({ k: t.slug + ":champ", scr, title: "👑 " + D.name, lines: [{ t: "You won it! 🎉" }], url });
+      return out;
+    }
+    for (const m of D.matches) {
+      if (m.w || m.v || m.bye || !m.a || !m.z) {
+        // through to a match whose opponent isn't known yet
+        if (!m.w && !m.v && (m.a || m.z) && !(m.a && m.z)) {
+          const x = m.a || m.z, me = scr ? (x.clubs || []).find((c) => has(c.id)) : has(x.id) ? x : null;
+          if (me) out.push({ k: t.slug + ":wait:" + m.id, scr, title: icon + " " + D.name + " · " + m.l, lines: [{ t: "⏳ <b>" + esc(me.n) + "</b> is through. This match opens the moment your opponent is known." }], url: url + (scr ? "#m=" + m.id : "") });
+        }
+        continue;
+      }
+      if (!m.open) continue;
+      const dl = m.dl ? " · play by <b>" + esc(liveWhen(m.dl)) + "</b>" : "";
+      if (scr) {
+        const A = m.a, B = m.z, side = (A.clubs || []).some((c) => has(c.id)) ? "A" : (B.clubs || []).some((c) => has(c.id)) ? "B" : "";
+        if (!side) continue;
+        const lines = [];
+        LIVE_PAIRS.forEach((p, i) => {
+          const ca = A.clubs[p.a], cb = B.clubs[p.b], me = side === "A" ? ca : cb, opp = side === "A" ? cb : ca;
+          if (!has(me.id)) return;
+          const g = (m.games || [])[i] || {}, iTee = p.tee === side;
+          const st = g.aired ? "✓ played" : g.g ? "📡 found, airing" : iTee ? "you tee off" : "they tee off";
+          lines.push({ t: p.nine + ": <b>" + esc(me.n) + "</b> vs " + esc(opp.n) + " <code>" + esc(opp.id) + "</code> · " + st, go: !g.g && iTee ? liveStart(me.id, opp.id) : "" });
+        });
+        out.push({ k: t.slug + ":" + m.id, scr, title: "⛳ " + D.name + " · " + m.l, sub: "Team " + esc((side === "A" ? A : B).n.replace(/^Team /, "")) + " vs " + esc((side === "A" ? B : A).n) + dl, lines, url: url + "#m=" + m.id });
+      } else {
+        const me = has(m.a.id) ? m.a : has(m.z.id) ? m.z : null; if (!me) continue;
+        const opp = me === m.a ? m.z : m.a, starts = (me.s || 99) > (opp.s || 99);
+        const line = m.live || m.g ? { t: "📡 Game found. The result posts once it has aired." }
+          : starts ? { t: "🥊 You <b>start the game</b> (BigLeague, not Exhibition)", go: liveStart(me.id, opp.id) }
+          : { t: "🛡️ " + esc(opp.n) + " starts the game. Be ready to play." };
+        out.push({ k: t.slug + ":" + m.id, scr, title: "🏆 " + D.name + " · " + m.l, sub: "<b>" + esc(me.n) + "</b> vs " + esc(opp.n) + " <code>" + esc(opp.id) + "</code>" + dl, lines: [line], url });
+      }
+    }
+    return out;
+  }
+  async function liveRefresh(force) {
+    if (LIVE.busy || (document.hidden && !force) || !on("live")) return;
+    const mine = ownIds(); if (!mine.size) return;
+    LIVE.busy = true;
+    try {
+      const idx = await liveGet("docs/tournaments/index.json"), list = (idx && idx.list) || [], items = [];
+      for (const t of list) {
+        if (t.status === "done" && !(t.finished && Date.now() - t.finished < 864e5)) continue;
+        const m = /github\.io\/[^/]+\/(.*)$/.exec(t.url || ""); if (!m) continue;
+        const D = await liveGet("docs/" + m[1].replace(/\/?$/, "/") + "bracket.json");
+        if (D && D.name) { try { items.push(...liveItems(D, t, mine)); } catch (_) {} }
+      }
+      LIVE.items = items; LIVE.at = Date.now(); mountLive();
+    } finally { LIVE.busy = false; }
+  }
+  const LIVE_HIDE_KEY = "sbx-live-hidden";
+  const liveHidden = () => { try { return JSON.parse(sessionStorage.getItem(LIVE_HIDE_KEY) || "{}"); } catch (_) { return {}; } };
+  function mountLive() {
+    let el = document.getElementById("sbx-live");
+    const hidden = liveHidden(), items = LIVE.items.filter((x) => hidden[x.k] !== JSON.stringify(x.lines));
+    const key = JSON.stringify(items) + (el && el.dataset.min);
+    if (!items.length) { if (el) el.remove(); return; }
+    if (el && el.dataset.key === key) return;
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-live";
+      el.style.cssText = "position:fixed;left:12px;bottom:" + (MOBILE ? 12 : 64) + "px;z-index:2147482990;width:min(380px,calc(100vw - 24px));display:flex;flex-direction:column;gap:8px;font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
+      document.body.appendChild(el);
+    }
+    const min = el.dataset.min === "1";
+    el.dataset.key = JSON.stringify(items) + el.dataset.min;
+    if (min) {
+      el.innerHTML = '<button data-open style="align-self:flex-start;border:0;border-radius:999px;padding:8px 14px;font:700 14px system-ui,sans-serif;background:#0f5132;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer">🏆 ' + items.length + " tournament " + (items.length === 1 ? "match" : "matches") + "</button>";
+      el.querySelector("[data-open]").onclick = () => { el.dataset.min = ""; mountLive(); };
+      return;
+    }
+    el.innerHTML = items.map((x, i) => {
+      const bg = x.scr ? "linear-gradient(180deg,#1f5a36,#0c3322)" : "linear-gradient(180deg,#1b2b52,#0e1b33)";
+      const ln = x.lines.map((l) => '<div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="flex:1;min-width:180px">' + l.t + "</span>" +
+        (l.go ? '<a href="' + esc(l.go) + '" style="background:#facc15;color:#1b1300;text-decoration:none;font-weight:800;border-radius:999px;padding:5px 12px;white-space:nowrap">▶ Start</a>' : "") + "</div>").join("");
+      return '<div style="background:' + bg + ';color:#f4efe2;border-radius:14px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12)">' +
+        '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:13px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
+        '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
+        (i === 0 ? '<button data-min title="Shrink" style="background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:15px">▾</button>' : "") +
+        '<button data-x="' + i + '" title="Hide this one" style="background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:16px">×</button></div>' +
+        (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
+    }).join("");
+    el.querySelectorAll("[data-x]").forEach((b) => { b.onclick = () => { const x = items[Number(b.dataset.x)], h = liveHidden(); h[x.k] = JSON.stringify(x.lines); try { sessionStorage.setItem(LIVE_HIDE_KEY, JSON.stringify(h)); } catch (_) {} mountLive(); }; });
+    const mn = el.querySelector("[data-min]"); if (mn) mn.onclick = () => { el.dataset.min = "1"; mountLive(); };
+    el.querySelectorAll("code").forEach((c) => { c.style.cssText = "font:700 12px ui-monospace,monospace;background:rgba(250,204,21,.18);color:#fde68a;border-radius:5px;padding:1px 5px"; });
+  }
+  setTimeout(() => liveRefresh(true), 3000);
+  setInterval(() => liveRefresh(false), 180000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - LIVE.at > 60000) liveRefresh(false); });
   // Keep everything mounted as the page re-renders.
   let busy = false;
   const tick = () => {
@@ -2964,6 +3080,7 @@ const SBX_MOBILE = true;
       if (on("notes")) safe(mountNotes);
       safe(paintTitle);
       if (on("charge")) safe(mountCharge);
+      if (on("live")) safe(mountLive);
     } finally { busy = false; }
   };
   new MutationObserver(tick).observe(document.body, { childList: true, subtree: true });
