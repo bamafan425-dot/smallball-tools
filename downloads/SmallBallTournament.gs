@@ -903,6 +903,53 @@ h1{margin:0;font-size:46px;line-height:.95}h1 small{display:block;font-size:17px
 .rcard ul{margin:0;padding-left:18px}.rcard li{margin:3px 0;font-size:14px}.rcard b{color:var(--ink)}
 .when{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px}.when span{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.4);border-radius:999px;padding:4px 12px;font-size:13px}
 footer{color:var(--muted);font-size:12px;padding:14px 22px 26px}
+/* ── Ballpark look: textures, scoreboard scores, colour-coded brackets ── */
+body{background-color:#0b1730;background-image:
+  radial-gradient(1200px 600px at 50% -10%,rgba(255,209,102,.10),transparent 60%),
+  radial-gradient(900px 500px at 110% 110%,rgba(200,16,46,.14),transparent 60%),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 2px,transparent 2px 44px),
+  repeating-linear-gradient(135deg,rgba(255,255,255,.022) 0 1px,transparent 1px 12px);background-attachment:fixed}
+header{margin:14px 16px 6px;padding:16px 20px;border-radius:16px;background:linear-gradient(180deg,#13254a,#0d1b38);border:1px solid #2b4170;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);position:relative;overflow:hidden}
+header::before{content:"";position:absolute;inset:6px;border-radius:12px;pointer-events:none;border:2px dashed rgba(200,16,46,.55)}
+header::after{content:"⚾";position:absolute;right:-18px;bottom:-34px;font-size:120px;opacity:.06;transform:rotate(-18deg)}
+h1{font-size:52px;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.sec h2{display:inline-block;font-size:30px;padding-bottom:2px;border-bottom:3px solid var(--red)}
+.sec.wb,.sec.lb,.sec.gf{margin:10px 16px;padding:12px 16px 16px;border-radius:16px;border:1px solid #2b4170;background:linear-gradient(180deg,rgba(21,39,74,.85),rgba(11,23,48,.85))}
+.sec.wb{box-shadow:inset 4px 0 0 var(--gold)}.sec.lb{box-shadow:inset 4px 0 0 var(--red)}
+.sec.gf{box-shadow:inset 4px 0 0 var(--gold),0 0 40px rgba(255,209,102,.12);background:linear-gradient(180deg,rgba(60,44,10,.55),rgba(11,23,48,.9))}
+.sec.lb h2{border-bottom-color:var(--gold)}
+.cols{gap:28px;padding:4px 2px 10px}
+.col{min-width:238px;gap:10px;justify-content:flex-start}.ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:14px}
+.col h3{align-self:flex-start;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.35);color:var(--gold);border-radius:999px;padding:3px 10px;font-size:11px}
+.m{position:relative;overflow:visible;border-radius:12px;border:1px solid #31497a;background:
+  linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0) 40%),
+  repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px),#142649;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.col:not(:last-child) .m::after{content:"";position:absolute;right:-29px;top:50%;width:28px;border-top:2px solid rgba(159,176,207,.35)}
+.col:not(:first-child) .m::before{content:"";position:absolute;left:-29px;top:50%;width:14px;border-top:2px solid rgba(159,176,207,.35)}
+.m .lab{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px 4px;border-bottom:1px solid rgba(255,255,255,.06);border-radius:12px 12px 0 0;background:rgba(0,0,0,.18)}
+.m .s{grid-template-columns:26px 1fr 34px;padding:7px 10px;border-top:1px solid rgba(255,255,255,.06)}
+.m .s:nth-child(odd){background:rgba(255,255,255,.02)}
+.m .s .sd{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#0b1730;border:1px solid #3a5488;color:var(--muted);font-size:11px;text-align:center}
+.m .s .n{white-space:normal;overflow:visible;font-size:15px;line-height:1.15}
+.m .s .n small{display:block;margin:2px 0 0;font-size:11.5px}
+.m .s .sc{display:inline-grid;place-items:center;min-width:30px;height:26px;border-radius:6px;background:#06101f;border:1px solid #233a66;color:#ffe9a8;font:600 17px "Bebas Neue",Oswald,sans-serif;letter-spacing:.04em;box-shadow:inset 0 1px 6px rgba(0,0,0,.6)}
+.m .s .sc:empty{background:transparent;border-color:transparent;box-shadow:none}
+.m .s.w{background:linear-gradient(90deg,rgba(52,211,153,.22),rgba(52,211,153,.04));box-shadow:inset 3px 0 0 var(--green)}
+.m .s.w .sd{border-color:var(--green);color:var(--green)}.m .s.w .sc{color:#b9ffe0;border-color:#1e6b52}
+.m .s.l .n{opacity:.45;text-decoration:none}.m .s.l .sc{opacity:.6}
+.m.open{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 0 18px rgba(200,16,46,.35)}
+.m.open .lab{background:linear-gradient(90deg,rgba(200,16,46,.55),rgba(200,16,46,.15));color:#fff}
+.m.live{border-color:var(--gold);animation:live 2s ease-in-out infinite}
+.m.live .lab{background:linear-gradient(90deg,rgba(255,209,102,.45),rgba(255,209,102,.1));color:#fff}
+@keyframes live{0%,100%{box-shadow:0 0 0 1px var(--gold),0 0 8px rgba(255,209,102,.25)}50%{box-shadow:0 0 0 1px var(--gold),0 0 22px rgba(255,209,102,.55)}}
+.m.bye{opacity:.35;filter:saturate(.4)}
+.m .ft{font-size:11.5px;padding:6px 10px 8px;border-top:1px dashed rgba(255,209,102,.25)}
+.ids a{border-radius:12px;background:linear-gradient(180deg,#183058,#122444);box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.ids b{font:600 20px "Bebas Neue",Oswald,sans-serif;background:#06101f;border:1px solid #233a66;border-radius:6px;padding:0 7px;color:#ffe9a8}
+.pv{background:linear-gradient(90deg,rgba(255,209,102,.10),rgba(21,39,74,.6));border-radius:14px}
+.rules{background:linear-gradient(180deg,rgba(21,39,74,.9),rgba(11,23,48,.9));border-radius:16px}
+.rcard{background:rgba(6,16,31,.45);border-radius:12px}
+@media(max-width:640px){h1{font-size:40px}.col{min-width:216px}.sec.wb,.sec.lb,.sec.gf{margin:8px 8px;padding:10px}}
 </style></head><body><div id="app"></div>
 <script>
 var D=__DATA__;
@@ -919,11 +966,11 @@ function box(m){
   var st=m.v?'':m.bye?'':m.w?(m.how==='no-show'?'No-show: higher seed on':m.how==='organizer'?'Settled by the organizer':m.how==='tie'?'Tie: higher seed on':''):m.live?'📡 Game found · result once it airs':m.flag?'Waiting on the organizer':m.open?'🔴 Open · play by '+t(m.dl):'';
   if(m.open&&!m.live&&!m.w&&m.a&&m.z&&m.a.s&&m.z.s){var cc=m.a.s>m.z.s?m.a:m.z,dd=cc===m.a?m.z:m.a;st+='<br>🥊 '+esc(cc.n)+' starts it: <a class="cid" href="https://play.smallball.com/?sbx_as='+esc(cc.id)+'#/team/'+esc(dd.id)+'" target="_blank">▶ Play vs ID '+esc(dd.id)+'</a>';}
   var ft=m.g?(st?st+' · ':'')+'<a href="https://play.smallball.com/training?watch='+esc(m.g)+'" target="_blank">📺 game '+esc(m.g)+'</a>':st;
-  return '<div class="m'+(m.live?' live':m.open?' open':'')+(m.byeA||m.byeZ?' bye':'')+'"><div class="lab"><span>'+esc(m.l||m.id)+'</span></div>'+side(m.a,m.byeA,m,true)+side(m.z,m.byeZ,m,false)+(ft?'<div class="ft">'+ft+'</div>':'')+'</div>';
+  return '<div class="m'+(m.live?' live':m.open?' open':'')+(m.byeA||m.byeZ?' bye':'')+'"><div class="lab"><span>'+esc(((m.l||m.id).split(' · ')[1])||m.l||m.id)+'</span></div>'+side(m.a,m.byeA,m,true)+side(m.z,m.byeZ,m,false)+(ft?'<div class="ft">'+ft+'</div>':'')+'</div>';
 }
 function cols(list,name){
   var rs={};list.forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});
-  return '<div class="cols">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){var ms=rs[r].filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))});if(!ms.length)return'';return '<div class="col"><h3>'+esc(name(r,ms))+'</h3>'+ms.map(box).join('')+'</div>'}).join('')+'</div>';
+  return '<div class="cols">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){var ms=rs[r].filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))});if(!ms.length)return'';return '<div class="col"><h3>'+esc(name(r,ms))+'</h3><div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
 }
 function rules(){
   var w=D.waveMin||60,open=!D.matches;
@@ -953,18 +1000,18 @@ function render(){
     h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we\u2019re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who\u2019s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
     h+=rules();
     var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
-    h+='<div class="sec"><h2 class="bb">'+(P.fmt==='double'?'Winners bracket':'Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(PL.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(PF.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
+    h+='<div class="sec wb"><h2 class="bb">'+(P.fmt==='double'?'🏆 Winners bracket':'🏆 Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PF.length)h+='<div class="sec gf"><h2 class="bb">👑 Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
   if(!D.matches){
     // (the sign-up list now sits at the top, with club IDs)
   } else {
     var W=D.matches.filter(function(m){return m.b==='W'}),L=D.matches.filter(function(m){return m.b==='L'}),F=D.matches.filter(function(m){return m.b==='F'&&!m.v});
     var wr=Math.max.apply(null,W.map(function(m){return m.r})),lr=Math.max.apply(null,L.map(function(m){return m.r}).concat([0]));
-    h+='<div class="sec"><h2 class="bb">'+(D.fmt==='double'?'Winners bracket':'Bracket')+'</h2>'+cols(W,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(L.length)h+='<div class="sec"><h2 class="bb">Losers bracket</h2>'+cols(L,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(F.length)h+='<div class="sec"><h2 class="bb">Grand final</h2><div class="cols">'+F.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
+    h+='<div class="sec wb"><h2 class="bb">'+(D.fmt==='double'?'🏆 Winners bracket':'🏆 Bracket')+'</h2>'+cols(W,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(L.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2>'+cols(L,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(F.length)h+='<div class="sec gf"><h2 class="bb">👑 Grand final</h2><div class="cols">'+F.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
   if(D.matches)h+=rules();
   h+='<footer>Updated '+t(D.updated||Date.now())+' · refreshes on its own · results show once each game has aired (no spoilers) · read-only on SmallBall</footer>';
