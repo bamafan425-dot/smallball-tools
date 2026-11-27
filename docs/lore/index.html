@@ -73,6 +73,21 @@ dl.gl dt{font-weight:700;color:var(--gold)}dl.gl dd{margin:0;color:var(--muted)}
 .jump{display:flex;flex-wrap:wrap;gap:6px 18px;font-weight:600;font-size:15px;margin-top:18px}
 .jump a{color:var(--muted);text-decoration:none}.jump a:hover{color:var(--gold)}
 html{scroll-padding-top:20px}
+.saga .plaque .yr{font-size:84px}
+.yt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+.ytcard{display:flex;flex-direction:column;gap:8px;text-decoration:none;background:#f4efe1;color:#1b1f2a;border-radius:16px;padding:20px 22px;border-left:10px solid var(--red)}
+.ytcard .kick{font:700 14px Barlow,sans-serif;color:var(--red)}
+.ytcard b{font:800 34px/1 "Barlow Condensed",sans-serif;text-transform:uppercase}
+.ytcard .go{font-weight:700;margin-top:4px}
+.ytcard:hover{box-shadow:0 0 0 3px var(--gold)}
+ol.steps2{margin:0;padding-left:22px;color:var(--muted)}ol.steps2 li{margin-bottom:10px}ol.steps2 b{color:var(--ink)}ol.steps2 a{color:var(--ink)}
+.prompt{margin-top:22px;background:#0b1120;border:1px solid var(--edge);border-radius:14px;overflow:hidden}
+.prompt .ph{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--edge)}
+.prompt pre{margin:0;padding:16px;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.55 ui-monospace,Menlo,Consolas,monospace;color:#d7deee;max-height:420px;overflow:auto}
+.note2{color:var(--muted);font-size:15px;margin:12px 0 0}
+.pc .tl{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin-top:4px;border-radius:999px;background:var(--c,#2f6bf0);color:#fff;font:800 15px Barlow,sans-serif;text-decoration:none}
+.pc .tl:hover{filter:brightness(1.1)}
+@media(max-width:800px){.yt{grid-template-columns:1fr}}
 @media(max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.submit{grid-template-columns:1fr}.rail::before{left:66px}.rail li{grid-template-columns:54px minmax(0,1fr);gap:30px}.rail li::after{left:60px}.rail b{font-size:16px}dl.gl{grid-template-columns:1fr}dl.gl dd{margin-bottom:8px}}
 @media(prefers-reduced-motion:reduce){.plaque{transition:none}}
 </style></head>
@@ -90,17 +105,68 @@ html{scroll-padding-top:20px}
 <div><b>483</b><span>seasons before the lights went out in 2019</span></div>
 <div><b>242,191</b><span>clubs back for Season 484, Nov 2026</span></div>
 </div>
-<div class="jump"><a href="#storylines">Storylines</a><a href="#characters">Characters</a><a href="#timeline">Timeline</a><a href="#jokes">Running jokes</a><a href="#parks">Ballparks</a><a href="#slang">Slang</a><a href="#submit">Add lore</a></div>
+<div class="jump"><a href="#storylines">Storylines</a><a href="#your-timeline">Your timeline</a><a href="#characters">Characters</a><a href="#timeline">Timeline</a><a href="#jokes">Running jokes</a><a href="#parks">Ballparks</a><a href="#slang">Slang</a><a href="#submit">Add lore</a></div>
 </section>
 
 <section class="sec" id="storylines"><h2>Storylines</h2>
 <p class="sub">The big chapters, told from the original logs and threads.</p>
-<div class="sline"><h3>The Commish Saga</h3><span>2006–2007 · the creator vanishes, the forum hunts, he comes back</span></div>
+<div class="sline"><h3>The Commish Saga</h3><span>2006–2007 · the creator vanishes, the forum hunts, the admin resigns, and he comes back</span></div>
+<div class="ex saga">
+<a class="plaque" href="rumblings/" style="--pc:#f59e0b"><span class="yr">1</span><span class="kick">Part 1 · Feb–Aug 2006</span><h4>Where's Commish? The Rumblings</h4><p>Missing 700 teams, a lawyer threat, the Protest Petition, a full mailbox and a mystery message in the trainer.</p><span class="go">Read Part 1 →</span></a>
+<a class="plaque" href="search-for-commish/"><span class="yr">2</span><span class="kick">Part 2 · Aug–Oct 2006</span><h4>The Search for Commish</h4><p>A 287-post manhunt: busy signals, missing posters, a ghost on Who's Online and the Great Ultimate Frisbee War.</p><span class="go">Open the case file →</span></a>
+<a class="plaque" href="the-farewell/"><span class="yr">3</span><span class="kick">Part 3 · Sep–Dec 2006</span><h4>The Farewell</h4><p>Greek Wizard's open letter and resignation, 189 goodbyes, RIP OSBC, and the last post on the old forums.</p><span class="go">Read Part 3 →</span></a>
+<a class="plaque red" href="commish-returns/"><span class="yr">4</span><span class="kick">Part 4 · Aug 16, 2007</span><h4>The Commish Returns</h4><p>He walks into chat. Record crowd, a live Q&amp;A, and jt banned at the worst moment. The full transcript.</p><span class="go">Read the transcript →</span></a>
+</div>
+<div class="sline" style="margin-top:30px"><h3>More storylines</h3><span>the golden age, the dynasties and the weird stuff</span></div>
 <div class="ex">
-<a class="plaque" href="search-for-commish/"><span class="yr">2006</span><span class="kick">Part 1 · Forum thread</span><h4>The Search for Commish</h4><p>A 287-post manhunt: busy signals, missing posters, a ghost on Who's Online and the Great Ultimate Frisbee War.</p><span class="go">Open the case file →</span></a>
-<a class="plaque red" href="commish-returns/"><span class="yr">2007</span><span class="kick">Part 2 · Chat log</span><h4>The Commish Returns</h4><p>A year and six days later he walks into chat. Record crowd, a live Q&amp;A, and jt banned at the worst moment.</p><span class="go">Read the transcript →</span></a>
-<a class="plaque open" href="#submit"><span class="kick">Next chapter</span><h4>Your storyline here</h4><p>First League dynasties, Hammer Wars, the Wildcat PL Push, the night the forums went down on Fat Tuesday. Got the receipts?</p><span class="go">Add lore →</span></a>
+<a class="plaque" href="season-100/"><span class="yr">100</span><span class="kick">Aug–Dec 2004</span><h4>Season 100</h4><p>Commish's code-cracking puzzles, a free DT for everyone, the Season 100 badge, Centennial Park and a Christmas poem.</p><span class="go">Read it →</span></a>
+<a class="plaque" href="champions-and-clans/"><span class="yr">PL1</span><span class="kick">2004–2006</span><h4>Champions &amp; Clans</h4><p>DAS's dynasty, the 10× badge, 2cool winning two sports at once, clan wars and XsT's tiebreaker title.</p><span class="go">Read it →</span></a>
+<a class="plaque" href="strange-smallball/"><span class="yr">?!</span><span class="kick">2004–2006</span><h4>Strange SmallBall</h4><p>Frog racing leagues, a whispering trainer, SmallBall wills and two DTs open at once.</p><span class="go">Read it →</span></a>
+<a class="plaque open" href="#submit"><span class="kick">Next chapter</span><h4>Your storyline here</h4><p>Hammer Wars, the Wildcat PL Push, the night the forums went down on Fat Tuesday. Got the receipts?</p><span class="go">Add lore →</span></a>
 </div></section>
+
+<section class="sec" id="your-timeline"><h2>Your SmallBall timeline</h2>
+<p class="sub">Everyone who played has a story. Slip'N'Sliders went first. Build yours, send it in, and it gets its own page linked from your character card.</p>
+<div class="yt">
+<a class="ytcard" href="people/slipnsliders/"><span class="kick">Personal timeline · 2003–2026</span><b>Slip'N'Sliders</b><span>Chat regular, banner maker, tournament host, retired for baseball season, started the Search for Commish, came back to build the ToolKits.</span><span class="go">Read his timeline →</span></a>
+<div class="ytsteps">
+<ol class="steps2">
+<li><b>Copy the prompt below</b> and paste it into Claude (claude.ai). Put your old forum name where it says to.</li>
+<li><b>Add what you remember</b>: clubs and team IDs, clans, chat rooms, titles, tournaments, nicknames.</li>
+<li><b>Check what Claude makes.</b> Fix anything wrong and cut anything you don't want public.</li>
+<li><b>Send it in</b> with the <a href="https://github.com/slipnsliders/smallball-tools/issues/new?template=lore.yml">lore form</a> (pick "Personal timeline") or DM it to slipnsliders on <a href="https://discord.gg/DH6KxXHgR">Discord</a>.</li>
+</ol>
+</div></div>
+<div class="prompt"><div class="ph"><b>The timeline prompt</b><button class="chip" id="copyp" type="button">Copy prompt</button></div>
+<pre id="ptext">I played SmallBall Baseball back in the day as [YOUR FORUM NAME]. Help me build my personal timeline for the SmallBall Lore Vault.
+
+My old forum posts are here:
+https://www.archives.sbforums.org/phpBB2/search.php?search_author=[YOUR FORUM NAME]
+(If you can't open that page, tell me and I'll paste my posts in.)
+
+What else I remember: [clubs and team IDs, clans, chat rooms, titles, tournaments I ran, nicknames, favorite moments]
+
+Please:
+1. Pick the 10 to 20 best moments: firsts, titles, tournaments, clans, big threads, funny moments, comebacks.
+2. Use only what's in my posts, the threads I was in, and what I tell you. Don't make anything up. If a date is a guess, say so.
+3. Keep quotes short (under 15 words) and say who said them.
+4. Leave out real names, emails, phone numbers, addresses, birthdays, and anything about family, health or school.
+5. Give me a short readable version first, then the same thing as JSON in exactly this shape:
+
+{
+  "title": "your forum name",
+  "titleAccent": "your nicknames",
+  "dates": "years you played",
+  "dek": "two sentences that sum up your SmallBall life",
+  "card": {"num": "main club ID", "name": "main club name", "line": "forum ID, titles, other clubs"},
+  "stats": [["number", "what it counts"]],
+  "chapters": [
+    {"date": "Mon D, YYYY", "title": "short headline", "text": "what happened, 1 to 3 sentences", "quotes": [["short quote", "who said it"]], "thread": 12345}
+  ]
+}
+("thread" is the t= number from the archive link, if there is one.)</pre></div>
+<p class="note2">No old forum account? That's fine. Tell Claude what you remember and it'll build the timeline from that.</p>
+</section>
 
 <section class="sec" id="characters"><h2>Characters of SmallBall</h2>
 <p class="sub">The people, clubs and mascots who keep showing up in the stories. The roster grows as new lore comes in.</p>
@@ -123,8 +189,8 @@ html{scroll-padding-top:20px}
 <li><b>2002</b><span><em>The boom.</em> 120,439 sign-ups and owners in 30+ countries. The Deluxe Trainer arrives, the Eighth League is added, and the 900 Club sells clubs #900–999. The forums open in October.</span></li>
 <li><b>2003</b><span>69,420 clubs are born, the biggest crop ever. Homerun Park opens.</span></li>
 <li><b>2004</b><span>Letterbox Park is retired. On Fat Tuesday the forums go down and owners write poetry about it.</span></li>
-<li><b>Season 100</b><span>Centennial Park opens as the commemorative stadium.</span></li>
-<li><b>2006</b><span>Commish goes quiet. Slip'N'Sliders opens <a href="search-for-commish/">The Search for Commish</a> (Aug 10). The official chat closes in October, and the original forums close for good on New Year's Eve.</span></li>
+<li><b>Fall 2004</b><span><a href="season-100/">Season 100</a>: a free DT for everyone, the Season 100 badge, and Centennial Park.</span></li>
+<li><b>2006</b><span><a href="rumblings/">Commish goes quiet</a>. Slip'N'Sliders opens <a href="search-for-commish/">The Search for Commish</a> (Aug 10). Greek Wizard resigns, the official chat closes in October, and the original forums close for good on New Year's Eve (<a href="the-farewell/">The Farewell</a>).</span></li>
 <li><b>Aug 2007</b><span><a href="commish-returns/">The Commish Returns</a> (Aug 16), with a record 39 people in chat.</span></li>
 <li><b>2009</b><span>Old players drift back to the forums, crediting Commish being back and active.</span></li>
 <li><b>2019</b><span>Season 483 ends that summer and the lights go out.</span></li>
@@ -194,6 +260,7 @@ html{scroll-padding-top:20px}
 <div>
 <h3>What we're looking for</h3>
 <ul class="wants">
+<li><b>Personal timelines</b>: <a href="#your-timeline" style="color:var(--ink)">build yours</a> and send it in.</li>
 <li><b>Characters</b>: legends, villains, mascots. Who belongs on the wall?</li>
 <li><b>Chat logs</b> from the old chat rooms, saved or screenshotted.</li>
 <li><b>Forum threads</b>: feuds, records, legendary trades, Hammer Wars.</li>
@@ -219,6 +286,7 @@ function card(x){
   const b=el('div','hd');b.append(el('b',null,x.name));if(x.aka)b.append(el('i',null,x.aka));b.append(el('span','tag',LABEL[x.type]||x.type));a.append(b);
   const body=el('div','body');if(x.era)body.append(el('span','era',x.era));body.append(el('p',null,x.bio));
   if(x.quote)body.append(el('q',null,x.quote));
+  if(x.timeline){const t=el('a','tl','📜 Personal timeline');t.href=x.timeline;body.append(t)}
   if(x.links&&x.links.length){const l=el('div','links');x.links.forEach(([t,h])=>{const k=el('a',null,t);k.href=h;l.append(k)});body.append(l)}
   a.append(body);return a}
 function render(){
@@ -230,7 +298,8 @@ function render(){
   roster.append(add)}
 document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{f=c.dataset.f;document.querySelectorAll('.chip').forEach(o=>o.setAttribute('aria-pressed',o===c));render()}));
 cq.addEventListener('input',render);
-fetch('characters.json').then(r=>r.json()).then(d=>{all=d;render()}).catch(()=>{roster.replaceChildren(el('p','empty','The roster didn\'t load. Refresh to try again.'))});
+const cp=document.getElementById('copyp');if(cp)cp.addEventListener('click',()=>{const t=document.getElementById('ptext').textContent;const done=()=>{cp.textContent='Copied!';setTimeout(()=>cp.textContent='Copy prompt',1800)};if(navigator.clipboard)navigator.clipboard.writeText(t).then(done).catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById('ptext'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);cp.textContent='Selected, press Ctrl+C'});else{const r=document.createRange();r.selectNodeContents(document.getElementById('ptext'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r)}});
+fetch('characters.json').then(r=>r.json()).then(d=>{all=d;render();if(/^#c-/.test(location.hash)){const t=document.getElementById(location.hash.slice(1));if(t){t.scrollIntoView({block:'center'});t.style.boxShadow='0 0 0 4px var(--gold)'}}}).catch(()=>{roster.replaceChildren(el('p','empty','The roster didn\'t load. Refresh to try again.'))});
 }
 </script>
 </body></html>
