@@ -1622,7 +1622,11 @@ const SBX_TABLET = true;
     const go = () => {
       const lu = document.getElementById("t-lineup"), onIt = location.hash === want;
       const tgt = onIt && (document.getElementById("sbx-build") || lu);
-      if (tgt) { tgt.scrollIntoView({ behavior: "smooth", block: "start" }); tgt.style.transition = "box-shadow .4s"; tgt.style.boxShadow = "0 0 0 3px #facc15"; setTimeout(() => { tgt.style.boxShadow = ""; }, 1600); return; }
+      if (tgt) {
+        // The page keeps filling in for a moment after it opens, so aim again until the editor stays near the top.
+        const aim = (k) => { const t = document.getElementById("sbx-build") || document.getElementById("t-lineup"); if (!t) return; const y = t.getBoundingClientRect().top; if (Math.abs(y - 70) > 40) window.scrollBy(0, y - 70); if (k < 6) setTimeout(() => aim(k + 1), 400); else { t.style.transition = "box-shadow .4s"; t.style.boxShadow = "0 0 0 3px #facc15"; setTimeout(() => { t.style.boxShadow = ""; }, 1600); } };
+        aim(0); return;
+      }
       if (++n < 40) setTimeout(go, 200);
     };
     setTimeout(go, 150);
