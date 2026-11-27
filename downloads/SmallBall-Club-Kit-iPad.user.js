@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (iPad)
 // @namespace    slipnsliders.smallball.ipad
-// @version      1.36.2
+// @version      1.41.1
 // @description  The full SmallBall Club Kit for iPad Safari: dashboard, stadium records, season games, squad views, box scores, your Hold the Hill card, tournament cards and Rotate Bench. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -124,6 +124,7 @@ const SBX_TABLET = true;
 
   // Which clubs get tabs and dashboard cards. Empty means "your first four clubs";
   // pick your own with the ⚙ button next to the tabs.
+  const KIT_VERSION = "1.41.1";   // filled in by the build
   const DEFAULT_CLUBS = []; // e.g. [3249, 1008, 8897]; empty = your first four clubs
   let PICKED = [];
   const MAX_DEFAULT = 4;
@@ -153,23 +154,25 @@ const SBX_TABLET = true;
   // Features you can switch on and off from the ⚙ menu. Everything starts on.
   const FEATURES = [
     ["tabs", "Quick tabs"], ["selector", "Club selector: readable, recent first"], ["logos", "Club logos"],
-    ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"],
+    ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"], ["totop", "⬆ Back-to-top button (bottom right) that takes you back up to your club cards"], ["explorer", "🔭 Explorer link in the top menu (the site's Team explorer, normally only in the footer)"], ["scout", "🔎 Scouting report (record, lineup card, hot and cold, pitching) and ⚔️ rivalry on other clubs' pages"], ["alerts", "🔔 Alerts and inbox: charges, the Bell, wagers and tournament matches (top right)"], ["tplan", "📋 Asst. Trainer Kit: a full-page training planner on your club page, and a live board under the trainer"], ["hotcold", "🔥🧊 Hot and cold tags in the squad (last 10 games vs the 15 before)"],
     ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["hillcard", "⛰️ Hold the Hill card (bottom right): your ladder spot, who you can charge, your Brawl Bucks"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
-    ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
+    ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal)"],
     ["freeze", "Freeze records and stats until a game's report airs (off to start)"], ["skinbtn", "🏟 Skins button (stadium skins in their own window)"], ["radio", "📻 Radio button in the game player (Mack and Dewey call the game out loud)"], ["optimizer", "🧪 PlayerOptimizer III by Jon2s (AUTO-OPTIMIZE next to Save)"], ["rotate", "🔁 Rotate Bench for Passive Training (next to Save)"], ["builder", "🧩 Lineup Builder: drag-and-drop lineup and your own optimizer (above the lineup editor)"],
-    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["live", "🏆 Tournaments button, with a card for each tournament you're in (your match, deadline, Start button)"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
+    ["box", "📰 Box scores after each game, with an alert when one's ready"], ["cast", "📡 SmallCast under the game player: line score, at bat, play by play, batters (no spoilers)"], ["kcards", "🅺 K Korner: hang a K on the stadium for every home strikeout (backwards K for called third strikes)"], ["kboth", "🅺 K Korner for both teams: the visiting club gets its own row (navy cards, gold K) (off to start)"], ["hill", "⛰️ Report to Hold the Hill button on BigLeague games"], ["charge", "🥊 Challenge links: shows which club you're playing as, with a one-click switch"], ["live", "🏆 Tournaments button, with a card for each tournament you're in (your match, deadline, Start button)"], ["boxding", "Chime when a box score is ready (off to start)"], ["boxnote", "Desktop notification when a box score is ready (off to start)"]
   ];
   let FEAT = {}; try { FEAT = JSON.parse(localStorage.getItem("sbx-features") || "{}"); } catch (_) {}
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
-  const OFF_TO_START = ["cdding", "cdhide", "freeze", "boxding", "boxnote"];   // the few features that start off
+  const MOBILE_KEEP = ["totop", "explorer", "scout", "alerts", "tplan", "hotcold", "hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const OFF_TO_START = ["cdding", "freeze", "boxding", "boxnote", "kboth"];   // the few features that start off
   // iPad edition (a Safari userscript): the full kit, minus what a userscript can't do there.
   const TABLET = typeof SBX_TABLET !== "undefined" && !!SBX_TABLET;
   const TABLET_OFF = ["skinbtn", "radio", "optimizer"];
   const on = (f) => (TABLET && TABLET_OFF.includes(f) ? false : MOBILE && !MOBILE_KEEP.includes(f) ? false : OFF_TO_START.includes(f) ? FEAT[f] === true : FEAT[f] !== false);
+  // The trainer is /training on its own; /training?watch=<game> is the game player, where the Asst. Trainer stays out of the way.
+  const isTrainer = () => location.pathname === "/training" && !/[?&](watch|game)=/.test(location.search);
   if (MOBILE) document.documentElement.classList.add("sbx-m");
   // One switch for every tool: count good matches only (games between clubs with the same star rating).
   const GOOD_KEY = "sbx-good-only";
@@ -182,7 +185,7 @@ const SBX_TABLET = true;
     if (!r.ok) throw new Error("HTTP " + r.status);
     let d = await r.json();
     const pm = /^\/teams\/(\d+)\/profile/.exec(url);
-    if (pm && d && d.mine) { try { tpLog(Number(pm[1]), d); } catch (_) {} }
+    if (pm && d && d.mine) { try { if (!isTrainer()) tpLog(Number(pm[1]), d); } catch (_) {} try { trainTrack(Number(pm[1]), d); } catch (_) {} }
     if (!raw) d = await frozen(url, d);
     return d;
   }
@@ -384,6 +387,8 @@ const SBX_TABLET = true;
       #sbx-tabs button { font: inherit; font-size: 14px; font-weight: 800; padding: 8px 16px; border-radius: 999px; cursor: pointer;
         border: 2px solid rgba(127,127,127,.5); background: transparent; color: inherit; white-space: nowrap; line-height: 1.2; }
       #sbx-tabs button.gear { padding: 8px 12px; font-size: 15px; }
+      #sbx-pick .sbx-tbtns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+      #sbx-pick .sbx-tbtns button { cursor: pointer; border-radius: 999px; padding: 5px 10px; font: 600 12.5px/1.2 system-ui, sans-serif; border: 1px solid rgba(127,127,127,.45); background: rgba(127,127,127,.12); color: inherit; }
       #sbx-pick { position: fixed; z-index: 1000; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(127,127,127,.45);
         background: Canvas; color: CanvasText; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.35); width: min(460px, calc(100vw - 16px)); box-sizing: border-box; }
       #sbx-pick label { display: block; padding: 3px 0; cursor: pointer; }
@@ -410,6 +415,8 @@ const SBX_TABLET = true;
       :is(#sbx-dash, .sbx-tabbody) .card.sbx-min { display: none; }
       #sbx-dash-wrap.allmin { display: none; }
       #sbx-pick .linkish { font: inherit; font-size: 12.5px; font-weight: 700; background: transparent; border: 0; color: #60a5fa; cursor: pointer; padding: 0 2px; text-decoration: underline; }
+      #sbx-set-launch { position: fixed; left: 16px; bottom: 16px; z-index: 2147482999; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 999px; border: 2px solid #fde68a; background: linear-gradient(135deg,#ca8a04,#facc15); color: #1b1300; font: 900 14px/1 system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35), 0 0 0 3px rgba(250,204,21,.25); }
+      #sbx-set-launch:hover { filter: brightness(1.08); transform: translateY(-1px); }
       #sbx-skin-launch { position: fixed; left: 16px; bottom: 16px; z-index: 2147482999; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; border: 0; background: linear-gradient(135deg,#166534,#22c55e); color: #fff; font: 800 14px/1 system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
       #sbx-skins { position: fixed; inset: 0; z-index: 2147483002; background: rgba(2,6,15,.72); display: grid; place-items: center; padding: 20px; }
       #sbx-skins .win { width: min(1040px, 100%); max-height: calc(100vh - 40px); overflow: auto; background: #0b1220; color: #e5e7eb; border: 1px solid #334155; border-radius: 16px; padding: 18px 20px 20px; font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
@@ -957,8 +964,20 @@ const SBX_TABLET = true;
   if (!MOBILE && on("skinbtn")) {
     const sb = document.createElement("button"); sb.id = "sbx-skin-launch"; sb.type = "button"; sb.textContent = "🏟 Skins"; sb.title = "Stadium skins: your own picture for each park";
     sb.onclick = () => openSkins();
-    const place = () => { if (!sb.isConnected) document.body.appendChild(sb); const tops = ["tk-launch", "tt-launch"].map((id) => document.getElementById(id)).filter(Boolean).map((e) => e.getBoundingClientRect().top).filter((t) => t > 0); sb.style.bottom = (tops.length ? Math.round(window.innerHeight - Math.min(...tops) + 10) : 16) + "px"; };
+    const place = () => { if (!sb.isConnected) document.body.appendChild(sb); const tops = ["tk-launch", "tt-launch", "sbx-set-launch"].map((id) => document.getElementById(id)).filter(Boolean).map((e) => e.getBoundingClientRect().top).filter((t) => t > 0); sb.style.bottom = (tops.length ? Math.round(window.innerHeight - Math.min(...tops) + 10) : 16) + "px"; };
     place(); setInterval(place, 2000);
+  }
+  // ⚙️ Club Kit: a settings chip at the very bottom of the left-hand stack; the Broadcast Kit's button
+  // (and the old Tournament Kit's) move up one place to make room.
+  if (!MOBILE) {
+    const kb = document.createElement("button"); kb.id = "sbx-set-launch"; kb.type = "button"; kb.textContent = "⚙️ Club Kit Settings"; kb.title = "Every Club Kit setting on one page";
+    kb.onclick = () => openSettings();
+    const lift = () => {
+      if (!kb.isConnected) document.body.appendChild(kb);
+      let y = 16 + Math.round(kb.getBoundingClientRect().height || 34) + 10;
+      for (const id of ["tk-launch", "tt-launch"]) { const e = document.getElementById(id); if (!e) continue; const want = y + "px"; if (e.style.bottom !== want) e.style.bottom = want; y += Math.round(e.getBoundingClientRect().height || 34) + 10; }
+    };
+    lift(); setInterval(lift, 2000);
   }
 
   // The ⚙ picker: tick the clubs you want; order follows the order you tick them in.
@@ -977,12 +996,14 @@ const SBX_TABLET = true;
       return order.map((id, i) => `<div class="prow on"><label><input type="checkbox" value="${id}" checked> <b class="num">${i + 1}</b> ${esc(nameOf[id])} <span class="muted">${id}</span></label><span class="mv"><button type="button" data-up="${id}" ${i === 0 ? "disabled" : ""} title="Move up">▲</button><button type="button" data-down="${id}" ${i === order.length - 1 ? "disabled" : ""} title="Move down">▼</button></span></div>`).join("") +
         rest.map((o) => `<div class="prow"><label><input type="checkbox" value="${o.id}"> ${esc(o.name)} <span class="muted">${o.id}</span></label></div>`).join("");
     };
-    pop.innerHTML = `<b>Your tabs and dashboard</b><div class="muted">Tick the clubs you want; the numbers are their order. Use the arrows to move one.</div><div class="plist">${clubsHtml()}</div>` +
+    pop.innerHTML = `<button type="button" data-t="all" style="width:100%;margin-bottom:10px;border:0;border-radius:10px;padding:10px;background:#facc15;color:#1b1300;font-weight:800;cursor:pointer">⚙️ All settings (full page)</button><b>Your tabs and dashboard</b><div class="muted">Tick the clubs you want; the numbers are their order. Use the arrows to move one.</div><div class="plist">${clubsHtml()}</div>` +
       `<div class="sec"><b>Features</b><div class="muted">Untick anything you don't want. The page reloads when you save a change.</div><div class="feats">` +
       FEATURES.filter(([k]) => !MOBILE || MOBILE_KEEP.includes(k)).map(([k, label]) => `<label><input type="checkbox" data-f="${k}" ${on(k) ? "checked" : ""}> ${esc(label)}</label>`).join("") +
       `</div></div>` + (MOBILE ? "" : `<div class="sec"><b>Stadium skins</b><div class="muted">Skins have their own window now: the 🏟 Skins button at the bottom left of the page. <button type="button" class="linkish" data-a="skins">Open it</button></div></div>`) +
+      `<div class="sec"><b>Club Kit ${esc(KIT_VERSION)}</b> <span class="muted">· ${esc(kitEdition())}</span><div class="sbx-tbtns"><button type="button" data-t="tour">🎓 Tour</button><button type="button" data-t="new">✨ What's new</button><button type="button" data-t="health">🩺 Health check</button><button type="button" data-t="backup">💾 Back up / restore</button></div></div>` +
       `<div class="btns"><button type="button" data-a="save">Save</button><button type="button" data-a="reset">Use default</button></div>`;
     document.body.appendChild(pop);
+    pop.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", () => { pop.remove(); ({ new: () => whatsNew(true), health: openHealth, backup: openBackup, all: () => openSettings(), tour: () => openTour(0) })[b.dataset.t](); }));
     const gear = bar.querySelector(".gear").getBoundingClientRect();
     pop.style.top = Math.round(gear.bottom + 6) + "px";
     pop.style.left = Math.round(Math.max(8, Math.min(window.innerWidth - 480, gear.right - 460))) + "px";
@@ -1007,9 +1028,9 @@ const SBX_TABLET = true;
       list.innerHTML = clubsHtml();
     });
     const done = (list) => {
-      const next = {};
-      pop.querySelectorAll("input[data-f]").forEach((c) => { if (!c.checked) next[c.dataset.f] = false; });
-      const changed = JSON.stringify(next) !== JSON.stringify(Object.fromEntries(Object.entries(FEAT).filter(([, v]) => v === false)));
+      const next = Object.assign({}, FEAT);
+      pop.querySelectorAll("input[data-f]").forEach((c) => { const f = c.dataset.f; if (OFF_TO_START.includes(f)) { if (c.checked) next[f] = true; else delete next[f]; } else if (c.checked) delete next[f]; else next[f] = false; });
+      const changed = JSON.stringify(next) !== JSON.stringify(FEAT);
       if (changed) { try { localStorage.setItem("sbx-features", JSON.stringify(next)); } catch (_) {} }
       PICKED = list;
       if (hasChromeStorage) chrome.storage.local.set({ sbxClubs: list }); else lsSet({ sbxClubs: list });
@@ -1022,6 +1043,1504 @@ const SBX_TABLET = true;
     };
     pop.querySelector('[data-a="save"]').onclick = () => done(order);
     pop.querySelector('[data-a="reset"]').onclick = () => done([]);
+  }
+
+  // ───────── ⚙️ All settings: a full page for every Club Kit setting ─────────
+  // Opened from the ⚙ menu. Feature switches need a page reload to take effect, so they wait for
+  // "Save and reload"; the clubs list and the small options save as you change them.
+  const SET_GROUPS = [
+    ["clubpage", "🏠 Club pages", "Tabs, the dashboard and what shows on a club's page.", ["totop", "tabs", "selector", "logos", "dash", "season", "tier", "train", "notes", "achtidy", "parks", "opps", "mood", "grades", "explorer"]],
+    ["squad", "🧢 Squad & lineup", "The squad table and the lineup editor.", ["squadtp", "squadview", "hotcold", "pitching", "builder", "optimizer", "rotate"]],
+    ["games", "📰 Games & box scores", "Box scores, countdowns and spoiler control.", ["games", "cast", "kcards", "kboth", "box", "boxding", "boxnote", "cd", "cdding", "cdhide", "freeze", "livebar", "compare", "recap"]],
+    ["training", "🏋️ Training", "The Asst. Trainer Kit and training reminders.", ["tplan", "alert"]],
+    ["scouting", "🔎 Other clubs", "What you see on other clubs' pages.", ["scout"]],
+    ["hill", "⛰️ Hill & tournaments", "Hold the Hill, tournaments and alerts.", ["hillcard", "hill", "charge", "live", "alerts"]],
+    ["extras", "📻 Extras", "Stadium skins and the radio.", ["skinbtn", "radio"]],
+  ];
+  const ST = { pend: null, q: "", sec: "" };
+  const featAvail = (k) => !(TABLET && TABLET_OFF.includes(k)) && !(MOBILE && !MOBILE_KEEP.includes(k));
+  const featSplit = (label) => { const m = /^(.+?)(?::\s|\s\()(.*)$/.exec(label); return m ? [m[1], (label.charAt(m[1].length) === "(" ? "(" : "") + m[2]] : [label, ""]; };
+  function openSettings(sec) {
+    document.getElementById("sbx-pick")?.remove();
+    ST.pend = null; ST.q = ""; ST.sec = sec || "";
+    let el = document.getElementById("sbx-set");
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-set"; document.body.appendChild(el);
+      if (!document.getElementById("sbx-set-css")) {
+        const st = document.createElement("style"); st.id = "sbx-set-css";
+        st.textContent = [
+          "#sbx-set{position:fixed;inset:0;z-index:2147483550;background:rgba(6,12,26,.98);color:#f4ebd9;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}",
+          "#sbx-set .s-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08)}",
+          "#sbx-set h2{margin:0;font:900 22px/1 system-ui,sans-serif}",
+          "#sbx-set .s-q{flex:1;min-width:200px;max-width:420px;font:inherit;background:#13254a;color:inherit;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 12px}",
+          "#sbx-set .s-x{margin-left:auto;border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}",
+          "#sbx-set .s-main{flex:1;display:grid;grid-template-columns:230px 1fr;min-height:0}",
+          "@media (max-width:760px){#sbx-set .s-main{grid-template-columns:1fr}#sbx-set .s-nav{display:none}}",
+          "#sbx-set .s-nav{border-right:1px solid rgba(255,255,255,.08);padding:12px;overflow:auto}",
+          "#sbx-set .s-nav a{display:block;padding:8px 12px;border-radius:9px;color:inherit;text-decoration:none;font-weight:700}",
+          "#sbx-set .s-nav a:hover{background:rgba(255,255,255,.07)}#sbx-set .s-nav a.on{background:#facc15;color:#1b1300}",
+          "#sbx-set .s-body{overflow:auto;padding:18px 26px 120px}",
+          "#sbx-set section{max-width:1100px;margin:0 auto 26px}",
+          "#sbx-set section h3{margin:0;font:900 18px/1.2 system-ui,sans-serif}#sbx-set section>p{margin:3px 0 10px;opacity:.7}",
+          "#sbx-set .s-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}",
+          "#sbx-set .s-card{background:#0f1b33;border-radius:12px;padding:11px 13px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;border:1px solid transparent}",
+          "#sbx-set .s-card:hover{border-color:rgba(255,255,255,.15)}#sbx-set .s-card.ch{border-color:#facc15}",
+          "#sbx-set .s-card b{display:block}#sbx-set .s-card span.d{display:block;opacity:.7;font-size:12.5px;margin-top:2px}",
+          "#sbx-set .sw{flex:none;width:40px;height:22px;border-radius:999px;background:#334155;position:relative;margin-top:2px;transition:background .15s}",
+          "#sbx-set .sw:after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:999px;background:#fff;transition:left .15s}",
+          "#sbx-set .on .sw{background:#16a34a}#sbx-set .on .sw:after{left:21px}",
+          "#sbx-set .s-row{background:#0f1b33;border-radius:12px;padding:11px 13px;margin-bottom:8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}",
+          "#sbx-set .s-row label{display:flex;gap:8px;align-items:center;cursor:pointer}",
+          "#sbx-set .s-row select,#sbx-set .s-row input[type=text]{font:inherit;background:#13254a;color:inherit;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 8px}",
+          "#sbx-set .s-btn{border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:9px;padding:7px 12px;font-weight:700;cursor:pointer}",
+          "#sbx-set .s-club{display:flex;align-items:center;gap:8px;background:#0f1b33;border-radius:10px;padding:7px 10px;margin-bottom:6px}",
+          "#sbx-set .s-club.off{opacity:.55}#sbx-set .s-club b.n{width:22px;text-align:center;color:#fde68a}",
+          "#sbx-set .s-club .mv{margin-left:auto;display:flex;gap:4px}#sbx-set .s-club .mv button{border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:6px;padding:2px 8px;cursor:pointer}",
+          "#sbx-set .s-save{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:#facc15;color:#1b1300;border-radius:999px;padding:10px 12px 10px 18px;display:flex;gap:12px;align-items:center;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.5)}",
+          "#sbx-set .s-save button{border:0;border-radius:999px;padding:7px 14px;font-weight:800;cursor:pointer}#sbx-set .s-save .go{background:#1b1300;color:#facc15}#sbx-set .s-save .no{background:rgba(0,0,0,.12);color:#1b1300}",
+          "#sbx-set .muted{opacity:.65}",
+        ].join("");
+        document.head.appendChild(st);
+      }
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.getElementById("sbx-set") && !/input|textarea|select/i.test((e.target || {}).tagName || "")) closeSettings(); });
+    }
+    paintSettings();
+  }
+  function closeSettings() {
+    if (ST.pend && Object.keys(ST.pend).length && !confirmLeave()) return;
+    document.getElementById("sbx-set")?.remove(); ST.pend = null;
+  }
+  // No browser dialogs (they can freeze helpers): an unsaved change just asks once, inside the page.
+  function confirmLeave() { const b = document.querySelector("#sbx-set .s-save"); if (b && !b.dataset.warned) { b.dataset.warned = "1"; b.querySelector("span").textContent = "You have unsaved switches. Close again to drop them."; return false; } return true; }
+  function featOn(k) { return ST.pend && k in ST.pend ? ST.pend[k] : on(k); }
+  function paintSettings() {
+    const el = document.getElementById("sbx-set"); if (!el) return;
+    const q = ST.q.trim().toLowerCase(), match = (t) => !q || t.toLowerCase().includes(q);
+    const lab = Object.fromEntries(FEATURES);
+    const groups = SET_GROUPS.map(([id, title, blurb, keys]) => {
+      const cards = keys.filter((k) => lab[k] && featAvail(k)).filter((k) => match(lab[k] + " " + title)).map((k) => {
+        const [name, desc] = featSplit(lab[k]), isOn = featOn(k), ch = ST.pend && k in ST.pend;
+        return '<div class="s-card' + (isOn ? " on" : "") + (ch ? " ch" : "") + '" data-f="' + k + '" role="switch" aria-checked="' + isOn + '"><i class="sw"></i><div><b>' + esc(name) + "</b>" + (desc ? '<span class="d">' + esc(desc) + "</span>" : "")  + "</div></div>";
+      }).join("");
+      return cards ? '<section id="ss-' + id + '"><h3>' + title + "</h3><p>" + esc(blurb) + '</p><div class="s-grid">' + cards + "</div></section>" : "";
+    }).join("");
+    // Options that already exist elsewhere in the kit, gathered here
+    const ao = alertOpt(), atm = atMode(), ats = atSide();
+    const opts = match("alerts pop-ups desktop chime sound asst trainer mode notes compare gains") ? '<section id="ss-options"><h3>🎛️ Options</h3><p>Finer settings for features above. These save as you change them.</p>' +
+      '<div class="s-row"><b style="min-width:140px">🔔 Alerts</b><label><input type="checkbox" data-o="pop"' + (ao.pop ? " checked" : "") + "> Desktop pop-ups</label><label><input type=\"checkbox\" data-o=\"sound\"" + (ao.sound ? " checked" : "") + "> Chime with new alerts</label></div>" +
+      '<div class="s-row"><b style="min-width:140px">📋 Asst. Trainer</b><label>Live board starts in <select data-atm><option value="plan"' + (atm === "plan" ? " selected" : "") + '>🎯 Compare to plan</option><option value="gains"' + (atm === "gains" ? " selected" : "") + '>📈 Just track gains</option></select></label><label><input type="checkbox" data-atn' + (ats.n ? " checked" : "") + "> 📝 Training notes open beside the trainer</label></div></section>" : "";
+    const clubs = !q || match("clubs tabs dashboard order") ? '<section id="ss-clubs"><h3>⭐ Your clubs</h3><p>The clubs in your tabs and dashboard, in this order. Saves as you change it.</p><div data-clubs>' + setClubsHtml() + "</div></section>" : "";
+    const kit = !q || match("kit version what's new health backup restore") ? '<section id="ss-kit"><h3>🧰 Kit</h3><p>Club Kit ' + esc(KIT_VERSION) + " · " + esc(kitEdition()) + '</p><div class="s-row"><button type="button" class="s-btn" data-t="tour">🎓 Take the tour</button><button type="button" class="s-btn" data-t="new">✨ What\'s new</button><button type="button" class="s-btn" data-t="health">🩺 Health check</button><button type="button" class="s-btn" data-t="backup">💾 Back up / restore</button>' + (MOBILE ? "" : '<button type="button" class="s-btn" data-t="skins">🏟 Stadium skins</button>') + '<button type="button" class="s-btn" data-t="defaults" title="Every switch back to how the kit ships">↺ All switches to default</button></div></section>' : "";
+    const nav = [["clubs", "⭐ Your clubs"]].concat(SET_GROUPS.map(([id, t]) => [id, t]), [["options", "🎛️ Options"], ["kit", "🧰 Kit"]]);
+    const n = ST.pend ? Object.keys(ST.pend).length : 0;
+    const body = el.querySelector(".s-body"), sc = body ? body.scrollTop : 0, focusQ = document.activeElement && document.activeElement.classList.contains("s-q");
+    el.innerHTML = '<div class="s-top"><h2>⚙️ Club Kit settings</h2><input class="s-q" type="search" placeholder="Search settings, e.g. chime, box scores, Hill" value="' + esc(ST.q) + '"><button type="button" class="s-x" data-close>✕ Close</button></div>' +
+      '<div class="s-main"><nav class="s-nav">' + nav.map(([id, t]) => '<a href="#" data-go="' + id + '">' + t + "</a>").join("") + '</nav><div class="s-body">' + (clubs + groups + opts + kit || '<p class="muted">Nothing matches "' + esc(ST.q) + '".</p>') + "</div></div>" +
+      (n ? '<div class="s-save"><span>' + n + " switch" + (n === 1 ? "" : "es") + ' changed. They take effect after a reload.</span><button type="button" class="no" data-undo>Undo</button><button type="button" class="go" data-apply>Save and reload</button></div>' : "");
+    const nb = el.querySelector(".s-body"); nb.scrollTop = sc;
+    if (ST.sec) { const t = el.querySelector("#ss-" + ST.sec); if (t) t.scrollIntoView(); ST.sec = ""; }
+    const qi = el.querySelector(".s-q"); qi.oninput = () => { ST.q = qi.value; paintSettings(); }; if (focusQ) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); }
+    el.querySelector("[data-close]").onclick = closeSettings;
+    el.querySelectorAll("[data-go]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); const t = el.querySelector("#ss-" + a.dataset.go); if (t) t.scrollIntoView({ behavior: "smooth" }); el.querySelectorAll("[data-go]").forEach((x) => x.classList.toggle("on", x === a)); }));
+    el.querySelectorAll(".s-card[data-f]").forEach((c) => (c.onclick = () => {
+      const k = c.dataset.f, want = !featOn(k); ST.pend = ST.pend || {};
+      if (want === on(k)) delete ST.pend[k]; else ST.pend[k] = want;
+      paintSettings();
+    }));
+    const un = el.querySelector("[data-undo]"); if (un) un.onclick = () => { ST.pend = null; paintSettings(); };
+    const ap = el.querySelector("[data-apply]"); if (ap) ap.onclick = () => {
+      const next = Object.assign({}, FEAT);
+      for (const [k, v] of Object.entries(ST.pend || {})) { if (OFF_TO_START.includes(k)) { if (v) next[k] = true; else delete next[k]; } else { if (v) delete next[k]; else next[k] = false; } }
+      try { localStorage.setItem("sbx-features", JSON.stringify(next)); } catch (_) {}
+      setTimeout(() => location.reload(), 50);
+    };
+    el.querySelectorAll("[data-o]").forEach((c) => (c.onchange = async () => {
+      const o = alertOpt(); o[c.dataset.o] = c.checked;
+      if (c.dataset.o === "pop" && c.checked && typeof Notification !== "undefined" && Notification.permission !== "granted") { try { if ((await Notification.requestPermission()) !== "granted") { o.pop = false; c.checked = false; } } catch (_) { o.pop = false; c.checked = false; } }
+      if (c.dataset.o === "sound" && c.checked) chime();
+      try { localStorage.setItem(ALERT_OPT, JSON.stringify(o)); } catch (_) {}
+      if (hasChromeStorage) { try { chrome.storage.local.set({ sbxAlertPop: !!o.pop }); } catch (_) {} }
+    }));
+    const sm = el.querySelector("[data-atm]"); if (sm) sm.onchange = () => { try { localStorage.setItem(AT_MODE, sm.value); } catch (_) {} };
+    const sn = el.querySelector("[data-atn]"); if (sn) sn.onchange = () => { try { localStorage.setItem(AT_SIDE, JSON.stringify(Object.assign(atSide(), { n: sn.checked }))); } catch (_) {} };
+    el.querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => {
+      const t = b.dataset.t;
+      if (t === "defaults") { ST.pend = {}; for (const [k] of FEATURES) { const def = !OFF_TO_START.includes(k); if (featAvail(k) && on(k) !== def) ST.pend[k] = def; } if (!Object.keys(ST.pend).length) ST.pend = null; paintSettings(); return; }
+      document.getElementById("sbx-set")?.remove(); ST.pend = null;
+      ({ new: () => whatsNew(true), health: openHealth, backup: openBackup, skins: openSkins, tour: () => openTour(0) })[t]();
+    }));
+    const cl = el.querySelector("[data-clubs]"); if (cl) wireSetClubs(cl);
+  }
+  // ⭐ Your clubs: the same list as the ⚙ menu, saved straight away.
+  function setClubOpts() { const sel = document.getElementById("who-team"); return sel ? Array.from(sel.options).map((o) => ({ id: Number(o.value), name: o.textContent.replace(/\s*-XsT-\s*$/, "").trim() })) : []; }
+  function setClubsHtml() {
+    const opts = setClubOpts(), nameOf = Object.fromEntries(opts.map((o) => [o.id, o.name])), order = clubList().filter((id) => nameOf[id] != null);
+    if (!opts.length) return '<p class="muted">Your clubs show up here on any SmallBall page where you are signed in.</p>';
+    const rest = opts.filter((o) => !order.includes(o.id)).sort((a, b) => a.name.localeCompare(b.name));
+    return order.map((id, i) => '<div class="s-club"><input type="checkbox" data-c="' + id + '" checked><b class="n">' + (i + 1) + "</b>" + esc(nameOf[id]) + ' <span class="muted">' + id + '</span><span class="mv"><button type="button" data-up="' + id + '"' + (i ? "" : " disabled") + ' title="Move up">▲</button><button type="button" data-down="' + id + '"' + (i < order.length - 1 ? "" : " disabled") + ' title="Move down">▼</button></span></div>').join("") +
+      rest.map((o) => '<div class="s-club off"><input type="checkbox" data-c="' + o.id + '"><b class="n"></b>' + esc(o.name) + ' <span class="muted">' + o.id + "</span></div>").join("");
+  }
+  function wireSetClubs(box) {
+    const save = (list) => {
+      PICKED = list;
+      if (hasChromeStorage) chrome.storage.local.set({ sbxClubs: list }); else lsSet({ sbxClubs: list });
+      const bar = document.getElementById("sbx-tabs"); if (bar) bar.dataset.key = "";
+      dashState.at = 0; try { sessionStorage.removeItem("sbx-dash-cache"); } catch (_) {}
+      document.getElementById("sbx-dash-wrap")?.remove();
+      box.innerHTML = setClubsHtml(); wireSetClubs(box); setTimeout(tick, 0);
+    };
+    const nameOf = Object.fromEntries(setClubOpts().map((o) => [o.id, o.name]));
+    const order = () => clubList().filter((id) => nameOf[id] != null);
+    box.querySelectorAll("[data-c]").forEach((c) => (c.onchange = () => { const id = Number(c.dataset.c); const o = order().filter((x) => x !== id); if (c.checked) o.push(id); save(o); }));
+    box.querySelectorAll("[data-up],[data-down]").forEach((b) => (b.onclick = () => { const o = order(), id = Number(b.dataset.up || b.dataset.down), i = o.indexOf(id), j = b.dataset.up ? i - 1 : i + 1; if (i < 0 || j < 0 || j >= o.length) return; o.splice(i, 1); o.splice(j, 0, id); save(o); }));
+  }
+
+  // ───────── Club Kit tools: ✨ What's new · 🩺 Health check · 💾 Back up / restore (in the ⚙ settings) ─────────
+  // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
+  const CHANGELOG = [
+    { v: "1.41.1", d: "Nov 27", items: [
+      "📡 <b>SmallCast</b>: watch a game and the stadium scoreboard becomes a jumbotron, with who's up, the latest plays and a video board for big plays. Or move it under the board, below the player, or floating beside it for the full game cast. A line score that fills in inning by inning, who's at bat and his day so far, the count, pitch count and speed, play by play, scoring plays, each lineup's day, and how both clubs came in. It reads the game as it plays, so it never spoils anything. 📻 Radio and 📺 Broadcast are in its header; put it above or below the player, float it beside the game and drag it where you like, hang it 🏟 under the stadium scoreboard, or turn the scoreboard into a 📺 Jumbotron: wings on both sides of the official board with who's up, the last plays, and a video board that goes wild on big plays; switch it off in ⚙️ All settings → Games.",
+      "🅺 <b>K Korner</b>: watching a game, a K card hangs on the stadium for every strikeout by the home pitchers (backwards for a called third strike), grouped by inning, with a gold 🔥 card when they strike out the side. Turn on <b>both teams</b> in ⚙️ All settings → Games for a navy row for the visitors.",
+      "⚙️ <b>Club Kit Settings</b> button at the bottom left (under 📺 Broadcast) opens All settings from any page.",
+      "📋 The Asst. Trainer no longer pops up while you watch a game.",
+      "📼 <b>Synthia Small</b>, the original voice of SmallBall Radio, is back in the booth (a little off her rocker): a season report once a game and the odd remark. Switch her off in the radio's booth settings.",
+      "📻 <b>Radio</b>: Mack and Dewey picked up 33 new stories about the Commish's comebacks, most from the famous 2007 chat, and they now call plays written without a jersey number (they were skipping some).",
+      "⏱ <b>Spoiler clock on by default</b>: in game lists, a finished game's score hides behind its countdown until its report airs (click to reveal). The live ticker keeps its scores. Turn it off in ⚙️ All settings → Games.",
+    ] },
+    { v: "1.41.0", d: "Nov 27", items: [
+      "🎓 <b>Guided tour</b>: a click-through of every major feature (and the ones that are easy to miss) shows once after this update. Reopen it any time from ⚙ → 🎓 Tour, ⚙️ All settings, or ✨ What's new.",
+    ] },
+    { v: "1.40.2", d: "Nov 27", items: [
+      "🌱 <b>Farm Hill</b> in the kit: each of your Farm clubs gets its own card (rank, who it can charge, pre-filled 🥊 Charge buttons that fill in which club is charging), the ⚔️ Charge bar works on Farm clubs\' pages, and Farm charges and the Farm Bell come through your 🔔 alerts.",
+      "⬆ <b>Back-to-top</b> button (bottom right) once you scroll down: one tap back up to your club cards. Your 🏆 Hill and tournament cards now start tucked away, with a red circle counting how many are waiting.",
+      "🧢 <b>Lineup</b> button on your club cards, next to Play, Training and Plan: one click takes you to that club\'s lineup editor (and the 🧩 Lineup Builder).",
+      "⚙️ <b>All settings</b>, a full page (⚙ menu → All settings): every feature as a switch card grouped by area, a search box, your clubs and their order, alert and Asst. Trainer options, and the kit tools. Also fixed: features that start off (the chimes, score freeze) can now be switched on.",
+      "🩹 Your ⛰️ Hill card shows when you're recovering from a lost charge at the Ace (Hold the Hill 3.20), with a countdown, instead of Charge buttons.",
+      "📋 <b>Asst. Trainer Kit</b>: the training plan is now a full page (📋 button on your club page). Every man as a card with all seven skills under SmallBall's names, his gains this week, 🎯 the skills in his plan with how much TP to spend on each, and notes. Open it from 📋 Training plan on your club page or 📋 Plan on your club cards, then ⚾ Take it to the field: on the trainer, a live board under the game (🎯 compare to plan, or 📈 just track gains) shows every man's TP draining and his gains as they land (\"Running +1\"), progress toward his targets, and a feed of the latest gains. 📝 Training notes sit beside the game.",
+      "🔎 <b>Scouting report, rebuilt</b> as a real baseball report: their record, runs for and against, last 10 and streak; a lineup card with career AVG/OBP/SLG, HR, RBI, K%, fielding and the last 10 games; who\'s 🔥 hot and 🧊 cold with the numbers; and their pitching staff (RA/9, WHIP, K/9). No more tips.",
+      "🔭 <b>Explorer</b> link at the end of the top menu, to the site's Team explorer (it was only in the footer).",
+    ] },
+    { v: "1.40.1", d: "Nov 27", items: [
+      "🛠️ Fixed: the trainer page could freeze with the 🏋️ Training plan button on. It loads normally again.",
+    ] },
+    { v: "1.40.0", d: "Nov 27", items: [
+      "🔎 <b>Scouting report</b> on other clubs' pages: their lineup in batting order with star ratings, their lineup's career OPS, homers and strikeouts next to yours, their pitcher, best bats (with 🔥🧊), shakiest gloves, and a few tips to beat them.",
+      "⚔️ <b>Rivalries</b>: your record against them, last meeting and recent results. 10+ games makes it a ⚔️ Rivalry, 25+ a ⚔️🔥 Blood feud. Rivals get the ⚔️ in your Most played list too.",
+    ] },
+    { v: "1.39.0", d: "Nov 27", items: [
+      "🔔 <b>Alerts and inbox</b>: a 🔔 at the top right counts what's waiting on you (red when it's urgent). You get a heads-up when you're charged on the Hill, your charge is about to run out, the Bell rings (or is about to), a wager comes in, or your tournament match opens. Tap the 🔔 for the list, and turn on desktop pop-ups or a chime there.",
+      "In Chrome, with desktop pop-ups on, the kit also checks every few minutes while SmallBall is closed and pops up a notification.",
+    ] },
+    { v: "1.38.0", d: "Nov 27", items: [
+      "🏋️ <b>Training plan</b>: a 🏋️ button on your club page and next to the trainer opens your plan for every man. Tap the skills he's working on, add a note (\"BP to 90, then BC\"), tick ✓ when he's trained today, and see who's ⚡ full of TP and about how far each man is from his next ★. Saved in your browser and in 💾 backups. The kit never trains for you.",
+      "🔥🧊 <b>Hot and cold</b>: tags next to names in the squad: each man's last 10 games against the 15 before them (hover for the line). They show in the 🧩 Lineup Builder too.",
+    ] },
+    { v: "1.37.1", d: "Nov 27", items: [
+      "⚔️ <b>Charge this club</b>: on another club's page, if one of your clubs can charge them on Hold the Hill, a button opens the Master Form with the charge already filled in (or it tells you why not).",
+      "🥊 Every name in your ⛰️ Hill card's \"You can charge\" list has its own <b>Charge</b> button, pre-filled the same way.",
+      "⏱ <b>Live countdowns</b> on Hill charges and the 🔔 Bell: time left, turning orange, then red near the end.",
+    ] },
+    { v: "1.37.0", d: "Nov 27", items: [
+      "💾 <b>Saved lineups</b> in the 🧩 Lineup Builder: save your lineup and batting order under a name (\"Hill defense\", \"vs power teams\") and switch back with one tap. You still press Save.",
+      "✨ <b>What's new</b>: this card. It shows up once after each update; reopen it any time from ⚙ settings.",
+      "🩺 <b>Health check</b> in ⚙ settings: checks your SmallBall sign-in, your clubs, the Hold the Hill and tournament data, and whether you're on the latest kit. 📋 Copy the report to send to slipnsliders.",
+      "💾 <b>Back up / restore</b> in ⚙ settings: one code that carries your clubs, notes, switches and saved lineups to a new device or a reinstall.",
+    ] },
+    { v: "1.36.2", d: "Nov 26", items: ["🔔 <b>The Bell</b> on your ⛰️ Hill card: it turns gold with a Charge button while the Bell rings, and gives a heads-up before."] },
+    { v: "1.36.0", d: "Nov 26", items: ["🧩 <b>Lineup Builder</b>: drag-and-drop lineup and batting order above SmallBall's editor, and ⚡ Optimize my way with presets, sliders, rules and 🔒 locks. After you press Save it checks with SmallBall that it stuck."] },
+    { v: "1.35.0", d: "Nov 26", items: ["⛰️ Hill card: club names open their club pages, plus links to the 📝 Master Form and the 📊 Live Hold the Hill Leaderboard."] },
+  ];
+  const SEEN_KEY = "sbx-seen-version";
+  const verNum = (v) => String(v || "0").split(".").map(Number).reduce((a, x, i) => a + (x || 0) * Math.pow(1000, 2 - i), 0);
+  function kitEdition() { return TABLET ? "iPad edition" : MOBILE ? "phone edition" : DEFAULT_CLUBS.length ? "private kit" : "Chrome extension"; }
+  function sbxModal(title, html, wide) {
+    document.getElementById("sbx-modal")?.remove();
+    if (!document.getElementById("sbx-modal-css")) {
+      const st = document.createElement("style"); st.id = "sbx-modal-css";
+      st.textContent = `#sbx-modal{position:fixed;inset:0;z-index:2147483600;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:12px}
+      #sbx-modal .box{width:min(560px,100%);max-height:86vh;overflow:auto;background:#0f1b33;color:#f4ebd9;border-radius:16px;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.5);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+      #sbx-modal .box.wide{width:min(680px,100%)}#sbx-modal h3{margin:0 0 10px;font-size:19px}#sbx-modal .x{float:right;border:0;background:none;color:inherit;font-size:20px;cursor:pointer;opacity:.7}
+      #sbx-modal ul{margin:6px 0 12px;padding-left:20px}#sbx-modal li{margin:4px 0}#sbx-modal .ver{font:800 12px/1 ui-monospace,monospace;color:#fde68a;margin-top:10px;letter-spacing:.06em}
+      #sbx-modal .row{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)}#sbx-modal .row b{min-width:22px}
+      #sbx-modal .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}
+      #sbx-modal button.b{border:0;border-radius:999px;padding:9px 15px;font:700 13px/1 system-ui,sans-serif;cursor:pointer;background:rgba(255,255,255,.13);color:inherit}#sbx-modal button.b.go{background:#facc15;color:#1b1300}
+      #sbx-modal textarea{width:100%;min-height:110px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:#13254a;color:#f4ebd9;font:12px/1.35 ui-monospace,monospace;padding:8px;box-sizing:border-box}
+      #sbx-modal .muted{opacity:.72;font-size:12.5px}#sbx-modal a{color:#fde68a}#sbx-modal .msg{font-size:13px;margin-top:8px;min-height:1em}`;
+      document.head.appendChild(st);
+    }
+    const ov = document.createElement("div"); ov.id = "sbx-modal";
+    ov.innerHTML = `<div class="box${wide ? " wide" : ""}"><button class="x" type="button" title="Close">✕</button><h3>${title}</h3>${html}</div>`;
+    ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest(".x")) ov.remove(); });
+    document.body.appendChild(ov);
+    return ov;
+  }
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.getElementById("sbx-modal")?.remove(); });
+
+  // ✨ What's new: once after each update (not on a brand-new install), and from ⚙ any time.
+  function whatsNew(force) {
+    let seen = ""; try { seen = localStorage.getItem(SEEN_KEY) || ""; } catch (_) {}
+    if (!force) {
+      if (!seen) { try { localStorage.setItem(SEEN_KEY, KIT_VERSION); } catch (_) {} return; }   // first install: no pop-up
+      if (verNum(seen) >= verNum(KIT_VERSION)) return;
+    }
+    const list = CHANGELOG.filter((c) => verNum(c.v) <= verNum(KIT_VERSION) && (force || verNum(c.v) > verNum(seen))).slice(0, force ? 5 : 6);
+    if (!list.length) { try { localStorage.setItem(SEEN_KEY, KIT_VERSION); } catch (_) {} if (!force) return; }
+    const ov = sbxModal("✨ What's new in the Club Kit", (list.length ? list : CHANGELOG.slice(0, 1)).map((c) => `<div class="ver">${esc(c.v)} · ${esc(c.d)}</div><ul>${c.items.map((x) => "<li>" + x + "</li>").join("")}</ul>`).join("") +
+      `<div class="muted">You're on ${esc(KIT_VERSION)} (${esc(kitEdition())}). Reopen this any time: ⚙ settings → ✨ What's new.</div>` +
+      `<div class="acts"><button class="b" type="button" data-tour>🎓 Tour</button><a class="b" href="https://slipnsliders.github.io/smallball-tools/club-kit/" target="_blank" rel="noopener" style="text-decoration:none;padding:9px 6px">Every update →</a><button class="b go" type="button" data-ok>Got it</button></div>`);
+    const done = () => { try { localStorage.setItem(SEEN_KEY, KIT_VERSION); } catch (_) {} ov.remove(); };
+    ov.querySelector("[data-ok]").onclick = done;
+    ov.querySelector("[data-tour]").onclick = () => { done(); openTour(0); };
+    ov.querySelector(".x").addEventListener("click", done);
+  }
+
+  // ───────── 🎓 The tour: a click-through of the kit's features, once for everyone after 1.41, and from ⚙ any time ─────────
+  // Each step says what a feature does and, if it's on the page you're looking at, outlines it in gold.
+  const TOUR_KEY = "sbx-tour-v1";
+  const TOUR = [
+    { t: "👋 Welcome to the Club Kit", f: [], b: "A one-minute tour of what the kit adds to SmallBall, including a few things that are easy to miss. Click <b>Next</b> to go through it, or <b>Skip</b>. You can reopen it any time: ⚙ → 🎓 Tour." },
+    { t: "⭐ Your clubs, one click away", f: ["tabs", "dash"], go: "home", sel: ["#sbx-tabs", "#sbx-dash-wrap"], b: "The <b>quick tabs</b> along the top switch clubs in one click, and the <b>club cards</b> show each club's record, TP and when it can play again. Each card has <b>▶ Play</b>, <b>Training</b>, <b>📋 Plan</b> and <b>🧢 Lineup</b>. Pick your clubs and their order with the <b>⚙</b> button next to the tabs." },
+    { t: "🧩 Lineup Builder", f: ["builder"], go: "mine", sel: ["#sbx-build"], b: "On your club page, above SmallBall's lineup editor: <b>drag and drop</b> men between spots, the bench and the batting order, or let <b>⚡ Optimize my way</b> do it with your own presets and sliders. <b>💾 Save this lineup</b> keeps lineups to reload later. It fills SmallBall's form; nothing is saved until you press Save, and then it checks the save stuck." },
+    { t: "📋 Asst. Trainer Kit", f: ["tplan"], go: "mine", sel: ["main .th-btns [data-atplan]"], b: "<b>📋 Training plan</b> (on your club page and club cards) opens a full-page planner: every man's skills, his gains this week, and the TP you plan to spend on each skill. <b>⚾ Take it to the field</b> opens the trainer with a <b>live board under the game</b>: TP draining and gains landing as you train, compared to your plan." },
+    { t: "📰 Box scores, countdowns, no spoilers", f: ["box", "cd"], b: "A <b>box score</b> after each game (with an alert when one is ready), a <b>⏱ countdown</b> for when each club can play again, and spoiler switches in ⚙ settings to hide scores of games still on the air." },
+    { t: "📡 SmallCast", f: ["cast"], b: "When you <b>watch a game</b>, SmallCast turns the stadium scoreboard into a <b>jumbotron</b>: who's up and his day so far, the latest plays, a video board that goes wild on big plays, and K cards for home strikeouts. Its buttons move it under the board, below or above the player, or floating beside it, where the full view adds a line score that fills in inning by inning, who's at bat and how his day is going, the count and pitch count, play by play, scoring plays and each lineup's day, plus how both clubs came in. It reads the game as it plays, so it never spoils what's coming. 📻 Radio and 📺 Broadcast are one click away in its header." },
+    { t: "🔎 Scouting other clubs", f: ["scout", "hotcold"], go: "other", sel: ["#sbx-scout"], b: "On another club's page, the <b>🔎 Scouting report</b>: their record, a lineup card with career numbers, who's <b>🔥 hot or 🧊 cold</b>, their pitching, and your <b>⚔️ head-to-head</b> record. Just numbers; the decisions are yours." },
+    { t: "⛰️ Hold the Hill & 🌱 Farm Hill", f: ["hillcard", "charge"], sel: ["#sbx-live"], b: "Bottom right: your <b>Hill cards</b> (tucked away under <b>▴ Cards</b>, with a red count). Your rank, who you can charge and <b>🥊 Charge</b> buttons that fill in the Master Form for you. Clubs at 6★ and under play on the <b>🌱 Farm Hill</b>: bring your young clubs. On another Hill club's page, a <b>⚔️ Charge</b> bar shows if you can take a shot." },
+    { t: "🏆 Tournaments & 🏦 Prize Vault", f: ["live"], sel: ["#sbx-live [data-home]"], b: "The <b>🏆 Tournaments</b> button lists what's coming up; once you're signed up, a card shows your match, its deadline and a <b>Start</b> button. Winners get tickets from the <b>🏦 Prize Vault</b>, filled by the community: gift a ticket to club 1008 to add to it." },
+    { t: "🔔 Alerts", f: ["alerts"], sel: ["#sbx-inbox"], b: "The <b>🔔</b> top right lights up when something is waiting on you: you've been charged, the Bell is ringing, a wager came in, your tournament match is open. Turn on <b>desktop pop-ups</b> in it to hear about them with SmallBall closed (Chrome)." },
+    { t: "👀 Easy to miss", f: [], go: "mine", b: "<b>⬆</b> (bottom right) takes you back up to your clubs. <b>Explorer</b> in the top menu searches every club. On your club page: <b>Squad views</b> (Skills / Stats), <b>Pitching</b>, <b>Compare</b> two date ranges, <b>Training</b> effectiveness and <b>📝 Team notes</b>. In the game player: <b>📻 Radio</b> calls the game out loud. <b>🏟 Skins</b> (bottom left) put your own picture on each park." },
+    { t: "⚙️ Make it yours", f: [], sel: ["#sbx-set-launch", "#sbx-tabs .gear"], b: "The gold <b>⚙️ Club Kit Settings</b> button (bottom left) or <b>⚙ → ⚙️ All settings</b> opens a full page with every feature as a switch and a search box. There's also <b>💾 Back up / restore</b> (one code moves your setup to another device), <b>🩺 Health check</b>, and <b>✨ What's new</b> for the full list of changes. Enjoy the kit! ⚾" },
+  ];
+  // Steps can take you to the page they're about: "mine" is your first club's page, "other" is the club you
+  // played last (for the scouting report), "home" is the front page. Off the front page's address (Explorer,
+  // a game), the page reloads, so the tour keeps its place in sessionStorage and picks up where it left off.
+  const TOUR_AT = "sbx-tour-at";
+  let TOUR_OPP = 0;
+  async function tourOpp(mine) {
+    if (TOUR_OPP) return TOUR_OPP;
+    try {
+      const own = ownIds(), d = await getJSON(`/games/all?club=${mine}`, true);
+      const g = (d.rows || []).filter((r) => r.home_team_id === mine || r.away_team_id === mine).sort((x, y) => y.game_id - x.game_id).find((r) => !own.has(String(r.home_team_id === mine ? r.away_team_id : r.home_team_id)));
+      if (g) TOUR_OPP = g.home_team_id === mine ? g.away_team_id : g.home_team_id;
+    } catch (_) {}
+    return TOUR_OPP;
+  }
+  function openTour(start) {
+    const steps = TOUR.filter((s) => !s.f.length || s.f.some((k) => on(k)));
+    let i = Math.max(0, Math.min(start || 0, steps.length - 1)), lit = null, token = 0;
+    document.getElementById("sbx-modal")?.remove(); document.getElementById("sbx-pick")?.remove(); document.getElementById("sbx-settings")?.remove();
+    let el = document.getElementById("sbx-tour"); if (el) el.remove();
+    el = document.createElement("div"); el.id = "sbx-tour";
+    el.style.cssText = "position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483600;width:min(520px,calc(100vw - 24px));background:#0f1b33;color:#f4ebd9;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 2px #facc15;padding:16px 18px 14px;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif";
+    document.body.appendChild(el);
+    const unlight = () => { if (lit) { lit.style.outline = lit.dataset.sbxOl || ""; lit.style.outlineOffset = ""; lit = null; } };
+    const done = () => { token++; unlight(); el.remove(); try { sessionStorage.removeItem(TOUR_AT); localStorage.setItem(TOUR_KEY, "1"); localStorage.setItem(SEEN_KEY, KIT_VERSION); } catch (_) {} };
+    const mine = () => { const own = [...ownIds()].map(Number), first = clubList().find((id) => own.includes(id)); return first || own[0] || 0; };
+    // Go to the step's page; returns false when the page is reloading (the tour resumes after).
+    async function goTo(s) {
+      if (!s.go) return true;
+      let want = "";
+      if (s.go === "home") { if (!/^#\/team\//.test(location.hash) && location.pathname === "/") return true; want = "#/"; }
+      else { const me = mine(); if (!me) return true; const id = s.go === "mine" ? me : await tourOpp(me); if (!id) return true; want = "#/team/" + id; }
+      if (location.pathname !== "/") { try { sessionStorage.setItem(TOUR_AT, JSON.stringify({ i, at: Date.now() })); } catch (_) {} location.href = "/" + want; return false; }
+      if (location.hash !== want) { location.hash = want; window.scrollTo(0, 0); }
+      return true;
+    }
+    const paint = async () => {
+      const my = ++token; unlight();
+      const s = steps[i];
+      el.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><b style="font-size:17px;flex:1">' + s.t + '</b><span style="opacity:.6;font-size:12px">' + (i + 1) + " / " + steps.length + '</span><button type="button" data-skip style="border:0;background:none;color:inherit;opacity:.7;cursor:pointer;font-size:18px" title="Close the tour">✕</button></div>' +
+        '<div style="margin-top:6px">' + s.b + '</div><div data-where style="margin-top:6px;font-size:12px;opacity:.65"></div>' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:12px"><div style="flex:1;display:flex;gap:4px">' + steps.map((_, k) => '<i style="width:' + (k === i ? 16 : 7) + 'px;height:7px;border-radius:999px;background:' + (k === i ? "#facc15" : "rgba(255,255,255,.25)") + '"></i>').join("") + "</div>" +
+        (i ? '<button type="button" data-back style="border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.13);color:inherit;font-weight:700;cursor:pointer">Back</button>' : '<button type="button" data-skip style="border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.13);color:inherit;font-weight:700;cursor:pointer">Skip</button>') +
+        (i < steps.length - 1 ? '<button type="button" data-next style="border:0;border-radius:999px;padding:8px 16px;background:#facc15;color:#1b1300;font-weight:800;cursor:pointer">Next</button>'
+          : '<button type="button" data-new style="border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.13);color:inherit;font-weight:700;cursor:pointer">✨ What\'s new</button><button type="button" data-skip style="border:0;border-radius:999px;padding:8px 16px;background:#facc15;color:#1b1300;font-weight:800;cursor:pointer">Done</button>') + "</div>";
+      el.querySelectorAll("[data-skip]").forEach((b) => (b.onclick = done));
+      const n = el.querySelector("[data-next]"); if (n) n.onclick = () => { i++; paint(); };
+      const bk = el.querySelector("[data-back]"); if (bk) bk.onclick = () => { i--; paint(); };
+      const w = el.querySelector("[data-new]"); if (w) w.onclick = () => { done(); whatsNew(true); };
+      try { sessionStorage.setItem(TOUR_AT, JSON.stringify({ i, at: Date.now() })); } catch (_) {}
+      const where = el.querySelector("[data-where]");
+      if (s.go) where.textContent = s.go === "other" ? "Taking you to a club you've played…" : s.go === "mine" ? "Taking you to your club's page…" : "";
+      if (!(await goTo(s)) || my !== token) return;
+      // The page draws a moment after it opens: look for the feature for a few seconds, then outline it.
+      const t0 = Date.now();
+      while (my === token && (s.sel || []).length && Date.now() - t0 < 6000) {
+        const tgt = s.sel.map((q) => document.querySelector(q)).find((e) => e && e.getBoundingClientRect().height > 0);
+        if (tgt) { lit = tgt; tgt.dataset.sbxOl = tgt.style.outline; tgt.style.outline = "3px solid #facc15"; tgt.style.outlineOffset = "3px"; const r = tgt.getBoundingClientRect(); if (r.top < 60 || r.bottom > innerHeight - 260) tgt.scrollIntoView({ behavior: "smooth", block: "center" }); where.textContent = ""; return; }
+        await sleep(300);
+      }
+      if (my === token) where.textContent = s.sel ? "(It shows up on " + (s.go === "other" ? "other clubs' pages" : s.go === "mine" ? "your club pages" : "the pages where it applies") + ".)" : "";
+    };
+    paint();
+  }
+
+  // 🩺 Health check: a quick look at everything the kit depends on, with a report to copy into Discord.
+  async function openHealth() {
+    const ov = sbxModal("🩺 Club Kit health check", `<div class="hc"><div class="muted">Checking…</div></div><div class="acts"><button class="b" type="button" data-copy disabled>📋 Copy report</button><button class="b go" type="button" data-again>Run again</button></div><div class="msg"></div>`, true);
+    const out = [], box = ov.querySelector(".hc");
+    const add = (ok, label, text) => { out.push([ok, label, text]); box.innerHTML = out.map(([o, l, t]) => `<div class="row"><b>${o === true ? "✅" : o === false ? "❌" : "⚠️"}</b><div><b>${esc(l)}</b><div class="muted">${t}</div></div></div>`).join(""); };
+    const run = async () => {
+      out.length = 0; box.innerHTML = '<div class="muted">Checking…</div>';
+      // 1. version
+      try {
+        const v = await liveGet("downloads/version.json"), latest = v && v.version;
+        if (!latest) add(null, "Kit version", "You're on " + esc(KIT_VERSION) + ". Couldn't reach GitHub to compare.");
+        else if (verNum(latest) > verNum(KIT_VERSION)) add(null, "Kit version", "You're on " + esc(KIT_VERSION) + "; <b>" + esc(latest) + "</b> is out. " + (TABLET || MOBILE ? "Your userscript app updates it on its own; you can also check for updates in the app." : DEFAULT_CLUBS.length ? "Your private kit updates itself (or press Update now in its pop-up)." : "Download it from the Club Kit page."));
+        else add(true, "Kit version", "Up to date: " + esc(KIT_VERSION) + " (" + esc(kitEdition()) + ").");
+      } catch (e) { add(null, "Kit version", esc(e.message || e)); }
+      // 2. storage
+      try { localStorage.setItem("sbx-hc", "1"); localStorage.removeItem("sbx-hc"); add(true, "Settings storage", hasChromeStorage ? "Browser and extension storage both work." : "Browser storage works."); }
+      catch (e) { add(false, "Settings storage", "This browser blocks site storage (private mode?). The kit can't remember your settings."); }
+      // 3. clubs + SmallBall sign-in
+      const clubs = clubList();
+      if (!clubs.length) add(null, "Your clubs", "No clubs picked. Open ⚙ settings and tick your clubs.");
+      else add(true, "Your clubs", clubs.length + " in your tabs and dashboard: " + clubs.map((c) => esc(String(c))).join(", ") + ".");
+      if (clubs.length) {
+        try { const p = await getJSON("/teams/" + clubs[0] + "/profile", true); add(p && p.mine ? true : null, "SmallBall sign-in", p && p.mine ? "Signed in; SmallBall answers for " + esc(p.name || clubs[0]) + "." : "SmallBall answered, but doesn't show " + esc(String(clubs[0])) + " as yours. Are you signed in as its owner?"); }
+        catch (e) { add(false, "SmallBall sign-in", "SmallBall didn't answer (" + esc(e.message || e) + "). Try reloading, or sign in again."); }
+      }
+      // 4. Hill + tournaments
+      try {
+        const H = await liveGet("docs/hill/board.json"), at = H && Date.parse(H.updated || H.generated || "");
+        if (!H) add(false, "Hold the Hill data", "Couldn't load the Live Hold the Hill Leaderboard data.");
+        else { const mins = at ? Math.round((Date.now() - at) / 60000) : null; add(mins == null || mins < 180 ? true : null, "Hold the Hill data", "Loaded" + (mins != null ? ", updated " + (mins < 60 ? mins + " min" : Math.round(mins / 60) + " h") + " ago" : "") + (H.ace ? ". ♠ Ace: " + esc(H.ace.name) : "") + "."); }
+      } catch (e) { add(false, "Hold the Hill data", esc(e.message || e)); }
+      try {
+        const T = await liveGet("docs/tournaments/index.json"), list = (T && T.list) || [];
+        const open = list.filter((t) => t.signupClose && t.signupClose > Date.now());
+        add(T ? true : false, "Tournaments", T ? list.length + " on the Tournaments page" + (open.length ? "; sign-ups open: " + open.map((t) => esc(t.name)).join(", ") : "") + "." : "Couldn't load the Tournaments page data.");
+      } catch (e) { add(false, "Tournaments", esc(e.message || e)); }
+      // 5. switches + saved lineups
+      const off = FEATURES.filter(([k]) => !on(k)).map(([, l]) => l.split(":")[0].split("(")[0].trim());
+      add(true, "Features", off.length ? off.length + " turned off: " + off.slice(0, 8).map(esc).join("; ") + (off.length > 8 ? "…" : "") : "Everything is on.");
+      try { const B = JSON.parse(localStorage.getItem("sbx-builder") || "{}"), n = Object.values(B).reduce((a, c) => a + ((c && c.saved) || []).length, 0); add(true, "Lineup Builder", n ? n + " saved lineup" + (n === 1 ? "" : "s") + "." : "No saved lineups yet."); } catch (_) { add(null, "Lineup Builder", "Its settings couldn't be read."); }
+      add(true, "Browser", esc((navigator.userAgent.match(/(iPad|iPhone|Android|CrOS|Windows|Mac OS X)[^;)]*/) || ["?"])[0]) + " · screen " + innerWidth + "×" + innerHeight + ".");
+      ov.querySelector("[data-copy]").disabled = false;
+    };
+    ov.querySelector("[data-again]").onclick = run;
+    ov.querySelector("[data-copy]").onclick = async () => {
+      const txt = "🩺 Club Kit health check · " + KIT_VERSION + " · " + kitEdition() + "\n" + out.map(([o, l, t]) => (o === true ? "✅ " : o === false ? "❌ " : "⚠️ ") + l + ": " + t.replace(/<[^>]+>/g, "")).join("\n");
+      try { await navigator.clipboard.writeText(txt); ov.querySelector(".msg").textContent = "📋 Copied. Paste it in Discord for slipnsliders."; }
+      catch (_) { ov.querySelector(".msg").innerHTML = '<textarea readonly>' + esc(txt) + "</textarea>"; }
+    };
+    run();
+  }
+
+  // 💾 Back up / restore: your clubs, notes, switches, saved lineups and the rest, as one code.
+  const BACKUP_SKIP = /^sbx-(box-v\d|dash-cache|tplog|park-cache|passive|hc|seen-version|live-hidden|live-min)/;   // caches and history, not settings
+  const BIG_KEYS = /^sbx-skins$/;   // stadium pictures: optional, they can be large
+  const b64e = (str) => { const b = new TextEncoder().encode(str); let s = ""; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s); };
+  const b64d = (str) => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/\s+/g, "")), (c) => c.charCodeAt(0)));
+  const csGet = (keys) => new Promise((res) => { try { chrome.storage.local.get(keys, (r) => res(r || {})); } catch (_) { res({}); } });
+  async function makeBackup(withPics) {
+    const ls = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!/^sbx/.test(k) || BACKUP_SKIP.test(k) || (!withPics && BIG_KEYS.test(k))) continue;
+      ls[k] = localStorage.getItem(k);
+    }
+    let ext = null;
+    if (hasChromeStorage) {
+      ext = await csGet(["sbxClubs", "sbxNotes", "sbxLogos"]);
+      if (!withPics) delete ext.sbxLogos;
+    } else if (!withPics && ls[LS_STORE]) {
+      try { const o = JSON.parse(ls[LS_STORE]); delete o.sbxLogos; ls[LS_STORE] = JSON.stringify(o); } catch (_) {}
+    }
+    return "SBXKIT1:" + b64e(JSON.stringify({ v: 1, kit: KIT_VERSION, from: kitEdition(), at: new Date().toISOString(), ls: ls, ext: ext }));
+  }
+  function openBackup() {
+    const ov = sbxModal("💾 Back up / restore your Club Kit", `<div class="muted">Your clubs, notes, feature switches, saved lineups and other settings, as one code. Copy it somewhere safe, or paste it on another device (Chrome, phone or iPad) to set the kit up the same way.</div>
+      <p><b>Back up</b> <label class="muted" style="margin-left:8px"><input type="checkbox" data-pics> include logos and stadium pictures (bigger)</label></p>
+      <textarea readonly data-out placeholder="Press Make a backup code"></textarea>
+      <div class="acts"><button class="b" type="button" data-dl disabled>⬇️ Save as a file</button><button class="b" type="button" data-cp disabled>📋 Copy</button><button class="b go" type="button" data-mk>Make a backup code</button></div>
+      <p style="margin-top:16px"><b>Restore</b> <span class="muted">Paste a backup code. It replaces the settings on this device, then reloads.</span></p>
+      <textarea data-in placeholder="SBXKIT1:…"></textarea>
+      <div class="acts"><button class="b" type="button" data-file>📂 Open a file</button><button class="b go" type="button" data-rs>Restore</button></div><div class="msg"></div>`, true);
+    const $ = (s) => ov.querySelector(s), msg = (t) => { $(".msg").innerHTML = t; };
+    $("[data-mk]").onclick = async () => {
+      const code = await makeBackup($("[data-pics]").checked);
+      $("[data-out]").value = code; $("[data-cp]").disabled = $("[data-dl]").disabled = false;
+      msg("Backup ready: " + Math.max(1, Math.round(code.length / 1024)) + " KB.");
+    };
+    $("[data-cp]").onclick = async () => { try { await navigator.clipboard.writeText($("[data-out]").value); msg("📋 Copied."); } catch (_) { $("[data-out]").select(); msg("Select-all is on: copy it with your keyboard or long-press."); } };
+    $("[data-dl]").onclick = () => {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([$("[data-out]").value], { type: "text/plain" }));
+      a.download = "SmallBall-Club-Kit-backup-" + new Date().toISOString().slice(0, 10) + ".txt"; document.body.appendChild(a); a.click(); a.remove();
+    };
+    $("[data-file]").onclick = () => {
+      const f = document.createElement("input"); f.type = "file"; f.accept = ".txt,text/plain";
+      f.onchange = () => { const r = new FileReader(); r.onload = () => { $("[data-in]").value = String(r.result || "").trim(); msg("File loaded. Press Restore."); }; if (f.files[0]) r.readAsText(f.files[0]); };
+      f.click();
+    };
+    $("[data-rs]").onclick = async () => {
+      const raw = $("[data-in]").value.trim();
+      let d; try { if (!raw.startsWith("SBXKIT1:")) throw 0; d = JSON.parse(b64d(raw.slice(8))); if (!d || d.v !== 1 || typeof d.ls !== "object") throw 0; } catch (_) { msg("❌ That isn't a Club Kit backup code. It should start with SBXKIT1:"); return; }
+      const btn = $("[data-rs]");
+      if (btn.dataset.sure !== "1") { btn.dataset.sure = "1"; btn.textContent = "Yes, replace my settings"; msg("This backup is from " + esc(d.from || "?") + " (" + esc(d.kit || "?") + "), " + esc(String(d.at || "").slice(0, 10)) + ". Press again to restore."); return; }
+      try {
+        Object.keys(d.ls).forEach((k) => { if (/^sbx/.test(k)) localStorage.setItem(k, d.ls[k]); });
+        const ext = d.ext || {};
+        if (hasChromeStorage) { const put = {}; ["sbxClubs", "sbxNotes", "sbxLogos"].forEach((k) => { if (ext[k] != null) put[k] = ext[k]; }); if (Object.keys(put).length) await new Promise((res) => chrome.storage.local.set(put, res)); }
+        else { const put = {}; ["sbxClubs", "sbxNotes", "sbxLogos"].forEach((k) => { if (ext[k] != null) put[k] = ext[k]; }); if (Object.keys(put).length) lsSet(put); }
+        msg("✅ Restored. Reloading…"); setTimeout(() => location.reload(), 700);
+      } catch (e) { msg("❌ Couldn't restore: " + esc(e.message || e)); }
+    };
+  }
+  if (window.top === window) setTimeout(() => {
+    let toured = false; try { toured = !!localStorage.getItem(TOUR_KEY); } catch (_) {}
+    // not over the trainer or a game: the tour waits for the next page you open
+    // a tour that reloaded the page to reach a step picks up where it was
+    let resume = null; try { resume = JSON.parse(sessionStorage.getItem(TOUR_AT) || "null"); } catch (_) {}
+    if (resume && Date.now() - resume.at < 120e3 && location.pathname !== "/training") { try { openTour(resume.i); } catch (_) {} return; }
+    try { if (toured) whatsNew(false); else if (location.pathname !== "/training") openTour(0); } catch (_) {}
+  }, 3500);
+
+  // ───────── 🔥🧊 Hot & cold: the last 10 games against each man's career, in the squad table ─────────
+  const HOT = {};   // team -> { at, busy, map: pid -> { tag, tip } }
+  window.__sbxHot = HOT;   // the Lineup Builder reads this for its chips
+  const opsOf = (ab, h, b2, b3, hr, bb) => { const pa = ab + bb; if (!pa || !ab) return null; const tb = h + b2 + 2 * b3 + 3 * hr; return (h + bb) / pa + tb / ab; };
+  async function loadHot(team) {
+    // Form, not talent: each man's last 10 games against the 15 before them (his career line if those are too few).
+    const H = HOT[team] || (HOT[team] = { at: 0, busy: false, map: {} });
+    if (H.busy || Date.now() - H.at < 10 * 60000) return;
+    H.busy = true;
+    try {
+      const prof = await profileOf(team, 5 * 60000);
+      const games = (await seasonGames(team)).filter((g) => g.finished_at).sort((a, b) => Date.parse(b.finished_at) - Date.parse(a.finished_at)).slice(0, 25);
+      await fillBoxes(games, () => true);
+      const sum = (list) => {
+        const L = {};
+        for (const g of list) {
+          const [S] = sideOf(BOX[g.game_id], team); if (!S) continue;
+          for (const [id, x] of Object.entries(S.p)) { const a = L[id] || (L[id] = { g: 0, ab: 0, h: 0, b2: 0, b3: 0, hr: 0, bb: 0, k: 0 }); a.g++; a.ab += x[0]; a.h += x[1]; a.b2 += x[2]; a.b3 += x[3]; a.hr += x[4]; a.bb += x[5]; a.k += x[6] || 0; }
+        }
+        return L;
+      };
+      const R = sum(games.slice(0, 10)), B = sum(games.slice(10)), map = {}, f3 = (x) => x.toFixed(3).replace(/^0/, "");
+      // Their pitching over these games, from the box scores (the site's career pitching numbers aren't reliable).
+      const arms = {};
+      for (const g of games) {
+        const [S, O] = sideOf(BOX[g.game_id], team); if (!S || !O) continue;
+        const ids = Object.keys(S.p).filter((id) => S.p[id][7] > 0), ipAll = ids.reduce((t, id) => t + S.p[id][7], 0) || 1;
+        const tot = { h: 0, bb: 0, k: 0, hr: 0 }; for (const L of Object.values(O.p)) { tot.h += L[1]; tot.bb += L[5]; tot.k += L[6]; tot.hr += L[4]; }
+        for (const id of ids) { const f = S.p[id][7] / ipAll, a = arms[id] || (arms[id] = { g: 0, ip: 0, r: 0, h: 0, bb: 0, k: 0, hr: 0 }); a.g++; a.ip += S.p[id][7]; a.r += S.ra * f; a.h += tot.h * f; a.bb += tot.bb * f; a.k += tot.k * f; a.hr += tot.hr * f; }
+      }
+      H.last10 = R; H.arms = arms; H.n = games.length;
+      for (const p of (prof && prof.roster) || []) {
+        const a = R[String(p.player_id)], b = B[String(p.player_id)], c = p.career || {};
+        if (!a || a.ab < 15) continue;
+        const now = opsOf(a.ab, a.h, a.b2, a.b3, a.hr, a.bb);
+        let base = null, vs = "";
+        if (b && b.ab >= 25) { base = opsOf(b.ab, b.h, b.b2, b.b3, b.hr, b.bb); vs = "the " + b.g + " games before"; }
+        else if ((c.at_bats || 0) >= 60) { base = opsOf(c.at_bats || 0, c.hits || 0, c.doubles || 0, c.triples || 0, c.home_runs || 0, c.walks || 0); vs = "career"; }
+        if (now == null || base == null || !base) continue;
+        const rel = (now - base) / base;
+        const tip = "Last " + a.g + " games: " + a.h + "-for-" + a.ab + (a.hr ? ", " + a.hr + " HR" : "") + (a.bb ? ", " + a.bb + " BB" : "") + " · OPS " + f3(now) + " (" + vs + ": " + f3(base) + ")";
+        const num = { g: a.g, ab: a.ab, h: a.h, hr: a.hr, bb: a.bb, now, base, vs };
+        if (rel >= 0.2) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip, num };
+        else if (rel <= -0.2) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip, num };
+      }
+      H.map = map; H.at = Date.now();
+    } catch (_) { H.at = Date.now() - 8 * 60000; }
+    finally { H.busy = false; setTimeout(tick, 0); }
+  }
+
+  function hotTags(t, team) {
+    if (!team) return;
+    const H = HOT[team];
+    if (!H || (!H.busy && Date.now() - H.at > 10 * 60000)) loadHot(team);
+    if (!H || !H.at) return;
+    for (const tr of t.querySelectorAll("tr.man")) {
+      const td = tr.children[3]; if (!td) continue;
+      const x = H.map[tr.dataset.pid], cur = td.querySelector(".sbx-hot");
+      const want = x ? (x.tag === "hot" ? "🔥" : "🧊") : "";
+      if (cur && cur.textContent === want && cur.title === (x && x.tip)) continue;
+      if (cur) cur.remove();
+      if (!x) continue;
+      const sp = document.createElement("span"); sp.className = "sbx-hot"; sp.textContent = want; sp.title = x.tip;
+      sp.style.cssText = "margin-right:4px;cursor:help";
+      td.insertBefore(sp, td.firstChild);
+    }
+  }
+
+  // ───────── 🏋️ Training plan: your plan for each man, next to the trainer and on your club page ─────────
+  const TPLAN_KEY = "sbx-trainplan";
+  const SKL = [["P", "pitch_skill", "Pitching"], ["C", "catch_skill", "Catching"], ["T", "pass_power", "Throwing"], ["R", "run_speed", "Running"], ["BS", "swing_skill", "Bat Skill"], ["BP", "swing_power", "Bat Power"], ["BC", "contact_odds", "Bat Contact"]];   // SmallBall's own names
+  const tplanAll = () => { try { return JSON.parse(localStorage.getItem(TPLAN_KEY)) || {}; } catch (_) { return {}; } };
+  const tplanSave = (team, o) => { const a = tplanAll(); a[team] = o; try { localStorage.setItem(TPLAN_KEY, JSON.stringify(a)); } catch (_) {} };
+  const todayKey = () => new Date().toLocaleDateString("en-CA");
+  function tplanTeam() {
+    if (isTrainer()) { const q = new URLSearchParams(location.search); const id = Number(q.get("team") || 0); return id || Number((document.getElementById("who-team") || {}).value || 0); }
+    const m = location.hash.match(/^#\/team\/(\d+)/); return m && ownIds().has(m[1]) ? Number(m[1]) : 0;
+  }
+  // ── Training tracker: every read of your own club, compare each man's TP and skills with the last read.
+  // TP below his refill line = TP spent; a skill going up = a gain. TP is split across the skills that rose
+  // (by how much each rose); if he spent TP but didn't rise, to what the squad rose in, since the trainer
+  // drills everyone at once. With nothing rising at all, it goes to his one planned skill if he has
+  // exactly one, otherwise it's "not yet matched". Per day, per man, kept 45 days. Read-only, like the rest.
+  const TTRK_KEY = "sbx-traintrack";
+  const ttrkAll = () => { try { return JSON.parse(localStorage.getItem(TTRK_KEY)) || {}; } catch (_) { return {}; } };
+  function trainTrack(team, d) {
+    const all = ttrkAll(), T = all[team] || (all[team] = { snap: null, days: {} });
+    const now = Date.parse(d.server_time || "") || Date.now(), roster = d.roster || [];
+    const snap = { at: now, m: {} };
+    for (const p of roster) snap.m[p.player_id] = [Math.round(+p.tp || 0)].concat(SKL.map(([, k]) => Math.round(+p[k] || 0)));
+    const prev = T.snap;
+    if (prev && now > prev.at) {
+      const { R, max } = tpManRates(d), day = new Date(now).toLocaleDateString("en-CA"), plans = tplanAll()[team] || {};
+      // A drill burns TP over a few seconds, then the skill ticks up, and men can be on different drills at once.
+      // So TP a man spends waits ("pending") and is credited to the next skill HE gains. Pending TP left
+      // 15 minutes with no gain goes to his one planned skill, or shows as "not matched".
+      const pend = T.pend || (T.pend = {});
+      for (const id of Object.keys(snap.m)) {
+        const a = prev.m[id], b = snap.m[id]; if (!a) continue;
+        const expect = Math.min(max, a[0] + (R[id] || 0) * (now - prev.at)), spent = Math.max(0, expect - b[0]);
+        const g = SKL.map((_, i) => Math.max(0, b[i + 1] - a[i + 1])), gs = g.reduce((t, x) => t + x, 0);
+        const P = pend[id];
+        if (spent < 1.5 && !gs) {
+          if (P && now - P.at > 15 * 6e4) { const D = T.days[P.day] || (T.days[P.day] = {}), M = D[id] || (D[id] = { tp: 0, g: SKL.map(() => 0), a: SKL.map(() => 0), u: 0, at: 0 }); const f = (plans[id] || {}).focus || []; if (f.length === 1) M.a[SKL.findIndex(([k]) => k === f[0])] += Math.round(P.tp); else M.u += Math.round(P.tp); delete pend[id]; }
+          continue;
+        }
+        const D = T.days[day] || (T.days[day] = {}), M = D[id] || (D[id] = { tp: 0, g: SKL.map(() => 0), a: SKL.map(() => 0), u: 0, at: 0 });
+        const sp = spent >= 1.5 ? spent : 0;
+        M.tp = Math.round((M.tp + sp) * 10) / 10; M.at = now; g.forEach((x, i) => (M.g[i] += x));
+        if (gs) { const nm = (roster.find((x) => String(x.player_id) === id) || {}).name || "#" + id; g.forEach((x, i) => { if (x) atEv.push({ at: now, team, pid: id, name: nm, k: SKL[i][2], from: a[i + 1], to: b[i + 1] }); }); if (atEv.length > 400) atEv.splice(0, atEv.length - 400); AT.flash[id] = Date.now(); }
+        if (gs) { const tot = sp + (P ? P.tp : 0); g.forEach((x, i) => (M.a[i] = Math.round((M.a[i] + (tot * x) / gs) * 10) / 10)); delete pend[id]; }
+        else if (sp) pend[id] = { tp: (P ? P.tp : 0) + sp, at: now, day };
+      }
+      const keep = Object.keys(T.days).sort().slice(-45), nd = {}; keep.forEach((k) => (nd[k] = T.days[k])); T.days = nd;
+    }
+    T.snap = snap;
+    try { localStorage.setItem(TTRK_KEY, JSON.stringify(all)); } catch (_) {}
+    if (typeof mountAsst === "function" && (AT.open || isTrainer())) { const ae = document.activeElement; if (!(ae && /input|textarea/i.test(ae.tagName) && ae.closest && ae.closest("#sbx-at,#sbx-atnotes"))) atRedraw(); }
+  }
+  // Totals for one man since a day (inclusive): TP spent, gains and TP per skill.
+  function ttrkSum(team, pid, since) {
+    const T = ttrkAll()[team], o = { tp: 0, g: SKL.map(() => 0), a: SKL.map(() => 0), u: 0 };
+    if (!T) return o;
+    for (const [day, D] of Object.entries(T.days)) { if (since && day < since) continue; const M = D[pid]; if (!M) continue; o.tp += M.tp; o.u += M.u; M.g.forEach((x, i) => (o.g[i] += x)); M.a.forEach((x, i) => (o.a[i] += x)); }
+    const P = T.pend && T.pend[pid]; if (P && (!since || P.day >= since)) o.u += Math.round(P.tp);
+    o.tp = Math.round(o.tp); o.a = o.a.map((x) => Math.round(x));
+    return o;
+  }
+  // On the trainer, re-read your club every 6 seconds (the site saves each drill as it happens) so the cards keep up while you train.
+  setInterval(() => {
+    try {
+      if (!isTrainer() || document.hidden || !on("tplan")) return;
+      const team = tplanTeam(); if (team) profileOf(team, 4000).catch(() => {});
+    } catch (_) {}
+  }, 6000);
+  // "About how far to the next star": compares a man's skill average with the teammates already a star higher.
+  function nextStar(p, roster) {
+    const avg = (x) => SKL.reduce((t, [, k]) => t + (+x[k] || 0), 0) / SKL.length;
+    const o = +p.overall || 0, up = roster.filter((x) => (+x.overall || 0) === o + 1);
+    if (!up.length) return null;
+    const need = Math.min(...up.map(avg)) - avg(p);
+    return { star: o + 1, gap: Math.max(0, Math.round(need * SKL.length)) };   // in total skill points
+  }
+  // ───────── 📋 Asst. Trainer Kit ─────────
+  // Off the trainer: a full-page planner for one of your clubs (📋 button on your club page).
+  // On the trainer: a live board under the game with every man, his TP and his gains as they land.
+  // Read-only: the kit never trains for you. Plans are kept in this browser (and in 💾 backups).
+  const AT = { open: false, team: 0, sess: null, flash: {}, seen: {}, sig: "", dsig: "" };
+  const atEv = [];   // recent gains, newest last: { at, team, pid, name, k, from, to }
+  const atStyle = () => {
+    if (document.getElementById("sbx-at-css")) return;
+    const st = document.createElement("style"); st.id = "sbx-at-css";
+    st.textContent = [
+      "#sbx-at,#sbx-dock{font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#f4ebd9}",
+      "#sbx-at{position:fixed;inset:0;z-index:2147483300;background:rgba(6,12,26,.97);overflow:auto;padding:22px 26px 60px}",
+      "#sbx-at h2{margin:0;font:900 24px/1.1 system-ui,sans-serif;letter-spacing:.3px}",
+      ".at-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1500px;margin:0 auto}",
+      ".at-x{margin-left:auto;border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}",
+      ".at-clubs{display:flex;gap:6px;flex-wrap:wrap;max-width:1500px;margin:14px auto 0}",
+      ".at-clubs button{border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:700}",
+      ".at-clubs button.on{background:#facc15;color:#1b1300;border-color:#facc15}",
+      ".at-sum{display:flex;gap:8px;flex-wrap:wrap;max-width:1500px;margin:12px auto 0}",
+      ".at-sum span{background:rgba(255,255,255,.08);border-radius:999px;padding:5px 12px}",
+      ".at-sum b{color:#fde68a}",
+      ".at-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;max-width:1500px;margin:16px auto 0}",
+      ".at-card{background:#0f1b33;border-radius:14px;padding:13px 14px;box-shadow:0 6px 18px rgba(0,0,0,.35)}",
+      ".at-card.done{box-shadow:inset 4px 0 0 #16a34a,0 6px 18px rgba(0,0,0,.35)}",
+      ".at-nm{font-weight:900;font-size:15px}",
+      ".at-sub{opacity:.65;font-size:12px}",
+      ".at-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}",
+      ".at-bar i{display:block;height:100%}",
+      ".at-sk{display:grid;grid-template-columns:92px 1fr 34px 40px;gap:8px;align-items:center;padding:4px 6px;border-radius:8px;cursor:pointer}",
+      ".at-sk:hover{background:rgba(255,255,255,.06)}",
+      ".at-sk.f{background:rgba(250,204,21,.13);outline:1px solid rgba(250,204,21,.5)}",
+      ".at-sk .v{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}",
+      ".at-sk .g{text-align:right;font-size:12px;color:#4ade80;font-weight:700}",
+      ".at-tg{display:flex;align-items:center;gap:8px;margin:2px 6px 6px 6px;font-size:12px}",
+      ".at-tg input,.at-note{font:inherit;font-size:12px;background:#13254a;color:inherit;border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 7px}",
+      ".at-tg input{width:62px}",
+      ".at-note{width:100%;box-sizing:border-box;margin-top:8px}",
+      ".at-today{margin-top:8px;font-size:12px;background:rgba(22,163,74,.16);border-radius:7px;padding:4px 8px}",
+      ".at-help{max-width:1500px;margin:14px auto 0;opacity:.7;font-size:12.5px}",
+      "#sbx-dock{margin:14px auto 30px;max-width:1500px;background:#0b1428;border-radius:14px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35)}",
+      "#sbx-dock .dk-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
+      "#sbx-dock .dk-h b.t{font:900 16px/1 system-ui,sans-serif}",
+      "#sbx-dock .dk-h>span{background:rgba(255,255,255,.08);border-radius:999px;padding:3px 10px;font-size:12px}",
+      "#sbx-dock .dk-h b{color:#fde68a}#sbx-dock .dk-h b.t{color:inherit}",
+      "#sbx-dock .dk-mode{display:inline-flex;gap:0!important;padding:0!important;overflow:hidden;background:rgba(255,255,255,.08)}",
+      "#sbx-dock .dk-mode button{border:0;background:none;color:inherit;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}#sbx-dock .dk-mode button.on{background:#facc15;color:#1b1300}",
+      "#sbx-dock .dk-plan{margin-left:auto;border:0;background:#16a34a;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;cursor:pointer}",
+      "#sbx-dock .dk-body{display:grid;grid-template-columns:1fr 250px;gap:12px;margin-top:10px}",
+      "@media (max-width:900px){#sbx-dock .dk-body{grid-template-columns:1fr}}",
+      "#sbx-dock .gn i.off{background:#64748b}",
+      "#sbx-atnotes textarea,#sbx-atnotes input{width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:#13254a;color:inherit;border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 7px}",
+      "#sbx-atnotes .nt-m{margin-top:9px;font-size:12.5px}#sbx-atnotes .nt-m input{margin-top:3px}",
+      ".at-side{position:fixed;top:76px;bottom:110px;z-index:2147481990;background:rgba(8,15,32,.96);border:1px solid rgba(255,255,255,.1);box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column;font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#f4ebd9}",
+      ".at-side.l{left:0;border-radius:0 14px 14px 0}.at-side.r{right:0;border-radius:14px 0 0 14px;z-index:2147483500}",
+      ".at-side.min{width:34px;background:#16a34a;border:0;top:180px;bottom:auto}",
+      ".at-tab{border:0;background:none;color:#fff;font:800 12px/1.15 system-ui,sans-serif;cursor:pointer;padding:10px 0;width:34px}",
+      ".at-side .sd-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08)}",
+      ".at-side .sd-h b{font:900 15px/1 system-ui,sans-serif;white-space:nowrap}.at-side .sd-h .at-sub{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      ".at-side .sd-h button{border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:7px;padding:3px 8px;cursor:pointer;font-weight:800}",
+      ".at-side .sd-b{overflow:auto;padding:10px;flex:1}",
+      ".at-side.l .at-card{padding:10px 11px;margin-bottom:10px}.at-side.l .at-sk{grid-template-columns:78px 1fr 26px 28px;gap:6px;padding:2px 4px;font-size:12px}",
+      ".at-side.l .at-nm{font-size:14px}",
+      "#sbx-dock .dk-sum{display:flex;gap:6px;margin-bottom:8px}#sbx-dock .dk-sum span{background:rgba(255,255,255,.08);border-radius:999px;padding:3px 10px;font-size:12px}#sbx-dock .dk-sum b{color:#fde68a}",
+      "#sbx-dock .dk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}",
+      "#sbx-dock .dk-m{background:#13213f;border-radius:10px;padding:7px 9px;transition:background .6s}",
+      "#sbx-dock .dk-m.fl{background:#14532d}",
+      "#sbx-dock .dk-m .n{font-weight:800;font-size:13px;line-height:1.2}",
+      "#sbx-dock .dk-m .p{opacity:.6;font-size:11px;font-weight:600}",
+      "#sbx-dock .dk-m .tp{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11.5px}",
+      "#sbx-dock .dk-m .tp .at-bar{flex:1;height:6px}",
+      "#sbx-dock .gn{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}",
+      "#sbx-dock .gn i{font-style:normal;background:#16a34a;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700}",
+      "#sbx-dock .gn i.pl{background:#facc15;color:#1b1300}",
+      "#sbx-dock .tg{font-size:11px;margin-top:4px;opacity:.9}",
+      "#sbx-dock .feed{background:#13213f;border-radius:10px;padding:8px 10px;font-size:12px;margin-top:8px}",
+      "#sbx-dock .feed div{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06)}",
+      "#sbx-dock .feed b{color:#4ade80}",
+    ].join("");
+    document.head.appendChild(st);
+  };
+  const tpBar = (tp) => '<div class="at-bar"><i style="width:' + Math.min(100, Math.max(0, tp)) + "%;background:" + (tp >= 95 ? "#16a34a" : tp < 15 ? "#f87171" : "#60a5fa") + '"></i></div>';
+  const fmtT = (t) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+  const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toLocaleDateString("en-CA"); };
+  function atRedraw() { AT.sig = ""; AT.dsig = ""; setTimeout(mountAsst, 0); }
+
+  // Flow: 📋 Training plan (club page header and club cards) → full-page planner → ⚾ Take it to the field →
+  // the trainer, with the live board under the game and 📝 training notes on the side.
+  const AT_SIDE = "sbx-at-side", AT_MODE = "sbx-at-mode";
+  const atSide = () => { try { return Object.assign({ n: true }, JSON.parse(localStorage.getItem(AT_SIDE) || "{}")); } catch (_) { return { n: true }; } };
+  const atSideSet = (o) => { try { localStorage.setItem(AT_SIDE, JSON.stringify(Object.assign(atSide(), o))); } catch (_) {} atRedraw(); };
+  const atMode = () => { try { return localStorage.getItem(AT_MODE) === "gains" ? "gains" : "plan"; } catch (_) { return "plan"; } };
+  const atOpen = (team) => { AT.open = true; AT.team = Number(team) || tplanTeam() || AT.team; atRedraw(); };
+  // 🧢 Lineup on the club cards: open that club's page and scroll to the lineup editor (the 🧩 Lineup Builder sits on top of it).
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest("[data-lineup]"); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    const team = b.dataset.lineup, want = "#/team/" + team;
+    if (location.hash !== want) location.hash = want;
+    let n = 0;
+    const go = () => {
+      const lu = document.getElementById("t-lineup"), onIt = location.hash === want;
+      const tgt = onIt && (document.getElementById("sbx-build") || lu);
+      if (tgt) {
+        // The page keeps filling in for a moment after it opens, so aim again until the editor stays near the top.
+        const aim = (k) => { const t = document.getElementById("sbx-build") || document.getElementById("t-lineup"); if (!t) return; const y = t.getBoundingClientRect().top; if (Math.abs(y - 70) > 40) window.scrollBy(0, y - 70); if (k < 6) setTimeout(() => aim(k + 1), 400); else { t.style.transition = "box-shadow .4s"; t.style.boxShadow = "0 0 0 3px #facc15"; setTimeout(() => { t.style.boxShadow = ""; }, 1600); } };
+        aim(0); return;
+      }
+      if (++n < 40) setTimeout(go, 200);
+    };
+    setTimeout(go, 150);
+  }, true);
+  document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-atplan]"); if (b) { e.preventDefault(); atOpen(b.dataset.atplan); } }, true);
+  function mountAsst() {
+    atStyle();
+    const onTrainer = isTrainer(), team = tplanTeam();
+    document.getElementById("sbx-tplan-btn")?.remove();   // the old floating button
+    if (onTrainer && team) { AT.open = false; document.getElementById("sbx-at")?.remove(); mountDock(team); mountTrainNotes(team); return; }
+    document.getElementById("sbx-dock")?.remove(); document.getElementById("sbx-atnotes")?.remove(); AT.sess = null;
+    // 📋 Training plan in your club page's header, beside the site's Training button
+    const hb = document.querySelector("main .th-btns");
+    if (hb && team && !hb.querySelector("[data-atplan]")) {
+      const a = document.createElement("a"); a.href = "#"; a.className = "btn"; a.dataset.atplan = String(team); a.textContent = "📋 Training plan";
+      a.style.cssText = "background:#16a34a;color:#fff"; a.title = "Plan this club's training (Asst. Trainer Kit)";
+      hb.insertBefore(a, hb.firstChild);
+    }
+    if (AT.open) mountPlanner(); else document.getElementById("sbx-at")?.remove();
+  }
+  function atSideW() { const cv = document.querySelector("canvas#stage") || document.querySelector("canvas"); const r = cv ? cv.getBoundingClientRect() : null; const gap = r ? r.left : 300; return Math.max(200, Math.min(320, Math.round(gap - 16))); }
+  // 📝 Training notes beside the trainer: a running note for the club, plus each man's plan note.
+  function mountTrainNotes(team) {
+    let el = document.getElementById("sbx-atnotes");
+    const sd = atSide();
+    if (!el) { el = document.createElement("div"); el.id = "sbx-atnotes"; el.className = "at-side l"; document.body.appendChild(el); }
+    el.style.width = sd.n ? atSideW() + "px" : "";
+    el.classList.toggle("min", !sd.n);
+    if (!sd.n) { if (el.dataset.sig !== "min") { el.dataset.sig = "min"; el.innerHTML = '<button type="button" class="at-tab" title="Show your training notes">📝<br>N<br>o<br>t<br>e<br>s</button>'; el.querySelector(".at-tab").onclick = () => atSideSet({ n: true }); } return; }
+    if (el.contains(document.activeElement) && /input|textarea/i.test(document.activeElement.tagName)) return;
+    const c = PROF[team], plan = tplanAll()[team] || {}, sig = JSON.stringify([team, c ? c.at : 0, plan]);
+    if (el.dataset.sig === sig) return;
+    el.dataset.sig = sig;
+    const roster = c && c.data ? (c.data.roster || []).slice().sort((a, b) => (b.position ? 1 : 0) - (a.position ? 1 : 0) || (+a.bats || 99) - (+b.bats || 99)) : [];
+    const men = roster.map((p) => { const P = plan[p.player_id] || {}, f = (P.focus || []).map((k) => SKL.find((x) => x[0] === k)[2]); return '<div class="nt-m"><b>' + esc(p.name) + "</b>" + (f.length ? ' <span class="at-sub">🎯 ' + f.join(", ") + "</span>" : "") +
+      '<input type="text" data-pn="' + p.player_id + '" value="' + esc(P.note || "") + '" maxlength="120" placeholder="Note for him"></div>'; }).join("");
+    el.innerHTML = '<div class="sd-h"><b>📝 Training notes</b><span class="at-sub"></span><button type="button" data-fold title="Fold">‹</button></div><div class="sd-b">' +
+      '<textarea data-club-note rows="4" placeholder="Notes for this club: what you are working on, what to try next time…">' + esc((plan._club || {}).note || "") + "</textarea>" + men + "</div>";
+    el.querySelector("[data-fold]").onclick = () => atSideSet({ n: false });
+    const upd = (pid, fn) => { const all = tplanAll(), t = all[team] || {}, x = t[pid] || {}; fn(x); t[pid] = x; tplanSave(team, t); };
+    el.querySelector("[data-club-note]").onchange = (e) => upd("_club", (x) => { x.note = e.target.value.trim(); });
+    el.querySelectorAll("[data-pn]").forEach((i) => (i.onchange = () => upd(i.dataset.pn, (x) => { x.note = i.value.trim(); })));
+  }
+
+  // ── Full-page planner ──
+  // The planner cards (full page, and the slim column beside the trainer)
+  function atCards(team, prof) {
+    const roster = (prof.roster || []).slice().sort((a, b) => (b.position ? 1 : 0) - (a.position ? 1 : 0) || (+a.bats || 99) - (+b.bats || 99));
+    const plan = tplanAll()[team] || {}, hot = (HOT[team] || {}).map || {}, today = todayKey(), wk = daysAgo(6);
+    if (!HOT[team] || (!HOT[team].busy && Date.now() - HOT[team].at > 10 * 60000)) loadHot(team);
+    let tpSum = 0, ready = 0, done = 0, wkGain = 0, wkTp = 0;
+    const cards = roster.map((p) => {
+      const P = plan[p.player_id] || {}, f = P.focus || [], bud = P.budget || {}, tp = Math.round(+p.tp || 0), h = hot[p.player_id];
+      const tot = ttrkSum(team, p.player_id, P.since || ""), td = ttrkSum(team, p.player_id, today), w = ttrkSum(team, p.player_id, wk), ns = nextStar(p, roster);
+      tpSum += tp; if (tp >= 95) ready++; if (P.done === today || td.tp >= 5) done++; wkGain += w.g.reduce((a, b) => a + b, 0); wkTp += w.tp;
+      const rows = SKL.map(([k, f2, nm], i) => {
+        const v = Math.round(+p[f2] || 0), on = f.includes(k), B = +bud[k] || 0, used = tot.a[i];
+        return '<div class="at-sk' + (on ? " f" : "") + '" data-sk="' + k + '" title="' + (on ? "In his plan. Click to take it out." : "Click to add " + nm + " to his plan") + '"><span>' + (on ? "🎯 " : "") + nm + "</span>" +
+          '<div class="at-bar"><i style="width:' + Math.min(100, v) + "%;background:" + (on ? "#facc15" : "rgba(255,255,255,.35)") + '"></i></div><span class="v">' + v + '</span><span class="g">' + (w.g[i] ? "+" + w.g[i] : "") + "</span></div>" +
+          (on ? '<div class="at-tg"><span>Spend</span><input type="number" min="0" max="999" step="5" data-bud="' + k + '" value="' + (B || "") + '" placeholder="TP"><span>TP</span>' +
+            (B ? '<div class="at-bar" style="flex:1"><i style="width:' + Math.min(100, Math.round((100 * used) / B)) + "%;background:" + (used >= B ? "#16a34a" : "#facc15") + '"></i></div><b style="' + (used >= B ? "color:#4ade80" : "") + '">' + used + "/" + B + (used >= B ? " ✓" : "") + "</b>" : used ? '<span style="opacity:.7">' + used + " TP so far</span>" : "") + "</div>" : "");
+      }).join("");
+      const todayLine = td.tp || td.g.some(Boolean) ? '<div class="at-today">Today: ' + (td.tp ? "<b>−" + td.tp + " TP</b>" : "") + (td.g.some(Boolean) ? (td.tp ? " · " : "") + SKL.map((x, i) => (td.g[i] ? x[2] + ' <b style="color:#4ade80">+' + td.g[i] + "</b>" : "")).filter(Boolean).join(", ") : "") + "</div>" : "";
+      return '<div class="at-card' + (P.done === today || td.tp >= 5 ? " done" : "") + '" data-pid="' + p.player_id + '">' +
+        '<div style="display:flex;align-items:baseline;gap:8px"><span class="at-nm">' + (h ? '<span title="' + esc(h.tip) + '">' + (h.tag === "hot" ? "🔥" : "🧊") + "</span> " : "") + esc(p.name) + '</span><span class="at-sub">' + esc(p.position || "bench") + " · " + (+p.overall || 0) + "★</span>" +
+        (ns ? '<span class="at-sub" style="margin-left:auto" title="Compared with the teammates already at ' + ns.star + '★: about this many skill points short. A rough guide, not the site\'s formula.">≈' + ns.gap + " to " + ns.star + "★</span>" : "") + "</div>" +
+        '<div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px"><div style="flex:1">' + tpBar(tp) + '</div><b style="font-size:12px;white-space:nowrap;' + (tp >= 95 ? "color:#4ade80" : "") + '">' + tp + " TP" + (tp >= 95 ? " ⚡" : "") + "</b></div>" + rows +
+        (tot.u ? '<div class="at-sub" style="margin:2px 6px" title="TP spent in a drill that has not paid off yet. It moves to a skill the next time one of his skills goes up.">+ ' + tot.u + " TP in a drill, waiting on a gain</div>" : "") + todayLine +
+        '<input class="at-note" type="text" data-note value="' + esc(P.note || "") + '" maxlength="120" placeholder="Note: e.g. Bat Power to 90, then Bat Contact">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" data-done ' + (P.done === today || td.tp >= 5 ? "checked" : "") + (td.tp >= 5 && P.done !== today ? ' disabled title="The kit saw TP spent today"' : "") + "> Trained today</label>" +
+        (f.length ? '<span class="at-sub" style="margin-left:auto">Counting since ' + esc(P.since || "today") + ' <button type="button" data-reset style="border:0;background:rgba(255,255,255,.12);color:inherit;border-radius:6px;padding:1px 7px;cursor:pointer;font-size:11.5px" title="Start counting TP from today">↺</button></span>' : "") + "</div></div>";
+    }).join("");
+    const sum = '<div class="at-sum"><span>Team TP <b>' + tpSum + "</b></span><span>⚡ Full <b>" + ready + "</b></span><span>✓ Trained today <b>" + done + " of " + roster.length + "</b></span><span>Last 7 days <b>+" + wkGain + "</b> skill points for <b>" + wkTp + " TP</b></span></div>";
+    return { cards, sum };
+  }
+  function mountPlanner() {
+    const mine = [...ownIds()].map(Number);
+    if (!AT.team || !mine.includes(AT.team)) AT.team = tplanTeam() || mine[0] || 0;
+    const team = AT.team; if (!team) return;
+    const c = PROF[team];
+    if (!c || Date.now() - c.at > 120000) { if (!AT.loading) { AT.loading = true; profileOf(team, 120000).catch(() => {}).finally(() => { AT.loading = false; atRedraw(); }); } }
+    let el = document.getElementById("sbx-at");
+    if (!el) { el = document.createElement("div"); el.id = "sbx-at"; document.body.appendChild(el); if (!AT.keyed) AT.keyed = 1, document.addEventListener("keydown", (e) => { if (e.key === "Escape" && AT.open && !/input|textarea/i.test((e.target || {}).tagName || "")) { AT.open = false; atRedraw(); } }); }
+    const T = ttrkAll()[team];
+    const sig = JSON.stringify([team, c ? c.at : 0, T && T.snap ? T.snap.at : 0, tplanAll()[team] || {}, todayKey(), mine]);
+    if (el.dataset.sig === sig) return;
+    el.dataset.sig = sig;
+    const clubs = '<div class="at-clubs">' + mine.map((id) => '<button type="button" data-club="' + id + '" class="' + (id === team ? "on" : "") + '">' + esc(nameOfClub(id)) + "</button>").join("") + "</div>";
+    const head = '<div class="at-top"><h2>📋 Asst. Trainer Kit</h2><span class="at-sub">Plan what each man works on and how much TP to spend. Open the trainer and the live board under the game tracks it as you go.</span><a class="at-x" href="/training?team=' + team + '" style="background:#16a34a;color:#fff;text-decoration:none" title="Open the trainer for this club, with the live board under the game">⚾ Take it to the field</a><button type="button" class="at-x" style="margin-left:0" data-close>✕ Close</button></div>' + clubs;
+    if (!c || !c.data) { el.innerHTML = head + '<div class="at-help">Reading the club…</div>'; atWire(el); return; }
+    const { cards, sum } = atCards(team, c.data);
+    const sc = el.scrollTop;
+    el.innerHTML = head + sum + '<div class="at-grid">' + cards + "</div>" +
+      '<div class="at-help">🎯 Click a skill to put it in his plan, then set how much TP to spend on it. Green numbers are what he gained in the last 7 days. The kit tracks TP and gains each time it reads your club, and live on the trainer. It never trains for you.</div>';
+    el.scrollTop = sc;
+    atWire(el, team);
+  }
+  function atWire(el, team, onClose) {
+    const cx = el.querySelector("[data-close]"); if (cx) cx.onclick = onClose || (() => { AT.open = false; atRedraw(); });
+    el.querySelectorAll("[data-club]").forEach((b) => (b.onclick = () => { AT.team = Number(b.dataset.club); el.dataset.sig = ""; atRedraw(); }));
+    if (!team) return;
+    const upd = (pid, fn) => { const all = tplanAll(), t = all[team] || {}, x = t[pid] || {}; fn(x); t[pid] = x; tplanSave(team, t); };
+    el.querySelectorAll(".at-card").forEach((card) => {
+      const pid = card.dataset.pid;
+      card.querySelectorAll(".at-sk").forEach((r) => (r.onclick = () => { upd(pid, (x) => { const f = new Set(x.focus || []); f.has(r.dataset.sk) ? f.delete(r.dataset.sk) : f.add(r.dataset.sk); x.focus = SKL.map(([k]) => k).filter((k) => f.has(k)); if (x.focus.length && !x.since) x.since = todayKey(); }); atRedraw(); }));
+      card.querySelectorAll("[data-bud]").forEach((i) => { i.onclick = (e) => e.stopPropagation(); i.onchange = () => { upd(pid, (x) => { const B = x.budget || {}; const v = Math.round(+i.value || 0); if (v > 0) B[i.dataset.bud] = v; else delete B[i.dataset.bud]; x.budget = B; if (!x.since) x.since = todayKey(); }); atRedraw(); }; });
+      const n = card.querySelector("[data-note]"); n.onchange = () => upd(pid, (x) => { x.note = n.value.trim(); });
+      const d = card.querySelector("[data-done]"); d.onchange = () => { upd(pid, (x) => { x.done = d.checked ? todayKey() : ""; }); atRedraw(); };
+      const rs = card.querySelector("[data-reset]"); if (rs) rs.onclick = () => { upd(pid, (x) => { x.since = todayKey(); }); atRedraw(); };
+    });
+  }
+
+  // ── Live board under the trainer ──
+  // ───────── 📡 SmallCast: a game cast under the player when you watch a game ─────────
+  // Everything it shows is read off the player as it plays (the scoreboard and the play-by-play), so it
+  // never runs ahead of the picture: no spoilers. "Coming in" uses only games played before this one.
+  const onWatch = () => location.pathname === "/training" && /[?&](watch|game)=\d+/.test(location.search);
+  const CAST_FOLD = "sbx-cast-fold", CAST_TAB = "sbx-cast-tab", CAST_PLACE = "sbx-cast-place", CAST_POS = "sbx-cast-pos";
+  const castPlace = () => { try { return localStorage.getItem(CAST_PLACE) || "jumbo"; } catch (_) { return "jumbo"; } };
+  // The SmallCast mark: a ball sending out a signal, and the name in two colors.
+  const CAST_MARK = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M23 6.5a12 12 0 0 1 0 19" fill="none" stroke="#ffc23d" stroke-width="2.4" stroke-linecap="round" opacity=".55"/><path d="M20 10a7.5 7.5 0 0 1 0 12" fill="none" stroke="#ffc23d" stroke-width="2.4" stroke-linecap="round"/><circle cx="11" cy="16" r="8" fill="#fff"/><path d="M6 10.5c2.2 3 2.2 8 0 11M16 10.5c-2.2 3-2.2 8 0 11" fill="none" stroke="#e11d48" stroke-width="1.4" stroke-dasharray="1.6 1.4"/></svg>';
+  const castLogo = (cls) => `<span class="sc-logo ${cls || ""}">${CAST_MARK}<b>SMALL</b><i>CAST</i></span>`;
+  let CAST = null;
+  const castNew = (gid) => ({ gid, ev: [], keys: [], primed: false, half: {}, order: [], score: [0, 0], batter: "", prevBatter: "", batAt: 0, meta: null, coming: null, sig: "" });
+  const castHalfKey = (inn) => { const m = /([▲▼])\s*(\d+)/.exec(inn || ""); return m ? (m[1] === "▲" ? "T" : "B") + m[2] : ""; };
+  const castHalfName = (h) => { const m = /^([TB])(\d+)/.exec(h || ""); return m ? (m[1] === "T" ? "▲" : "▼") + m[2] : h || ""; };
+  // One line of the play-by-play: who, what, and how many scored. Same reading as the 📻 Radio's.
+  function castParse(raw) {
+    const t = String(raw || "").replace(/^\*\s*(FIRST:)?\s*/i, "").trim(); let m;
+    const nm = (s) => s.replace(/\*+/g, "").trim();
+    if (/^—\s*end of/i.test(t)) return { k: "end" };
+    if ((m = /^(?:(\d+)\s+)?([^:—]+?):\s*(.+?)(?:,\s*(\d+)\s+scored)?$/i.exec(t)) && !/—/.test(m[2])) {
+      const w = m[3].toLowerCase();
+      const k = /grand slam|home run|homer/.test(w) ? "hr" : /triple/.test(w) ? "3b" : /double play/.test(w) ? "dp" : /double/.test(w) ? "2b" : /base hit|single|bunt hit|infield hit/.test(w) ? "1b" : "other";
+      if (k === "other" && /^(forced at|out at|thrown out|caught stealing|steals|picked off|advances|scores)/i.test(m[3])) return { k: "raw", scored: +(m[4] || 0) };   // a runner, not a batter
+      return { k, num: +(m[1] || 0), name: nm(m[2]), what: m[3], scored: +(m[4] || 0) };
+    }
+    if ((m = /^(?:(\d+)\s+)?(.+?)\s+(strikes out|walks|called out|is hit by(?: a)? pitch|hit by pitch)(?:,\s*(\d+)\s+scored)?/i.exec(t))) {
+      const w = m[3].toLowerCase();
+      return { k: /strikes|called/.test(w) ? "k" : /walk/.test(w) ? "bb" : "hbp", look: /called/.test(w), num: +(m[1] || 0), name: nm(m[2]), scored: +(m[4] || 0) };
+    }
+    if ((m = /^(1B|2B|3B|SS|LF|CF|RF|P|C)\s+—\s+(.+)$/.exec(t))) return { k: "out", pos: m[1], how: m[2], scored: +((/(\d+)\s+scored/i.exec(m[2]) || [])[1] || 0) };
+    return { k: "raw", scored: +((/(\d+)\s+scored/i.exec(t) || [])[1] || 0) };
+  }
+  const CAST_ABBR = { "1b": "1B", "2b": "2B", "3b": "3B", hr: "HR", k: "K", bb: "BB", hbp: "HBP", dp: "DP" };
+  const castShort = (e) => CAST_ABBR[e.p.k] || (e.p.k === "out" ? (/fly/i.test(e.p.how) ? "F" : /line/i.test(e.p.how) ? "L" : /pop/i.test(e.p.how) ? "P" : /ground/i.test(e.p.how) ? "G" : "out") + e.p.pos : "out");
+  function castTick() {
+    if (!on("cast") || !onWatch()) { if (CAST) { document.getElementById("sbx-cast")?.remove(); document.getElementById("sbx-kk")?.remove(); CAST = null; } return; }
+    const pl = document.getElementById("playlog"); if (!pl) return;
+    const gid = Number(new URLSearchParams(location.search).get("watch") || new URLSearchParams(location.search).get("game") || 0);
+    if (!CAST || CAST.gid !== gid) { CAST = castNew(gid); castMeta(gid); }
+    const C = CAST, tx = (s) => ((document.querySelector(s) || {}).textContent || "").trim();
+    const score = [Number(tx("#score-a")) || 0, Number(tx("#score-b")) || 0], inn = tx("#inning");
+    C.score = score; C.inn = inn; C.final = /final/i.test(inn);
+    // Runs by half: a team's runs in a half are its score when its next half starts, less its score when this one did.
+    const hk = castHalfKey(inn);
+    if (hk && !C.half[hk]) { C.half[hk] = { start: score[hk[0] === "T" ? 0 : 1], live: true }; C.order.push(hk); }
+    for (const k of C.order) { const h = C.half[k]; if (!h.done) h.end = score[k[0] === "T" ? 0 : 1]; }
+    for (const k of C.order) { const side = k[0], n = +k.slice(1), nx = side + (n + 1); if (C.half[nx] && !C.half[k].done) { C.half[k].end = C.half[nx].start; C.half[k].done = true; } }
+    // The batter up now (the player's message line), and who just batted, for the outs that don't name him.
+    const bm = /Now batting:\s*#?(\d+)\s+(?:\d+\s+)?(.+?),\s*(1B|2B|3B|SS|LF|CF|RF|DH|P|C)(?![A-Z0-9])/.exec(tx(".sb-msg b") || tx(".sb-msg"));
+    if (bm) { const b = bm[2].replace(/\*+/g, "").trim(); if (b !== C.batter) { C.prevBatter = C.batter; C.batter = b; C.batNum = +bm[1]; C.batPos = bm[3]; C.batAt = Date.now(); } }
+    C.pitches = +((/(\d+)\s+pitch/.exec(tx("#stats")) || [])[1] || 0);
+    C.mph = +((/(\d+)\s*MPH/i.exec(tx(".sb-mph")) || [])[1] || 0); C.fast = Math.max(C.fast || 0, +((/fastest today\s*(\d+)/i.exec(tx(".sb-mph")) || [])[1] || 0), C.mph);
+    C.errs = [...document.querySelectorAll(".sb-line .e")].map((e) => Number(e.textContent.trim())).filter((x) => !isNaN(x)).slice(-2);
+    C.outs = tx("#outs"); C.count = tx("#count");
+    // The play-by-play, oldest first, lined up with what we already have (lines repeat, so order matters).
+    const cur = Array.from(pl.querySelectorAll(".ev")).reverse().map((ev) => { const h = ((ev.querySelector("span") || {}).textContent || "").trim(); return { h, t: ev.textContent.slice(h.length).trim() }; }).filter((x) => x.t);
+    const keys = cur.map((x) => x.h + "|" + x.t), prev = C.keys;
+    let j = Math.min(prev.length, keys.length);
+    for (; j > 0; j--) { let ok = true; for (let q = 0; q < j; q++) if (prev[prev.length - j + q] !== keys[q]) { ok = false; break; } if (ok) break; }
+    if (keys.length < prev.length && j === 0) { const m = C.meta, co = C.coming; Object.assign(C, castNew(gid), { meta: m, coming: co }); }   // the player restarted the game
+    for (const x of cur.slice(j)) {
+      const p = castParse(x.t), e = { h: x.h, t: x.t.replace(/^\*\s*/, ""), p, live: C.primed };
+      if (p.k === "out" && C.primed) e.who = Date.now() - C.batAt < 3000 && C.prevBatter ? C.prevBatter : C.batter;
+      C.ev.push(e);
+      if (C.primed) castJumbo(e);
+    }
+    // Tuning in mid-half: the runs already scored this half are in the play-by-play, not in our snapshot.
+    if (!C.primed && hk && C.half[hk]) { const pre = C.ev.filter((e) => e.h === hk).reduce((x, e) => x + (e.p.scored || (e.p.k === "hr" ? 1 : 0)), 0); C.half[hk].start = Math.max(0, C.half[hk].start - pre); }
+    C.keys = keys; C.primed = true;
+    castPaint();
+  }
+  // 📺 The jumbotron: a big play gets the video-board treatment for a few seconds.
+  const JUMBO = {
+    hr: ["💥 HOME RUN! 💥", "🚀 GOODBYE BASEBALL 🚀", "🎆 IT'S OUTTA HERE 🎆"], "3b": ["🏃💨 TRIPLE! 🏃💨"], "2b": ["⚡ TWO-BAGGER ⚡", "📐 IN THE GAP 📐"],
+    k: ["🔥 K 🔥", "🌀 STRUCK HIM OUT 🌀", "🔥 SIT DOWN 🔥"], dp: ["✌️ DOUBLE PLAY ✌️", "🔁 TWO FOR ONE 🔁"], run: ["🙌 RUN SCORES 🙌", "📣 CROSSING THE PLATE 📣"],
+    filler: ["🎶 MAKE SOME NOISE 🎶", "👏 👏 CLAP 👏 👏", "🌊 DO THE WAVE 🌊", "🌭 DOLLAR DOG NIGHT 🌭", "📸 SMILE, YOU'RE ON SMALLCAM 📸", "🧢 RALLY CAPS ON 🧢", "💃 DANCE CAM 💃", "🎵 TAKE ME OUT TO THE BALLGAME 🎵"],
+  };
+  function castJumbo(e) {
+    const C = CAST; if (!C) return;
+    const k = e.p.k === "hr" ? "hr" : e.p.k === "dp" ? "dp" : e.p.k === "k" ? "k" : e.p.scored ? "run" : e.p.k === "3b" ? "3b" : e.p.k === "2b" ? "2b" : e.p.k === "end" && Math.random() < 0.6 ? "filler" : "";
+    if (!k) return;
+    const ms = k === "hr" ? 7000 : 4500;
+    C.jumbo = { txt: JUMBO[k][Math.floor(Math.random() * JUMBO[k].length)], k, until: Date.now() + ms };
+    C.sig = ""; setTimeout(() => { if (CAST === C && C.jumbo && Date.now() >= C.jumbo.until) { C.jumbo = null; C.sig = ""; castPaint(); } }, ms + 50);
+  }
+  // 🅺 The K Korner: a card hung on the stadium for every strikeout by the home club's pitchers (a backwards K
+  // for a called third strike), the way the fans do it. Under the scoreboard, or above it when SmallCast hangs there.
+  function castKs(B, sw, place) {
+    // Home pitchers' Ks hang on the row next to the board (white cards, red K); with "both teams" on, the visitors'
+    // pitchers get a second row (navy cards, gold K). Cards are grouped by inning with the inning number between
+    // groups, and an inning struck out on three Ks gets one gold "side retired" card, so three plain K cards never
+    // hang side by side.
+    let el = document.getElementById("sbx-kk");
+    const C = CAST;
+    const ksFor = (half) => (C && on("kcards") && B ? C.ev.filter((e) => e.h[0] === half && e.p.k === "k") : []);
+    const home = ksFor("T"), away = on("kboth") ? ksFor("B") : [];
+    if (!home.length && !away.length) { el?.remove(); return; }
+    if (!el) { el = document.createElement("div"); el.id = "sbx-kk"; }
+    if (el.parentNode !== sw) sw.appendChild(el);
+    const sz = Math.max(12, Math.min(22, Math.round(B.h / 6)));
+    const groups = (ks) => { const g = []; for (const e of ks) { const n = +e.h.slice(1); const last = g[g.length - 1]; if (last && last.inn === n) last.ks.push(e); else g.push({ inn: n, ks: [e] }); } return g; };
+    const rowHtml = (ks, cls, who) => {
+      let g = groups(ks), cards = 0, cut = 0;
+      for (let k = g.length - 1; k >= 0; k--) { cards += g[k].ks.length >= 3 ? 1 : g[k].ks.length; if (cards > 12) { cut = k + 1; break; } }
+      const hidden = g.slice(0, cut).reduce((x, y) => x + y.ks.length, 0); g = g.slice(cut);
+      const lastLive = ks.length && ks[ks.length - 1].live ? ks[ks.length - 1] : null;
+      return `<div class="kr ${cls}" title="${ks.length} strikeout${ks.length === 1 ? "" : "s"} by ${esc(who)} pitchers">` + (hidden ? `<b>+${hidden}</b>` : "") +
+        g.map((G, gi) => `<u>${G.inn}</u>` + (G.ks.length >= 3 ? `<i class="sr${G.ks.includes(lastLive) ? " new" : ""}" style="--r:${(gi * 37) % 7 - 3}deg" title="Struck out the side in the ${G.inn}">🔥${G.ks.length}</i>`
+          : G.ks.map((e, i) => `<i class="${e.p.look ? "lk" : ""}${e === lastLive ? " new" : ""}" style="--r:${((gi * 3 + i) * 37) % 7 - 3}deg">K</i>`).join(""))).join("") + "</div>";
+    };
+    const M = C.meta || {}, A = M.away || "the visiting", H = M.home || "the home";
+    const html = (home.length ? rowHtml(home, "kh", H) : "") + (away.length ? rowHtml(away, "ka", A) : "");
+    const rows = (home.length ? 1 : 0) + (away.length ? 1 : 0), tall = rows * (sz * 1.45 + 6);
+    const top = place === "board" ? B.y - tall - 6 : B.y + B.h + 6;
+    const st = `left:${Math.round(Math.max(4, B.x))}px;width:${Math.round(B.w)}px;top:${Math.round(Math.max(2, top))}px;--k:${sz}px`;
+    if (el.dataset.st !== st) { el.dataset.st = st; el.style.cssText = st; }
+    if (el.dataset.sig === html) return; el.dataset.sig = html;
+    el.innerHTML = html;
+  }
+  async function castMeta(gid) {
+    if (!gid) return;
+    try {
+      const g = await getJSON(`/games/${gid}`, true);   // who's playing and where, never the score
+      if (!CAST || CAST.gid !== gid) return;
+      CAST.meta = { kind: g.kind || "", aid: g.away_team_id, hid: g.home_team_id, away: g.away_name || "", home: g.home_name || "" };
+      // Coming in: each club's last 10 and the season series, from games played before this one.
+      const rec = async (tid) => { const d = await getJSON(`/games/all?club=${tid}`, true); return (d.rows || []).filter((r) => r.game_id < gid && r.finished_at && (r.home_team_id === tid || r.away_team_id === tid)).sort((a, b) => b.game_id - a.game_id); };
+      const [ra, rh] = await Promise.all([rec(CAST.meta.aid).catch(() => []), rec(CAST.meta.hid).catch(() => [])]);
+      if (!CAST || CAST.gid !== gid) return;
+      const wl = (rows, tid) => { let w = 0, l = 0; for (const r of rows) { const me = r.home_team_id === tid ? r.home_runs : r.away_runs, op = r.home_team_id === tid ? r.away_runs : r.home_runs; if (me > op) w++; else if (op > me) l++; } return [w, l]; };
+      const streak = (rows, tid) => { let s = "", n = 0; for (const r of rows) { const me = r.home_team_id === tid ? r.home_runs : r.away_runs, op = r.home_team_id === tid ? r.away_runs : r.home_runs, x = me > op ? "W" : "L"; if (!s) s = x; if (x !== s) break; n++; } return s ? s + n : ""; };
+      const h2h = ra.filter((r) => r.home_team_id === CAST.meta.hid || r.away_team_id === CAST.meta.hid);
+      CAST.coming = { a: { l10: wl(ra.slice(0, 10), CAST.meta.aid), st: streak(ra, CAST.meta.aid) }, h: { l10: wl(rh.slice(0, 10), CAST.meta.hid), st: streak(rh, CAST.meta.hid) }, h2h: wl(h2h, CAST.meta.aid), h2hN: h2h.length };
+      CAST.sig = ""; castPaint();
+    } catch (_) {}
+  }
+  function castStyle() {
+    if (document.getElementById("sbx-cast-css")) return;
+    const s = document.createElement("style"); s.id = "sbx-cast-css";
+    s.textContent = `
+#sbx-cast{margin:14px auto 28px;max-width:1200px;background:#0b1220;color:#e5e7eb;border:1px solid #1e293b;border-radius:16px;padding:12px 16px 14px;font:13px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#sbx-cast .ch{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sbx-cast .ch .t{font-size:16px;font-weight:900;letter-spacing:.02em}
+#sbx-cast .ch .t i{font-style:normal;color:#f87171;font-size:10px;font-weight:800;border:1px solid #f87171;border-radius:999px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+#sbx-cast .ch .sub{opacity:.65;flex:1;min-width:120px}
+#sbx-cast .ch button{border:0;border-radius:999px;padding:6px 12px;background:#1e293b;color:#e5e7eb;font:700 12px system-ui,sans-serif;cursor:pointer}
+#sbx-cast .ch button:hover{background:#334155}
+#sbx-cast .tabs{display:flex;gap:4px;margin:10px 0 8px}
+#sbx-cast .tabs button{border:0;border-radius:8px;padding:6px 12px;background:transparent;color:#94a3b8;font:800 12px system-ui,sans-serif;cursor:pointer}
+#sbx-cast .tabs button.on{background:#1e293b;color:#fff}
+#sbx-cast .grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px}
+@media (max-width:820px){#sbx-cast .grid{grid-template-columns:1fr}}
+#sbx-cast .box{background:#111a2e;border-radius:12px;padding:10px 12px}
+#sbx-cast h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8}
+#sbx-cast table.ls{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+#sbx-cast table.ls th,#sbx-cast table.ls td{padding:4px 5px;text-align:center;border-bottom:1px solid #1e293b}
+#sbx-cast table.ls td:first-child,#sbx-cast table.ls th:first-child{text-align:left;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sbx-cast table.ls .rhe{font-weight:900;color:#fde68a}
+#sbx-cast table.ls .now{background:#1e3a5f;border-radius:4px}
+#sbx-cast table.ls .est{opacity:.6}
+#sbx-cast .situ{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px}
+#sbx-cast .situ b{font-size:15px}
+#sbx-cast .pill{display:inline-block;border-radius:999px;background:#1e293b;padding:2px 8px;margin:0 3px 3px 0;font-size:12px;font-weight:700}
+#sbx-cast .pill.g{background:#14532d;color:#bbf7d0}#sbx-cast .pill.r{background:#4c1d1d;color:#fecaca}#sbx-cast .pill.y{background:#713f12;color:#fde68a}
+#sbx-cast .feed{max-height:300px;overflow:auto}
+#sbx-cast .feed div{padding:4px 0;border-bottom:1px solid #16213a}
+#sbx-cast .feed .h{display:inline-block;min-width:34px;font-weight:800;color:#94a3b8}
+#sbx-cast .feed .sc{color:#fde68a;font-weight:700}
+#sbx-cast .muted{opacity:.6}
+#sbx-cast table.bat{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+#sbx-cast table.bat td{padding:3px 4px;border-bottom:1px solid #16213a;vertical-align:top}
+#sbx-cast table.bat td.n{white-space:nowrap;font-weight:700}
+#sbx-cast.fold .body{display:none}
+.sc-logo{display:inline-flex;align-items:center;gap:3px;font:900 15px/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.06em;vertical-align:middle}
+.sc-logo svg{width:1.45em;height:1.45em;margin-right:2px;filter:drop-shadow(0 0 4px rgba(255,194,61,.45))}
+.sc-logo b{color:#fff;font-weight:900}.sc-logo i{font-style:normal;color:#ffc23d;font-weight:900}
+.sc-logo.sm{font-size:11px}.sc-logo.big{font-size:clamp(11px,13cqw,28px);text-shadow:0 0 12px rgba(255,194,61,.35)}
+#sbx-cast.jumbo .jt-l{container-type:inline-size}
+#sbx-cast.jumbo .jt-brand{max-width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;animation:jtIn .5s ease-out}
+#sbx-cast.jumbo .jt-tag{font:800 clamp(7px,6cqw,9px) system-ui,sans-serif;letter-spacing:.16em;color:#94a3b8;text-align:center}
+#sbx-cast.jumbo .jt-top .sc-logo{margin-right:4px}
+@keyframes jtIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+#sbx-kk{position:absolute;z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto}
+#sbx-kk .kr{display:flex;align-items:center;gap:4px}
+#sbx-kk u{text-decoration:none;font:800 9px system-ui,sans-serif;color:rgba(255,255,255,.8);text-shadow:0 1px 2px #000;margin:0 1px 0 6px}
+#sbx-kk .kr>u:first-child,#sbx-kk b+u{margin-left:0}
+#sbx-kk .ka i{background:#1e3a8a;color:#fbbf24}
+#sbx-kk i.sr{width:calc(var(--k)*1.8);background:linear-gradient(#fde68a,#f59e0b);color:#7c2d12;font:900 calc(var(--k)*.62)/1 system-ui,sans-serif}
+#sbx-kk .ka i.sr{background:linear-gradient(#fbbf24,#b45309);color:#1e3a8a}
+#sbx-kk i{display:inline-flex;align-items:center;justify-content:center;width:var(--k);height:calc(var(--k)*1.45);background:#fff;color:#c1121f;font:900 calc(var(--k)*1.05)/1 Georgia,"Times New Roman",serif;font-style:normal;border-radius:2px;box-shadow:0 2px 4px rgba(0,0,0,.45);transform:rotate(var(--r));transform-origin:top center}
+#sbx-kk i.lk{transform:rotate(var(--r)) scaleX(-1)}
+#sbx-kk i.new{animation:kkHang .9s cubic-bezier(.3,1.6,.5,1)}
+#sbx-kk i.lk.new{animation:kkHangL .9s cubic-bezier(.3,1.6,.5,1)}
+#sbx-kk b{align-self:center;color:#fff;font:800 12px system-ui,sans-serif;text-shadow:0 1px 3px #000}
+@keyframes kkHang{from{transform:translateY(-140%) rotate(-20deg);opacity:0}to{transform:rotate(var(--r));opacity:1}}
+@keyframes kkHangL{from{transform:translateY(-140%) rotate(-20deg) scaleX(-1);opacity:0}to{transform:rotate(var(--r)) scaleX(-1);opacity:1}}
+#sbx-cast .cpl{display:inline-flex;background:#111a2e;border-radius:999px;padding:2px}
+#sbx-cast .cpl button{background:transparent;padding:5px 9px;font-size:11px;color:#94a3b8}
+#sbx-cast .cpl button.on{background:#334155;color:#fff}
+#sbx-cast.float{position:fixed;right:16px;top:90px;z-index:2147482990;width:400px;max-width:calc(100vw - 32px);max-height:calc(100vh - 110px);overflow:auto;margin:0;padding:10px 12px 12px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+#sbx-cast.float .ch{cursor:move;user-select:none}
+#sbx-cast.onboard{position:absolute;z-index:6;margin:0;padding:6px 9px 7px;max-width:none;opacity:.94;border-radius:8px;border:2px solid #2b3340;background:linear-gradient(#10161f,#070a10);box-shadow:0 4px 14px rgba(0,0,0,.55);font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;color:#f4f1e6;overflow:hidden}
+#sbx-cast.onboard .ob-top{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+#sbx-cast.onboard .ob-top b{flex:1;color:#ffc23d;font:900 11px system-ui,sans-serif;letter-spacing:.04em}
+#sbx-cast.onboard .cpl button{border:0;background:transparent;color:#94a3b8;padding:1px 4px;font-size:11px;cursor:pointer;border-radius:999px}
+#sbx-cast.onboard .cpl button.on{background:#334155;color:#fff}
+#sbx-cast.onboard table.ls th,#sbx-cast.onboard table.ls td{padding:1px 3px;font-size:11px;border-bottom:1px solid #1f2733}
+#sbx-cast.onboard table.ls td:first-child{max-width:95px;color:#ffc23d}
+#sbx-cast.onboard table.ls .rhe{color:#ffc23d}
+#sbx-cast.onboard .ob-bat{margin:2px 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sbx-cast.onboard .ob-more{border:0;background:#1f2733;color:#e5e7eb;border-radius:999px;padding:0 7px;cursor:pointer;font-size:11px}
+#sbx-cast.onboard .ob-log div{padding:1px 0;border-top:1px solid #1f2733;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sbx-cast.onboard .ob-log div:first-child{color:#fff}
+#sbx-cast.onboard .ob-log span{color:#94a3b8;display:inline-block;min-width:24px}
+#sbx-cast.onboard .ob-log em{font-style:normal;color:#ffc23d;font-weight:700}
+#sbx-cast.onboard .ob-k{margin-top:3px;opacity:.7}
+#sbx-cast.jumbo{position:absolute;z-index:6;margin:0;padding:0;max-width:none;display:grid;gap:0;background:transparent;border:0;box-shadow:none;pointer-events:none;font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;color:#f4f1e6}
+#sbx-cast.jumbo>div:empty{pointer-events:none}
+#sbx-cast.jumbo.jt-one .jt-l{margin-right:4px}
+#sbx-cast.jumbo .jt-wing.jt-l{padding-top:calc(5px + var(--pl,0px))}
+#sbx-cast.jumbo .jt-wing.jt-r{padding-top:calc(5px + var(--pr,0px))}
+#sbx-cast.jumbo .jt-wing{pointer-events:auto;overflow:hidden;background:linear-gradient(rgba(16,22,31,.78),rgba(7,10,16,.78));box-shadow:0 0 0 2px rgba(43,51,64,.9),0 4px 10px rgba(0,0,0,.4);padding:5px 9px}
+#sbx-cast.jumbo .jt-l{border-radius:5px 0 0 5px;display:flex;align-items:center;justify-content:center;text-align:center}
+#sbx-cast.jumbo .jt-r{border-radius:0 5px 5px 0}
+#sbx-cast.jumbo .jt-lbl{color:#ffc23d;font:900 10px system-ui,sans-serif;letter-spacing:.12em}
+#sbx-cast.jumbo .jt-bat{min-width:0;max-width:100%}
+#sbx-cast.jumbo .jt-bat b{display:block;font-size:13px;margin:2px 0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#sbx-cast.jumbo .jt-k{opacity:.7;font-size:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+#sbx-cast.jumbo .jt-top{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+#sbx-cast.jumbo .jt-top .jt-lbl{flex:1}
+#sbx-cast.jumbo .cpl{background:transparent}
+#sbx-cast.jumbo .cpl button{border:0;background:transparent;color:#94a3b8;padding:0 3px;font-size:10px;cursor:pointer;border-radius:999px}
+#sbx-cast.jumbo .cpl button.on{background:#334155;color:#fff}
+#sbx-cast.jumbo .jt-ev{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 0;border-top:1px solid rgba(255,255,255,.08)}
+#sbx-cast.jumbo .jt-ev:nth-child(2){color:#fff}
+#sbx-cast.jumbo .jt-ev span{color:#94a3b8;display:inline-block;min-width:24px}
+#sbx-cast.jumbo .jt-ev em{font-style:normal;color:#ffc23d;font-weight:700}
+#sbx-cast.jumbo .pill{padding:0 5px;font-size:10px;margin:0 2px 0 0}
+#sbx-cast.jumbo .jt-show{font:900 clamp(14px,2.2vw,26px)/1.1 system-ui,sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 0 10px currentColor;animation:jtPulse .6s ease-in-out infinite alternate}
+#sbx-cast.jumbo .jt-show.jt-hr{animation:jtRainbow 1s linear infinite, jtPulse .45s ease-in-out infinite alternate}
+#sbx-cast.jumbo .jt-show.jt-k{color:#f87171}
+#sbx-cast.jumbo .jt-show.jt-run,#sbx-cast.jumbo .jt-show.jt-dp{color:#fde68a}
+#sbx-cast.jumbo .jt-show.jt-filler{color:#93c5fd;animation:jtScroll 4.5s linear}
+@keyframes jtPulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes jtRainbow{0%{color:#f87171}25%{color:#fde68a}50%{color:#86efac}75%{color:#93c5fd}100%{color:#f0abfc}}
+@keyframes jtScroll{from{transform:translateX(60%)}to{transform:translateX(-60%)}}
+#sbx-cast.onboard .pill{padding:0 5px;font-size:10px;margin:0 2px 0 0}
+#sbx-cast.float .ch .sub{flex-basis:100%;order:5}
+#sbx-cast.float .grid{grid-template-columns:1fr !important;gap:10px}
+#sbx-cast.float .feed{max-height:220px}
+#sbx-cast.float table.ls th,#sbx-cast.float table.ls td{padding:3px 3px;font-size:12px}
+#sbx-cast.float table.ls td:first-child{max-width:110px}`;
+    document.head.appendChild(s);
+  }
+  function castPaint() {
+    const C = CAST; if (!C) return;
+    const wrap = document.querySelector(".wrap"), main = wrap && wrap.querySelector(".main"); if (!main) return;
+    castStyle();
+    let el = document.getElementById("sbx-cast");
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-cast";
+      el.addEventListener("click", (e) => {
+        const b = e.target.closest("button"); if (!b) return;
+        if (b.dataset.cfold != null) { const f = !el.classList.contains("fold"); try { localStorage.setItem(CAST_FOLD, f ? "1" : "0"); } catch (_) {} CAST.sig = ""; castPaint(); }
+        else if (b.dataset.ctab) { try { localStorage.setItem(CAST_TAB, b.dataset.ctab); } catch (_) {} CAST.sig = ""; castPaint(); }
+        else if (b.dataset.cradio != null) document.getElementById("sbx-radio-launch")?.click();
+        else if (b.dataset.cbc != null) document.getElementById("tk-launch")?.click();
+        else if (b.dataset.cbox) bs_boxOpen(Number(b.dataset.cbox));
+        else if (b.dataset.cplace) { try { localStorage.setItem(CAST_PLACE, b.dataset.cplace); } catch (_) {} CAST.sig = ""; castPaint(); }
+      });
+      // Floating: drag it by its title bar; it remembers where you left it.
+      el.addEventListener("pointerdown", (e) => {
+        if (!el.classList.contains("float") || !e.target.closest(".ch") || e.target.closest("button")) return;
+        const r = el.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+        const mv = (ev) => { const x = Math.max(0, Math.min(innerWidth - 120, ev.clientX - dx)), y = Math.max(0, Math.min(innerHeight - 60, ev.clientY - dy)); el.style.left = x + "px"; el.style.top = y + "px"; el.style.right = "auto"; };
+        const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); try { localStorage.setItem(CAST_POS, JSON.stringify({ x: parseInt(el.style.left), y: parseInt(el.style.top) })); } catch (_) {} };
+        addEventListener("pointermove", mv); addEventListener("pointerup", up); e.preventDefault();
+      });
+    }
+    // "With the board": hung under the stadium scoreboard in the picture (or over it when the board sits low),
+    // adding what the board doesn't show. Falls back to floating if this park has no board showing.
+    // Where the stadium board is, measured on screen against the whole picture (.stage-wrap), so it doesn't matter
+    // what the board sits inside or whether the player is scaled.
+    const board = document.querySelector(".stage-wrap .sb"), sw0 = board && board.closest(".stage-wrap");
+    let B = null;
+    if (board && sw0) {
+      const br = board.getBoundingClientRect(), sr = sw0.getBoundingClientRect(), k = sw0.offsetWidth ? sr.width / sw0.offsetWidth : 1;
+      if (br.width > 20) B = { x: (br.left - sr.left) / k, y: (br.top - sr.top) / k, w: br.width / k, h: br.height / k, W: sw0.clientWidth, H: sw0.clientHeight, pl: 0, pr: 0 };
+      // SmallBall's own LIVE badge and "Share this game" button sit in the board's row at some parks: the wing
+      // beside one starts below it, so neither covers the other.
+      if (B) for (const id of ["live-badge", "rv-share", "replay-check"]) {
+        const o = document.getElementById(id), r = o && o.getBoundingClientRect(); if (!r || r.width < 2 || r.height < 2) continue;
+        const y0 = (r.top - sr.top) / k, y1 = (r.bottom - sr.top) / k, cx = (r.left + r.width / 2 - sr.left) / k;
+        if (y0 >= B.y + B.h || y1 <= B.y) continue;
+        if (cx < B.x) B.pl = Math.max(B.pl, y1 - B.y + 4); else if (cx > B.x + B.w) B.pr = Math.max(B.pr, y1 - B.y + 4);
+      }
+      if (B && getComputedStyle(sw0).position === "static") sw0.style.position = "relative";
+    }
+    const hasBoard = !!B;
+    // the jumbotron needs room on both sides of the board; when the player's small, it hangs under the board instead
+    // Wings go on both sides when there's room; a board near one edge of the park gets both wings on its open side.
+    const roomL = hasBoard ? B.x - 12 : 0, roomR = hasBoard ? B.W - B.x - B.w - 12 : 0;
+    const jl = roomL >= 110 && roomR >= 110 ? "both" : roomR >= 260 ? "right" : roomL >= 260 ? "left" : "";
+    let place = castPlace(); if ((place === "board" || place === "jumbo") && !hasBoard) place = "float"; else if (place === "jumbo" && !jl) place = "board";
+    el.classList.toggle("float", place === "float"); el.classList.toggle("onboard", place === "board"); el.classList.toggle("jumbo", place === "jumbo");
+    if (place === "jumbo") {
+      const sw = sw0; if (el.parentNode !== sw) sw.appendChild(el);
+      const cols = jl === "both" ? `${Math.round(roomL)}px ${Math.round(B.w + 12)}px minmax(0,1fr)` : jl === "right" ? `${Math.round(B.x + B.w)}px minmax(0,.8fr) minmax(0,1fr)` : `minmax(0,.8fr) minmax(0,1fr) ${Math.round(B.W - B.x - 12)}px`;
+      const st = `left:6px;right:6px;top:${Math.round(B.y)}px;height:${Math.round(B.h)}px;grid-template-columns:${cols};--pl:${Math.round(jl === "right" ? B.pr : B.pl)}px;--pr:${Math.round(jl === "left" ? B.pl : B.pr)}px`;
+      el.dataset.jl = jl;
+      if (el.dataset.bst !== st) { el.dataset.bst = st; el.style.cssText = st; }
+    }
+    else if (place === "board") {
+      const sw = sw0;
+      if (el.parentNode !== sw) sw.appendChild(el);
+      const w = Math.max(B.w, 300), x = Math.max(0, Math.min(B.x - (w - B.w) / 2, B.W - w));
+      const below = B.y + B.h + 6, roomBelow = B.H - below > 150;
+      const st = `left:${Math.round(x)}px;width:${Math.round(w)}px;` + (roomBelow ? `top:${Math.round(below)}px` : `bottom:${Math.round(B.H - B.y + 6)}px`);
+      if (el.dataset.bst !== st) { el.dataset.bst = st; el.style.cssText = st; }
+    } else if (el.dataset.bst) { el.dataset.bst = ""; el.style.cssText = ""; }
+    castKs(B, sw0, place);
+    if (place === "board" || place === "jumbo") {} else if (place === "float") {
+      if (el.parentNode !== document.body) { document.body.appendChild(el); let P = null; try { P = JSON.parse(localStorage.getItem(CAST_POS) || "null"); } catch (_) {} if (P && P.x < innerWidth - 120 && P.y < innerHeight - 60) { el.style.left = P.x + "px"; el.style.top = P.y + "px"; el.style.right = "auto"; } else { el.style.left = ""; el.style.top = ""; el.style.right = ""; } }
+    } else {
+      el.style.left = el.style.top = el.style.right = "";
+      if (place === "above") { if (el.nextElementSibling !== main) main.insertAdjacentElement("beforebegin", el); }
+      else if (el.previousElementSibling !== main) main.insertAdjacentElement("afterend", el);
+    }
+    let fold = false, tab = "game"; try { fold = localStorage.getItem(CAST_FOLD) === "1"; tab = localStorage.getItem(CAST_TAB) || "game"; } catch (_) {}
+    const sig = [place, el.dataset.bst || "", C.jumbo ? C.jumbo.txt : "", place === "jumbo" && Math.floor(Date.now() / 1000) % 30 < 5, fold, tab, C.ev.length, C.score, C.inn, C.outs, C.count, C.batter, C.pitches, C.mph, C.errs, !!C.coming, !!C.meta, !!document.getElementById("sbx-radio-launch"), !!document.getElementById("tk-launch")].join("|");
+    if (sig === C.sig) return; C.sig = sig;
+    el.classList.toggle("fold", fold);
+    const M = C.meta || {}, A = M.away || ((document.querySelector("#name-a") || {}).textContent || "Away").trim(), H = M.home || ((document.querySelector("#name-b") || {}).textContent || "Home").trim();
+    const kind = { big: "BigLeague", pro: "ProLeague", exhibition: "Exhibition" }[M.kind] || "";
+    const head = `<div class="ch"><span class="t">${castLogo()}${C.final ? "" : "<i>LIVE</i>"}</span><span class="sub">${esc(A)} at ${esc(H)}${kind ? " · " + kind : ""}</span>` +
+      (document.getElementById("sbx-radio-launch") ? '<button type="button" data-cradio title="Mack and Dewey call this game out loud">📻 Radio</button>' : "") +
+      (document.getElementById("tk-launch") ? '<button type="button" data-cbc title="Open the Broadcast Kit">📺 Broadcast</button>' : "") +
+      (C.final && C.gid ? `<button type="button" data-cbox="${C.gid}">📰 Box score</button>` : "") +
+      `<span class="cpl" title="Where SmallCast sits">${[["above", "⬆ Above"], ["below", "⬇ Below"], ["float", "🪟 Float"], ["board", "🏟 With the board"], ["jumbo", "📺 Jumbotron"]].map(([k, l]) => `<button type="button" data-cplace="${k}" class="${place === k ? "on" : ""}">${l}</button>`).join("")}</span>` +
+      `<button type="button" data-cfold title="${fold ? "Show" : "Hide"} SmallCast">${fold ? "▾ Show" : "▴ Hide"}</button></div>`;
+    if (fold && place !== "board" && place !== "jumbo") { el.innerHTML = head; return; }
+    // Line score: the halves we've seen, plus any played before you tuned in (read from the play-by-play).
+    const runsIn = {}, hits = [0, 0], ks = [0, 0];
+    for (const e of C.ev) {
+      const side = e.h[0] === "B" ? 1 : 0;
+      if (["1b", "2b", "3b", "hr"].includes(e.p.k)) hits[side]++;
+      if (e.p.k === "k") ks[side]++;
+      if (!C.half[e.h]) { const r = e.p.scored || (e.p.k === "hr" ? 1 : 0); runsIn[e.h] = (runsIn[e.h] || 0) + r; }
+    }
+    const runs = {}, est = {};
+    for (const [k, r] of Object.entries(runsIn)) { runs[k] = r; est[k] = true; }
+    for (const k of C.order) { const h = C.half[k]; runs[k] = Math.max(0, (h.end || 0) - (h.start || 0)); }
+    // The halves read off the play-by-play are a best reading: line them up with the scoreboard's total.
+    for (const s of [0, 1]) {
+      const pre = Object.keys(est).filter((k) => (k[0] === "T") === (s === 0)).sort((a, b) => +a.slice(1) - +b.slice(1));
+      if (!pre.length) continue;
+      const firstLive = C.order.find((k) => (k[0] === "T") === (s === 0)), before = firstLive ? C.half[firstLive].start : C.score[s];
+      const got = pre.reduce((x, k) => x + runs[k], 0); if (got !== before) runs[pre[pre.length - 1]] = Math.max(0, runs[pre[pre.length - 1]] + before - got);
+    }
+    let maxInn = 9; for (const k of Object.keys(runs)) maxInn = Math.max(maxInn, +k.slice(1)); const hk = castHalfKey(C.inn);
+    const row = (s, name) => { let h = `<tr><td>${esc(name)}</td>`; for (let n = 1; n <= maxInn; n++) { const k = (s ? "B" : "T") + n; h += `<td class="${k === hk && !C.final ? "now" : ""}${est[k] ? " est" : ""}">${k in runs ? runs[k] : ""}</td>`; } return h + `<td class="rhe">${C.score[s]}</td><td class="rhe">${hits[s]}</td><td class="rhe">${C.errs.length === 2 ? C.errs[s] : ""}</td></tr>`; };
+    let ls = `<table class="ls"><tr><th></th>`; for (let n = 1; n <= maxInn; n++) ls += `<th>${n}</th>`; ls += `<th>R</th><th>H</th><th>E</th></tr>${row(0, A)}${row(1, H)}</table>`;
+    // At bat now: the batter, his day so far, and the pitch count.
+    const day = {}; for (const e of C.ev) { const who = e.p.name || e.who; if (!who) continue; (day[who] = day[who] || []).push(castShort(e)); }
+    const pillOf = (x) => `<span class="pill ${/^(1B|2B|3B|HR)$/.test(x) ? "g" : /^(K)$/.test(x) ? "r" : /^(BB|HBP)$/.test(x) ? "y" : ""}">${x}</span>`;
+    const situ = C.final ? `<div class="situ"><b>Final</b><span class="muted">${esc(A)} ${C.score[0]}, ${esc(H)} ${C.score[1]}</span></div>`
+      : `<div class="situ"><b>${esc(C.inn)}</b><span>Outs <b>${esc(C.outs || "0")}</b></span><span>Count <b>${esc(C.count || "0 - 0")}</b></span>${C.pitches ? `<span>Pitches <b>${C.pitches}</b></span>` : ""}${C.mph ? `<span>Last <b>${C.mph}</b> mph</span>` : ""}${C.fast ? `<span class="muted">fastest today ${C.fast}</span>` : ""}</div>` +
+        (C.batter ? `<div class="situ"><span>At bat: <b>${C.batNum ? "#" + C.batNum + " " : ""}${esc(C.batter)}</b> <span class="muted">${esc(C.batPos || "")}</span></span><span>${(day[C.batter] || []).map(pillOf).join("") || '<span class="muted">first time up today</span>'}</span></div>` : "");
+    // Coming in, and the strikeouts each staff has so far.
+    const CI = C.coming, cin = CI ? `<div class="box" style="margin-top:10px"><h4>Coming in</h4><div>${esc(A)}: <b>${CI.a.l10[0]}-${CI.a.l10[1]}</b> last 10${CI.a.st ? ` · ${CI.a.st}` : ""}</div><div>${esc(H)}: <b>${CI.h.l10[0]}-${CI.h.l10[1]}</b> last 10${CI.h.st ? ` · ${CI.h.st}` : ""}</div><div class="muted">${CI.h2hN ? `Head to head: ${esc(A)} ${CI.h2h[0]}-${CI.h2h[1]} in ${CI.h2hN}` : "First meeting"}</div></div>` : "";
+    const staff = `<div class="muted" style="margin-top:6px">Strikeouts: ${esc(H)} pitchers ${ks[0]} · ${esc(A)} pitchers ${ks[1]}</div>`;
+    // Tabs: the play-by-play, scoring plays only, or each lineup's day.
+    const tabs = `<div class="tabs">${[["game", "Play by play"], ["score", "Scoring"], ["bat", "Batters"]].map(([k, l]) => `<button type="button" data-ctab="${k}" class="${tab === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+    let pane = "";
+    const evs = C.ev.filter((e) => e.p.k !== "end" && !/^foul/i.test(e.t));
+    if (tab === "game") pane = `<div class="feed">${evs.slice().reverse().slice(0, 120).map((e) => `<div><span class="h">${castHalfName(e.h)}</span>${esc(e.t)}${e.p.scored ? ` <span class="sc">+${e.p.scored}</span>` : e.p.k === "hr" ? ' <span class="sc">+1</span>' : ""}</div>`).join("") || '<div class="muted">The first pitch is on its way.</div>'}</div>`;
+    else if (tab === "score") { const sc = evs.filter((e) => e.p.scored || e.p.k === "hr"); pane = `<div class="feed">${sc.map((e) => `<div><span class="h">${castHalfName(e.h)}</span>${esc(e.t)}</div>`).join("") || '<div class="muted">No runs yet.</div>'}</div>`; }
+    else {
+      const sides = [[], []]; for (const e of C.ev) { const who = e.p.name || e.who; if (!who) continue; const s = e.h[0] === "B" ? 1 : 0; if (!sides[s].includes(who)) sides[s].push(who); }
+      const tbl = (s, name) => `<h4>${esc(name)}</h4><table class="bat">${sides[s].map((w) => `<tr><td class="n">${esc(w)}</td><td>${(day[w] || []).map(pillOf).join("")}</td></tr>`).join("") || '<tr><td class="muted">Nobody up yet.</td></tr>'}</table>`;
+      pane = `<div class="grid" style="grid-template-columns:1fr 1fr">${`<div>${tbl(0, A)}</div><div>${tbl(1, H)}</div>`}</div><div class="muted" style="margin-top:6px">Outs are credited from the moment you tuned in; plays from before then show only hits, walks and strikeouts.</div>`;
+    }
+    const plBtns = `<span class="cpl">${[["below", "⬇"], ["float", "🪟"], ["board", "🏟"], ["jumbo", "📺"]].map(([k, l]) => `<button type="button" data-cplace="${k}" class="${place === k ? "on" : ""}" title="${{ below: "Below the player", float: "Float beside it", board: "Under the scoreboard", jumbo: "Jumbotron: both sides of the scoreboard" }[k]}">${l}</button>`).join("")}</span>`;
+    if (place === "jumbo") {
+      // Left wing: the video board (big plays, crowd prompts) or who's up; right wing: the last few plays.
+      const cur = C.batter ? `${C.batNum ? "#" + C.batNum + " " : ""}${esc(C.batter)} ${(day[C.batter] || []).map(pillOf).join("")}` : "";
+      const J = C.jumbo && Date.now() < C.jumbo.until ? C.jumbo : null, n = Math.max(2, Math.floor((B.h - 24 - (el.dataset.jl === "left" ? B.pl : B.pr)) / 17));
+      const brand = !J && Math.floor(Date.now() / 1000) % 30 < 5;   // every 30 seconds the video board shows the SmallCast card
+      const left = J ? `<div class="jt-show jt-${J.k}">${esc(J.txt)}</div>` : brand ? `<div class="jt-brand">${castLogo("big")}<div class="jt-tag">EVERY PITCH · NO SPOILERS</div></div>`
+        : `<div class="jt-bat">${C.final ? `<div class="jt-lbl">FINAL</div><b>${esc(A)} ${C.score[0]} · ${esc(H)} ${C.score[1]}</b>` : cur ? `<div class="jt-lbl">NOW BATTING</div><b>${cur}</b>` : `<div class="jt-lbl">📡 SMALLCAST</div><b>${esc(A)} at ${esc(H)}</b>`}<div class="jt-k">K: ${esc(A)} ${ks[1]} · ${esc(H)} ${ks[0]}${C.fast ? ` · ⚡${C.fast} mph` : ""}</div></div>`;
+      const jl = el.dataset.jl || "both", wl = `<div class="jt-wing jt-l">${left}</div>`;
+      el.innerHTML = (jl === "right" ? `<div></div>${wl}` : jl === "left" ? wl : `${wl}<div></div>`) + `<div class="jt-wing jt-r"><div class="jt-top">${castLogo("sm")}<span class="jt-lbl">PLAY BY PLAY</span>${plBtns}</div>${evs.slice(-n).reverse().map((e) => `<div class="jt-ev"><span>${castHalfName(e.h)}</span> ${esc(e.t)}${e.p.scored ? ` <em>+${e.p.scored}</em>` : e.p.k === "hr" ? " <em>+1</em>" : ""}</div>`).join("") || '<div class="jt-ev">First pitch coming up.</div>'}</div>` + (jl === "left" ? "<div></div>" : "");
+      el.classList.toggle("jt-one", jl !== "both");
+      return;
+    }
+    if (place === "board") {
+      const last = evs[evs.length - 1], cur = C.batter ? `${C.batNum ? "#" + C.batNum + " " : ""}${esc(C.batter)} ${(day[C.batter] || []).map(pillOf).join("")}` : "";
+      // What the board leaves out: who's up and how his day's gone, the last few plays, the strikeouts.
+      const more = fold, recent = evs.slice(-(more ? 12 : 4)).reverse();
+      el.innerHTML = `<div class="ob-top"><b>${castLogo("sm")}</b><span class="cpl">${plBtns.replace(/^<span class="cpl">|<\/span>$/g, "")}</span><button type="button" class="ob-more" data-cfold title="${more ? "Fewer plays" : "More plays"}">${more ? "▴" : "▾"}</button></div>` +
+        (cur && !C.final ? `<div class="ob-bat">At bat: ${cur}</div>` : "") +
+        `<div class="ob-log">${recent.map((e) => `<div><span>${castHalfName(e.h)}</span> ${esc(e.t)}${e.p.scored ? ` <em>+${e.p.scored}</em>` : e.p.k === "hr" ? " <em>+1</em>" : ""}</div>`).join("") || '<div class="muted">First pitch coming up.</div>'}</div>` +
+        `<div class="ob-k">Strikeouts pitched: ${esc(A)} ${ks[1]} · ${esc(H)} ${ks[0]}${C.fast ? ` · fastest ${C.fast} mph` : ""}</div>`;
+      return;
+    }
+    el.innerHTML = head + `<div class="body"><div class="grid"><div><div class="box">${ls}${situ}${staff}</div>${cin}</div><div class="box">${tabs}${pane}</div></div></div>`;
+  }
+  setInterval(() => { try { castTick(); } catch (_) {} }, 1000);
+
+  function mountDock(team) {
+    const wrap = document.querySelector(".wrap"), main = wrap && wrap.querySelector(".main"); if (!main) return;
+    let el = document.getElementById("sbx-dock");
+    if (!el) { el = document.createElement("div"); el.id = "sbx-dock"; }
+    if (el.previousElementSibling !== main) main.insertAdjacentElement("afterend", el);
+    const c = PROF[team];
+    if (!c) { if (!AT.loading) { AT.loading = true; profileOf(team, 4000).catch(() => {}).finally(() => { AT.loading = false; atRedraw(); }); } if (!el.innerHTML) el.innerHTML = '<div class="dk-h"><b class="t">📋 Asst. Trainer</b><span>Reading your club…</span></div>'; return; }
+    const roster = (c.data.roster || []).slice().sort((a, b) => (b.position ? 1 : 0) - (a.position ? 1 : 0) || (+a.bats || 99) - (+b.bats || 99));
+    // The session starts when you open the trainer: everything on the board is since then.
+    if (!AT.sess || AT.sess.team !== team) {
+      const base = {}; roster.forEach((p) => { base[p.player_id] = { tp: +p.tp || 0, s: SKL.map(([, k]) => Math.round(+p[k] || 0)) }; });
+      AT.sess = { team, at: Date.now(), base };
+    }
+    const S = AT.sess, plan = tplanAll()[team] || {}, mode = atMode(), cmp = mode === "plan";
+    const dsig = c.at + "|" + JSON.stringify(plan) + "|" + atEv.length + "|" + mode;
+    if (el.dataset.sig === dsig) return;
+    el.dataset.sig = dsig;
+    let spent = 0, gains = 0, onPlan = 0, offPlan = 0, planned = 0;
+    const tiles = roster.map((p) => {
+      const b = S.base[p.player_id] || { tp: +p.tp || 0, s: SKL.map(() => 0) };
+      const tp = Math.round(+p.tp || 0), sp = Math.max(0, Math.round(b.tp - (+p.tp || 0)));
+      const g = SKL.map(([, k], i) => Math.max(0, Math.round(+p[k] || 0) - b.s[i])); spent += sp; gains += g.reduce((x, y) => x + y, 0);
+      const P = plan[p.player_id] || {}, f = P.focus || [], bud = P.budget || {}, tot = ttrkSum(team, p.player_id, P.since || "");
+      if (f.length) planned++;
+      g.forEach((x, i) => { if (f.includes(SKL[i][0])) onPlan += x; else offPlan += x; });
+      const fl = AT.flash[p.player_id] && Date.now() - AT.flash[p.player_id] < 4000;
+      const chips = SKL.map(([k, , nm], i) => (g[i] ? '<i class="' + (cmp && f.includes(k) ? "pl" : cmp && f.length ? "off" : "") + '" title="' + (cmp ? (f.includes(k) ? "In his plan" : f.length ? "Not in his plan" : "") : "") + '">' + nm + " +" + g[i] + "</i>" : "")).join("");
+      const tg = !cmp ? "" : f.filter((k) => +bud[k]).map((k) => { const i = SKL.findIndex((x) => x[0] === k), B = +bud[k], u = tot.a[i]; return '<div class="tg">🎯 ' + SKL[i][2] + " " + u + "/" + B + " TP " + (u >= B ? "✓" : "") + '<div class="at-bar" style="height:4px;margin-top:2px"><i style="width:' + Math.min(100, Math.round((100 * u) / B)) + "%;background:" + (u >= B ? "#16a34a" : "#facc15") + '"></i></div></div>'; }).join("");
+      const plain = cmp && !tg && f.length ? '<div class="tg">🎯 ' + f.map((k) => SKL.find((x) => x[0] === k)[2]).join(", ") + "</div>" : "";
+      return '<div class="dk-m' + (fl ? " fl" : "") + '"><div class="n">' + esc(p.name) + ' <span class="p">' + esc(p.position || "bench") + "</span></div>" +
+        '<div class="tp">' + tpBar(tp) + "<span><b>" + tp + "</b>" + (sp ? ' <span style="color:#f87171">−' + sp + "</span>" : "") + "</span></div>" +
+        (chips ? '<div class="gn">' + chips + "</div>" : "") + tg + plain + "</div>";
+    }).join("");
+    const feed = atEv.filter((e) => e.team === team && e.at >= S.at).slice(-40).reverse().map((e) => "<div>" + fmtT(e.at) + " · " + esc(e.name) + ": " + esc(e.k) + " " + e.from + " → <b>" + e.to + "</b></div>").join("") || '<div style="opacity:.6">Gains show up here as they land.</div>';
+    const modes = '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
+    el.innerHTML = '<div class="dk-h"><b class="t">📋 Asst. Trainer · ' + esc(c.data.name || "") + "</b><span>Since " + new Date(S.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "</span><span>TP spent <b>" + spent + "</b></span><span>Skill gains <b>+" + gains + "</b></span>" +
+      (cmp && planned ? '<span title="Gains in the skills you planned, and gains outside them">On plan <b>+' + onPlan + "</b> · off plan <b>+" + offPlan + "</b></span>" : cmp ? '<span style="opacity:.75">No plan yet: open 📋 Training plan</span>' : "") + modes + '<button type="button" class="dk-plan" data-atplan="' + team + '">📋 Open the plan</button></div>' +
+      '<div class="dk-body"><div class="dk-grid">' + tiles + '</div><div class="feed"><div style="font-weight:800;border:0;padding-bottom:5px">Latest gains</div>' + feed + "</div></div>";
+    el.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_MODE, b.dataset.mode); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
+  }
+
+  // 🔭 The site's Team explorer only has a footer link: add a quiet one at the end of the top menu.
+  function mountExplorer() {
+    const nav = document.getElementById("nav");
+    if (!nav || nav.querySelector("#sbx-explorer")) return;
+    const a = document.createElement("a");
+    a.id = "sbx-explorer"; a.href = "/explorer"; a.textContent = "Explorer";
+    a.title = "Team explorer: search and filter every club in SmallBall (added by the Club Kit)";
+    a.style.cssText = "opacity:.6";
+    nav.appendChild(a);
+  }
+
+  // ───────── 🔔 Alerts & 📥 inbox: what needs you right now, from the Hill and your tournaments ─────────
+  // Read-only, from the same public files as the live cards. In the Chrome extension, a background worker also
+  // checks every few minutes with SmallBall closed (it shares the "seen" list, so you never get the same alert twice).
+  const ALERT_OPT = "sbx-alerts-opt";   // { pop: desktop notifications, sound: chime }
+  const AL = { events: [], seen: null, at: 0 };
+  const alertOpt = () => { try { return Object.assign({ pop: false, sound: false }, JSON.parse(localStorage.getItem(ALERT_OPT) || "{}")); } catch (_) { return { pop: false, sound: false }; } };
+  const stripTags = (h) => String(h || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+  function seenGet() {
+    return new Promise((res) => {
+      if (hasChromeStorage) { try { chrome.storage.local.get(["sbxAlertSeen"], (r) => res((r && r.sbxAlertSeen) || {})); return; } catch (_) {} }
+      try { res(JSON.parse(localStorage.getItem("sbx-alert-seen") || "{}")); } catch (_) { res({}); }
+    });
+  }
+  function seenPut(o) {
+    const cut = Date.now() - 3 * 864e5; Object.keys(o).forEach((k) => { if (o[k] < cut) delete o[k]; });
+    if (hasChromeStorage) { try { chrome.storage.local.set({ sbxAlertSeen: o }); return; } catch (_) {} }
+    try { localStorage.setItem("sbx-alert-seen", JSON.stringify(o)); } catch (_) {}
+  }
+  // Everything that's waiting on one of your clubs right now.
+  function alertEvents(H0, items, mine) {
+    const ev = [], now = Date.now();
+    for (const H of hillViews(H0)) {
+      const LB = H.isFarm ? "the Farm Hill" : "the Hill", PF = H.isFarm ? "f" : "";
+      const all = (H.ace ? [H.ace] : []).concat(H.ladder), me = all.filter((p) => mine.has(String(p.clubId))), names = new Set(me.map((p) => p.name));
+      const clubOf = (n) => (all.find((p) => p.name === n) || {}).club || n;
+      for (const c of H.charges || []) {
+        if (/reported|airing/i.test(c.status || "")) continue;
+        const dl = Date.parse(c.deadline || "") || 0;
+        if (names.has(c.df)) ev.push({ id: PF + "hc:" + c.created + ":" + c.df, ico: "🛡️", title: "You've been charged on " + LB, text: c.ch + " charged " + clubOf(c.df) + (c.type === "Title" ? " for the title" : "") + ". They start the game; be ready.", until: c.deadline, url: HILL_BOARD, hot: true });
+        if (names.has(c.ch) && dl && dl - now < 30 * 60000 && dl > now) ev.push({ id: PF + "hd:" + c.created, ico: "⏱", title: "Under 30 minutes to play your " + (H.isFarm ? "Farm" : "Hill") + " game", text: "Your charge on " + c.df + " runs out soon. Start a BigLeague game as the visitor.", until: c.deadline, url: HILL_BOARD, hot: true });
+      }
+      const B = H.bell, climbers = me.filter((p) => Number(p.rank) > 0), ace = me.find((p) => Number(p.rank) === 0);
+      if (B && B.open && !B.answered) {
+        if (climbers.length) ev.push({ id: PF + "bell:" + B.until, ico: "🔔", title: H.isFarm ? "THE FARM BELL IS RINGING" : "THE BELL IS RINGING", text: "Anyone on the climb can charge the Ace" + (H.ace ? " (" + H.ace.name + ")" : "") + ". Win by " + (B.margin || 3) + "+ for the title. First one in.", until: B.until, url: chargeUrl(H, H.ace, true, (climbers[0] || {}).clubId), hot: true });
+        else if (ace) ev.push({ id: PF + "bella:" + B.until, ico: "🔔", title: "The Bell is ringing: anyone can charge you", text: "They need to win by " + (B.margin || 3) + "+ to take the hill.", until: B.until, url: HILL_BOARD });
+      } else if (B && B.soon && B.next && me.length) ev.push({ id: PF + "bells:" + B.next, ico: "🔔", title: (H.isFarm ? "The Farm Bell" : "The Bell") + " rings at " + liveWhen(Date.parse(B.next)), text: "For an hour, anyone on the climb can charge the Ace.", until: B.next, url: HILL_BOARD });
+      for (const w of (H.isFarm ? [] : ((H.wagers || {}).open || []))) {
+        if (!names.has(w.t)) continue;
+        ev.push({ id: "wg:" + w.id, ico: "🤝", title: w.m + " offered you a wager", text: stripTags(w.terms || "") + (w.ms ? " · " + w.ms + " BB" : "") + ". Answer it on the Master Form.", until: w.exp, url: H.formLink || HILL_BOARD });
+      }
+    }
+    for (const it of items || []) {
+      if (!it || it.hill) continue;
+      const L = (it.lines || []).find((l) => l.go && !l.ext);
+      if (!L) continue;
+      ev.push({ id: "tm:" + it.k + ":" + stripTags(L.t).slice(0, 80), ico: "🏆", title: stripTags(it.title) + ": your match is open", text: stripTags(L.t), url: L.go, hot: true });
+    }
+    return ev;
+  }
+  function chime() {
+    try { const A = new (window.AudioContext || window.webkitAudioContext)(), o = A.createOscillator(), g = A.createGain(); o.type = "sine"; o.frequency.value = 880; o.connect(g); g.connect(A.destination); g.gain.setValueAtTime(0.0001, A.currentTime); g.gain.exponentialRampToValueAtTime(0.25, A.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, A.currentTime + 0.6); o.start(); o.stop(A.currentTime + 0.65); } catch (_) {}
+  }
+  function toast(e) {
+    let wrap = document.getElementById("sbx-toasts");
+    if (!wrap) { wrap = document.createElement("div"); wrap.id = "sbx-toasts"; wrap.style.cssText = "position:fixed;z-index:2147483500;top:58px;right:14px;display:flex;flex-direction:column;gap:8px;width:min(360px,92vw)"; document.body.appendChild(wrap); }
+    const t = document.createElement("div");
+    t.style.cssText = "background:" + (e.hot ? "#7a1f2b" : "#0f1b33") + ";color:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45);font:13px/1.35 system-ui,sans-serif;cursor:pointer;border-left:4px solid #facc15";
+    t.innerHTML = "<b>" + esc(e.ico + " " + e.title) + "</b><div style=\"opacity:.9;margin-top:2px\">" + esc(e.text) + "</div>";
+    t.onclick = () => { if (e.url) window.open(e.url, "_blank", "noopener"); t.remove(); };
+    wrap.appendChild(t);
+    setTimeout(() => t.remove(), 12000);
+  }
+  async function alertsRun() {
+    if (!on("alerts")) return;
+    const mine = ownIds(); if (!mine.size) return;
+    if (hasChromeStorage) { try { chrome.storage.local.set({ sbxAlertCfg: { own: [...mine], at: Date.now() } }); } catch (_) {} }
+    let H = LIVE.H;
+    if (!H || Date.now() - (LIVE.Hat || 0) > 120000) { try { H = await liveGet("docs/hill/board.json"); if (H) { LIVE.H = H; LIVE.Hat = Date.now(); } } catch (_) {} }
+    const ev = alertEvents(H, LIVE.items, mine), seen = await seenGet(), opt = alertOpt(), fresh = ev.filter((e) => !seen[e.id]);
+    AL.events = ev; AL.at = Date.now();
+    if (AL.first === undefined) { AL.first = true; }
+    if (fresh.length) {
+      fresh.forEach((e) => { seen[e.id] = Date.now(); });
+      seenPut(seen);
+      fresh.slice(0, 3).forEach((e) => {
+        toast(e);
+        if (opt.pop && typeof Notification !== "undefined" && Notification.permission === "granted") {
+          try { const n = new Notification(e.ico + " " + e.title, { body: e.text, tag: e.id, }); n.onclick = () => { window.focus(); if (e.url) window.open(e.url, "_blank", "noopener"); n.close(); }; } catch (_) {}
+        }
+      });
+      if (opt.sound) chime();
+    }
+    paintInbox();
+  }
+  function paintInbox() {
+    if (!on("alerts")) { document.getElementById("sbx-inbox")?.remove(); return; }
+    let b = document.getElementById("sbx-inbox");
+    if (!b) {
+      b = document.createElement("button"); b.id = "sbx-inbox"; b.type = "button";
+      b.style.cssText = "position:fixed;z-index:2147483400;top:12px;right:14px;border:0;border-radius:999px;min-width:40px;height:40px;padding:0 12px;font:800 15px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)";
+      b.onclick = openInbox; document.body.appendChild(b);
+    }
+    const n = AL.events.length, hot = AL.events.some((e) => e.hot);
+    const txt = "🔔" + (n ? " " + n : "");
+    if (b.textContent !== txt) b.textContent = txt;
+    b.style.background = n ? (hot ? "#dc2626" : "#facc15") : "rgba(15,27,51,.85)"; b.style.color = n && !hot ? "#1b1300" : "#fff";
+    b.title = n ? n + " thing" + (n === 1 ? "" : "s") + " waiting on you" : "Nothing waiting on you right now";
+  }
+  function openInbox() {
+    const opt = alertOpt(), ev = AL.events;
+    const can = typeof Notification !== "undefined", perm = can ? Notification.permission : "unsupported";
+    const ov = sbxModal("🔔 Waiting on you", (ev.length ? ev.map((e) => '<div class="row" style="cursor:' + (e.url ? "pointer" : "default") + '" data-url="' + esc(e.url || "") + '"><b>' + esc(e.ico) + "</b><div><b>" + esc(e.title) + '</b><div class="muted">' + esc(e.text) + (e.until ? cdn(e.until) : "") + "</div></div></div>").join("") : '<div class="muted">Nothing right now. You\'ll get a heads-up here when you\'re charged, the 🔔 Bell rings, a wager comes in, or your tournament match opens.</div>') +
+      '<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px"><label><input type="checkbox" data-o="pop"' + (opt.pop ? " checked" : "") + (can ? "" : " disabled") + "> Desktop pop-ups" + (perm === "denied" ? ' <span class="muted">(blocked in this browser\'s site settings)</span>' : !can ? ' <span class="muted">(not supported here)</span>' : "") + "</label>" +
+      '<label><input type="checkbox" data-o="sound"' + (opt.sound ? " checked" : "") + "> Chime with new alerts</label>" +
+      '<span class="muted">' + (hasChromeStorage ? "With desktop pop-ups on, the Chrome kit also checks every few minutes while SmallBall is closed." : "Alerts come while SmallBall is open in a tab.") + "</span></div>");
+    paintCdn();
+    ov.querySelectorAll("[data-url]").forEach((r) => { if (r.dataset.url) r.onclick = () => window.open(r.dataset.url, "_blank", "noopener"); });
+    ov.querySelectorAll("[data-o]").forEach((c) => (c.onchange = async () => {
+      const o = alertOpt(); o[c.dataset.o] = c.checked;
+      if (c.dataset.o === "pop" && c.checked && can && Notification.permission !== "granted") { try { const p = await Notification.requestPermission(); if (p !== "granted") { o.pop = false; c.checked = false; } } catch (_) { o.pop = false; c.checked = false; } }
+      if (c.dataset.o === "sound" && c.checked) chime();
+      try { localStorage.setItem(ALERT_OPT, JSON.stringify(o)); } catch (_) {}
+      if (hasChromeStorage) { try { chrome.storage.local.set({ sbxAlertPop: !!o.pop }); } catch (_) {} }
+    }));
+  }
+  if (window.top === window) { setTimeout(() => { try { alertsRun(); } catch (_) {} }, 6000); setInterval(() => { try { alertsRun(); } catch (_) {} }, 120000); }
+
+  // ───────── 🔎 Scouting report + ⚔️ rivalry, on other clubs' pages ─────────
+  // From what SmallBall already shows anyone: their roster, their recent games and your games against them.
+  const SC = {};   // team -> { busy, at, prof, h2h }
+  const SCOUT_OPEN = "sbx-scout-open";
+  async function loadScout(team) {
+    const S = SC[team] || (SC[team] = { busy: false, at: 0 });
+    if (S.busy || Date.now() - S.at < 10 * 60000) return;
+    S.busy = true;
+    try {
+      S.prof = await profileOf(team, 10 * 60000);
+      const mine = ownIds(), games = await gamesSince(team, 0, 300);
+      const h2h = {};
+      for (const g of games) {
+        const opp = g.home_team_id === team ? g.away_team_id : g.home_team_id;
+        if (!mine.has(String(opp))) continue;
+        const o = h2h[opp] || (h2h[opp] = { t: [0, 0, 0], g: [], name: String(g.home_team_id === team ? g.away_name : g.home_name || "") });
+        o.t["wlt".indexOf(resultOf(g, opp))]++; o.g.push(g);
+      }
+      S.h2h = h2h; S.games = games.filter((g) => g.finished_at); S.at = Date.now();
+    } catch (_) { S.at = Date.now() - 8 * 60000; }
+    finally { S.busy = false; setTimeout(tick, 0); }
+  }
+  function scoutHtml(team, S) {
+    // A baseball scouting report: what they've done, not advice. Career lines come from the club page;
+    // recent form and pitching come from their last 25 box scores. Other clubs' skill numbers aren't public.
+    const P = S.prof, roster = (P && P.roster) || [], st = roster.filter((p) => p.position).sort((a, b) => (+a.bats || 9) - (+b.bats || 9));
+    if (!st.length) return '<div class="muted">No lineup to read yet.</div>';
+    const f3 = (x) => (x == null || !isFinite(x) ? "–" : x.toFixed(3).replace(/^0/, "")), f1 = (x) => (x == null || !isFinite(x) ? "–" : x.toFixed(1)), f2 = (x) => (x == null || !isFinite(x) ? "–" : x.toFixed(2));
+    const slash = (ab, h, b2, b3, hr, bb) => (ab ? { avg: h / ab, obp: (h + bb) / (ab + bb), slg: (h + b2 + 2 * b3 + 3 * hr) / ab } : null);
+    const HT = HOT[team] || {}, hot = HT.map || {}, l10 = HT.last10 || {}, arms = HT.arms || {};
+    const tag = (p) => { const h = hot[p.player_id]; return h ? '<span title="' + esc(h.tip) + '">' + (h.tag === "hot" ? "🔥" : "🧊") + "</span> " : ""; };
+    // Team form, from their recent games
+    const G = (S.games || []).slice().sort((a, b) => String(b.finished_at).localeCompare(String(a.finished_at)));
+    let form = "";
+    if (G.length) {
+      const t = [0, 0, 0]; let rf = 0, ra = 0; const res = G.map((g) => resultOf(g, team));
+      G.forEach((g, i) => { t["wlt".indexOf(res[i])]++; const home = g.home_team_id === team; rf += Number(home ? g.home_runs : g.away_runs) || 0; ra += Number(home ? g.away_runs : g.home_runs) || 0; });
+      const l = res.slice(0, 10), l10r = [0, 0, 0]; l.forEach((r) => l10r["wlt".indexOf(r)]++);
+      let k = 0; while (k < res.length && res[k] === res[0]) k++;
+      const rec = (x) => x[0] + "–" + x[1] + (x[2] ? "–" + x[2] : ""), n = G.length, rd = rf - ra;
+      const it = (k2, v, ti) => '<span class="it" title="' + esc(ti || "") + '"><span class="k">' + k2 + "</span><b>" + v + "</b></span>";
+      form = '<div class="sc-h">Team</div><div class="sc-row">' + it("Record", rec(t), "Their last " + n + " games") + it("Win %", f3(t[0] / Math.max(1, t[0] + t[1])).replace(/^\./, ".")) +
+        it("Runs/G", f2(rf / n), "Runs scored per game") + it("Allowed/G", f2(ra / n), "Runs allowed per game") + it("Run diff", (rd > 0 ? "+" : "") + rd) +
+        it("Last 10", rec(l10r)) + it("Streak", (res[0] || "").toUpperCase() + k) + '<span class="muted" style="font-size:12px">last ' + n + " games</span></div>";
+    }
+    // Lineup card
+    const rows = st.map((p, i) => {
+      const c = p.career || {}, ab = c.at_bats || 0, sl = slash(ab, c.hits || 0, c.doubles || 0, c.triples || 0, c.home_runs || 0, c.walks || 0);
+      const ch = (c.putouts || 0) + (c.assists || 0) + (c.errors || 0), fp = ch >= 20 ? ((c.putouts || 0) + (c.assists || 0)) / ch : null;
+      const r = l10[String(p.player_id)], rs = r && r.ab ? slash(r.ab, r.h, r.b2, r.b3, r.hr, r.bb) : null;
+      return "<tr><td>" + (i + 1) + "</td><td>" + esc(p.position) + '</td><td class="sc-nm">' + tag(p) + esc(p.name) + "</td>" +
+        "<td>" + (sl && ab >= 20 ? f3(sl.avg) + "/" + f3(sl.obp) + "/" + f3(sl.slg) : '<span class="muted">' + ab + " AB</span>") + "</td><td>" + (c.home_runs || 0) + "</td><td>" + (c.runs_batted_in != null ? c.runs_batted_in : c.rbi != null ? c.rbi : "–") + "</td><td>" + (ab ? Math.round(100 * (c.strikeouts || 0) / ab) + "%" : "–") + "</td>" +
+        "<td>" + (fp != null ? f3(fp) : "–") + "</td><td>" + (c.errors || 0) + "</td>" +
+        "<td>" + (r ? r.h + "-" + r.ab + (r.hr ? ", " + r.hr + " HR" : "") + (rs ? ' <span class="muted">' + f3(rs.avg) + "</span>" : "") : "–") + "</td></tr>";
+    }).join("");
+    const card = '<div class="sc-h">Lineup</div><div class="sc-scroll"><table class="sc-t"><thead><tr><th>#</th><th>Pos</th><th>Name</th><th title="Career batting average / on-base / slugging">Career AVG/OBP/SLG</th><th title="Career home runs">HR</th><th title="Career runs batted in">RBI</th><th title="Career strikeouts per at-bat">K%</th><th title="Career fielding percentage">Fld%</th><th title="Career errors">E</th><th title="Hits-at-bats over their last 10 games">Last 10</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    // Hot and cold
+    const hc = st.filter((p) => hot[p.player_id]).concat(roster.filter((p) => !p.position && hot[p.player_id]));
+    const hcHtml = hc.length ? '<div class="sc-h">Hot and cold</div>' + hc.map((p) => { const h = hot[p.player_id], n = h.num || {}; return '<div class="sc-row"><span>' + (h.tag === "hot" ? "🔥" : "🧊") + " <b>" + esc(p.name) + "</b> " + esc(p.position || "bench") + '</span><span class="muted">last ' + n.g + " games: " + n.h + "-for-" + n.ab + (n.hr ? ", " + n.hr + " HR" : "") + (n.bb ? ", " + n.bb + " BB" : "") + " · OPS " + f3(n.now) + " (" + esc(n.vs || "before") + " " + f3(n.base) + ")</span></div>"; }).join("")
+      : HT.at ? '<div class="sc-h">Hot and cold</div><div class="sc-row muted">Nobody running hot or cold: every regular is within 20% of his usual OPS.</div>' : "";
+    // Pitching staff
+    const byId = new Map(roster.map((p) => [String(p.player_id), p]));
+    const staff = Object.entries(arms).map(([id, a]) => ({ id, a, p: byId.get(id) })).filter((x) => x.a.ip >= 3).sort((x, y) => y.a.ip - x.a.ip).slice(0, 4);
+    const pitHtml = staff.length ? '<div class="sc-h">Pitching</div><div class="sc-scroll"><table class="sc-t"><thead><tr><th>Pitcher</th><th>G</th><th>IP</th><th title="Runs allowed per 9 innings">RA/9</th><th title="Walks plus hits per inning">WHIP</th><th title="Strikeouts per 9">K/9</th><th title="Walks per 9">BB/9</th><th title="Home runs per 9">HR/9</th></tr></thead><tbody>' +
+      staff.map((x) => { const a = x.a, n9 = 9 / a.ip; return '<tr><td class="sc-nm">' + esc(x.p ? x.p.name : "#" + x.id) + (x.p && x.p.position === "P" ? ' <span class="muted">starter</span>' : "") + "</td><td>" + a.g + "</td><td>" + Math.round(a.ip) + "</td><td>" + f2(a.r * n9) + "</td><td>" + f2((a.h + a.bb) / a.ip) + "</td><td>" + f1(a.k * n9) + "</td><td>" + f1(a.bb * n9) + "</td><td>" + f1(a.hr * n9) + "</td></tr>"; }).join("") + "</tbody></table></div>"
+      : HT.at ? "" : '<div class="sc-row muted">Reading their box scores for form and pitching…</div>';
+    return form + card + hcHtml + pitHtml +
+      '<div class="sc-row muted" style="font-size:12px">Career lines from their club page. Last 10, hot and cold (last 10 games vs the 15 before) and pitching from their last ' + (HT.n || 25) + " box scores.</div>";
+  }
+
+  function h2hHtml(S) {
+    const H = S.h2h || {}, keys = Object.keys(H);
+    if (!keys.length) return '<div class="sc-row muted">You haven\'t played them yet.</div>';
+    const rec = (t) => t[0] + "–" + t[1] + (t[2] ? "–" + t[2] : "");
+    return keys.map((k) => {
+      const o = H[k], n = o.t[0] + o.t[1] + o.t[2], g = o.g.slice().sort((a, b) => String(b.finished_at).localeCompare(String(a.finished_at)));
+      const last = g[0], r = last ? resultOf(last, Number(k)) : "", lv = n >= 25 ? "⚔️🔥 Blood feud" : n >= 10 ? "⚔️ Rivalry" : "";
+      const my = last ? (last.home_team_id === Number(k) ? last.home_runs + "–" + last.away_runs : last.away_runs + "–" + last.home_runs) : "";
+      const streak = g.slice(0, 5).map((x) => '<i class="' + resultOf(x, Number(k)) + '">' + resultOf(x, Number(k)).toUpperCase() + "</i>").join("");
+      return '<div class="sc-row"><b>' + (lv ? lv + " · " : "") + "You (" + esc(nameOfClub(Number(k))) + ") vs them</b> " + n + " games · <b>" + rec(o.t) + "</b>" +
+        (last ? " · last: " + (r === "w" ? "won" : r === "l" ? "lost" : "tied") + " " + my + ", " + esc(new Date(last.finished_at).toLocaleDateString([], { month: "short", day: "numeric" })) : "") + ' <span class="chips">' + streak + "</span></div>";
+    }).join("");
+  }
+  function nameOfClub(id) { const o = [...((document.getElementById("who-team") || {}).options || [])].find((x) => Number(x.value) === id); return o ? o.textContent.replace(/\s*-[A-Za-z]{2,4}-\s*$/, "").trim() : "club " + id; }
+  function mountScout() {
+    let el = document.getElementById("sbx-scout");
+    const m = location.hash.match(/^#\/team\/(\d+)/), head = document.querySelector("main .teamhead");
+    if (!m || !head || ownIds().has(m[1]) || !ownIds().size) { if (el) el.remove(); return; }
+    const team = Number(m[1]), S = SC[team];
+    if (!S || (!S.busy && Date.now() - S.at > 10 * 60000)) loadScout(team);
+    if (!HOT[team] || (!HOT[team].busy && Date.now() - HOT[team].at > 10 * 60000)) loadHot(team);
+    let open = true; try { open = localStorage.getItem(SCOUT_OPEN) !== "0"; } catch (_) {}
+    if (!document.getElementById("sbx-scout-css")) {
+      const st = document.createElement("style"); st.id = "sbx-scout-css";
+      st.textContent = "#sbx-scout{margin:10px 0;padding:10px 14px;border-radius:12px;background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.3);font:13.5px/1.45 system-ui,sans-serif}#sbx-scout summary{cursor:pointer;font-weight:800;font-size:15px}#sbx-scout .sc-row{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}#sbx-scout .sc-man{white-space:nowrap}#sbx-scout .sc-man i{opacity:.6;font-style:normal;font-size:11.5px}#sbx-scout .it{display:inline-flex;gap:5px;align-items:baseline;background:rgba(127,127,127,.14);border-radius:999px;padding:2px 9px}#sbx-scout .it .k{opacity:.7;font-size:12px}#sbx-scout .sc-h{margin-top:12px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}#sbx-scout .sc-scroll{overflow-x:auto;margin-top:4px}#sbx-scout .sc-t{border-collapse:collapse;font-size:12.5px;width:100%;white-space:nowrap}#sbx-scout .sc-t th{text-align:left;font-weight:700;opacity:.7;padding:3px 8px;border-bottom:1px solid rgba(127,127,127,.35)}#sbx-scout .sc-t td{padding:3px 8px;border-bottom:1px solid rgba(127,127,127,.15);font-variant-numeric:tabular-nums}#sbx-scout .sc-t td.sc-nm{font-weight:700}#sbx-scout .sc-tips{display:block;padding:6px 10px;border-radius:9px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4)}#sbx-scout .chips i{display:inline-block;width:18px;text-align:center;font-style:normal;font-weight:800;font-size:11px;border-radius:4px;margin-left:2px}#sbx-scout .chips i.w{background:#16a34a;color:#fff}#sbx-scout .chips i.l{background:#dc2626;color:#fff}#sbx-scout .chips i.t{background:#64748b;color:#fff}";
+      document.head.appendChild(st);
+    }
+    const body = !S || !S.prof ? '<div class="sc-row muted">Reading their roster and your games against them…</div>' : scoutHtml(team, S) + '<div class="sc-h">Head to head</div>' + h2hHtml(S);
+    const key = team + "|" + (S ? S.at : 0) + "|" + ((HOT[team] || {}).at || 0) + "|" + open + "|" + (PROF[Number((document.getElementById("who-team") || {}).value || 0)] ? 1 : 0);
+    if (el && el.dataset.k === key && el.isConnected) return;
+    if (!el) { el = document.createElement("details"); el.id = "sbx-scout"; el.addEventListener("toggle", () => { try { localStorage.setItem(SCOUT_OPEN, el.open ? "1" : "0"); } catch (_) {} }); }
+    el.dataset.k = key; el.open = open;
+    el.innerHTML = "<summary>🔎 Scouting report</summary>" + body;
+    const after = document.getElementById("sbx-hillbar") || head;
+    if (el.previousElementSibling !== after) after.insertAdjacentElement("afterend", el);
   }
 
   // 4. Dashboard for your chosen clubs at the top of every page.
@@ -1357,7 +2876,7 @@ const SBX_TABLET = true;
     }
   }
   setInterval(cdTick, 1000);
-  // Score hider (off to start): in game lists and SmallBall's live bar, a game whose report hasn't aired yet
+  // Score hider (on to start): in game lists (not the live ticker, which runs with the broadcast), a game whose report hasn't aired yet
   // shows its countdown instead of its score. Click the countdown to see the score anyway. Once the report
   // airs the score comes back by itself. The page's club list tells us which games are recent; only those
   // get a details read (for live_until), and each game is read once.
@@ -1389,6 +2908,8 @@ const SBX_TABLET = true;
     for (const a of document.querySelectorAll('a[href^="/training?watch="]')) {
       const id = Number((a.getAttribute("href").match(/watch=(\d+)/) || [])[1]); if (!id) continue;
       const lb = a.classList.contains("lb-row");
+      // The live ticker's score runs with the broadcast, so it isn't a spoiler: leave it showing.
+      if (lb) { const c = a.querySelector(".lb-sc"); if (c) hideUnmask(c); continue; }
       const cells = lb ? [a.querySelector(".lb-sc")].filter(Boolean) : (() => { const row = a.closest("tr"); return row ? [...row.children].filter((td) => !td.querySelector("a") && (td.classList.contains("sbx-hid") || HIDE_SCORE.test(td.textContent))) : []; })();
       if (!cells.length) continue;
       if (want && lb && CD_UNTIL[id] == null) hideUntil(id);
@@ -1552,7 +3073,7 @@ const SBX_TABLET = true;
       ${row("Streak", streak || "—")}
       <div class="chips" title="Last 10 games, newest first">${last10.map((g) => `<i class="${res(g)}">${res(g).toUpperCase()}</i>`).join("")}</div>
       <div class="sbx-cdc" title="Timed games: a club can start its next official game once its last one has aired"></div>
-      <div class="acts"><button type="button" class="play" data-play="${team}" title="Pick this club and open the site's Games page">▶ Play</button><a class="trn" href="/training?team=${team}" title="Open the site's training page for this club">Training</a></div>
+      <div class="acts"><button type="button" class="play" data-play="${team}" title="Pick this club and open the site's Games page">▶ Play</button><a class="trn" href="/training?team=${team}" title="Open the site's training page for this club">Training</a><button type="button" class="trn" data-atplan="${team}" title="Plan this club's training (Asst. Trainer Kit)">📋 Plan</button><button type="button" class="trn" data-lineup="${team}" title="Jump to this club's lineup editor">🧢 Lineup</button></div>
     </div>`;
     noteTab(team, prof, html);
     return html;
@@ -2464,6 +3985,7 @@ const SBX_TABLET = true;
     if (on("mood")) moodFaces(t);
     if (on("squadview")) squadView(t);
     goodStats(t, team);
+    if (on("hotcold")) hotTags(t, team);
   }
   // Good matches only, in the squad's Stats columns: the site shows career totals, so with the switch
   // on, the kit swaps in this season's numbers from good-match box scores (and puts the site's back after).
@@ -3060,7 +4582,7 @@ const SBX_TABLET = true;
     const rec = (t) => `${t[0]}–${t[1]}${t[2] ? "–" + t[2] : ""}`;
     return `<div class="sbx-opps"><span class="k">Most played</span>${top.map((o) => {
       const n = o.t[0] + o.t[1] + o.t[2];
-      return `<a class="op" href="#/team/${o.id}" title="${esc(o.name)}: ${n} games, ${o.good} good matches"><span>${esc(o.name)}</span><span class="n">${n}g</span><b>${rec(o.t)}</b>${o.good === n ? `<span class="gm" title="All good matches">●</span>` : ""}</a>`;
+      return `<a class="op" href="#/team/${o.id}" title="${esc(o.name)}: ${n} games, ${o.good} good matches${n >= 10 ? " · ⚔️ rivalry" : ""}"><span>${n >= 25 ? "⚔️🔥 " : n >= 10 ? "⚔️ " : ""}${esc(o.name)}</span><span class="n">${n}g</span><b>${rec(o.t)}</b>${o.good === n ? `<span class="gm" title="All good matches">●</span>` : ""}</a>`;
     }).join("")}</div>`;
   }
   // Three views of the season's games: summary only, last 10, full season.
@@ -3138,6 +4660,40 @@ const SBX_TABLET = true;
     const vs = (location.hash.match(/^#\/team\/(\d+)/) || [])[1] || "";
     return { as, vs };
   })();
+  // ⚔️ On another club's page: if it's on Hold the Hill and one of your clubs can charge it, a button that opens
+  // the Master Form with the charge filled in (or a note on why not).
+  function mountHillBar() {
+    let el = document.getElementById("sbx-hillbar");
+    const m = location.hash.match(/^#\/team\/(\d+)/), head = document.querySelector("main .teamhead");
+    const H = m && LIVE.H ? hillViews(LIVE.H).find((v) => (v.ace ? [v.ace] : []).concat(v.ladder).some((p) => String(p.clubId) === m[1])) : null;
+    if (!m || !head || !H || !H.ladder) { if (el) el.remove(); return; }
+    const id = m[1], mine = ownIds(), all = (H.ace ? [H.ace] : []).concat(H.ladder);
+    const tgt = all.find((p) => String(p.clubId) === id);
+    if (!tgt || mine.has(id)) { if (el) el.remove(); return; }
+    const reach = H.isFarm ? 999 : Number(H.reach) || 3, openTo = H.isFarm ? 999 : Number(H.moundOpenTo) || 0, B = H.bell || null, t = Number(tgt.rank), isAce = H.ace && String(H.ace.clubId) === id;
+    const busy = (n) => (H.charges || []).find((c) => c.ch === n || c.df === n);
+    const opts = [], notes = [];
+    all.filter((p) => mine.has(String(p.clubId))).forEach((me) => {
+      const r = Number(me.rank);
+      if (r === 0) { notes.push("You hold the " + (H.isFarm ? "Farm " : "") + "mound with " + esc(me.club) + "."); return; }
+      let ok = false, need = "";
+      if (isAce) { if (r === 1 || (openTo && r <= openTo)) { ok = true; need = "title shot, any win"; } else if (B && B.open) { ok = true; need = "🔔 Bell: win by " + (B.margin || 3) + "+ for the title"; } }
+      else if (r - t >= 1 && r - t <= reach) { ok = true; const n = hillNeed(r - t, H.isFarm); need = n > 1 ? "win by " + n + "+" : "just win"; }
+      if (ok && busy(me.name)) notes.push(esc(me.club) + " already has a Hill fight going.");
+      else if (ok) opts.push({ me, need });
+      else notes.push(esc(me.club) + " is #" + r + ": " + (isAce ? "the Ace is open to " + (openTo > 1 ? "#1–#" + openTo : "#1 only") + " right now" : t > r ? "they're below you" : "#" + t + " is out of reach (up to " + reach + " spots up)") + ".");
+    });
+    if (busy(tgt.name)) notes.unshift("They're in a Hill fight right now.");
+    const key = id + "|" + JSON.stringify(opts.map((o) => o.me.clubId + o.need)) + notes.join("") + (H.updated || "");
+    if (el && el.dataset.k === key && el.isConnected) return;
+    if (!el) { el = document.createElement("div"); el.id = "sbx-hillbar"; }
+    el.dataset.k = key;
+    el.style.cssText = "display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:10px 0;padding:10px 14px;border-radius:12px;background:linear-gradient(180deg,#7a1f2b,#2b0d12);color:#fff;font:14px/1.4 system-ui,sans-serif;box-shadow:inset 4px 0 0 #ef4444";
+    const ttl = (H.isFarm ? "🌱" : "⛰️") + " <b>" + esc(tgt.name) + "</b> is " + (isAce ? (H.isFarm ? "🌱 <b>the Farm Ace</b>" : "♠ <b>the Ace</b>") : "<b>#" + t + "</b>") + " on " + (H.isFarm ? "the Farm Hill" : "Hold the Hill") + ".";
+    el.innerHTML = '<span style="flex:1 1 260px">' + ttl + (notes.length && !opts.length ? ' <span style="opacity:.8">' + notes.join(" ") + "</span>" : "") + "</span>" +
+      opts.map((o) => '<a href="' + esc(chargeUrl(H, tgt, isAce, o.me.clubId)) + '" target="_blank" rel="noopener" title="Opens the Master Form with this charge filled in. Submit it signed in as ' + esc(o.me.name) + '. If the Opponent box comes up empty (an old draft of the form can do that), pick ' + esc(isAce ? "♠ THE ACE" : "#" + t + " · " + tgt.name) + '." style="background:#facc15;color:#1b1300;font-weight:800;padding:8px 14px;border-radius:999px;text-decoration:none;white-space:nowrap">⚔️ Charge them' + (opts.length > 1 ? " with " + esc(o.me.club) : "") + ' <span style="font-weight:600;opacity:.8">· ' + esc(o.need) + "</span></a>").join("");
+    if (el.previousElementSibling !== head) head.insertAdjacentElement("afterend", el);
+  }
   function mountCharge() {
     let el = document.getElementById("sbx-charge");
     const here = CHARGE.as && CHARGE.vs && location.hash.replace(/[?].*$/, "") === "#/team/" + CHARGE.vs;
@@ -3238,10 +4794,40 @@ const SBX_TABLET = true;
   const HILL_BOARD = "https://slipnsliders.github.io/smallball-tools/hill/";
   // A club name that opens its SmallBall club page (same tab, like SmallBall's own links)
   const clubA = (name, id) => '<a href="#/team/' + encodeURIComponent(id) + '" title="Open ' + esc(name) + '\'s club page" style="color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px">' + esc(name) + "</a>";
-  const hillNeed = (gap) => (gap <= 1 ? 1 : gap + 1);
+  const hillNeed = (gap, farm) => (farm || gap <= 1 ? 1 : gap + 1);   // 🌱 the Farm Hill: any win counts
+  // A Master Form link with the charge already filled in (action + opponent), when the Hill publishes the form's
+  // pre-fill names; otherwise the plain form link.
+  // The Hill data holds two ladders: Hold the Hill, and the 🌱 Farm Hill (H.farm). Each "view" looks like the
+  // Hill data, so the cards, the charge bar and the alerts work the same on both.
+  function farmView(H) {
+    const F = H && H.farm; if (!F || !F.ladder) return null;
+    return Object.assign({}, F, { isFarm: true, reach: H.reach, formLink: H.formLink, wallet: H.wallet, updated: H.updated, wagers: null,
+      prefill: H.prefill ? Object.assign({}, H.prefill, { ace: H.prefill.farmAce || F.aceChoice }) : null });
+  }
+  const hillViews = (H) => [H, farmView(H)].filter((v) => v && v.ladder);
+  const hillLbl = (V) => (V.isFarm ? "🌱 Farm Hill" : "⛰️ Hold the Hill");
+  function chargeUrl(H, target, isAce, meClub) {
+    const P = H && H.prefill, base = (H && H.formLink) || HILL_BOARD;
+    const opt = isAce ? P && P.ace : target && target.opt;
+    if (!P || !P.url || !P.action || !P.opp || !opt) return base;
+    return P.url + "?usp=pp_url&" + P.action + "=" + encodeURIComponent(P.charge) + "&" + P.opp + "=" + encodeURIComponent(opt) + (H.isFarm && P.club && meClub ? "&" + P.club + "=" + encodeURIComponent(meClub) : "");
+  }
+  // ⏱ Live countdowns: any <span class="sbx-cdn" data-until="ISO"> shows the time left and turns red near the end.
+  function cdn(iso) { return iso ? ' <span class="sbx-cdn" data-until="' + esc(iso) + '"></span>' : ""; }
+  function paintCdn() {
+    document.querySelectorAll(".sbx-cdn[data-until]").forEach((el) => {
+      const ms = Date.parse(el.dataset.until) - Date.now();
+      const m = Math.round(ms / 60000), txt = ms <= 0 ? "time's up" : m < 60 ? m + " min left" : Math.floor(m / 60) + " h " + (m % 60) + " min left";
+      if (el.textContent !== txt) el.textContent = txt;
+      el.style.cssText = "display:inline-block;margin-left:4px;padding:1px 7px;border-radius:999px;font:700 11.5px/1.5 system-ui,sans-serif;white-space:nowrap;" +
+        (ms <= 30 * 60000 ? "background:#dc2626;color:#fff" : ms <= 2 * 3600000 ? "background:#f59e0b;color:#1b1300" : "background:rgba(255,255,255,.16);color:inherit");
+    });
+  }
+  setInterval(paintCdn, 30000);
   function hillItems(H, mine) {
     if (!H || !H.ladder) return [];
-    const all = (H.ace ? [H.ace] : []).concat(H.ladder), reach = Number(H.reach) || 3, form = H.formLink || HILL_BOARD;
+    const LBL = hillLbl(H), BURL = HILL_BOARD + (H.isFarm ? "#farm" : ""), ACEW = H.isFarm ? "the 🌱 Farm Ace" : "the Ace";
+    const all = (H.ace ? [H.ace] : []).concat(H.ladder), reach = H.isFarm ? 999 : Number(H.reach) || 3, form = H.formLink || HILL_BOARD;
     const wal = {}; (H.wallet || []).forEach((w) => { wal[w.name] = w; });
     const out = [];
     all.filter((p) => mine.has(String(p.clubId))).forEach((me) => {
@@ -3252,35 +4838,38 @@ const SBX_TABLET = true;
       const ch = (H.charges || []).find((c) => c.ch === me.name || c.df === me.name);
       if (ch) {
         const opp = all.find((p) => p.name === (ch.ch === me.name ? ch.df : ch.ch));
-        const by = ch.deadline ? " · play by <b>" + esc(liveWhen(Date.parse(ch.deadline))) + "</b>" : "";
-        if (/reported|airing/i.test(ch.status || "")) lines.push({ t: "📡 Your Hill game is in. The result posts once it has aired." });
+        const by = ch.deadline ? " · play by <b>" + esc(liveWhen(Date.parse(ch.deadline))) + "</b>" + cdn(ch.deadline) : "";
+        if (/reported|airing/i.test(ch.status || "")) lines.push({ t: "📡 Your " + (H.isFarm ? "Farm" : "Hill") + " game is in. The result posts once it has aired." });
         else if (ch.ch === me.name) lines.push({ t: "🥊 You charged <b>" + (opp ? clubA(ch.df, opp.clubId) : esc(ch.df)) + "</b>" + (opp ? " <code>" + esc(opp.clubId) + "</code>" : "") + by + ". Start a BigLeague game as the visitor.", go: opp ? liveStart(me.clubId, opp.clubId) : "" });
         else lines.push({ t: "🛡️ <b>" + (opp ? clubA(ch.ch, opp.clubId) : esc(ch.ch)) + "</b> charged you" + by + ". They start the game; be ready." });
       } else if (r === 0) {
-        lines.push({ t: "♠ You hold the mound. Defend it" + (me.next ? ": the next defense is worth <b>+" + me.next + "</b>" : "") + "." });
-        if (B && B.open) lines.push({ t: "🔔 <b>The Bell is ringing</b> until <b>" + bellUntil + "</b>: anyone on the climb can charge you (they need to win by " + (B.margin || 3) + "+)." });
+        lines.push({ t: (H.isFarm ? "🌱 You hold the Farm mound. Defend it" : "♠ You hold the mound. Defend it") + (me.next ? ": the next defense is worth <b>+" + me.next + "</b>" : "") + "." });
+        if (B && B.open) lines.push({ t: "🔔 <b>The Bell is ringing</b> until <b>" + bellUntil + "</b>" + cdn(B.until) + ": anyone on the climb can charge you (they need to win by " + (B.margin || 3) + "+)." });
         else if (B && B.soon) lines.push({ t: "🔔 The Bell rings at <b>" + bellAt + "</b>. For an hour, anyone on the climb can charge you." });
+      } else if (me.rest && Date.parse(me.rest) > Date.now()) {
+        // 🩹 Lost a charge at the Ace: no charging anyone until the recovery is over
+        lines.push({ t: "🩹 <b>Recovering</b> from your last charge at the Ace: you can charge again at <b>" + new Date(me.rest).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "</b>" + cdn(me.rest) + "." });
       } else {
         const tg = [];
-        const openTo = Number(H.moundOpenTo) || 0;
-        if (H.ace && B && B.open && !(r === 1 || (openTo && r <= openTo))) lines.push({ t: "🔔 <b>THE BELL IS RINGING</b> until <b>" + bellUntil + "</b>! Charge ♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> <code>" + esc(H.ace.clubId) + "</code>: win by " + (B.margin || 3) + "+ for the title, a smaller win makes you #1 contender. First one in.", go: form, btn: "🔔 Charge", ext: 1 });
+        const openTo = H.isFarm ? 999 : Number(H.moundOpenTo) || 0;
+        if (H.ace && B && B.open && !(r === 1 || (openTo && r <= openTo))) lines.push({ t: "🔔 <b>THE BELL IS RINGING</b> until <b>" + bellUntil + "</b>" + cdn(B.until) + "! Charge ♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> <code>" + esc(H.ace.clubId) + "</code>: win by " + (B.margin || 3) + "+ for the title, a smaller win makes you #1 contender. First one in.", go: chargeUrl(H, H.ace, true, me.clubId), btn: "🔔 Charge", ext: 1 });
         else if (H.ace && B && B.soon && !(r === 1 || (openTo && r <= openTo))) lines.push({ t: "🔔 The Bell rings at <b>" + bellAt + "</b>: for an hour, anyone can charge the Ace." });
-        if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: "♠ <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> (the Ace) <code>" + esc(H.ace.clubId) + "</code> · title shot" });
+        if (H.ace && (r === 1 || (openTo && r <= openTo))) tg.push({ t: (H.isFarm ? "🌱" : "♠") + " <b>" + clubA(H.ace.name, H.ace.clubId) + "</b> (" + ACEW + ") <code>" + esc(H.ace.clubId) + "</code> · title shot", go: chargeUrl(H, H.ace, true, me.clubId), btn: "🥊 Charge", ext: 1 });
         H.ladder.filter((p) => r - Number(p.rank) >= 1 && r - Number(p.rank) <= reach).sort((a, b) => a.rank - b.rank).forEach((p) => {
-          const n = hillNeed(r - Number(p.rank)); tg.push({ t: "#" + p.rank + " <b>" + clubA(p.name, p.clubId) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win") });
+          const n = hillNeed(r - Number(p.rank), H.isFarm); tg.push({ t: "#" + p.rank + " <b>" + clubA(p.name, p.clubId) + "</b> <code>" + esc(p.clubId) + "</code> · " + (n > 1 ? "win by " + n + "+" : "just win"), go: chargeUrl(H, p, false, me.clubId), btn: "🥊 Charge", ext: 1 });
         });
         const j = H.ladder.find((p) => r - Number(p.rank) === reach + 1);
         if (j) tg.push({ t: "🪜 #" + j.rank + " <b>" + clubA(j.name, j.clubId) + "</b> with a Ladder Jump" });
-        if (tg.length) { lines.push({ t: "You can charge:" }); tg.forEach((x) => lines.push(x)); lines.push({ t: '<span style="opacity:.75;font-size:12px">The Master Form\'s 🔎 Who can I charge? has the exact list (cooldowns, items).</span>', go: form, btn: "🥊 Charge", ext: 1 }); }
+        if (tg.length) { lines.push({ t: "You can charge:" }); tg.forEach((x) => lines.push(x)); lines.push({ t: '<span style="opacity:.75;font-size:12px">🥊 Charge opens the Master Form with that charge filled in. Its 🔎 Who can I charge? has the exact list (cooldowns, items).</span>' }); }
         else lines.push({ t: "Nobody in reach right now. Win a defense or wait for the ladder to move." });
       }
       lines.push({ t: '<span style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px"><a href="' + esc(form) + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📝 Master Form</a><a href="' + HILL_BOARD + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📊 Live Hold the Hill Leaderboard</a></span>' });
-      out.push({ k: "hill:" + me.clubId, hill: true, bell: !!(B && B.open), title: r === 0 ? "⛰️ Hold the Hill · ♠ The Ace" : "⛰️ Hold the Hill · #" + r + " of " + H.ladder.length, sub, lines, url: HILL_BOARD });
+      out.push({ k: "hill:" + me.clubId, hill: true, bell: !!(B && B.open), title: r === 0 ? LBL + (H.isFarm ? " · 🌱 The Farm Ace" : " · ♠ The Ace") : LBL + " · #" + r + " of " + H.ladder.length, sub, lines, url: BURL });
     });
     return out;
   }
   async function liveRefresh(force) {
-    if (LIVE.busy || (document.hidden && !force) || !on("live")) return;
+    if (LIVE.busy || (document.hidden && !force && !on("alerts")) || !on("live")) return;
     const mine = ownIds();
     LIVE.busy = true;
     try {
@@ -3293,19 +4882,32 @@ const SBX_TABLET = true;
         const D = await liveGet("docs/" + m[1].replace(/\/?$/, "/") + "bracket.json");
         if (D && D.name) { try { items.push(...liveItems(D, t, mine)); } catch (_) {} }
       }
-      if (on("hillcard") && mine.size) { try { const H = await liveGet("docs/hill/board.json"); items.unshift(...hillItems(H, mine)); } catch (_) {} }
+      if (on("hillcard") && mine.size) { try { const H = await liveGet("docs/hill/board.json"); LIVE.H = H; LIVE.Hat = Date.now(); items.unshift(...hillViews(H).flatMap((V) => hillItems(V, mine))); } catch (_) {} }
       LIVE.items = items; LIVE.at = Date.now(); mountLive();
+      try { alertsRun(); } catch (_) {}
     } finally { LIVE.busy = false; }
   }
   const LIVE_HIDE_KEY = "sbx-live-hidden";
   const liveHidden = () => { try { return JSON.parse(sessionStorage.getItem(LIVE_HIDE_KEY) || "{}"); } catch (_) { return {}; } };
   // Box-score toasts share the bottom-right corner, so they sit just above the chip.
+  // ⬆ A floating button back up to your club cards, once you've scrolled down a page.
+  function mountTopBtn() {
+    let b = document.getElementById("sbx-top");
+    if (!b) {
+      b = document.createElement("button"); b.id = "sbx-top"; b.type = "button"; b.textContent = "⬆"; b.title = "Back up to your club cards";
+      b.style.cssText = "position:fixed;right:16px;z-index:2147482980;width:44px;height:44px;border-radius:999px;border:1px solid #475569;background:#0b1220;color:#fde68a;font:800 20px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.45);transition:opacity .2s,transform .2s;opacity:0;transform:translateY(8px);pointer-events:none";
+      b.onclick = () => { const t = ["sbx-dash-wrap", "sbx-tabs"].map((id) => document.getElementById(id)).find((e) => e && e.getBoundingClientRect().height > 0); if (t) { const y = t.getBoundingClientRect().top + window.scrollY - 80; window.scrollTo({ top: Math.max(0, y), behavior: "smooth" }); } else window.scrollTo({ top: 0, behavior: "smooth" }); };
+      document.body.appendChild(b);
+      const show = () => { const on2 = window.scrollY > 700; b.style.opacity = on2 ? "1" : "0"; b.style.transform = on2 ? "none" : "translateY(8px)"; b.style.pointerEvents = on2 ? "auto" : "none"; b.style.bottom = "calc(var(--sbx-live-h, 0px) + 18px)"; };
+      window.addEventListener("scroll", show, { passive: true }); show();
+    }
+  }
   function liveLift() { const el = document.getElementById("sbx-live"); document.documentElement.style.setProperty("--sbx-live-h", el ? (el.offsetHeight + 8) + "px" : "0px"); }
   // The 🏆 Tournaments button (always there: it opens the Tournaments page) with a card above it for each
   // tournament you're in. ▾ on the button folds the cards away; the button then shows how many are waiting.
   const TOURNEY_HOME = "https://slipnsliders.github.io/smallball-tools/tournaments/";
   const LIVE_MIN_KEY = "sbx-live-min";
-  const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) === "1"; } catch (_) { return false; } };
+  const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) !== "0"; } catch (_) { return true; } };   // folded until you open them
   function mountLive() {
     if (!on("live")) return;
     let el = document.getElementById("sbx-live");
@@ -3331,8 +4933,8 @@ const SBX_TABLET = true;
         '<button data-x="' + i + '" title="Hide this card until something changes" style="background:rgba(255,255,255,.12);border:0;color:inherit;cursor:pointer;font-size:14px;line-height:1;border-radius:999px;width:24px;height:24px">×</button></div>' +
         (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
     }).join("");
-    const fold = items.length ? '<button data-fold title="' + (min ? "Show your cards" : "Tuck these cards away (the button stays)") + '" style="' + pill + ';padding:9px 14px;background:#0b1220;color:#fde68a;border:1px solid #475569">' +
-      (min ? "▴ Show " + items.length + " card" + (items.length === 1 ? "" : "s") : "▾ Hide cards") + "</button>" : "";
+    const fold = items.length ? '<button data-fold title="' + (min ? "Show your Hill and tournament cards" : "Tuck these cards away (the button stays)") + '" style="' + pill + ';position:relative;padding:9px 14px;background:#0b1220;color:#fde68a;border:1px solid #475569">' +
+      (min ? "▴ Cards" + '<span title="' + items.length + ' card' + (items.length === 1 ? "" : "s") + ' waiting" style="position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#dc2626;color:#fff;font:800 12px/22px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #0b1220,0 2px 6px rgba(0,0,0,.5)">' + items.length + "</span>" : "▾ Hide cards") + "</button>" : "";
     const home = '<a data-home href="' + TOURNEY_HOME + '" target="_blank" rel="noopener" title="SmallBall tournaments: brackets, sign-ups, the Hall of Champions" style="' + pill + ';padding:10px 16px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#1c1917">🏆 Tournaments' +
       (su ? '<span style="font:700 11px/1 system-ui,sans-serif;background:#14532d;color:#bbf7d0;border-radius:999px;padding:4px 7px">sign-ups open</span>' : "") + "</a>";
     el.innerHTML = cards + '<div style="display:flex;justify-content:flex-end;gap:8px">' + fold + home + "</div>";
@@ -3364,10 +4966,17 @@ const SBX_TABLET = true;
       if (on("notes")) safe(mountNotes);
       safe(paintTitle);
       if (on("charge")) safe(mountCharge);
+      if (on("hillcard")) safe(mountHillBar);
+      safe(paintCdn);
+      if (on("totop")) safe(mountTopBtn);
       if (on("live")) safe(mountLive);
-    } finally { busy = false; }
+      if (on("explorer")) safe(mountExplorer);
+      if (on("tplan")) safe(mountAsst);
+      if (on("scout")) safe(mountScout);
+    } finally { busy = false; try { OBS.takeRecords(); } catch (_) {} }   // drop the changes the kit just made itself
   };
-  new MutationObserver(tick).observe(document.body, { childList: true, subtree: true });
+  const OBS = new MutationObserver(tick);
+  OBS.observe(document.body, { childList: true, subtree: true });
   window.addEventListener("hashchange", () => setTimeout(tick, 0));
   setTimeout(tick, 0);
   loadLogos();
@@ -3553,7 +5162,7 @@ const SBX_TABLET = true;
   function cfg(team) {
     const c = allCfg()[team] || {};
     const base = PRESETS[c.preset] || PRESETS.balanced;
-    return { preset: c.preset || "balanced", w: { ...base.w, ...(c.w || {}) }, order: c.order || base.order, p9: c.p9 !== false, orderOnly: !!c.orderOnly, locks: c.locks || [] };
+    return { preset: c.preset || "balanced", w: { ...base.w, ...(c.w || {}) }, order: c.order || base.order, p9: c.p9 !== false, orderOnly: !!c.orderOnly, locks: c.locks || [], saved: Array.isArray(c.saved) ? c.saved : [] };
   }
   function saveCfg(team, c) { const a = allCfg(); a[team] = c; try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (_) {} }
 
@@ -3747,6 +5356,13 @@ const SBX_TABLET = true;
   #sbx-build .rules select { font: inherit; border-radius: 6px; padding: 3px 6px; }
   #sbx-build .why { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: rgba(250,204,21,.1); border: 1px solid rgba(250,204,21,.35); font-size: 12.5px; }
   #sbx-build .why ul { margin: 6px 0 0; padding-left: 18px; }
+  #sbx-build .saved { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; font-size: 12.5px; }
+  #sbx-build .saved .lbl { opacity: .8; font-weight: 700; margin-right: 2px; }
+  #sbx-build .saved .sv { display: inline-flex; align-items: center; border-radius: 999px; background: rgba(250,204,21,.16); border: 1px solid rgba(250,204,21,.45); overflow: hidden; }
+  #sbx-build .saved .sv button { border: 0; background: none; color: inherit; font: 700 12.5px/1 system-ui, sans-serif; padding: 6px 10px; cursor: pointer; }
+  #sbx-build .saved .sv button.del { padding: 6px 8px 6px 2px; opacity: .55; font-weight: 400; }
+  #sbx-build .saved .sv.cur { background: #facc15; color: #1b1300; }
+  #sbx-build .saved input { font: inherit; border-radius: 8px; border: 1px solid rgba(255,255,255,.3); background: rgba(0,0,0,.25); color: inherit; padding: 5px 8px; width: 170px; }
   #sbx-build .msg { font-size: 12.5px; opacity: .85; margin-top: 8px; min-height: 1em; }
   `;
   const AREA = { // position index -> [grid-column, grid-row]
@@ -3762,6 +5378,8 @@ const SBX_TABLET = true;
     if (posName === "P") return `Pitch ${S(p, "pitch_skill")} · Glove ${glove(p)}`;
     return `Con ${S(p, "contact_odds")} · Bat ${S(p, "swing_skill")} · Pow ${S(p, "swing_power")} · Spd ${spd(p)}`;
   }
+  // 🔥🧊 from the Club Kit's hot & cold tags (last 10 games vs career), when it has them
+  function hotMark(id) { try { const x = ((window.__sbxHot || {})[ST.team] || {}).map || {}, h = x[id]; return h ? `<span title="${esc(h.tip)}">${h.tag === "hot" ? "🔥" : "🧊"}</span> ` : ""; } catch (_) { return ""; } }
   function chip(id, posName, c, tag) {
     const p = ST.byId.get(id);
     if (!p) return '<div class="chip"><span class="xb-n">?</span></div>';
@@ -3770,10 +5388,18 @@ const SBX_TABLET = true;
     const col = f == null ? "" : f >= 80 ? "#16a34a" : f >= 60 ? "#ca8a04" : "#dc2626";
     return `<div class="chip" data-id="${esc(id)}" title="${esc(p.name)} · Contact ${S(p, "contact_odds")}, Batting ${S(p, "swing_skill")}, Power ${S(p, "swing_power")}, Speed ${spd(p)}, Glove ${glove(p)}, Arm ${arm(p)}, Pitch ${S(p, "pitch_skill")} · TP ${S(p, "tp")}${f != null ? ` · ${posName} fit ${f} (${DEF_WHY[posName]})` : ""}">` +
       `<button class="lk${lock ? " on" : ""}" data-lock="${esc(id)}" title="${lock ? "Locked: Optimize leaves him where he is. Click to unlock." : "Lock him here so Optimize leaves him alone"}">${lock ? "🔒" : "🔓"}</button>` +
-      `<span class="xb-n">${tag ? `<span class="pos">${esc(tag)}</span> ` : ""}${esc(p.name)}</span><span class="xb-s">${esc(statLine(p, posName))}${S(p, "tp") ? ` · TP ${Math.round(S(p, "tp") * 10) / 10}` : ""}</span>` +
+      `<span class="xb-n">${tag ? `<span class="pos">${esc(tag)}</span> ` : ""}${hotMark(id)}${esc(p.name)}</span><span class="xb-s">${esc(statLine(p, posName))}${S(p, "tp") ? ` · TP ${Math.round(S(p, "tp") * 10) / 10}` : ""}</span>` +
       (f != null ? `<div class="fit"><i style="width:${f}%;background:${col}"></i></div>` : "") + "</div>";
   }
 
+  const sameLineup = (a, b) => a && b && a.pos.every((id, i) => id === b.pos[i]) && a.order.every((id, i) => id === b.order[i]);
+  function savedRow(c, form) {
+    const list = c.saved || [];
+    return `<div class="saved"><span class="lbl">💾 Saved lineups:</span>` +
+      (list.length ? list.map((x, i) => `<span class="sv${sameLineup(x, form) ? " cur" : ""}" title="${esc(x.name)} · saved ${esc(new Date(x.at).toLocaleDateString())}${sameLineup(x, form) ? " · this is what's in the form now" : ""}"><button type="button" data-load="${i}">${esc(x.name)}</button><button type="button" class="del" data-del="${i}" title="Delete this saved lineup">✕</button></span>`).join("") : `<span style="opacity:.65">none yet</span>`) +
+      (ST.naming ? `<input type="text" maxlength="30" placeholder="Name it, e.g. Hill defense" data-name><button type="button" class="bb go" data-sv="ok">Save</button><button type="button" class="bb" data-sv="no">Cancel</button>`
+        : `<button type="button" class="bb" data-sv="new" title="Save the lineup and batting order that are in the form right now">＋ Save this lineup</button>`) + "</div>";
+  }
   function render() {
     const el = ST.el, team = ST.team, c = cfg(team);
     const form = readForm(ST.byName);
@@ -3789,6 +5415,7 @@ const SBX_TABLET = true;
       `<button class="bb go" data-act="opt" title="Build the lineup and batting order with your settings">⚡ Optimize my way</button>` +
       `<button class="bb" data-act="cust">⚙️ ${ST.open ? "Hide settings" : "My settings"}</button>` +
       (ST.snapshot ? `<button class="bb" data-act="undo" title="Put the form back the way it was before your changes">↺ Undo my changes</button>` : "") + "</div>" +
+      savedRow(c, form) +
       (ST.open ? `<div class="cust"><div class="presets">${pre}</div><div class="sl">${sl}</div><div class="rules">` +
         `<label>Batting order: <select data-order>${Object.entries(ORDERS).map(([k, v]) => `<option value="${k}"${c.order === k ? " selected" : ""}>${v}</option>`).join("")}</select></label>` +
         `<label><input type="checkbox" data-p9${c.p9 ? " checked" : ""}> Pitcher bats 9th</label>` +
@@ -3870,6 +5497,31 @@ const SBX_TABLET = true;
       b.onclick = (e) => { e.stopPropagation(); const cc = c(), id = String(b.dataset.lock); const L = new Set(cc.locks.map(String)); if (L.has(id)) L.delete(id); else L.add(id); saveCfg(team, { ...cc, locks: [...L] }); render(); };
     });
     el.querySelectorAll(".chip[data-id]").forEach((ch) => (ch.onpointerdown = (e) => startDrag(e, ch)));
+    const sv = (a) => el.querySelector(`[data-sv="${a}"]`);
+    if (sv("new")) sv("new").onclick = () => { ST.naming = true; render(); const i = el.querySelector("[data-name]"); if (i) i.focus(); };
+    if (sv("no")) sv("no").onclick = () => { ST.naming = false; render(); };
+    const doSave = () => {
+      const i = el.querySelector("[data-name]"), name = (i && i.value.trim()) || "Lineup " + ((c().saved || []).length + 1);
+      const cc = c(), list = (cc.saved || []).filter((x) => x.name.toLowerCase() !== name.toLowerCase());
+      if (list.length >= 12) { msg("You can keep up to 12 saved lineups per club. Delete one first."); return; }
+      list.push({ name, pos: ST.form.pos.slice(), order: ST.form.order.slice(), at: Date.now() });
+      saveCfg(team, { ...cc, saved: list }); ST.naming = false; render(); msg("💾 Saved \"" + esc(name) + "\". Tap it any time to put it back in the form.");
+    };
+    if (sv("ok")) sv("ok").onclick = doSave;
+    const nm = el.querySelector("[data-name]"); if (nm) nm.onkeydown = (e) => { if (e.key === "Enter") doSave(); if (e.key === "Escape") { ST.naming = false; render(); } };
+    el.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => {
+      const cc = c(), i = Number(b.dataset.del), x = (cc.saved || [])[i]; if (!x) return;
+      if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "delete?"; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ""; b.textContent = "✕"; } }, 3000); return; }
+      cc.saved.splice(i, 1); saveCfg(team, cc); render(); msg("Deleted \"" + esc(x.name) + "\".");
+    }));
+    el.querySelectorAll("[data-load]").forEach((b) => (b.onclick = async () => {
+      const x = (c().saved || [])[Number(b.dataset.load)]; if (!x) return;
+      const have = new Set(ST.form.pos), want = new Set(x.pos);
+      const gone = x.pos.filter((id) => !have.has(id)).map((id) => (ST.byId.get(id) || {}).name || "a man who's left");
+      if (gone.length || have.size !== want.size || x.order.some((id) => !x.pos.slice(0, 9).includes(id))) { msg("⚠️ \"" + esc(x.name) + "\" has men who aren't on the roster any more (" + gone.map(esc).join(", ") + "). Set it up again and re-save it."); return; }
+      ST.why = "";
+      await change({ pos: x.pos.slice(), order: x.order.slice() }, "Loaded \"" + esc(x.name) + "\".");
+    }));
   }
 
   function startDrag(e, ch) {
