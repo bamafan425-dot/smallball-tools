@@ -160,9 +160,10 @@ const getJSON=async(u)=>{const r=await fetch(u,{credentials:"include"}); return 
 .sc-logo{display:inline-flex;align-items:center;gap:3px;font:900 15px/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.06em;vertical-align:middle}
 .sc-logo svg{width:1.45em;height:1.45em;margin-right:2px;filter:drop-shadow(0 0 4px rgba(255,194,61,.45))}
 .sc-logo b{color:#fff;font-weight:900}.sc-logo i{font-style:normal;color:#ffc23d;font-weight:900}
-.sc-logo.sm{font-size:11px}.sc-logo.big{font-size:clamp(16px,2.3vw,28px);text-shadow:0 0 12px rgba(255,194,61,.35)}
-#sbx-cx.jumbo .jt-brand{display:flex;flex-direction:column;align-items:center;gap:4px;animation:jtIn .5s ease-out}
-#sbx-cx.jumbo .jt-tag{font:800 9px system-ui,sans-serif;letter-spacing:.2em;color:#94a3b8}
+.sc-logo.sm{font-size:11px}.sc-logo.big{font-size:clamp(11px,13cqw,28px);text-shadow:0 0 12px rgba(255,194,61,.35)}
+#sbx-cx.jumbo .jt-l{container-type:inline-size}
+#sbx-cx.jumbo .jt-brand{max-width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;animation:jtIn .5s ease-out}
+#sbx-cx.jumbo .jt-tag{font:800 clamp(7px,6cqw,9px) system-ui,sans-serif;letter-spacing:.16em;color:#94a3b8;text-align:center}
 #sbx-cx.jumbo .jt-top .sc-logo{margin-right:4px}
 @keyframes jtIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
 #sbx-kx{position:absolute;z-index:6;display:flex;gap:4px;pointer-events:auto}
