@@ -1,0 +1,24 @@
+{
+"kicker":"Storyline · The golden age · Forum threads",
+"title":"Season 100",
+"titleAccent":"The Centennial",
+"dates":"August – December 2004",
+"accent":"#facc15",
+"dek":"SmallBall's hundredth season, at the top of its run. Commish was posting puzzles, handing out free Deluxe Trainers and building a brand-new park, and the forum wrote poetry about it.",
+"stats":[["100","seasons since Feb 2001"],["1","Alice's Park, won by cracking a code"],["Free","DT for everyone, Season 100 only"],["Nov 29","Centennial Park opens"]],
+"logTitle":"The run-up and the party",
+"chapters":[
+{"date":"Aug 7, 2004","title":"Crack the Code","text":"Commish posts a page of clues that spell out the ticket code for an Alice's Park stadium. LarryB cracks it overnight. Yankee Dude got it at the same moment and missed by a hair.","quotes":[["I was pretty sure this one would last at least a day... guess not. Harder one next","Commish"],["Commish, can you move to the Eastern time zone?","mcdcoops"]],"thread":34430},
+{"date":"Sep 15","title":"Write for the HPN","text":"Commish wants Home Plate News content for the Season 100 issue and has received exactly one submission. He sweetens the deal with a reward that doesn't exist yet: the rare Earth Elemental stadium. The submissions pour in, and the submission email starts bouncing them back.","thread":35933},
+{"date":"Sep 20","title":"Only one season left!","text":"Commish counts down, and the forum takes roll. LCD has been around since day 2 of Season 30. ERG joined in Season 49. Cliff first made the ProLeague in Season 29.","quotes":[["901 more seasons till 1000","Garbadge Man"],["it's like raising kids!","BTB"]],"thread":36126},
+{"date":"Oct 3","title":"'Twas the night before Season 100","text":"ERG writes the Christmas poem version, with the schedules set with care and players nestled all snug in their DTs. Issued-Away answers with his own, starring a boasting Chippy.","quotes":[["Not a Mod was stirring, not even little Chippy","ERG"]],"thread":36516},
+{"date":"Oct 4","title":"A free Deluxe Trainer for everyone","text":"Commish posts a free DT code good for Season 100 only. The catch: you have to type it in every day. The thread fills with complaints until matthew216 teaches everyone copy and paste.","quotes":[["For your FREE DT! This season only!","Commish"]],"thread":36555,"tag":"65 posts"},
+{"date":"Oct 18","title":"The Season 100 badge","text":"The season closes with a surprise: a commemorative badge and a prize ticket in everyone's inbox. Slip'N'Sliders keeps the giving going with a free ticket of his own.","quotes":[["Here's to 900 more seasons.","Elfdog"],["But the giving dont stop here...","Slip'N'Sliders"]],"thread":37191},
+{"date":"Nov 29","title":"Centennial Park opens","text":"The commemorative stadium goes on sale (spelled \"Cenntenial\" in the announcement), alongside a new Box Score ticket. mcgov orders five and has them in under a minute. Beaner warns the park plays smaller than it looks.","quotes":[["Did someone get hit by a car past the right field wall?","solipsta"]],"thread":38931},
+{"date":"Dec 13","title":"The 12 Days of SmallBall Christmas","text":"Lancer starts a giveaway thread with a Centennial stadium ticket. BP adds two mystery tickets. Beaner gives away so much that the thread names him BeanerClaus.","thread":39440}
+],
+"cast":["commish","erg","beaner","slip","lcd","bp"],
+"nav":[["Storyline","Champions & Clans","../champions-and-clans/"],["Storyline","Strange SmallBall","../strange-smallball/"]],
+"sources":[["CRACK the CODE and win an Alice's Park!, Aug 2004",34430],["HPN for season 100, Sep 2004",35933],["Only one season left!, Sep 2004",36126],["Twas the Night before Season 100..., Oct 2004",36516],["Free DT code thread, Oct 2004",36555],["Season 100 badge, Oct 2004",37191],["Cenntenial Park is now available, Nov 2004",38931],["the 12 days of SmallBall Christmas, Dec 2004",39440]],
+"note":"Quotes are kept short and posts are summarized. Old ticket codes from these threads are left out. Real names and contact details are left out on purpose."
+}

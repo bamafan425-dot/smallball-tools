@@ -99,3 +99,17 @@ Gathered from the Home Plate News archive (all 29 issues, 2002–2009 and the No
 - The organ plays the home club's anthem before ProLeague games.
 - A season is two weeks long. The ProLeague has nine levels, from Junior up to First, and the top three in First win ticket packs.
 - Every man is genetically unique, with his own learn and forget rates.
+
+## The Commish Returns (SmallBall chat, August 16, 2007)
+From the full chat log on the ToolKits lore page (docs/lore/commish-returns), saved by people in the room and passed around by email.
+- The Commish walked into chat after about two years away. First words: "hell", then "hello". First question: whether his form ID was really 666.
+- One owner announced "Hockey comes out tomorrow!" just as he arrived and got a 5-minute ban, missing the moment.
+- Q&A moderated by jon2s. "What's next?" "Fix [stuff]." "brb" mid-Q&A (back in ten minutes).
+- Chat room record: 39 (old record 29). "EAT IT GRAPEVINE." The night was the 30th anniversary of Elvis's death.
+- Why he left: personal; "sb is my baby"; never meant to be away so long. Away years: jobs and projects in the Bay Area, Nokia, an N-Gage pinball game.
+- Promises: hockey "so close"; footy and baseball fixed first; new stadiums "maybe one for season 200"; rare parks stay rare; 600 clubs should only be prizes; would donate tickets for prizes.
+- A PS2 version of SmallBall was made, but the company funding it went under. He loved the SmallBall Boxing idea.
+- Slip was in school and missed it; the saved chat log is how it survived. The Commish signed off with "sniff" and "poof".
+
+## Synthia Small (in the booth)
+The original SmallBall Radio (2002) had Synthia Small's season reports. In the revival she's the booth's "O.G.": an older lady who never left the booth, reads season reports from whatever year she thinks it is (2002–2007 details: Eighth League, two-day pies, Free DT Fridays, Ryes Crew on top, the open line to Northern California, Half Moon Bay stickers, Johnny Bosco the frog), and pipes up mid-game. Affectionate, never mean.
