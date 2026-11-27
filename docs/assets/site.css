@@ -60,3 +60,12 @@ code{background:#0b1120;border:1px solid var(--edge);border-radius:6px;padding:1
 .pics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}@media(max-width:700px){.pics{grid-template-columns:1fr}}
 footer{padding-block:34px;border-top:1px solid #1d2842;color:var(--muted);font-size:14px}
 footer a{color:var(--muted)}
+/* SmallBall Lore nav link: gold shimmer, pulsing NEW tag, spinning ball on hover */
+.navlinks a.lore{position:relative;display:inline-flex;align-items:center;gap:6px;font-weight:800;color:var(--gold);background:linear-gradient(100deg,var(--gold) 0 35%,#fff7c2 45%,#fff 50%,#fff7c2 55%,var(--gold) 65% 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:loreShine 3.2s linear infinite}
+.navlinks a.lore .ball{display:inline-block;-webkit-text-fill-color:initial;transition:transform .6s}
+.navlinks a.lore:hover .ball{transform:rotate(360deg) scale(1.2)}
+.navlinks a.lore::after{content:"NEW";-webkit-text-fill-color:#fff;font:800 10px/1 Barlow,sans-serif;letter-spacing:.06em;background:var(--red);padding:3px 5px;border-radius:999px;box-shadow:0 0 0 0 rgba(200,16,46,.7);animation:lorePulse 1.8s ease-out infinite}
+.navlinks a.lore:hover{filter:drop-shadow(0 0 6px rgba(250,204,21,.6))}
+@keyframes loreShine{from{background-position:150% 0}to{background-position:-100% 0}}
+@keyframes lorePulse{0%{box-shadow:0 0 0 0 rgba(200,16,46,.7)}70%{box-shadow:0 0 0 8px rgba(200,16,46,0)}100%{box-shadow:0 0 0 0 rgba(200,16,46,0)}}
+@media(prefers-reduced-motion:reduce){.navlinks a.lore,.navlinks a.lore::after{animation:none}.navlinks a.lore .ball{transition:none}}
