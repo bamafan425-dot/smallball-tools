@@ -18,7 +18,7 @@ PAGE = """<!DOCTYPE html>
 <link rel="stylesheet" href="{up}../assets/site.css"><link rel="stylesheet" href="{up}story.css">
 </head><body><div class="seam"></div>
 <div class="wrap"><nav><div style="display:flex;align-items:center;gap:10px"><a class="back" href="{up}">← Lore</a><a class="brand" href="{up}../">⚾ SmallBall ToolKits</a></div>
-<div class="navlinks"><a href="{up}../club-kit/">Club Kit</a><a href="{up}../broadcast-kit/">Broadcast Kit</a><a href="{up}../tournaments/">Tournaments</a><a href="{up}../hold-the-hill/">Hold the Hill</a><a class="lore" href="{up}"><span class="ball">⚾</span>SmallBall Lore</a></div></nav></div>
+<div class="navlinks"><a href="{up}../club-kit/">Club Kit</a><a href="{up}../broadcast-kit/">Broadcast Kit</a><a href="{up}../tournaments/">Tournaments</a><a href="{up}../hold-the-hill/">Hold the Hill</a><a class="lore" href="{up}"><span class="ball">⚾</span>SmallBall Lore</a><a href="{up}../support/">🔧 Support</a></div></nav></div>
 <main id="app"><p class="wrap st-load">Loading the story…</p></main>
 <footer><div class="wrap">SmallBall Lore is fan-made and unofficial. · <a href="{up}">All lore</a> · <a href="{up}#submit">Add lore</a> · <a href="{up}../">⚾ SmallBall ToolKits</a></div></footer>
 <script src="{up}story.js"></script>

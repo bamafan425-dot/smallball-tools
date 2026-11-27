@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support the ToolKits</title>
+<meta name="description" content="SmallBall ToolKits are free and always will be. Chip in through PayPal and become a Tool-man or Tool-woman.">
+<meta property="og:title" content="Become a Tool-man (or Tool-woman)"><meta property="og:description" content="Support the free SmallBall ToolKits. Perks are cosmetic, never pay-to-win. Dog pictures included.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/site.css">
+<style>
+/* VOICE: friendly hardware-store counter, a little goofy, totally upfront about the money
+   IDEA: a tool shed pegboard with price tags hanging from hooks
+   PICTURE: four tier price tags hung on a pegboard, the wall of supporters below
+   COLOUR and TYPE: the site's navy with pegboard brown, gold tags and stitch red; Barlow Condensed tags
+   LAYOUT: hero + rules strip, pegboard of tiers, claim steps, where it goes, Tool Shed wall */
+.shero{padding-block:clamp(20px,3vw,36px) 10px;max-width:860px}
+.shero p{font-size:19px;color:var(--muted);max-width:60ch;margin:0}
+.rules{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.rules span{background:var(--panel);border:1px solid var(--edge);border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px}
+.peg{margin-top:28px;border-radius:20px;padding:clamp(22px,3vw,40px) clamp(14px,2.5vw,32px) clamp(26px,3vw,40px);background-color:#6b4a2b;background-image:radial-gradient(circle,#3b2614 3px,transparent 3.5px);background-size:26px 26px;box-shadow:inset 0 0 0 6px #5a3d22,0 18px 40px rgba(0,0,0,.35)}
+.tags{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,2vw,22px);align-items:start}
+.tag{position:relative;background:#f7efd9;color:#1d1a12;border-radius:6px 6px 14px 14px;padding:34px 16px 18px;box-shadow:0 10px 18px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:10px;transform-origin:50% -18px;margin-top:18px}
+.tag::before{content:"";position:absolute;top:10px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#6b4a2b;box-shadow:inset 0 2px 3px rgba(0,0,0,.5)}
+.tag::after{content:"";position:absolute;top:-18px;left:50%;width:2px;height:30px;margin-left:-1px;background:#c9c3b2}
+.tag:nth-child(1){transform:rotate(-2deg)}.tag:nth-child(2){transform:rotate(1.5deg)}.tag:nth-child(3){transform:rotate(-1deg)}.tag:nth-child(4){transform:rotate(2deg)}
+.tag .tier{font:800 25px/1.02 "Barlow Condensed",sans-serif;text-transform:uppercase;text-align:center}
+.tag .price{font:800 56px/1 "Barlow Condensed",sans-serif;text-align:center;color:var(--red)}
+.tag .price small{font-size:22px;vertical-align:top;margin-right:2px}
+.tag ul{list-style:none;margin:0;padding:0;font-size:15px;line-height:1.4}
+.tag li{padding:5px 0 5px 22px;position:relative;border-top:1px dashed #d8ccab}
+.tag li::before{content:"🔧";position:absolute;left:0;top:5px;font-size:13px}
+.tag li.plus{font-weight:700}
+.tag li.plus::before{content:"＋";color:var(--red);font-weight:800}
+.tag .pay{margin-top:auto;display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:999px;background:#1d1a12;color:#fff;font:800 17px Barlow,sans-serif;text-decoration:none}
+.tag .pay:hover{background:var(--red)}
+.tag .pay:focus-visible,.any:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.tag.feat{background:#fff6cf}
+.tag.feat .ribbon{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font:800 12px Barlow,sans-serif;padding:5px 9px;border-radius:999px;transform:rotate(6deg)}
+.anyrow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:26px;color:#f7efd9;font-weight:600}
+.any{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:999px;background:var(--gold);color:#1a1400;font:800 17px Barlow,sans-serif;text-decoration:none}
+.sec{padding-block:clamp(28px,4vw,52px)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,3vw,36px)}
+.steps{margin:0;padding-left:22px;color:var(--muted)}.steps li{margin-bottom:10px}.steps b{color:var(--ink)}.steps a{color:var(--ink)}
+.box{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:18px 20px}
+.box h3{margin:0 0 8px}
+.box p{margin:0 0 10px;color:var(--muted)}
+.box ul{margin:0;padding-left:20px;color:var(--muted)}.box li{margin-bottom:6px}
+.fine{font-size:14px;color:var(--muted);margin-top:10px}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:12px}
+.plank{background:linear-gradient(180deg,#8a6038,#6b4a2b);color:#fff3dc;border-radius:10px;padding:14px 16px;box-shadow:0 6px 12px rgba(0,0,0,.3)}
+.plank b{display:block;font:800 22px/1.05 "Barlow Condensed",sans-serif;text-transform:uppercase}
+.plank span{font-size:14px;opacity:.85}
+.empty{border:2px dashed var(--edge);border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
+.empty b{display:block;font:800 26px "Barlow Condensed",sans-serif;color:var(--ink);text-transform:uppercase}
+@media(max-width:980px){.tags{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.two{grid-template-columns:1fr}}
+@media(max-width:520px){.tags{grid-template-columns:1fr}.tag{transform:none!important}}
+@media(prefers-reduced-motion:no-preference){.tag{transition:transform .25s}.tag:hover{transform:rotate(0) translateY(-3px)!important}}
+</style></head>
+<body><div class="seam"></div>
+<div class="wrap"><nav><div style="display:flex;align-items:center;gap:10px"><a class="back" href="../">← Home</a><a class="brand" href="../">⚾ SmallBall ToolKits</a></div>
+<div class="navlinks"><a href="../club-kit/">Club Kit</a><a href="../broadcast-kit/">Multiview</a><a href="../tournament-kit/">Tournament Kit</a><a href="../hold-the-hill/">Hold the Hill</a><a href="../tournaments/">Tournaments</a><a href="../vault/">🏦 Prize Vault</a><a class="lore" href="../lore/"><span class="ball">⚾</span>SmallBall Lore</a><a href="./">🔧 Support</a><a href="https://github.com/slipnsliders/smallball-tools">GitHub</a></div></nav></div>
+
+<div class="wrap">
+<section class="shero">
+<h1>Become a <span>Tool-man</span></h1>
+<p>Or a Tool-woman. The SmallBall ToolKits are free and always will be. If the Club Kit, Hold the Hill or the tournaments have made your SmallBall better, you can chip in here and grab some perks. Dog pictures included.</p>
+<div class="rules"><span>🔓 The tools stay free</span><span>🎨 Perks are cosmetic, never pay-to-win</span><span>🚫 No Brawl Bucks or tickets for cash</span></div>
+</section>
+
+<div class="peg" aria-label="Support tiers">
+<div class="tags">
+<div class="tag"><div class="tier">Bat Boy<br>Bat Girl</div><div class="price"><small>$</small>5</div>
+<ul><li>Your name on the Tool Shed wall</li><li>Tool-folk role in the Discord</li><li>Dog of the Week pictures</li></ul>
+<a class="pay" href="https://paypal.me/slipnsliders/5">Chip in $5</a></div>
+<div class="tag feat"><span class="ribbon">The classic</span><div class="tier">Tool-man<br>Tool-woman</div><div class="price"><small>$</small>10</div>
+<ul><li class="plus">Everything in Bat Boy</li><li>🔧 badge on your Lore character card</li><li>Early beta of new kit features</li><li>A vote on what gets built next</li></ul>
+<a class="pay" href="https://paypal.me/slipnsliders/10">Chip in $10</a></div>
+<div class="tag"><div class="tier">Grounds&shy;keeper</div><div class="price"><small>$</small>25</div>
+<ul><li class="plus">Everything in Tool-man</li><li>One custom item for your club: a Club Kit color theme or a stadium skin</li></ul>
+<a class="pay" href="https://paypal.me/slipnsliders/25">Chip in $25</a></div>
+<div class="tag"><div class="tier">Owner's<br>Box</div><div class="price"><small>$</small>50</div>
+<ul><li class="plus">Everything in Groundskeeper</li><li>A tournament named for you or your club</li><li>Your personal Lore timeline, built for you</li></ul>
+<a class="pay" href="https://paypal.me/slipnsliders/50">Chip in $50</a></div>
+</div>
+<div class="anyrow"><span>Any amount helps.</span><a class="any" href="https://paypal.me/slipnsliders">Pick your own at paypal.me/slipnsliders</a></div>
+</div>
+
+<section class="sec"><div class="two">
+<div><h2>Claim your perks</h2>
+<ol class="steps">
+<li><b>Chip in</b> with one of the buttons above. It's a one-time payment; come back any time.</li>
+<li><b>Add a note in PayPal</b> with your SmallBall club ID and Discord name. Forgot? Just DM slipnsliders on <a href="https://discord.gg/DH6KxXHgR">Discord</a>.</li>
+<li><b>Pick your name</b> for the Tool Shed wall, or say you'd rather stay anonymous.</li>
+<li><b>Groundskeeper and up:</b> Slip will reach out about your custom item, tournament or timeline.</li>
+</ol></div>
+<div class="box"><h3>Where the money goes</h3>
+<p>Straight answer: the site itself costs nothing to host. Your support pays for the rest.</p>
+<ul><li>The hours that go into building and fixing the kits</li><li>The accounts behind the Hold the Hill and tournament scripts</li><li>Coffee, and treats for the dogs in the pictures</li></ul>
+<p class="fine">This isn't a charity, so it isn't tax-deductible. SmallBall ToolKits is a fan project and isn't run by SmallBall or the Commish.</p></div>
+</div></section>
+
+<section class="sec" id="toolshed"><h2>The Tool Shed</h2>
+<p style="color:var(--muted);margin:-6px 0 18px">Everyone who's chipped in. Thank you, Tool-folk.</p>
+<div class="wall" id="wall"><p class="empty">Loading the wall…</p></div>
+</section>
+</div>
+<footer><div class="wrap">SmallBall ToolKits is fan-made and unofficial. · <a href="../">⚾ SmallBall ToolKits</a> · <a href="../lore/">SmallBall Lore</a> · <a href="https://discord.gg/DH6KxXHgR">Discord</a></div></footer>
+<script>
+{
+const wall=document.getElementById('wall');
+const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e};
+const ICON={"Bat Boy":"⚾","Bat Girl":"⚾","Tool-man":"🔧","Tool-woman":"🔧","Groundskeeper":"🌱","Owner's Box":"🏟️"};
+function show(list){
+  if(!list.length){const e=el('div','empty');e.append(el('b',null,'The shed is empty'),el('span',null,'Be the first Tool-man or Tool-woman.'));wall.replaceChildren(e);wall.style.display='block';return}
+  wall.replaceChildren(...list.map(x=>{const p=el('div','plank');p.append(el('b',null,(ICON[x.tier]||'🔧')+' '+x.name));p.append(el('span',null,[x.tier,x.club,x.since].filter(Boolean).join(' · ')));return p}))}
+fetch('toolshed.json').then(r=>r.json()).then(show).catch(()=>show([]));
+}
+</script>
+</body></html>

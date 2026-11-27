@@ -93,7 +93,7 @@ ol.steps2{margin:0;padding-left:22px;color:var(--muted)}ol.steps2 li{margin-bott
 </style></head>
 <body><div class="seam"></div>
 <div class="wrap"><nav><div style="display:flex;align-items:center;gap:10px"><a class="back" href="../">← Home</a><a class="brand" href="../">⚾ SmallBall ToolKits</a></div>
-<div class="navlinks"><a href="../club-kit/">Club Kit</a><a href="../broadcast-kit/">Multiview</a><a href="../tournament-kit/">Tournament Kit</a><a href="../hold-the-hill/">Hold the Hill</a><a href="../tournaments/">Tournaments</a><a href="../vault/">🏦 Prize Vault</a><a class="lore" href="./"><span class="ball">⚾</span>SmallBall Lore</a><a href="https://github.com/slipnsliders/smallball-tools">GitHub</a></div></nav></div>
+<div class="navlinks"><a href="../club-kit/">Club Kit</a><a href="../broadcast-kit/">Multiview</a><a href="../tournament-kit/">Tournament Kit</a><a href="../hold-the-hill/">Hold the Hill</a><a href="../tournaments/">Tournaments</a><a href="../vault/">🏦 Prize Vault</a><a class="lore" href="./"><span class="ball">⚾</span>SmallBall Lore</a><a href="../support/">🔧 Support</a><a href="https://github.com/slipnsliders/smallball-tools">GitHub</a></div></nav></div>
 
 <div class="wrap">
 <section class="lhero">
@@ -169,7 +169,7 @@ Please:
 </section>
 
 <section class="sec" id="characters"><h2>Characters of SmallBall</h2>
-<p class="sub">The people, clubs and mascots who keep showing up in the stories. The roster grows as new lore comes in.</p>
+<p class="sub">The people, clubs and mascots who keep showing up in the stories. The roster grows as new lore comes in. A 🔧 means a <a href="../support/" style="color:var(--ink)">ToolKits supporter</a>.</p>
 <div class="tools2" role="group" aria-label="Filter characters">
 <button class="chip" data-f="all" aria-pressed="true">All</button>
 <button class="chip" data-f="founder" aria-pressed="false">The Commish</button>
@@ -283,7 +283,7 @@ let all=[],f='all';
 const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e};
 function card(x){
   const a=el('article','pc');a.style.setProperty('--c',COLORS[x.type]||'#2f6bf0');a.id='c-'+x.id;
-  const b=el('div','hd');b.append(el('b',null,x.name));if(x.aka)b.append(el('i',null,x.aka));b.append(el('span','tag',LABEL[x.type]||x.type));a.append(b);
+  const b=el('div','hd');b.append(el('b',null,x.name+(x.supporter?' 🔧':'')));if(x.aka)b.append(el('i',null,x.aka));b.append(el('span','tag',LABEL[x.type]||x.type));a.append(b);
   const body=el('div','body');if(x.era)body.append(el('span','era',x.era));body.append(el('p',null,x.bio));
   if(x.quote)body.append(el('q',null,x.quote));
   if(x.timeline){const t=el('a','tl','📜 Personal timeline');t.href=x.timeline;body.append(t)}
