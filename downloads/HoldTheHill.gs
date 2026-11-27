@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.21: 🌱 the Farm Hill, a second ladder on the same engine for owners' second clubs at 50★ or under (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -170,8 +170,8 @@ const DEFAULTS = {
   STATE_SEASON_CLOSED: ['', 'Managed by script'],
 };
 // 🌱 Farm Hill settings, and a Farm copy of every STATE_ key (its own Ace, revenge, Bell and open mound).
-DEFAULTS.FARM_ON = ['true', '🌱 Farm Hill on (true/false): a second ladder for clubs at or under FARM_MAX_STARS'];
-DEFAULTS.FARM_MAX_STARS = [50, '🌱 Farm Hill: clubs at or under this many stars (0–100, from the club page) can join. A club that grows past it is called up'];
+DEFAULTS.FARM_ON = ['true', '🌱 Farm Hill on (true/false): the ladder for clubs at or under FARM_MAX_STARS; Hold the Hill is for clubs above it'];
+DEFAULTS.FARM_MAX_STARS = [6, '🌱 Farm Hill: clubs at or under this many stars (the 1–10 star rating on the club page) play on the Farm; above it, Hold the Hill. A Farm club that grows past it is called up'];
 Object.keys(DEFAULTS).filter(function (k) { return /^STATE_/.test(k); }).forEach(function (k) { DEFAULTS['FARM_' + k] = [DEFAULTS[k][0], '🌱 Farm Hill: ' + DEFAULTS[k][1]]; });
 
 const ACTIONS = {
@@ -216,6 +216,7 @@ const Q = {
   USE_ITEM: 'Use an item on this charge?',
   VOTE: 'Your Bleacher Vote',
   LADDER: 'Which ladder?',
+  MY_CLUB: 'Charging with (your Farm club ID, only if you have several)',
 };
 
 const ACE_CHOICE = '♠ THE ACE (charge the mound: title shot, #1 contender, or lower when the mound is open)';
@@ -234,6 +235,10 @@ let LAD_ = '';
 const PER_LAD_ = { Players: 1, Challenges: 1, Matches: 1, Reigns: 1, Payouts: 1 };
 const LADS_ = ['', 'farm'];
 function isFarm_() { return LAD_ === 'farm'; }
+// Farm clubs are keyed "email#clubId" so an owner can have several; the Brawl Bucks wallet, items and item
+// cooldowns always go by the account (the part before #).
+function acct_(e) { return String(e == null ? '' : e).split('#')[0]; }
+function farmKey_(email, clubId) { return lc_(acct_(email)) + '#' + norm_(clubId).replace(/\D/g, ''); }
 function ladTab_(name) { return isFarm_() && PER_LAD_[name] ? 'Farm ' + name : name; }
 function withLad_(lad, fn) { const prev = LAD_; LAD_ = lad || ''; try { return fn(); } finally { LAD_ = prev; } }
 function farmReady_() { try { return !!SpreadsheetApp.getActive().getSheetByName('Farm Players') && lc_(withLad_('', cfg_).FARM_ON) !== 'false'; } catch (e) { return false; } }
@@ -246,7 +251,7 @@ function eachLad_(fn) {
 }
 const FARM_ACE_CHOICE = '🌱 THE FARM ACE (charge the Farm mound: title shot, #1 contender, or lower when the mound is open)';
 function aceChoice_() { return isFarm_() ? FARM_ACE_CHOICE : ACE_CHOICE; }
-const LADDER_CHOICES = ['⛰️ Hold the Hill (your main club)', '🌱 Farm Hill (a second club, 50★ or under)'];
+const LADDER_CHOICES = ['⛰️ Hold the Hill (7★ and up)', '🌱 Farm Hill (6★ and under)'];
 const ladLabel_ = () => (isFarm_() ? '🌱 Farm Hill' : '⛰️ Hold the Hill');
 
 // ───────────────────────────── Small helpers ─────────────────────────────
@@ -959,7 +964,7 @@ function notifyReject_(sub, msg) {
   try { C = cfg_(); } catch (e) { return; }
   if (String(C.EMAIL_REJECTIONS).toUpperCase() !== 'TRUE' || !sub.email) return;
   try {
-    MailApp.sendEmail(sub.email, '❌ Hold the Hill: your ' + (actionOf_(sub.action) || 'form').replace(/\s*\(.*$/, '').toLowerCase() + ' did NOT go through',
+    MailApp.sendEmail(acct_(sub.email), '❌ Hold the Hill: your ' + (actionOf_(sub.action) || 'form').replace(/\s*\(.*$/, '').toLowerCase() + ' did NOT go through',
       'Your "' + (sub.action || 'form') + '" submission was not accepted:\n\n' + msg +
       '\n\nFix it and submit the form again. Questions? Ask the commish in Discord.');
   } catch (e) { log_('system', 'Email error', String(e)); }
@@ -1003,7 +1008,7 @@ function rejectPost_(sub, msg) {
   const C = cfg_();
   if (lc_(C.POST_REJECTIONS) === 'false') return;
   let who = '';
-  try { const p = findBy_(players_(), sub.email); if (p) who = tag_(p); } catch (e) { }
+  try { const p = findBy_(players_(), acct_(sub.email)); if (p) who = tag_(p); } catch (e) { }
   if (!who) { const d = norm_(sub.f && sub.f[Q.DISCORD]); who = d ? '**' + esc_(d) + '**' : 'Someone'; }
   const a = actionOf_(sub.action);
   const kind = a === ACTIONS.REGISTER ? ACTION_SHORT.Register : a === ACTIONS.CHALLENGE ? ACTION_SHORT.Charge : a === ACTIONS.REPORT ? ACTION_SHORT.Report :
@@ -1042,11 +1047,11 @@ function handleSubmission_(sub) {
     const onLad = function (lad, fn) { return withLad_(lad, function () { return fn(sub, cfg_()); }); };
     switch (actionOf_(sub.action)) {
       case ACTIONS.REGISTER: onLad(/farm|🌱/i.test(norm_(sub.f[Q.LADDER])) ? 'farm' : '', doRegister_); break;
-      case ACTIONS.CHALLENGE: onLad(/^🌱/.test(norm_(sub.f[Q.OPPONENT])) ? 'farm' : '', doChallenge_); break;
-      case ACTIONS.REPORT: onLad(reportLad_(sub.email), doReport_); break;
-      case ACTIONS.REVENGE: onLad(revengeLad_(sub.email), doRevenge_); break;
+      case ACTIONS.CHALLENGE: if (/^🌱/.test(norm_(sub.f[Q.OPPONENT]))) withLad_('farm', function () { doChallenge_(farmSub_(sub, 'charge'), cfg_()); }); else onLad('', doChallenge_); break;
+      case ACTIONS.REPORT: if (reportLad_(sub.email) === 'farm') withLad_('farm', function () { doReport_(farmSub_(sub, 'report'), cfg_()); }); else onLad('', doReport_); break;
+      case ACTIONS.REVENGE: if (revengeLad_(sub.email) === 'farm') withLad_('farm', function () { doRevenge_(Object.assign({}, sub, { email: cfg_().STATE_REVENGE_EX_ACE }), cfg_()); }); else onLad('', doRevenge_); break;
       case ACTIONS.BET: doBet_(sub, C); break;
-      case ACTIONS.DISCORD_ID: doDiscordId_(sub, C); if (farmReady_()) try { onLad('farm', doDiscordId_); } catch (e) { if (!(e instanceof HillError)) throw e; } break;
+      case ACTIONS.DISCORD_ID: doDiscordId_(sub, C); if (farmReady_()) withLad_('farm', function () { myFarm_(sub.email, true).forEach(function (r) { try { doDiscordId_(Object.assign({}, sub, { email: r.Email }), cfg_()); } catch (e) { if (!(e instanceof HillError)) throw e; } }); }); break;
       case ACTIONS.REACH: reachBoth_(sub); break;
       case ACTIONS.WAGER: doWager_(sub, C); break;
       case ACTIONS.WAGER_REPLY: doWagerReply_(sub, C); break;
@@ -1143,29 +1148,60 @@ function doReach_(sub, C) {
 }
 
 // Which ladder a report or revenge is about: the one where this player has the open charge (or the revenge).
+// This account's Farm clubs (active only, unless all).
+function myFarm_(email, all) { return players_().rows.filter(function (p) { return lc_(acct_(p.Email)) === lc_(acct_(email)) && (all || p.Status === 'Active'); }); }
+// Which of my Farm clubs a charge or report is for: the club ID on the form, else the only one that fits.
+function farmSub_(sub, what) {
+  const mine = myFarm_(sub.email);
+  if (!mine.length) fail_('This Google account has no club on the Farm Hill. Register a 6★-or-under club on the Master Form first.');
+  const want = norm_(sub.f[Q.MY_CLUB]).replace(/\D/g, '');
+  let pick = null;
+  if (want) { pick = mine.find(function (p) { return norm_(p.ClubID) === want; }); if (!pick) fail_('Club ' + want + ' is not one of your Farm clubs (' + mine.map(function (p) { return p.Club + ' ' + p.ClubID; }).join(', ') + ').'); }
+  else if (mine.length === 1) pick = mine[0];
+  else {
+    const ct = challenges_();
+    let fits = mine;
+    if (what === 'report') fits = mine.filter(function (p) { return openFor_(ct, p.Email); });
+    else {
+      const opp = norm_(sub.f[Q.OPPONENT]), pt = players_(), tgt = pt.rows.find(function (p) { return lc_(oppLabel_(p)) === lc_(opp); });
+      const C = cfg_(), reach = Number(C.CHALLENGE_REACH) || 3, openTo = moundOpenTo_(C), B = bellState_(C);
+      fits = mine.filter(function (p) {
+        if (openFor_(ct, p.Email) || restUntil_(p.Email) || Number(p.Rank) === 0) return false;
+        if (opp === FARM_ACE_CHOICE) return Number(p.Rank) <= openTo || (B.open && !B.used && !B.shield);
+        const gap = tgt ? Number(p.Rank) - Number(tgt.Rank) : 0; return gap >= 1 && gap <= reach + 1;
+      });
+    }
+    if (fits.length === 1) pick = fits[0];
+    else fail_('You have ' + mine.length + ' Farm clubs' + (fits.length ? ' and ' + fits.length + ' of them could ' + what + ' this one' : '') + ': put the club ID in "Charging with" (' + mine.map(function (p) { return p.Club + ' ' + p.ClubID; }).join(', ') + ').');
+  }
+  return Object.assign({}, sub, { email: pick.Email });
+}
 function reportLad_(email) {
   if (!farmReady_()) return '';
-  const has = function (lad) { return withLad_(lad, function () { const me = findBy_(players_(), email); return me ? openFor_(challenges_(), me.Email) : null; }); };
+  const has = function (lad) { return withLad_(lad, function () { const ct = challenges_(); const rows = lad ? myFarm_(email) : [findBy_(players_(), email)].filter(Boolean); let best = null; rows.forEach(function (me) { const c = openFor_(ct, me.Email); if (c && (!best || new Date(c.Created) > new Date(best.Created))) best = c; }); return best; }); };
   const a = has(''), b = has('farm');
   if (b && (!a || new Date(b.Created) > new Date(a.Created))) return 'farm';
   return '';
 }
-function revengeLad_(email) { return farmReady_() && lc_(withLad_('farm', cfg_).STATE_REVENGE_EX_ACE) === lc_(email) ? 'farm' : ''; }
+function revengeLad_(email) { return farmReady_() && lc_(acct_(withLad_('farm', cfg_).STATE_REVENGE_EX_ACE)) === lc_(acct_(email)) ? 'farm' : ''; }
 // "Who can I charge?" answers for every ladder the player is on.
 function reachBoth_(sub) {
   let done = 0, err = null;
   LADS_.forEach(function (l) {
     if (l === 'farm' && !farmReady_()) return;
-    try { withLad_(l, function () { if (findBy_(players_(), sub.email)) { doReach_(sub, cfg_()); done++; } }); } catch (e) { if (e instanceof HillError) err = e; else throw e; }
+    try { withLad_(l, function () { (l ? myFarm_(sub.email) : [findBy_(players_(), sub.email)].filter(Boolean)).forEach(function (me) { doReach_(Object.assign({}, sub, { email: me.Email }), cfg_()); done++; }); }); } catch (e) { if (e instanceof HillError) err = e; else throw e; }
   });
   if (!done) { if (err) throw err; fail_('This Google account is not registered on the Hill or the Farm Hill yet. Register your club first, then ask again.'); }
 }
 // A club's stars (0–100) from its public SmallBall page.
+// A club's star rating (the 1–10 stars on its SmallBall page; star10 in the club data).
 function clubStars_(clubId) {
   const r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + encodeURIComponent(clubId) + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json' } });
   if (r.getResponseCode() !== 200) return null;
-  try { const d = JSON.parse(r.getContentText()); const n = Number(d.stars); return isFinite(n) ? { stars: n, name: norm_(d.name) } : null; } catch (e) { return null; }
+  try { const d = JSON.parse(r.getContentText()); const n = Number(d.star10 != null ? d.star10 : Math.round(Number(d.stars) / 10)); return isFinite(n) ? { stars: n, name: norm_(d.name) } : null; } catch (e) { return null; }
 }
+// The Farm line in stars out of 10 (a value over 10 is left over from the first 0–100 draft: use 6).
+function farmMax_(C) { const n = Number(C.FARM_MAX_STARS); return n >= 1 && n <= 10 ? n : 6; }
 function farmStarsMap_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('FARM_STARS') || '{}'); } catch (e) { return {}; } }
 // 🌱 Farm sign-up: a second club, at or under FARM_MAX_STARS, locked at sign-up. The first club on an empty Farm holds it.
 function doRegisterFarm_(sub, C) {
@@ -1173,33 +1209,32 @@ function doRegisterFarm_(sub, C) {
   const f = sub.f, pt = players_();
   const discord = norm_(f[Q.DISCORD]), did = norm_(f[Q.DISCORD_ID]).replace(/\D/g, ''), owner = norm_(f[Q.OWNER]), club = norm_(f[Q.CLUB]), clubId = norm_(f[Q.CLUB_ID]).replace(/\D/g, '');
   if (!discord || !owner || !club || !clubId) fail_('Discord username, owner ID, club name and club ID are all required.');
-  const ex = findBy_(pt, sub.email);
-  if (ex) fail_('This Google account already has a Farm club: ' + ex.Club + '. One Farm club per owner.');
-  if (pt.rows.some(function (p) { return lc_(p.ClubID) === lc_(clubId); })) fail_('Club ' + clubId + ' is already on the Farm Hill.');
+  const key = farmKey_(sub.email, clubId), ex = findBy_(pt, key);
+  if (pt.rows.some(function (p) { return lc_(p.ClubID) === lc_(clubId) && p.Status === 'Active'; })) fail_('Club ' + clubId + ' is already on the Farm Hill.');
   const main = withLad_('', function () { return players_().rows; });
-  if (main.some(function (p) { return lc_(p.ClubID) === lc_(clubId); })) fail_('Club ' + clubId + ' is your Hold the Hill club. The Farm is for a second club.');
+  if (main.some(function (p) { return lc_(p.ClubID) === lc_(clubId) && p.Status === 'Active'; })) fail_('Club ' + clubId + ' is on Hold the Hill. A club plays on one ladder.');
   const st = clubStars_(clubId);
   if (!st) fail_('Could not read club ' + clubId + ' on SmallBall. Check the club ID (the number on its club page) and try again.');
-  const max = Number(C.FARM_MAX_STARS) || 50;
+  const max = farmMax_(C);
   if (st.stars > max) fail_('Club ' + clubId + ' is ' + st.stars + '★. The Farm Hill is for clubs at ' + max + '★ or under: this one is ready for Hold the Hill.');
   const sp = PropertiesService.getScriptProperties(), fm = farmStarsMap_(); fm[clubId] = st.stars; sp.setProperty('FARM_STARS', JSON.stringify(fm));
   const empty = !ace_(pt) && !ladder_(pt).length;
   const rank = empty ? 0 : ladder_(pt).length + 1;
-  const p = { Email: sub.email, Discord: discord, DiscordID: did, OwnerID: owner, Club: club, ClubID: clubId,
+  const p = { Email: key, Discord: discord, DiscordID: did, OwnerID: owner, Club: club, ClubID: clubId,
     Status: 'Active', Rank: rank, Joined: now_(), Wins: 0, Losses: 0, CareerPts: 0, Defenses: 0, Reigns: 0, BestReignPts: 0 };
-  appendObj_(SHEETS.PLAYERS, p);
+  if (ex) { Object.assign(ex, p); writeRow_(pt, ex); } else appendObj_(SHEETS.PLAYERS, p);
   trackClimb_([p]);
   log_(sub.email, 'Register (Farm)', discord + ' / ' + club + ' (' + clubId + ', ' + st.stars + '★) at ' + (empty ? 'Ace' : '#' + rank));
   if (empty) {
-    const pt2 = players_(), me = findBy_(pt2, sub.email);
+    const pt2 = players_(), me = findBy_(pt2, key);
     startReign_(me, false, C); savePlayers_(pt2); setCfg_('STATE_LAST_TITLE_ACTIVITY', now_().toISOString());
     post_('🆕 ' + who_(p) + ' (' + st.stars + '★) is the first club on the Farm and **holds the Farm mound** as the first 🌱 Farm Ace. Come and take it.');
-  } else post_('🆕 ' + who_(p) + ' (' + st.stars + '★) joins the Farm Hill at **#' + rank + '**.');
+  } else post_('🆕 ' + who_(p) + ' (' + st.stars + '★) joins the Farm Hill at **#' + rank + '**.' + (myFarm_(sub.email).length > 1 ? ' (' + esc_(discord) + ' now has ' + myFarm_(sub.email).length + ' clubs on the Farm.)' : ''));
   refreshFormChoices();
 }
 // 📣 Call-ups: a Farm club that grows past FARM_MAX_STARS leaves the Farm (hourly, a few clubs at a time).
 function farmCallUps_() {
-  const C = cfg_(), max = Number(C.FARM_MAX_STARS) || 50, sp = PropertiesService.getScriptProperties();
+  const C = cfg_(), max = farmMax_(C), sp = PropertiesService.getScriptProperties();
   const pt = players_(), ct = challenges_(), fm = farmStarsMap_();
   const act = pt.rows.filter(function (p) { return p.Status === 'Active' && hasRank_(p) && norm_(p.ClubID); });
   if (!act.length) return;
@@ -1226,7 +1261,11 @@ function doRegister_(sub, C) {
   if (isFarm_()) return doRegisterFarm_(sub, C);
   const f = sub.f;
   const pt = players_();
-  if (farmReady_() && withLad_('farm', function () { return players_().rows.some(function (p) { return lc_(p.ClubID) === lc_(norm_(f[Q.CLUB_ID])) && p.Status === 'Active'; }); })) fail_('Club ' + norm_(f[Q.CLUB_ID]) + ' is on the Farm Hill. Your Hold the Hill club must be a different club.');
+  if (farmReady_() && withLad_('farm', function () { return players_().rows.some(function (p) { return lc_(p.ClubID) === lc_(norm_(f[Q.CLUB_ID])) && p.Status === 'Active'; }); })) fail_('Club ' + norm_(f[Q.CLUB_ID]) + ' is on the Farm Hill. A club plays on one ladder.');
+  if (farmReady_() && norm_(f[Q.CLUB_ID])) {   // Hold the Hill is for clubs above the Farm line: smaller clubs go to the Farm
+    const st = clubStars_(norm_(f[Q.CLUB_ID]).replace(/\D/g, ''));
+    if (st && st.stars <= farmMax_(C)) return withLad_('farm', function () { return doRegisterFarm_(sub, cfg_()); });
+  }
   const discord = norm_(f[Q.DISCORD]);
   const did = norm_(f[Q.DISCORD_ID]).replace(/\D/g, '');
   const owner = norm_(f[Q.OWNER]);
@@ -1750,7 +1789,7 @@ function inventory_(C) {
   } catch (e) { }
   return inv;
 }
-const holds_ = (inv, email, key) => ((inv[lc_(email)] || {})[key] || 0);
+const holds_ = (inv, email, key) => ((inv[lc_(acct_(email))] || {})[key] || 0);
 // When this player last used an item (refunded uses don't count).
 function lastItemUse_(C, email) {
   const season = String(C.SEASON), refunded = {}; let last = 0;
@@ -1760,14 +1799,14 @@ function lastItemUse_(C, email) {
   return last;
 }
 function itemCooling_(C, email) {
-  const h = Number(C.ITEM_COOLDOWN_HOURS) || 24, last = lastItemUse_(C, email);
+  const h = Number(C.ITEM_COOLDOWN_HOURS) || 24, last = lastItemUse_(C, acct_(email));
   return last && now_().getTime() - last < h * 3600e3 ? new Date(last + h * 3600e3) : null;
 }
 function itemRow_(C, p, key, action, price, cid, note) {
-  appendObj_(SHEETS.ITEMS, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: p.Discord, Item: key, Action: action, Price: price || '', ChallengeID: cid || '', Notes: note || '' });
+  appendObj_(SHEETS.ITEMS, { Date: now_(), Season: C.SEASON, Email: acct_(p.Email), Player: p.Discord, Item: key, Action: action, Price: price || '', ChallengeID: cid || '', Notes: note || '' });
 }
 function ledger_(C, p, amount, reason) {
-  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: p.Discord, Amount: amount, Reason: reason });
+  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: acct_(p.Email), Player: p.Discord, Amount: amount, Reason: reason });
 }
 // Buy one item (from the shop, or on the spot when charging with an item you don't hold yet).
 function buyItem_(C, p, key, isAce) {
@@ -2095,9 +2134,15 @@ function ensureFarmForm_(form) {
   }
   const mc = q.asMultipleChoiceItem ? q.asMultipleChoiceItem() : q;
   mc.setChoiceValues(LADDER_CHOICES).setRequired(false)
-    .setHelpText('Hold the Hill is your main club (one per owner). The 🌱 Farm Hill is a separate ladder for a second club at ' + (Number(cfg_().FARM_MAX_STARS) || 50) + '★ or under (stars from its club page, checked when you sign up). Same Brawl Bucks wallet for both. Leave it blank for Hold the Hill.');
+    .setHelpText('Hold the Hill is for clubs above ' + farmMax_(cfg_()) + '★; the 🌱 Farm Hill is for clubs at ' + farmMax_(cfg_()) + '★ and under (the star rating on the club page, checked when you sign up, so a smaller club lands on the Farm by itself). One Hold the Hill club per owner; on the Farm, put in as many young clubs as you like (one sign-up each). One Brawl Bucks wallet.');
   const cid = form.getItems().find(function (i) { return i.getTitle() === Q.CLUB_ID; });
-  if (cid) try { cid.setTitle(Q.CLUB_ID); cid.setHelpText('One Hold the Hill club per owner, plus one 🌱 Farm Hill club if you like.'); } catch (e) { }
+  if (cid) try { cid.setHelpText('One Hold the Hill club per owner. On the 🌱 Farm Hill you can register as many young clubs as you like (one form per club).'); } catch (e) { }
+  if (!form.getItems().some(function (i) { return i.getTitle() === Q.MY_CLUB; })) {
+    const mc2 = form.addTextItem().setTitle(Q.MY_CLUB).setRequired(false)
+      .setHelpText('Only for the 🌱 Farm Hill, and only if you have more than one Farm club: the club ID you are charging (or reporting) with. Leave it blank otherwise.');
+    const opp = form.getItems().find(function (i) { return i.getTitle() === Q.OPPONENT; });
+    if (opp) form.moveItem(mc2.getIndex(), opp.getIndex() + 1);
+  }
 }
 function adminSetupFarm() {
   withUi_(function () {
@@ -2108,7 +2153,47 @@ function adminSetupFarm() {
     if (C.FORM_ID) { const form = FormApp.openById(C.FORM_ID); ensureFarmForm_(form); }
     refreshFormChoices();
     snapshotBoard_();
-    return '🌱 The Farm Hill is set up: Farm tabs in the Sheet, "Which ladder?" on the Register page of the Master Form, and Farm clubs in the Opponent list as they sign up. Clubs at ' + (Number(C.FARM_MAX_STARS) || 50) + '★ or under can join; the first one in holds the Farm mound.';
+    return '🌱 The Farm Hill is set up: Farm tabs in the Sheet, "Which ladder?" on the Register page of the Master Form, and Farm clubs in the Opponent list as they sign up. Clubs at ' + (farmMax_(C)) + '★ or under can join; the first one in holds the Farm mound.';
+  });
+}
+// 🌱 Moves every Hold the Hill club at or under the Farm line down to the Farm (skips clubs in an open charge).
+// Order is kept: the highest-ranked mover is placed first; on an empty Farm the first one holds the Farm mound.
+function moveDownToFarm_() {
+  const C = cfg_(), max = farmMax_(C), moved = [], skipped = [];
+  if (!farmReady_()) fail_('Set up the Farm Hill first (🌱 Set up the Farm Hill).');
+  const pt = players_(), ct = challenges_(), ace = ace_(pt);
+  const cand = (ace ? [ace] : []).concat(ladder_(pt)).filter(function (p) { return p.Status === 'Active' && norm_(p.ClubID); });
+  cand.forEach(function (p) {
+    const st = clubStars_(norm_(p.ClubID)); if (!st || st.stars > max) return;
+    if (openFor_(ct, p.Email)) { skipped.push(p.Discord + ' (in an open charge)'); return; }
+    const fkey = farmKey_(p.Email, p.ClubID), onFarm = withLad_('farm', function () { return findBy_(players_(), fkey); });
+    // off the Hill
+    const pt2 = players_(), me = findBy_(pt2, p.Email), wasAce = ace_(pt2) === me;
+    if (wasAce) endReign_('Moved to the Farm');
+    const pt3 = players_(), m3 = findBy_(pt3, p.Email), oldRank = wasAce ? 'the Ace' : '#' + m3.Rank;
+    m3.Status = 'Moved to Farm'; m3.Rank = '';
+    setLadder_(ladder_(pt3)); savePlayers_(pt3);
+    // onto the Farm
+    withLad_('farm', function () {
+      const sp = PropertiesService.getScriptProperties(), fm = farmStarsMap_(); fm[norm_(p.ClubID)] = st.stars; sp.setProperty('FARM_STARS', JSON.stringify(fm));
+      const fpt = players_(), empty = !ace_(fpt) && !ladder_(fpt).length, rank = empty ? 0 : ladder_(fpt).length + 1;
+      const row = { Email: fkey, Discord: p.Discord, DiscordID: p.DiscordID, OwnerID: p.OwnerID, Club: p.Club, ClubID: p.ClubID, Status: 'Active', Rank: rank, Joined: now_(), Wins: 0, Losses: 0, CareerPts: 0, Defenses: 0, Reigns: 0, BestReignPts: 0 };
+      if (onFarm) { Object.assign(onFarm, row); writeRow_(fpt, onFarm); } else appendObj_(SHEETS.PLAYERS, row);
+      trackClimb_([row]);
+      if (empty) { const f2 = players_(), m = findBy_(f2, fkey); startReign_(m, false, cfg_()); savePlayers_(f2); setCfg_('STATE_LAST_TITLE_ACTIVITY', now_().toISOString()); }
+      post_('⬇️ ' + who_(row) + ' (' + st.stars + '★) moves from Hold the Hill (' + oldRank + ') to the Farm Hill, the ladder for clubs at ' + max + '★ and under' + (empty ? ', and as the first club down **holds the Farm mound**: the first 🌱 Farm Ace.' : ', starting at **#' + rank + '**.') + ' Grow past ' + max + '★ and you get called back up.');
+    });
+    log_('commish', 'Moved to Farm', p.Discord + ' (' + st.stars + '★) from ' + oldRank);
+    moved.push(p.Discord + ' (' + st.stars + '★, was ' + oldRank + ')');
+  });
+  if (moved.length) { refreshFormChoices(); snapshotBoard_(); }
+  return { moved: moved, skipped: skipped };
+}
+function adminMoveDownToFarm() {
+  withUi_(function () {
+    if (Number(cfg_().FARM_MAX_STARS) > 10) setCfg_('FARM_MAX_STARS', 6);
+    const r = moveDownToFarm_();
+    return (r.moved.length ? '🌱 Moved to the Farm: ' + r.moved.join(', ') + '.' : 'No Hold the Hill club is at ' + farmMax_(cfg_()) + '★ or under.') + (r.skipped.length ? ' Skipped: ' + r.skipped.join(', ') + '.' : '');
   });
 }
 function adminAddVote() {
@@ -2342,6 +2427,7 @@ function onOpen() {
     .addItem('🤝 Allow a big wager (commish OK, up to 10%)', 'adminBigWager')
     .addItem('🏟️ Add the Bleacher Vote to the form', 'adminAddVote')
     .addItem('🌱 Set up the Farm Hill', 'adminSetupFarm')
+    .addItem('⬇️ Move 6★-and-under clubs to the Farm', 'adminMoveDownToFarm')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub HtH Leaderboard', 'adminConnectGithub')
     .addToUi();
@@ -3177,7 +3263,7 @@ function wagerHelp_(C) {
     'They accept on this form. The next BigLeague game between your two clubs within ' + (Number(C.WAGER_PLAY_HOURS) || 48) + ' hours of accepting settles it, once it has aired. ' +
     'No house cut: the winner takes the loser\'s stake. A tie (straight up or odds) or no game in time = everyone gets their bucks back. ' + WAGER_WARN;
 }
-function bankOf_(br, email) { const e = lc_(email); return e in br.bank ? br.bank[e] : br.base; }
+function bankOf_(br, email) { const e = lc_(acct_(email)); return e in br.bank ? br.bank[e] : br.base; }
 function wagerId_(raw) {
   const m = /(\d+)/.exec(norm_(raw));
   return m ? 'W-' + pad_(Number(m[1])) : '';
@@ -3486,7 +3572,7 @@ function finePlayer_(email, amountRaw, reason, expel, actor) {
     .sort(function (x, y) { return (hasRank_(x) ? Number(x.Rank) : 999) - (hasRank_(y) ? Number(y.Rank) : 999); });
   const share = others.length ? Math.floor(amt / others.length) : 0, rem = others.length ? amt - share * others.length : 0;
   const why = 'Commish ruling: unfair wagering' + (norm_(reason) ? ' (' + norm_(reason) + ')' : '');
-  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: norm_(p.Discord), Amount: -amt, Reason: why });
+  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: acct_(p.Email), Player: norm_(p.Discord), Amount: -amt, Reason: why });
   others.forEach(function (x, i) {
     const give = share + (i < rem ? 1 : 0);
     if (give > 0) appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: x.Email, Player: norm_(x.Discord), Amount: give, Reason: 'Share of ' + norm_(p.Discord) + "'s fine" });
@@ -3959,7 +4045,7 @@ function farmSnap_() {
   const ace = ace_(pt), cur = currentReign_(readTable_(SHEETS.REIGNS));
   const B = bellState_(C);
   return {
-    max: Number(C.FARM_MAX_STARS) || 50, aceChoice: FARM_ACE_CHOICE,
+    max: farmMax_(C), aceChoice: FARM_ACE_CHOICE,
     ace: ace ? Object.assign(pub(ace), cur ? { reign: cur.Reign, since: iso(cur.Start), rdef: num_(cur.Defenses), rpts: num_(cur.ReignPts), next: reward_(num_(cur.Defenses) + 1, C) } : {}) : null,
     ladder: ladder_(pt).map(pub),
     charges: challenges_().rows.filter(function (c) { return OPEN.indexOf(c.Status) >= 0; }).map(function (c) { return { type: c.Type, ch: norm_(c.ChallengerName), df: norm_(c.DefenderName), created: iso(c.Created), deadline: iso(c.Deadline), status: c.Status === 'Started' ? 'Game reported' : c.Status === 'Review' ? 'With the commish' : 'Waiting on the game' }; }),
@@ -4076,7 +4162,7 @@ const DASH_GROUPS_ = [
     { k: 'ACE_LOSS_REST_KNUCKLES_HOURS', label: '🩹 …or this long if the Ace wore 🥊 Brass Knuckles', t: 'range', min: 0, max: 12, step: 1, unit: 'hrs' },
     { k: 'TIE_RULE', label: 'A tie', t: 'choice', options: [['HOLD', 'Defender holds'], ['REPLAY', 'Play again']] },
     { k: 'FARM_ON', label: '🌱 Farm Hill open', t: 'choice', options: [['true', 'Open'], ['false', 'Closed']] },
-    { k: 'FARM_MAX_STARS', label: '🌱 Farm Hill: clubs up to', t: 'range', min: 10, max: 90, step: 5, unit: '★' },
+    { k: 'FARM_MAX_STARS', label: '🌱 Farm Hill: clubs up to', t: 'range', min: 1, max: 9, step: 1, unit: '★' },
   ] },
   { id: 'bucks', title: '💰 Brawl Bucks', blurb: 'What players earn and what the shop costs.', items: [
     { k: 'PLAY_BUCKS', label: 'Pay for a Hill game', t: 'pairs', parts: [['played', 'Both clubs'], ['win', 'Winner extra'], ['charge', 'Challenger extra']] },
@@ -4500,10 +4586,10 @@ h+='<div><h2 class="bb">Charging the Hill</h2><div class="fights">'+(ch.length?c
 h+='<h2 class="bb">Recent results</h2>'+(ms.length?'<div class="results">'+ms.slice(0,9).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'</div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'</div>'+(m.wr!==''?'<div class="s bb">'+esc(m.wr)+' – '+esc(m.lr)+'</div>':'')+'<div class="o">'+esc(m.outcome)+(m.pts?' · +'+m.pts+' pts':'')+'</div></div>';}).join('')+'</div>':'<div class="empty">No results yet. They show up here once each game has aired.</div>');
 h+='<h2 class="bb">Reigns</h2>'+(rg.length?'<div class="reigns">'+rg.map(function(r){return '<div class="rg"><div class="n bb">#'+esc(r.n)+(r.revenge?' 🔥':'')+'</div><div class="nm bb">'+esc(r.name)+'</div><div class="m">'+esc(r.club)+'</div><div class="m">'+day(r.start)+' – '+(r.end?day(r.end):'now')+' · '+ndays(r.start,r.end)+(ndays(r.start,r.end)===1?' day':' days')+'</div><div class="m">'+r.defenses+' defenses · '+r.pts+' pts'+(r.endedBy?' · ended by '+esc(r.endedBy):'')+'</div></div>';}).join('')+'</div>':'<div class="empty">The first reign starts when the first Ace is crowned.</div>');
 var F=D.farm;if(F){var FA=F.ace,FL=F.ladder||[],FC=F.charges||[],FM=F.matches||[],FB=F.bell;
-h+='<!--TAB:farm--><h2 class="bb">🌱 The Farm Hill</h2><div class="rnote" style="margin-bottom:14px">A second ladder for clubs at <b>'+esc(F.max)+'★ or under</b>: an owner can put a second club here. Same rules, same Master Form (pick 🌱 Farm Hill when you register), same Brawl Bucks wallet. Grow past '+esc(F.max)+'★ and you get <b>called up</b>.</div>';
+h+='<!--TAB:farm--><h2 class="bb">🌱 The Farm Hill</h2><div class="rnote" style="margin-bottom:14px">The ladder for clubs at <b>'+esc(F.max)+'★ and under</b> (Hold the Hill is for bigger clubs). Same rules, same Master Form, same Brawl Bucks wallet. <b>Bring your young clubs:</b> put as many as you like on the Farm. Grow past '+esc(F.max)+'★ and you get <b>called up</b>.</div>';
 if(FB&&(FB.open||FB.soon))h+='<div class="bell'+(FB.open?' on':'')+'"><b class="bb">'+(FB.open?'🔔 THE FARM BELL IS RINGING':'🔔 THE FARM BELL RINGS AT '+esc(when(FB.next)).toUpperCase())+'</b><span>'+(FB.open?'Anyone on the Farm can charge the Farm Ace until '+esc(when(FB.until))+'. Win by '+esc(FB.margin)+'+ for the title.':'For an hour, anyone on the Farm can charge the Farm Ace.')+'</span></div>';
 h+='<div class="cols"><div><h2 class="bb">The Farm Climb</h2><div class="climb">'+(FA?'<div class="step ace"><span class="tag bb">🌱 THE FARM ACE</span><span class="rk bb">👑</span><span class="who bb">'+esc(FA.name)+'<small>'+esc(FA.club)+(FA.stars!=null?' · '+esc(FA.stars)+'★':'')+(FA.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(FA.clubId)+'" target="_blank">ID '+esc(FA.clubId)+'</a>':'')+'</small></span><span class="wl bb"><b>'+(FA.rdef||0)+'</b>defenses</span></div>':'<div class="step ace open"><span class="tag bb">🌱 THE FARM ACE</span><span class="rk bb">🌱</span><span class="who bb">The Farm mound is open<small>The first club on the Farm holds it</small></span><span class="wl bb"></span></div>')
- +(FL.length?FL.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(F.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+'"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.stars!=null?' · '+esc(p.stars)+'★':'')+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank">ID '+esc(p.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the Farm climb yet. Register a second club on the Master Form and pick 🌱 Farm Hill.</div>')+'</div></div>';
+ +(FL.length?FL.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(F.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+'"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.stars!=null?' · '+esc(p.stars)+'★':'')+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank">ID '+esc(p.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the Farm climb yet. Register a 6★-or-under club on the Master Form.</div>')+'</div></div>';
 h+='<div><h2 class="bb">Charging the Farm</h2><div class="fights">'+(FC.length?FC.map(function(c){return '<div class="fight '+(c.type==='Title'?'title':'')+'"><span class="kind bb">'+(c.type==='Title'?'FARM TITLE FIGHT':c.type==='Revenge'?'REVENGE':'LADDER')+'</span><div class="vs bb">🥊 '+esc(c.ch)+'<em>VS</em>'+esc(c.df)+'</div><div class="meta"><span>'+esc(c.status)+'</span><span class="bb" style="font-size:20px">⏱ '+left(c.deadline)+'</span></div></div>';}).join(''):'<div class="empty">No Farm charges right now.</div>')+'</div>';
 h+='<h2 class="bb">Farm results</h2>'+(FM.length?'<div class="results">'+FM.slice(0,8).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'</div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'</div>'+(m.wr!==''?'<div class="d">'+esc(m.wr)+'-'+esc(m.lr)+' · '+esc(m.outcome)+'</div>':'')+'</div>';}).join('')+'</div>':'<div class="empty">No Farm games yet.</div>');
 if((F.calledUp||[]).length)h+='<h2 class="bb">📣 Called up</h2><div class="results">'+F.calledUp.map(function(p){return '<div class="res"><div class="w bb">'+esc(p.name)+'</div><div class="d">'+esc(p.club)+' graduated to Hold the Hill</div></div>';}).join('')+'</div>';
@@ -4540,7 +4626,7 @@ h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">⚾ Play it, report it</h3><div class="steps3"><div><b>1</b>Charge on the form. The clock starts.</div><div><b>2</b>The challenger starts the game in SmallBall as the visitor, at the defender\\'s park. The first game counts.</div><div><b>3</b>Nothing to report: the Hill finds the game on SmallBall by itself. Hand reports still work as a backup. Results post once the game has aired: no spoilers.</div></div><p style="opacity:.75;font-size:13px">Win by enough and you take their spot. Win short of the margin and nobody moves. Lose and you drop one. A tie: the defender holds.</p></div>'
 +'<div class="card"><h3 class="bb">♠ Points per defense</h3><p>Every title defense pays double the last, up to 320.</p><div class="bars">'+pts.map(function(p,i){return '<div style="height:'+(p/320*100)+'%;animation-delay:'+(i*0.1)+'s"><span>'+p+'</span><i>D'+(i+1)+'</i></div>';}).join('')+'</div><p style="margin-top:28px">Hold it six times and every defense after that is worth 320.</p></div>'
 +'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p>🩹 <b>Lose a charge at the Ace</b> (title, Bell or revenge) and you limp back to <b>#5</b>, then recover for <b>2 hours</b> (<b>3</b> if the Ace wore 🥊 Brass Knuckles) before you can charge anyone.</p><p>🔔 <b>The Bell:</b> a few times a week, at random but never at night, the Bell rings for an hour (30-minute heads-up in Discord). While it rings, <b>anyone</b> on the climb can charge the Ace, first one in. Win by <b>3+</b> to take the hill; a smaller win makes you the <b>#1 contender</b> (no injury). If the Ace wins, they earn a <b>50 BB</b> bounty and two days off from the Bell.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
-+'<div class="card"><h3 class="bb">🌱 The Farm Hill</h3><p>A second ladder for clubs at <b>50★ or under</b>, so an owner can bring along a second, younger club. It runs on the same rules with its own <b>🌱 Farm Ace</b>, open mound and Bell. Sign up on the Master Form and pick <b>🌱 Farm Hill</b>; one Farm club per owner, and it shares your Brawl Bucks wallet.</p><p>Grow past 50★ and your club is <b>called up</b> to Hold the Hill.</p></div>'+'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
++'<div class="card"><h3 class="bb">🌱 The Farm Hill</h3><p>The ladder for clubs at <b>6★ and under</b>; Hold the Hill is for 7★ and up. Same rules, with its own <b>🌱 Farm Ace</b>, open mound and Bell. Register on the Master Form: a 6★-or-under club lands on the Farm by itself. <b>Bring your young clubs:</b> an owner can put as many as they like on the Farm, all on one Brawl Bucks wallet.</p><p>Grow past 6★ and your club is <b>called up</b> to Hold the Hill.</p></div>'+'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
 +'<div class="card"><h3 class="bb"><span class="flame">🔥</span> The Ace\\'s Revenge</h3><p>An Ace who built <b>500+ reign points</b> and loses the hill gets one shot back, declared within 12 hours.</p><p>The catch: they must win by <b>more runs than they lost by</b>. Lost 5–3? You need a 3-run win.</p><p style="opacity:.75;font-size:13px">A dethroned Ace without revenge drops to #3..</p></div>'
 +'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Master Form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
 var TABS=[['hill','⛰️ The Hill']].concat(D.farm?[['farm','🌱 Farm Hill']]:[],[['bucks','💰 Brawl Bucks'],['book','🎰 Sportsbook'],['season','🏆 Season'],['how','📖 How it works']]),parts=h.split(/<!--TAB:(\w+)-->/),P={hill:parts[0]};for(var q=1;q<parts.length;q+=2)P[parts[q]]=(P[parts[q]]||'')+parts[q+1];
