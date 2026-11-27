@@ -1474,12 +1474,12 @@ const SBX_TABLET = true;
       if (hasChromeStorage) { try { chrome.storage.local.set({ sbxAlertPop: !!o.pop }); } catch (_) {} }
     }));
   }
-  if (window.top === window) { setTimeout(() => { try { alertsRun(); } catch (_) {} }, 6000); setInterval(() => { try { alertsRun(); } catch (_) {} }, 120000); }
+  if (false) { setTimeout(() => { try { alertsRun(); } catch (_) {} }, 6000); setInterval(() => { try { alertsRun(); } catch (_) {} }, 120000); }
 
   // ───────── 🔎 Scouting report + ⚔️ rivalry, on other clubs' pages ─────────
   // From what SmallBall already shows anyone: their roster, their recent games and your games against them.
   const SC = {};   // team -> { busy, at, prof, h2h }
-  const SCOUT_OPEN = "sbx-scout-open";
+  const SCOUT_OPEN = "sbx-scoutT-open";
   async function loadScout(team) {
     const S = SC[team] || (SC[team] = { busy: false, at: 0 });
     if (S.busy || Date.now() - S.at < 10 * 60000) return;
@@ -1544,22 +1544,22 @@ const SBX_TABLET = true;
   }
   function nameOfClub(id) { const o = [...((document.getElementById("who-team") || {}).options || [])].find((x) => Number(x.value) === id); return o ? o.textContent.replace(/\s*-[A-Za-z]{2,4}-\s*$/, "").trim() : "club " + id; }
   function mountScout() {
-    let el = document.getElementById("sbx-scout");
+    let el = document.getElementById("sbx-scoutT");
     const m = location.hash.match(/^#\/team\/(\d+)/), head = document.querySelector("main .teamhead");
     if (!m || !head || ownIds().has(m[1]) || !ownIds().size) { if (el) el.remove(); return; }
     const team = Number(m[1]), S = SC[team];
     if (!S || (!S.busy && Date.now() - S.at > 10 * 60000)) loadScout(team);
     if (!HOT[team] || (!HOT[team].busy && Date.now() - HOT[team].at > 10 * 60000)) loadHot(team);
     let open = true; try { open = localStorage.getItem(SCOUT_OPEN) !== "0"; } catch (_) {}
-    if (!document.getElementById("sbx-scout-css")) {
-      const st = document.createElement("style"); st.id = "sbx-scout-css";
-      st.textContent = "#sbx-scout{margin:10px 0;padding:10px 14px;border-radius:12px;background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.3);font:13.5px/1.45 system-ui,sans-serif}#sbx-scout summary{cursor:pointer;font-weight:800;font-size:15px}#sbx-scout .sc-row{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}#sbx-scout .sc-man{white-space:nowrap}#sbx-scout .sc-man i{opacity:.6;font-style:normal;font-size:11.5px}#sbx-scout .it{display:inline-flex;gap:5px;align-items:baseline;background:rgba(127,127,127,.14);border-radius:999px;padding:2px 9px}#sbx-scout .it .k{opacity:.7;font-size:12px}#sbx-scout .sc-tips{display:block;padding:6px 10px;border-radius:9px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4)}#sbx-scout .chips i{display:inline-block;width:18px;text-align:center;font-style:normal;font-weight:800;font-size:11px;border-radius:4px;margin-left:2px}#sbx-scout .chips i.w{background:#16a34a;color:#fff}#sbx-scout .chips i.l{background:#dc2626;color:#fff}#sbx-scout .chips i.t{background:#64748b;color:#fff}";
+    if (!document.getElementById("sbx-scoutT-css")) {
+      const st = document.createElement("style"); st.id = "sbx-scoutT-css";
+      st.textContent = "#sbx-scoutT{margin:10px 0;padding:10px 14px;border-radius:12px;background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.3);font:13.5px/1.45 system-ui,sans-serif}#sbx-scoutT summary{cursor:pointer;font-weight:800;font-size:15px}#sbx-scoutT .sc-row{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}#sbx-scoutT .sc-man{white-space:nowrap}#sbx-scoutT .sc-man i{opacity:.6;font-style:normal;font-size:11.5px}#sbx-scoutT .it{display:inline-flex;gap:5px;align-items:baseline;background:rgba(127,127,127,.14);border-radius:999px;padding:2px 9px}#sbx-scoutT .it .k{opacity:.7;font-size:12px}#sbx-scoutT .sc-tips{display:block;padding:6px 10px;border-radius:9px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4)}#sbx-scoutT .chips i{display:inline-block;width:18px;text-align:center;font-style:normal;font-weight:800;font-size:11px;border-radius:4px;margin-left:2px}#sbx-scoutT .chips i.w{background:#16a34a;color:#fff}#sbx-scoutT .chips i.l{background:#dc2626;color:#fff}#sbx-scoutT .chips i.t{background:#64748b;color:#fff}";
       document.head.appendChild(st);
     }
     const body = !S || !S.prof ? '<div class="sc-row muted">Reading their roster and your games against them…</div>' : h2hHtml(S) + scoutHtml(team, S);
     const key = team + "|" + (S ? S.at : 0) + "|" + ((HOT[team] || {}).at || 0) + "|" + open + "|" + (PROF[Number((document.getElementById("who-team") || {}).value || 0)] ? 1 : 0);
     if (el && el.dataset.k === key && el.isConnected) return;
-    if (!el) { el = document.createElement("details"); el.id = "sbx-scout"; el.addEventListener("toggle", () => { try { localStorage.setItem(SCOUT_OPEN, el.open ? "1" : "0"); } catch (_) {} }); }
+    if (!el) { el = document.createElement("details"); el.id = "sbx-scoutT"; el.addEventListener("toggle", () => { try { localStorage.setItem(SCOUT_OPEN, el.open ? "1" : "0"); } catch (_) {} }); }
     el.dataset.k = key; el.open = open;
     el.innerHTML = "<summary>🔎 Scouting report</summary>" + body;
     const after = document.getElementById("sbx-hillbar") || head;
@@ -3938,7 +3938,7 @@ const SBX_TABLET = true;
     el.querySelectorAll("code").forEach((c) => { c.style.cssText = "font:700 12px ui-monospace,monospace;background:rgba(250,204,21,.18);color:#fde68a;border-radius:5px;padding:1px 5px"; });
     liveLift();
   }
-  setTimeout(() => liveRefresh(true), 3000);
+  
   setInterval(() => liveRefresh(false), 180000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - LIVE.at > 60000) liveRefresh(false); });
   // Keep everything mounted as the page re-renders.
@@ -3949,24 +3949,7 @@ const SBX_TABLET = true;
     // Each part runs on its own: one failing never stops the others.
     const safe = (fn) => { try { fn(); } catch (e) { if (!safe.seen) { safe.seen = 1; console.warn("[Club Kit]", e); } } };
     try {
-      safe(mountTabs);
-      if (on("dash")) safe(mountDash);
-      if (on("logos")) safe(decorate);
-      if (on("parks")) safe(mountParkRecords);
-      if (on("achtidy")) safe(mountAchTidy);
-      safe(mountSuspects);
-      if (on("games")) safe(mountGamesFold);
-      if (on("livebar")) safe(mountLiveCtl);
-      safe(mountSquad);
-      if (on("notes")) safe(mountNotes);
-      safe(paintTitle);
-      if (on("charge")) safe(mountCharge);
-      if (on("hillcard")) safe(mountHillBar);
-      safe(paintCdn);
-      if (on("live")) safe(mountLive);
-      if (on("explorer")) safe(mountExplorer);
-      if (on("tplan")) safe(mountTrainPlan);
-      if (on("scout")) safe(mountScout);
+      safe(mountScout);
     } finally { busy = false; try { OBS.takeRecords(); } catch (_) {} }   // drop the changes the kit just made itself
   };
   const OBS = new MutationObserver(tick);
