@@ -1268,9 +1268,8 @@ function vaultTick_(force) {
     donors: Object.values(donors).sort((a, b) => b.n - a.n || b.last - a.last), given };
   return withSlot_(null, () => ghPut_('docs/vault/vault.json', JSON.stringify(snap), '🏦 Prize Vault: ' + tickets.length + ' ticket' + (tickets.length === 1 ? '' : 's'), JSON.stringify(Object.assign({}, snap, { updated: 0 })))) ? '' : 'GitHub save failed (see the Log).';
 }
-function adminTwoPerOwner() {
-  setCfg_('MAX_PER_OWNER', 2); snapshot_();
-  try { SpreadsheetApp.getUi().alert('👥 Two clubs per owner', 'Owners can now sign up a second club (one form each). Set MAX_PER_OWNER in Config back to 1 to undo.', SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) { }
+function adminTwoPerOwner() {   // for the tournament picked in the menu
+  withUi_(() => { setCfg_('MAX_PER_OWNER', 2); snapshot_(); return '👥 ' + norm_(cfg_().TOURNEY_NAME) + ': owners can now sign up a second club (one form each). Set MAX_PER_OWNER in its Config back to 1 to undo.'; });
 }
 function adminVaultNow() {
   withUi_((ui) => { const why = vaultTick_(true); ui.alert('🏦 Prize Vault', why || 'Updated. The Prize Vault page shows it within a minute or two.', ui.ButtonSet.OK); });
