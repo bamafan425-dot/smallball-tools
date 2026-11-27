@@ -51,7 +51,7 @@ footer a{margin:0 8px}
 var REPO='slipnsliders/smallball-tools',PATH='docs/tournaments/index.json';
 var SRC=['https://api.github.com/repos/'+REPO+'/contents/'+PATH+'?ref=main','https://raw.githubusercontent.com/'+REPO+'/main/'+PATH,'index.json'];
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function when(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}
+function when(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):''}
 function day(ms){return ms?new Date(ms).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}):''}
 function left(ms){var d=ms-Date.now();if(d<=0)return'now';var h=Math.floor(d/36e5),m=Math.floor(d%36e5/6e4);return h>=48?Math.round(h/24)+' days':h?h+'h '+m+'m':m+'m'}
 function fetchFirst(urls,i,ok,fail){i=i||0;if(i>=urls.length)return fail&&fail();var u=urls[i]+(i?(urls[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');

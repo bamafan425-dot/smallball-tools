@@ -187,7 +187,7 @@ body{background-color:#0E1B33;background-image:repeating-linear-gradient(90deg,r
 var D = window.__D || {};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function day(s){return s?new Date(s).toLocaleDateString([],{month:'short',day:'numeric'}):'';}
-function when(s){return s?new Date(s).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';}
+function when(s){return s?new Date(s).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'';}
 function ndays(a,b){return Math.max(0,Math.floor(((b?new Date(b):new Date())-new Date(a))/864e5));}
 function left(s){var ms=new Date(s)-new Date();if(ms<=0)return 'Due now';var h=Math.floor(ms/36e5);return h>=24?Math.floor(h/24)+'d '+(h%24)+'h left':h+'h '+Math.floor(ms%36e5/6e4)+'m left';}
 var st=document.getElementById('stars');for(var i=0;i<60;i++){var e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.top=Math.random()*55+'%';e.style.animationDelay=(Math.random()*3)+'s';st.appendChild(e);}
