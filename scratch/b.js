@@ -1465,7 +1465,7 @@ const SBX_TABLET = true;
     atStyle();
     const onTrainer = true, team = tplanTeam();
     document.getElementById("sbx-tplan-btn")?.remove();   // the old floating button
-    if (onTrainer && team) { AT.open = false; document.getElementById("sbx-atT")?.remove(); mountDock(team); mountNotes(team); return; }
+    if (onTrainer && team) { AT.open = false; document.getElementById("sbx-atT")?.remove(); mountDock(team); mountTrainNotes(team); return; }
     document.getElementById("sbx-dockT")?.remove(); document.getElementById("sbx-atnotesT")?.remove(); AT.sess = null;
     // 📋 Training plan in your club page's header, beside the site's Training button
     const hb = document.querySelector("main .th-btns");
@@ -1478,7 +1478,7 @@ const SBX_TABLET = true;
   }
   function atSideW() { const cv = document.querySelector("canvas#stage") || document.querySelector("canvas"); const r = cv ? cv.getBoundingClientRect() : null; const gap = r ? r.left : 300; return Math.max(200, Math.min(320, Math.round(gap - 16))); }
   // 📝 Training notes beside the trainer: a running note for the club, plus each man's plan note.
-  function mountNotes(team) {
+  function mountTrainNotes(team) {
     let el = document.getElementById("sbx-atnotesT");
     const sd = atSide();
     if (!el) { el = document.createElement("div"); el.id = "sbx-atnotesT"; el.className = "at-side l"; document.body.appendChild(el); }
