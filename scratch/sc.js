@@ -88,34 +88,41 @@ const tick=()=>{ try{ mountScout(); }catch(e){console.warn(e)} };
      // the Lineup Builder reads this for its chips
   const opsOf = (ab, h, b2, b3, hr, bb) => { const pa = ab + bb; if (!pa || !ab) return null; const tb = h + b2 + 2 * b3 + 3 * hr; return (h + bb) / pa + tb / ab; };
   async function loadHot(team) {
+    // Form, not talent: each man's last 10 games against the 15 before them (his career line if those are too few).
     const H = HOT[team] || (HOT[team] = { at: 0, busy: false, map: {} });
     if (H.busy || Date.now() - H.at < 10 * 60000) return;
     H.busy = true;
     try {
       const prof = await profileOf(team, 5 * 60000);
-      const games = (await seasonGames(team)).filter((g) => g.finished_at).sort((a, b) => Date.parse(b.finished_at) - Date.parse(a.finished_at)).slice(0, 10);
+      const games = (await seasonGames(team)).filter((g) => g.finished_at).sort((a, b) => Date.parse(b.finished_at) - Date.parse(a.finished_at)).slice(0, 25);
       await fillBoxes(games, () => true);
-      const L = {};
-      for (const g of games) {
-        const [S] = sideOf(BOX[g.game_id], team); if (!S) continue;
-        for (const [id, x] of Object.entries(S.p)) { const a = L[id] || (L[id] = { g: 0, ab: 0, h: 0, b2: 0, b3: 0, hr: 0, bb: 0 }); a.g++; a.ab += x[0]; a.h += x[1]; a.b2 += x[2]; a.b3 += x[3]; a.hr += x[4]; a.bb += x[5]; }
-      }
-      const map = {};
+      const sum = (list) => {
+        const L = {};
+        for (const g of list) {
+          const [S] = sideOf(BOX[g.game_id], team); if (!S) continue;
+          for (const [id, x] of Object.entries(S.p)) { const a = L[id] || (L[id] = { g: 0, ab: 0, h: 0, b2: 0, b3: 0, hr: 0, bb: 0 }); a.g++; a.ab += x[0]; a.h += x[1]; a.b2 += x[2]; a.b3 += x[3]; a.hr += x[4]; a.bb += x[5]; }
+        }
+        return L;
+      };
+      const R = sum(games.slice(0, 10)), B = sum(games.slice(10)), map = {}, f3 = (x) => x.toFixed(3).replace(/^0/, "");
       for (const p of (prof && prof.roster) || []) {
-        const a = L[String(p.player_id)], c = p.career || {};
+        const a = R[String(p.player_id)], b = B[String(p.player_id)], c = p.career || {};
         if (!a || a.ab < 15) continue;
-        const now = opsOf(a.ab, a.h, a.b2, a.b3, a.hr, a.bb), car = opsOf(c.at_bats || 0, c.hits || 0, c.doubles || 0, c.triples || 0, c.home_runs || 0, c.walks || 0);
-        if (now == null || car == null || (c.at_bats || 0) < 60) continue;
-        const d = now - car, f3 = (x) => x.toFixed(3).replace(/^0/, "");
-        const tip = "Last " + a.g + " games: " + a.h + "-for-" + a.ab + (a.hr ? ", " + a.hr + " HR" : "") + (a.bb ? ", " + a.bb + " BB" : "") + " · OPS " + f3(now) + " (career " + f3(car) + ")";
-        const rel = d / car;   // 15% better or worse than his own career
-        if (rel >= 0.15) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip };
-        else if (rel <= -0.15) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip };
+        const now = opsOf(a.ab, a.h, a.b2, a.b3, a.hr, a.bb);
+        let base = null, vs = "";
+        if (b && b.ab >= 25) { base = opsOf(b.ab, b.h, b.b2, b.b3, b.hr, b.bb); vs = "the " + b.g + " games before"; }
+        else if ((c.at_bats || 0) >= 60) { base = opsOf(c.at_bats || 0, c.hits || 0, c.doubles || 0, c.triples || 0, c.home_runs || 0, c.walks || 0); vs = "career"; }
+        if (now == null || base == null || !base) continue;
+        const rel = (now - base) / base;
+        const tip = "Last " + a.g + " games: " + a.h + "-for-" + a.ab + (a.hr ? ", " + a.hr + " HR" : "") + (a.bb ? ", " + a.bb + " BB" : "") + " · OPS " + f3(now) + " (" + vs + ": " + f3(base) + ")";
+        if (rel >= 0.2) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip };
+        else if (rel <= -0.2) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip };
       }
       H.map = map; H.at = Date.now();
     } catch (_) { H.at = Date.now() - 8 * 60000; }
     finally { H.busy = false; setTimeout(tick, 0); }
   }
+
   function hotTags(t, team) {
     if (!team) return;
     const H = HOT[team];
@@ -185,7 +192,7 @@ const tick=()=>{ try{ mountScout(); }catch(e){console.warn(e)} };
       (bats.length ? '<div class="sc-row"><b>Best bats</b> ' + bats.map((x) => tag(x.p) + esc(x.p.name) + ' <span style="opacity:.7">' + f3(x.l.avg) + " · OPS " + f3(x.l.ops) + "</span>").join(" · ") + "</div>" : "") +
       (gloves.length ? '<div class="sc-row"><b>Shakiest gloves</b> ' + gloves.slice(0, 2).map((x) => esc(x.p.position) + " " + esc(x.p.name) + ' <span style="opacity:.7">fielding ' + f3(x.f.f) + "</span>").join(" · ") + "</div>" : "") +
       (tips.length ? '<div class="sc-row sc-tips">' + tips.slice(0, 4).map((t) => "<div>" + t + "</div>").join("") + "</div>" : "") +
-      '<div class="sc-row muted" style="font-size:12px">From their career lines and star ratings (other clubs\' skill numbers aren\'t public). 🔥🧊 = last 10 games vs career.</div>';
+      '<div class="sc-row muted" style="font-size:12px">From their career lines and star ratings (other clubs\' skill numbers aren\'t public). 🔥🧊 = last 10 games vs the 15 before.</div>';
   }
 
   function h2hHtml(S) {
@@ -226,4 +233,4 @@ const tick=()=>{ try{ mountScout(); }catch(e){console.warn(e)} };
   }
 
 
-window.__S={tick,SC}; tick();})();
+window.__S={tick,SC,HOT}; tick();})();
