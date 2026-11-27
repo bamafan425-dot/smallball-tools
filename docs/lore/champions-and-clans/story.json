@@ -1,0 +1,22 @@
+{
+"kicker":"Storyline · Dynasties · Forum threads",
+"title":"Champions & Clans",
+"titleAccent":"The PL1 Years",
+"dates":"2004 – 2006",
+"accent":"#22c55e",
+"dek":"First League was the summit, and the clans were the armies. Dynasties, a badge for ten titles, a trainer who won baseball and football in the same season, and a community team that took the crown on a tiebreaker.",
+"stats":[["10×","First League wins badge, 2005"],["2","sports won in one season by 2cool"],[".611","win pct that would have won it for Xtreme"],["4","clans named in one thread"]],
+"logTitle":"Title runs and turf wars",
+"chapters":[
+{"date":"Aug 9, 2004","title":"DAS takes Season 95","text":"DAS wins First League again with the Beatles. Beaner calls it the latest SmallBall dynasty. MarketWizard of the Chicago Mob finishes one step behind, again.","quotes":[["The real King came off his throne to congratulate me.","DASTECH"]],"thread":34488},
+{"date":"Nov 22, 2004","title":"The ORRT is back","text":"Slip'N'Sliders and Eddymvp revive the Official Round Robin Tournament for Season 104: 8–10★ teams only, two leagues of eight, and miss more than three games and you sit out a season. The Mayberry Bijou Sluggers of XsT win it. The thread title gives 2cool the congratulations.","thread":38675},
+{"date":"Jan 24, 2005","title":"A badge for ten titles","text":"Commish decides it's time for a 10× First League wins badge, congratulating DAS and DE, and asks the forum to design it. Ideas range from ten bats in a circle to two 5-win badges colliding in an explosion. Mikes suggests just asking DarkElf what he wants.","quotes":[["I see its time (congrats Das and DE!)","Commish"]],"thread":40835},
+{"date":"Mar 20, 2005","title":"2cool wins both","text":"2cool wins Season 111 First League in baseball and football in the same season. Speed remembers when he hit 10★ with the standard trainer.","quotes":[["Pure Domination this season","Smith"],["baseball and footy in the same season","mcgov"]],"thread":42182},
+{"date":"Dec 22, 2005","title":"Clan wars?","text":"LXXVII 77 of )TUS( asks if there will ever be another clan wars. AcA, XsT and No-LiMiT- all answer the call. Everyone agrees it would be great and nobody can agree how to make it fair.","quotes":[["Yall can start now.","Slip'N'Sliders, on every team from every clan playing every other"]],"thread":49389,"tag":"76 posts"},
+{"date":"Feb – Mar 2006","title":"Double Trouble by XsT","text":"A weekly two-man tournament series. Wookie8662 and Lakers win the first two. Hawk and Money win the third. Smith and TRD beat Slip and Kindred in the fourth, playing Slip's community team 406751.","thread":50758},
+{"date":"Apr 2, 2006","title":"XsT wins PL1","text":"The XsT community team takes First League in one of the tightest finishes anyone can remember, tied with paphillyman's Stormy and edging them on the lower team ID. DAS picks up the key win. The_Safo stays up for the final games for the first time ever.","quotes":[["Atta way boys! We got it done!","Slip'N'Sliders"],["Community teams are making quite the showing recently.","redbirds33"]],"thread":51847,"tag":"53 posts"}
+],
+"cast":["das","dark-elf","2cool","smith","slip","beaner","money","first-league-legends"],
+"nav":[["Storyline","Season 100","../season-100/"],["Storyline","Strange SmallBall","../strange-smallball/"]],
+"sources":[["Congrats to DAS for winning Season #95 PL 1, Aug 2004",34488],["Season 5 ORRT: Congrats to 2cool!, Nov 2004",38675],["10 first league wins badge, Jan 2005",40835],["Congrats to 2cool for winning Season 111 PL 1 BB, Mar 2005",42182],["Is there going to be another clan wars?, Dec 2005",49389],["Double Trouble by XsT Winner's List, Feb 2006",50758],["XsT WINS PL1!, Apr 2006",51847]]
+}

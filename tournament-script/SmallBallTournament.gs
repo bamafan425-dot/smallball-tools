@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -28,6 +28,7 @@ const DEFAULTS = {
   NO_SHOW: ['higher seed', 'No game in the match window: "higher seed" moves on automatically, or "commish" waits for you'],
   TIE_RULE: ['replay', 'A tie: "replay" (play again; the match gets 30 more minutes) or "higher seed"'],
   MAX_CLUBS: ['32', 'Sign-ups stop at this many clubs'],
+  MAX_PER_OWNER: ['1', 'How many clubs one owner (one Google sign-in) can enter'],
   PREVIEW_SIZE: ['16', 'While sign-ups are open, the bracket page shows a preview bracket this big (16 = no byes). It grows to 32 if more sign up'],
   MIN_STARS: ['0', 'Lowest club stars allowed (0 = anyone)'],
   MAX_STARS: ['10', 'Highest club stars allowed'],
@@ -154,8 +155,8 @@ function when_(v, C) {
   const s = norm_(v); if (!s) return 0;
   try { return Utilities.parseDate(s.replace('T', ' ').slice(0, 16), tz_(C), 'yyyy-MM-dd HH:mm').getTime(); } catch (e) { return Date.parse(s) || 0; }
 }
-const fmtT_ = (t, C) => Utilities.formatDate(new Date(t), tz_(C), 'EEE h:mm a');
-const ts_ = (t) => '<t:' + Math.floor(t / 1000) + ':t>';      // Discord shows it in each reader's own time
+const fmtT_ = (t, C) => Utilities.formatDate(new Date(t), tz_(C), 'EEE h:mm a z');   // always with its zone (MST/MDT), so nobody guesses
+const ts_ = (t) => '<t:' + Math.floor(t / 1000) + ':t> your time';      // Discord shows it in each reader's own time zone: say so
 const tsR_ = (t) => '<t:' + Math.floor(t / 1000) + ':R>';
 
 function log_(actor, action, details) {
@@ -333,7 +334,13 @@ function register_(sub) {
   }
   if (isScr_(C)) ensureCol_(SHEETS.ENTRANTS, 'Partner');
   const et = entrants_(), active = et.rows.filter((r) => r.Status !== 'Withdrawn');
-  const mine = et.rows.find((r) => lc_(r.Email) === sub.email);
+  // One owner (Google sign-in) can enter up to MAX_PER_OWNER clubs. With one, sending the form again swaps your
+  // club; with more, it updates that club's entry or adds another club, up to the limit.
+  const per = Math.max(1, Number(C.MAX_PER_OWNER) || 1);
+  const ownRows = et.rows.filter((r) => lc_(r.Email) === sub.email);
+  const mine = per > 1 ? ownRows.find((r) => norm_(r.ClubID) === sub.clubId) : ownRows[0];
+  const ownActive = ownRows.filter((r) => r.Status !== 'Withdrawn');
+  if (per > 1 && !mine && ownActive.length >= per) fail_('You already have ' + per + ' clubs in: ' + ownActive.map((r) => r.Club + ' (' + r.ClubID + ')').join(' and ') + '. That\'s the most per owner. To swap one, ask the commish.');
   const clash = active.find((r) => norm_(r.ClubID) === sub.clubId && r !== mine);
   if (clash) fail_('Club ID ' + sub.clubId + ' is already signed up (' + clash.Discord + ').');
   if (!mine && active.length >= Number(C.MAX_CLUBS || 32)) fail_('The bracket is full (' + C.MAX_CLUBS + ' clubs).');
@@ -489,6 +496,9 @@ const watchUrl_ = (gid) => 'https://play.smallball.com/training?watch=' + gid;
 // The one-minute clock: each tournament in turn (a sleeping one costs one property read).
 function tick() {
   slots_().forEach((sl) => { try { withSlot_(sl, tickOne_); } catch (e) { try { withSlot_(sl, () => log_('system', 'ERROR (clock)', String(e && e.stack || e))); } catch (x) { } } });
+  const vsp = PropertiesService['getScriptProperties']();
+  try { const why = vaultTick_(false); if (why) vsp.setProperty('VAULT_LAST_ERR', why); else vsp.deleteProperty('VAULT_LAST_ERR'); }
+  catch (e) { vsp.setProperty('VAULT_LAST_ERR', 'Error: ' + String(e && e.stack || e).slice(0, 400)); vsp.setProperty('VAULT_NEXT', String(Date.now() + 10 * 60000)); }
 }
 function tickOne_() {
   const pr = props_();
@@ -568,9 +578,12 @@ function drawBracket_() {
   const et = entrants_(); et.rows.forEach((r) => { const s = T.seeds.find((x) => x.club === Number(r.ClubID)); if (s) { r.Seed = s.seed; writeRow_(et, r); } });
   try { if (norm_(C.FORM_ID)) FormApp.openById(norm_(C.FORM_ID)).setAcceptingResponses(false).setCustomClosedFormMessage('Sign-ups are closed. Follow the bracket in Discord!'); } catch (e) { }
   log_('system', 'Bracket drawn', T.seeds.length + ' clubs · ' + T.fmt);
-  const Em = entrantMap_(), start = when_(C.START, C);
+  post_(drawnText_(T, C, entrantMap_()));
+}
+function drawnText_(T, C, Em) {
+  const start = when_(C.START, C);
   const firsts = T.matches.filter((m) => !m.winner && !m.void && sideClub_(T, m.a) > 0 && sideClub_(T, m.b) > 0);
-  post_('# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' bracket is set!\n' +
+  return ('# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' bracket is set!\n' +
     '**' + T.seeds.length + ' clubs · ' + (T.fmt === 'double' ? 'double elimination (two losses and you\'re out)' : 'single elimination') + ' · BigLeague games only**\n\n' +
     '**Seeds**\n' + T.seeds.map((s) => s.seed + '. ' + tag_(Em[s.club]) + ' · ' + clubTxt_(Em[s.club])).join('\n') + '\n\n' +
     '**How it works**\n> Wave 1 starts ' + ts_(start) + ' (' + tsR_(start) + '). After that, **your next match opens the moment both clubs are known**, and you have ' + Math.round(waveMs_(C) / 60000) + ' minutes to play it.\n' +
@@ -730,7 +743,7 @@ function snapshot_(T) {
     if (e && e.team) return { id, n: 'Team ' + norm_(e.Discord), s: seedOf_(T, id), how: e.team.how, clubs: e.team.clubs.map((c) => ({ id: c, n: E[c] ? norm_(E[c].Club) : 'Club ' + c, o: E[c] ? norm_(E[c].Discord) : '' })) };
     return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: T ? seedOf_(T, id) : 0, st: norm_(e.Stars) } : { id, n: 'Club ' + id }; };
   const snap = {
-    name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), form: norm_(C.FORM_LINK),
+    name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), form: norm_(C.FORM_LINK), perOwner: Math.max(1, Number(C.MAX_PER_OWNER) || 1),
     signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), tz: tz_(C),
     entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars), p: norm_(r.Partner) })),
   };
@@ -871,6 +884,10 @@ function onOpen() {
     .addItem('🗂️ Post the bracket to Discord', 'adminPostBracket')
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
+    .addItem('🧪 Mock tournament (test posts in Discord)', 'adminMockTournament')
+    .addItem('🗑️ Delete the mock test posts', 'adminDeleteMockPosts')
+    .addItem('🏦 Update the Prize Vault now', 'adminVaultNow')
+    .addItem('👥 Allow two clubs per owner', 'adminTwoPerOwner')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
     .addItem('🔑 Connect SmallBall box scores (Scramble)', 'adminConnectSmallBall')
     .addItem('🧪 Practice round (Scramble box-score test)', 'adminPracticeRound')
@@ -984,6 +1001,106 @@ function adminUndo() {
   });
 }
 function adminTestWebhook() { withUi_(() => { post_('🧪 Test from the **' + esc_(cfg_().TOURNEY_NAME) + '** script: the webhook works!' + linksLine_(cfg_())); return 'Sent. Check Discord.'; }); }
+// ===================== 🧪 Mock tournament =====================
+// Plays a pretend bracket from sign-up close to champion through the REAL code (bracket, waves, game found,
+// results, a tie, a no-show, the crown), posting to this tournament's Discord channel with a 🧪 TEST tag.
+// Nothing touches the real bracket, sign-ups, Log or web page, and nobody is pinged (pretend owners).
+// Every post's message ID is kept so 🗑️ Delete the mock test posts can remove them all afterwards.
+const MOCK_TAG_ = '-# 🧪 TEST · mock tournament, not real results\n';
+function mockSend_(url, name, text) {
+  const ids = [];
+  const chunks = []; let s = text;
+  while (s.length > 1850) { const cut = s.lastIndexOf('\n', 1850); const at = cut > 0 ? cut : 1850; chunks.push(s.slice(0, at)); s = s.slice(at); }
+  chunks.push(s);
+  chunks.forEach((c) => {
+    const go = () => UrlFetchApp.fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'wait=true', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      payload: JSON.stringify({ content: MOCK_TAG_ + c, username: '🧪 ' + (norm_(cfg_().TOURNEY_NAME) || 'Tournament') + ' (TEST)', allowed_mentions: { parse: [] } }) });
+    let r = go();
+    for (let n = 0; r.getResponseCode() === 429 && n < 4; n++) { let w = 2; try { w = Number(JSON.parse(r.getContentText()).retry_after) || 2; } catch (e) { } Utilities.sleep(Math.min(15, w + 0.5) * 1000); r = go(); }
+    if (r.getResponseCode() === 200) { try { ids.push(String(JSON.parse(r.getContentText()).id)); } catch (e) { } }
+    Utilities.sleep(2100);   // Discord allows about 30 webhook posts a minute per channel
+  });
+  return ids;
+}
+function mockIds_() { let x = []; try { x = JSON.parse(props_().getProperty('MOCK_MSGS') || '[]'); } catch (e) { } return x; }
+function adminMockTournament() {
+  withUi_((ui) => {
+    const C0 = cfg_(), url = webhook_(C0);
+    if (!url) return 'No Discord webhook in Config for the ' + norm_(C0.TOURNEY_NAME) + '.';
+    if (isScr_(C0)) return 'The mock runs bracket tournaments (single or double elimination), not ⛳ Scrambles.';
+    const r = ui.prompt('🧪 Mock tournament: ' + norm_(C0.TOURNEY_NAME), 'This plays a pretend tournament start to finish and posts every announcement to this tournament\'s Discord channel (about 30 to 40 posts over 2 or 3 minutes), each tagged 🧪 TEST. Pretend clubs and owners: nobody is pinged, and the real bracket, sign-ups and page aren\'t touched.\n\nHow many pretend clubs? (4 to 8, blank = 6)\n\nAfterwards, 🗑️ Delete the mock test posts removes every one of them.', ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    const n = Math.max(4, Math.min(8, Number(norm_(r.getResponseText())) || 6));
+    const out = mockRun_(n);
+    return '🧪 Mock tournament done: ' + out.posts + ' test posts in Discord' + (out.champ ? ', ' + out.champ + ' won' : '') + '.\n' + out.steps.join(' → ') + '\n\nWhen you\'re done looking: 🏆 Tournament → 🗑️ Delete the mock test posts.';
+  });
+}
+function mockRun_(n) {
+  const C0 = cfg_(), url = webhook_(C0), G = globalThis, saved = {}, keep = ['post_', 'entrantMap_', 'stateGet_', 'stateSet_', 'clubGames_', 'log_', 'cfg_'];
+  keep.forEach((k) => { saved[k] = G[k]; });
+  const ids = mockIds_(), steps = [], save = () => props_().setProperty('MOCK_MSGS', JSON.stringify(ids.slice(-400)));
+  const names = ['Mock Mudcats', 'Test Tube Titans', 'Dry Run Dingers', 'Sandbox Sluggers', 'Placeholder Pelicans', 'Dummy Data Dodgers', 'Fake Plastic Trees', 'Rehearsal Rattlers'];
+  const owners = ['TestOwner Ace', 'TestOwner Ace', 'TestOwner Bo', 'TestOwner Cy', 'TestOwner Cy', 'TestOwner Di', 'TestOwner Ed', 'TestOwner Fi'];
+  const rows = names.slice(0, n).map((nm, i) => ({ ClubID: String(990001 + i), Club: '🧪 ' + nm, Discord: owners[i], DiscordID: '', Stars: String(8 - i), Joined: new Date(Date.now() - (n - i) * 3600e3), Status: 'In' }));
+  const E = {}; rows.forEach((x) => { E[Number(x.ClubID)] = x; });
+  const C = Object.assign({}, C0, { START: new Date(Date.now() - 60000), POST_DELAY_MINUTES: 0 });
+  let T = null, gid = 7700000, tieDone = false, noShow = null, posts = 0;
+  try {
+    G.cfg_ = () => C;
+    G.post_ = (text) => { const got = mockSend_(url, '', text); got.forEach((x) => ids.push(x)); posts += got.length; save(); };
+    G.entrantMap_ = () => E; G.stateGet_ = () => T; G.stateSet_ = (x) => { T = x; }; G.log_ = () => {};
+    // SmallBall's game list, faked: each open match's game is "played" (one tie gets replayed, one match no-shows).
+    G.clubGames_ = (club) => {
+      const out = [], t = Date.now();
+      T.matches.filter((m) => m.openAt && !m.winner && !m.void && !m.pend && m !== noShow).forEach((m) => {
+        const a = sideClub_(T, m.a), b = sideClub_(T, m.b); if (a !== Number(club) && b !== Number(club)) return;
+        let ra = 1 + Math.floor(Math.random() * 7), rb = 1 + Math.floor(Math.random() * 7); if (ra === rb) rb++;
+        if (!tieDone && m.bracket === 'W' && m.round === 2) { tieDone = true; rb = ra; }
+        out.push({ game_id: ++gid, away_team_id: a, home_team_id: b, away_runs: ra, home_runs: rb, kind: 'big', finished_at: new Date(t).toISOString() });
+      });
+      return out;
+    };
+    G.post_('# 🧪 TEST: mock tournament incoming\nThe ' + esc_(C0.TOURNEY_NAME) + ' script is running a **pretend tournament** to check its announcements. The next few dozen posts are **not real**: pretend clubs, pretend scores, nobody pinged. They\'ll be deleted after the test. Carry on! 🐶');
+    T = createTournament_(rows, C); G.post_(drawnText_(T, C, E)); steps.push('bracket (' + T.fmt + ')');
+    for (let i = 0; i < 40 && !T.done; i++) {
+      if (waves_(T, C)) steps.push('wave ' + T.wave);
+      // One match in wave 2 is a no-show: its window runs out with no game.
+      if (!noShow) { const m = T.matches.find((x) => x.wave === 2 && !x.winner && !x.pend); if (m) noShow = m; }
+      if (noShow && !noShow.winner && noShow.openAt) noShow.deadline = Date.now() - 1000;
+      if (detect_(T, C)) steps.push('games found');
+      if (postDue_(T, C)) steps.push('results');
+      if (deadlines_(T, C)) steps.push('no-show');
+      if (noShow && noShow.flag && !noShow.winner) {   // NO_SHOW = commish: play the organizer settling it by hand
+        const a = sideClub_(T, noShow.a), b = sideClub_(T, noShow.b); noShow.flag = false;
+        finish_(T, noShow, seedOf_(T, a) < seedOf_(T, b) ? a : b, null, 'organizer'); G.post_(resultText_(T, noShow, E, C, '🧑‍⚖️ The organizer moved the higher seed on.'));
+      }
+      if (!T.done && champion_(T)) { crown_(T, C); steps.push('champion'); }
+    }
+    G.post_('🧪 **End of the mock tournament.** That was every kind of post the ' + esc_(C0.TOURNEY_NAME) + ' makes: bracket, waves, game found, results, a tie replay, a no-show and the champion. These test posts will be cleaned up shortly.');
+    return { posts, steps, champ: T && T.done ? plainName_(E, champion_(T)) : '' };
+  } finally { keep.forEach((k) => { G[k] = saved[k]; }); CFG_CACHE = null; save(); }
+}
+function adminDeleteMockPosts() {
+  withUi_((ui) => {
+    const ids = mockIds_(), url = webhook_(cfg_());
+    if (!ids.length) return 'No mock test posts to delete.';
+    if (!url) return 'No Discord webhook in Config.';
+    if (ui.alert('Delete ' + ids.length + ' 🧪 TEST posts from Discord?', 'Only the mock tournament\'s posts are deleted. Real posts are untouched.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return '';
+    const base = url.split('?')[0], left = []; let gone = 0;
+    ids.forEach((id) => {
+      let r = null;
+      for (let n = 0; n < 4; n++) {
+        r = UrlFetchApp.fetch(base + '/messages/' + id, { method: 'delete', muteHttpExceptions: true });
+        if (r.getResponseCode() !== 429) break;
+        let w = 2; try { w = Number(JSON.parse(r.getContentText()).retry_after) || 2; } catch (e) { } Utilities.sleep(Math.min(15, w + 0.5) * 1000);
+      }
+      const c = r.getResponseCode(); if (c === 204 || c === 404) gone++; else left.push(id);
+      Utilities.sleep(600);
+    });
+    props_().setProperty('MOCK_MSGS', JSON.stringify(left));
+    return '🗑️ Deleted ' + gone + ' test post' + (gone === 1 ? '' : 's') + '.' + (left.length ? ' ' + left.length + ' didn\'t go (Discord busy): run it again.' : '');
+  });
+}
 function adminResetBracket() {
   withUi_((ui) => {
     if (ui.alert('Clear the bracket and every result? Sign-ups stay. Type nothing; just confirm.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return '';
@@ -1179,6 +1296,7 @@ function archive_(C, T, ents) {
 }
 
 // The bracket page for this tournament's folder: the same page as the Apps Script one, reading its bracket.json.
+const VAULT_PILL_ = '<a id="vault-pill" href="https://slipnsliders.github.io/smallball-tools/vault/" target="_blank" rel="noopener" style="position:fixed;left:14px;bottom:14px;z-index:50;display:flex;align-items:center;gap:8px;text-decoration:none;font:800 14px/1 system-ui,sans-serif;color:#1b1300;background:linear-gradient(135deg,#fde68a,#f59e0b);border-radius:999px;padding:11px 16px;box-shadow:0 8px 24px rgba(0,0,0,.45)">🏦 Prize Vault · 🎁 Donate a ticket</a>';
 function pageHtml_(C) {
   const name = norm_(C.TOURNEY_NAME) || 'SmallBall Tournament', repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH);
   const head = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + htmlEsc_(name) + ' · live bracket</title>\n' +
@@ -1194,8 +1312,72 @@ function pageHtml_(C) {
   const reload = "render();\nif(!/demo=1/.test(location.search))setTimeout(function(){location.reload()},60000);";
   let t = isScr_(C) ? GOLF_HTML_ : BRACKET_HTML_;
   if (t.indexOf(reload) < 0 || t.indexOf('var D=__DATA__;') < 0) throw new Error('bracket page template changed');
+  t = t.replace('</body>', () => VAULT_PILL_ + '</body>');
   t = t.replace('<meta charset="utf-8">', () => head).replace('var D=__DATA__;', () => 'var D=' + JSON.stringify({ name }).replace(/</g, '\\u003c') + ';').replace(reload, () => loader);
   return t;
+}
+
+// ----- 🏦 The Prize Vault: club 1008's ticket tray, published for everyone to see -----
+// Donors gift tickets to the vault club from their trainer tray. Only the owner can see a tray, so this reads
+// it with the connected SmallBall login (🔑) once an hour and saves docs/vault/vault.json for the Prize Vault page.
+// A running ledger (who gave what, what has left the vault) keeps donors on the wall after their tickets go out.
+const VAULT_CLUB_DEFAULT = 1008;
+const VAULT_SKILL_ = { pitch_skill: 'Pitching', catch_skill: 'Catching', pass_power: 'Throwing', run_speed: 'Running', swing_skill: 'Bat Skill', swing_power: 'Bat Power', contact_odds: 'Bat Contact' };
+// Tier 1 = the champion's prizes ($5–8), Tier 2 = runner-up ($2–3), Tier 3 = semifinalists ($1).
+function vaultTicket_(t) {
+  const k = String(t.kind || '').toLowerCase(), arg = String(t.arg || '');
+  if (/manual/.test(k)) return null;   // the free Owner's Manual isn't a prize
+  if (k === 'qt' && VAULT_SKILL_[arg]) return { label: 'Quick Train: ' + VAULT_SKILL_[arg], tier: 3 };
+  if (/qt|quick/.test(k) && /pack|all|seven/.test(k + arg)) return { label: 'Quick Train Pack (all seven skills)', tier: 1 };
+  if (/ticket.?pack|pack/.test(k)) return { label: 'The Ticket Pack', tier: 1 };
+  if (t.park_name || /park|stadium/.test(k)) return { label: 'Stadium: ' + (t.park_name || 'a new park'), tier: 1 };
+  if (/abat|alum|bat$/.test(k)) return { label: 'Aluminum Bat', tier: 1 };
+  if (/deluxe/.test(k)) return { label: 'Deluxe Trainer', tier: 1 };
+  if (/holiday/.test(k)) return { label: 'Holiday', tier: 2 };
+  if (/field.?ball/.test(k)) return { label: 'Field Balls', tier: 2 };
+  if (/camp/.test(k)) return { label: 'Batting Camp', tier: 2 };
+  if (/balance/.test(k)) return { label: 'Balance', tier: 2 };
+  if (/name/.test(k)) return { label: 'Name Changer', tier: 2 };
+  return { label: k.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'Ticket', tier: 2 };
+}
+function vaultTick_(force) {
+  const sp = PropertiesService['getScriptProperties']();
+  if (!force && sp.getProperty('VAULT_LEDGER') && Date.now() < Number(sp.getProperty('VAULT_NEXT') || 0)) return '';
+  sp.setProperty('VAULT_NEXT', String(Date.now() + 10 * 60000));   // pushed out to an hour once it works
+  const ck = sbCookie_(); if (!ck) return 'No SmallBall login connected (🔑).';
+  if (!sp.getProperty('GITHUB_TOKEN') || sp.getProperty('GH_BAD')) return 'GitHub is not connected (🐙).';
+  const club = Number(sp.getProperty('VAULT_CLUB') || VAULT_CLUB_DEFAULT);
+  let r; try { r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + club + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } }); } catch (e) { return 'SmallBall did not answer.'; }
+  const code = r.getResponseCode();
+  if (code === 401 || code === 403) { sp.setProperty('SB_BAD', String(Date.now())); return 'The SmallBall login has expired (🔑 to reconnect).'; }
+  if (code !== 200) return 'SmallBall answered ' + code + '.';
+  let d; try { d = JSON.parse(r.getContentText()); } catch (e) { return 'Unreadable club data.'; }
+  if (!d.mine || !d.inventory) return 'The connected login does not own club ' + club + ', so its tray is hidden.';
+  let led = {}; try { led = JSON.parse(sp.getProperty('VAULT_LEDGER') || '{}'); } catch (e) { led = {}; }
+  const now = Date.now(), inTray = {}, tickets = [];
+  for (const t of (d.inventory.tickets || [])) {
+    const v = vaultTicket_(t); if (!v) continue;
+    const id = String(t.ticket_id); inTray[id] = 1;
+    const fromOwn = t.gift_from == null;   // in the vault's tray but not gifted (bought for the vault, or a site gift)
+    const L = led[id] || (led[id] = { label: v.label, tier: v.tier, from: fromOwn ? null : t.gift_from, by: fromOwn ? 'The commish' : (t.gift_from_name || ('club ' + t.gift_from)), at: Date.parse(t.granted_at || '') || now });
+    L.label = v.label; L.tier = v.tier; delete L.out;
+    tickets.push({ id, label: v.label, tier: v.tier, by: L.by, from: L.from, at: L.at });
+  }
+  Object.keys(led).forEach((id) => { if (!inTray[id] && !led[id].out) led[id].out = now; });   // left the vault: given out as a prize
+  const ids = Object.keys(led).sort((a, b) => (led[b].out || led[b].at) - (led[a].out || led[a].at)).slice(0, 400), nl = {}; ids.forEach((id) => (nl[id] = led[id])); led = nl;
+  sp.setProperty('VAULT_LEDGER', JSON.stringify(led)); sp.setProperty('VAULT_NEXT', String(Date.now() + 55 * 60000));
+  const donors = {};
+  Object.values(led).forEach((L) => { if (!L.from && L.by === 'The commish') return; const k = L.by; const o = donors[k] || (donors[k] = { name: k, club: L.from, n: 0, last: 0 }); o.n++; o.last = Math.max(o.last, L.at); });
+  const given = Object.values(led).filter((L) => L.out).sort((a, b) => b.out - a.out).slice(0, 30).map((L) => ({ label: L.label, tier: L.tier, by: L.by, out: L.out }));
+  const snap = { updated: now, club: { id: club, name: d.name || '' }, tickets: tickets.sort((a, b) => a.tier - b.tier || a.at - b.at),
+    donors: Object.values(donors).sort((a, b) => b.n - a.n || b.last - a.last), given };
+  return withSlot_(null, () => ghPut_('docs/vault/vault.json', JSON.stringify(snap), '🏦 Prize Vault: ' + tickets.length + ' ticket' + (tickets.length === 1 ? '' : 's'), JSON.stringify(Object.assign({}, snap, { updated: 0 })))) ? '' : 'GitHub save failed (see the Log).';
+}
+function adminTwoPerOwner() {   // for the tournament picked in the menu
+  withUi_(() => { setCfg_('MAX_PER_OWNER', 2); snapshot_(); return '👥 ' + norm_(cfg_().TOURNEY_NAME) + ': owners can now sign up a second club (one form each). Set MAX_PER_OWNER in its Config back to 1 to undo.'; });
+}
+function adminVaultNow() {
+  withUi_((ui) => { const why = vaultTick_(true); ui.alert('🏦 Prize Vault', why || 'Updated. The Prize Vault page shows it within a minute or two.', ui.ButtonSet.OK); });
 }
 
 // ----- The Tournaments page: docs/tournaments/index.json lists every tournament any Sheet has run -----
@@ -1809,7 +1991,7 @@ details.rules summary::-webkit-details-marker{display:none}
 <script>
 var D=__DATA__;
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):''}
+function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):''}
 function tp(n){return n===0?'E':n>0?'+'+n:'−'+(-n)}
 function hf(x){if(x==null)return'';var w=Math.floor(x);return x%1?(w?w:'')+'½':String(x)}
 function cid(c){return '<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank">'+esc(c.id)+'</a>'}
@@ -2096,7 +2278,7 @@ body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-
 <script>
 var D=__DATA__;
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'})}
+function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'})}
 function side(c,bye,m,isA){
   if(bye)return '<div class="s"><span class="sd"></span><span class="n tbd">bye</span><span></span></div>';
   if(!c)return '<div class="s"><span class="sd"></span><span class="n tbd">TBD</span><span></span></div>';
@@ -2121,7 +2303,7 @@ function rules(){
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
   h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
-  h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
   h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed starts the game</b>: tap the Start-the-game link in the ping, check YOUR CLUB at the top of SmallBall, then hit Play (not Exhibition). Nothing for the higher seed to accept.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
@@ -2172,7 +2354,7 @@ function png(){
   x.fillStyle='#0E1B33';x.fillRect(0,0,cw,ch);
   x.fillStyle='#ffd166';x.font='600 14px Oswald, sans-serif';x.fillText('SMALLBALL TOURNAMENT',PAD,40);
   x.fillStyle='#F4EBD9';x.font='40px "Bebas Neue", Oswald, sans-serif';x.fillText(D.name||'Tournament',PAD,80);
-  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Live')+' · '+new Date().toLocaleString(),cw-PAD-260,80);
+  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Live')+' · '+new Date().toLocaleString([],{timeZoneName:'short'}),cw-PAD-260,80);
   if(D.champ){x.fillStyle='#C8102E';x.fillRect(PAD,y-6,cw-PAD*2,44);x.fillStyle='#ffd166';x.font='28px "Bebas Neue", Oswald, sans-serif';x.fillText('👑 '+D.champ.n+' wins!',PAD+14,y+26);y+=60}
   secs.forEach(function(s,si){
     x.fillStyle='#ffd166';x.font='24px "Bebas Neue", Oswald, sans-serif';x.fillText(s[0],PAD,y+22);

@@ -37,21 +37,75 @@ A little make-over for play.smallball.com. Everything stays in your own browser.
   homer or down the middle), volume and the organ. "Test the booth" checks your speakers.
   Speech is your browser's own, and nothing is sent anywhere. Skill numbers only come up for your own
   clubs.
-  🧠 Voices: Standard or Enhanced. Standard is your browser's own speech, as always, and the default. Enhanced
-  gives Mack, Dewey and each guest a natural-sounding voice made on your computer (by the free Kokoro model):
-  nothing to install, no account, and nothing about the game is sent anywhere. Enhanced needs a graphics card
-  your browser can use (WebGPU; most computers' built-in graphics count). The radio checks that before it
-  downloads anything, and if this computer can't, Enhanced is greyed out and says why. Picking Enhanced runs a
-  one-time setup: it downloads about 330 MB from Hugging Face, checks the voices sound right, and pre-records
-  the booth's regular lines (pitch calls, fielding calls, color, banter, stories, trivia, the guests) so they
-  play instantly. After that it starts by itself when you turn the radio on or test the booth ("Tuning in the
-  station…"; this can take up to a minute even after setup, or press "Start with Standard voices" to go on the
-  air right away), and unloads when neither needs it. Changing an Enhanced voice takes a few minutes while the
-  booth's commentary is prepared in the new voice; anything already prepared is reused. Standard and Enhanced voices are set separately for all five characters; a character set to
-  "Not set" uses his Standard voice. If Enhanced can't start or falls behind, the Standard voices take over.
-  "Clear Enhanced downloads" removes everything it stored. Enhanced voices are in the Club Kit only.
+  🧠 Voices: Standard (your browser's own speech, the default) or Enhanced (natural-sounding voices made on
+  your computer). See "ENHANCED RADIO VOICES: STEP BY STEP" below.
   It's the same booth as the Broadcast Kit's radio and shares its settings (the Standard voices for Mack and
   Dewey included); when the Broadcast window is open, the Broadcast Kit has the microphone. Turn the button off in ⚙ under Features.
+
+🎙️ ENHANCED RADIO VOICES: STEP BY STEP (computer editions)
+  Enhanced voices give Mack, Dewey and the three guests natural, human-sounding voices instead of your
+  browser's built-in ones. They're free, need no account and nothing to install, and they're made right on
+  your computer: nothing about your games is sent anywhere.
+
+  Will it work on my computer?
+  Enhanced voices need a computer whose graphics your browser can use. Most recent computers qualify,
+  including laptops without a separate graphics card, in an up-to-date Chrome, Edge or Brave (Firefox on
+  Windows, version 141 or newer). The radio checks for you before it downloads anything. If your computer
+  can't run them, the Enhanced button is greyed out with a short reason, and the Standard voices keep
+  working exactly as before.
+
+  First-time setup (once per browser)
+  1. Open a game in the game player and click the 📻 Radio button in the bottom-left corner.
+  2. Open ⚙ Booth settings.
+  3. Next to Voices, click Enhanced. Setup starts by itself.
+  4. Wait while it works. The Enhanced voices box shows each step with a progress bar:
+     - checking your computer can run the voices,
+     - downloading the voices (about 330 MB, once),
+     - checking that the voices sound right,
+     - preparing the booth's regular commentary, so it's ready to play the moment it's needed.
+     This takes a few minutes, longer on slower computers. You can keep watching your game meanwhile, and
+     you can turn the radio on before it's finished.
+  5. When the box says "Setup is done", you're ready. You never have to set it up again in this browser.
+  Need to stop partway? Press Stop setup. Nothing is lost: Continue setup picks up where it left off.
+
+  Listening to a game
+  1. Click 📻 Turn the radio on.
+  2. The button shows a turning ⏳ and "Tuning in the station…" while the voices start. This can take up
+     to a minute, even after setup. The broadcast begins by itself as soon as they're ready.
+  3. In a hurry? Press Start with Standard voices to go on the air right away with the browser's voices.
+     That's for this broadcast only: next time you turn the radio on, it uses Enhanced again.
+  4. Click the button again to turn the radio off. The voices stop at once and step aside until next time,
+     so they don't slow your computer down while you're not listening.
+
+  Testing the booth
+  Press Test the booth to hear all five characters, one line each, in the voices you've picked. The first
+  test after opening a game may take a moment while the voices start.
+
+  Picking voices
+  - Under Enhanced voices, each character (Mack, Dewey, Chet, Brock and Gary) has his own list of voices.
+  - Choose "Not set — use Standard" to keep a character on his browser voice while the others use Enhanced.
+  - The Standard voices (the browser's) are in the section just below, under "Standard voices". They're also
+    the backup: if Enhanced voices ever can't start or can't keep up, the booth switches to them by itself.
+  - Changing an Enhanced voice takes a few minutes while the booth prepares that character's commentary in
+    the new voice. The box shows how far along it is. If you switch back to a voice you used before, its
+    commentary is reused, so that's quick.
+  - The guest checkboxes still decide which guests can visit the booth.
+
+  Going back to Standard
+  Click Standard next to Voices. Your Enhanced setup stays in the browser, so switching back to Enhanced
+  later is instant (no new setup).
+
+  Freeing up space
+  Press Clear Enhanced downloads (in the Enhanced or Standard box) to remove everything the Enhanced voices
+  stored and switch back to Standard. You can set them up again any time.
+
+  If something goes wrong
+  - "Enhanced voices aren't available here": your computer or browser can't run them. Updating the browser
+    sometimes helps; press Check again afterwards. Standard voices still work.
+  - "Enhanced voices couldn't start": press Try again. Meanwhile the booth uses the Standard voices.
+  - "Too slow on this computer": the booth went back to Standard so it doesn't fall behind the game.
+    Press Try Enhanced again to give it another go.
+  - Hearing nothing at all? Check your volume and press Test the booth.
 
 ⛰️ REPORT TO HOLD THE HILL (new in 1.24.0)
   On your own club's page, each BigLeague game in the game list has a ⛰️ Report button next to 📰 Box

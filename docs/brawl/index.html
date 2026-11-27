@@ -114,7 +114,7 @@ body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-
 <script>
 var D={"name":"Black Friday Brawl"};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'})}
+function t(ms){return new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'})}
 function side(c,bye,m,isA){
   if(bye)return '<div class="s"><span class="sd"></span><span class="n tbd">bye</span><span></span></div>';
   if(!c)return '<div class="s"><span class="sd"></span><span class="n tbd">TBD</span><span></span></div>';
@@ -139,7 +139,7 @@ function rules(){
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
   h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
-  h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
   h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed starts the game</b>: tap the Start-the-game link in the ping, check YOUR CLUB at the top of SmallBall, then hit Play (not Exhibition). Nothing for the higher seed to accept.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
@@ -190,7 +190,7 @@ function png(){
   x.fillStyle='#0E1B33';x.fillRect(0,0,cw,ch);
   x.fillStyle='#ffd166';x.font='600 14px Oswald, sans-serif';x.fillText('SMALLBALL TOURNAMENT',PAD,40);
   x.fillStyle='#F4EBD9';x.font='40px "Bebas Neue", Oswald, sans-serif';x.fillText(D.name||'Tournament',PAD,80);
-  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Live')+' · '+new Date().toLocaleString(),cw-PAD-260,80);
+  x.fillStyle='#9fb0cf';x.font='13px Oswald, sans-serif';x.fillText((D.done?'Final':'Live')+' · '+new Date().toLocaleString([],{timeZoneName:'short'}),cw-PAD-260,80);
   if(D.champ){x.fillStyle='#C8102E';x.fillRect(PAD,y-6,cw-PAD*2,44);x.fillStyle='#ffd166';x.font='28px "Bebas Neue", Oswald, sans-serif';x.fillText('👑 '+D.champ.n+' wins!',PAD+14,y+26);y+=60}
   secs.forEach(function(s,si){
     x.fillStyle='#ffd166';x.font='24px "Bebas Neue", Oswald, sans-serif';x.fillText(s[0],PAD,y+22);
@@ -233,4 +233,4 @@ function load(i){
 render();load();
 setInterval(function(){if(!document.hidden)load()},90000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
-</script></body></html>
+</script><a id="vault-pill" href="https://slipnsliders.github.io/smallball-tools/vault/" target="_blank" rel="noopener" style="position:fixed;left:14px;bottom:14px;z-index:50;display:flex;align-items:center;gap:8px;text-decoration:none;font:800 14px/1 system-ui,sans-serif;color:#1b1300;background:linear-gradient(135deg,#fde68a,#f59e0b);border-radius:999px;padding:11px 16px;box-shadow:0 8px 24px rgba(0,0,0,.45)">🏦 Prize Vault · 🎁 Donate a ticket</a></body></html>

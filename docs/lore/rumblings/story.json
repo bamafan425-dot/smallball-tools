@@ -1,0 +1,27 @@
+{
+"kicker":"The Commish Saga · Part 1 · Forum threads",
+"title":"Where's Commish?",
+"titleAccent":"The Rumblings",
+"dates":"February – August 2006",
+"accent":"#f59e0b",
+"dek":"Six months before anyone organized a search, the cracks were already showing. Orders went missing, emails bounced, a petition went around, and then a message turned up in the trainer that nobody could explain.",
+"stats":[["147","posts in \"Where's commish??\""],["169","posts in the Protest Petition"],["Apr 11","Commish's last forum post"],["#2","Slip'N'Sliders' spot on the petition"]],
+"logTitle":"How it unraveled",
+"chapters":[
+{"date":"Feb 8, 2006","title":"Where's commish??","text":"IHeartBuehrle bought a 700 team three weeks earlier and never got it. No reply to emails, no forum posts in about three weeks. The thread runs to 147 posts.","quotes":[["Where is he?","IHeartBuehrle"]],"thread":50640},
+{"date":"Feb 9","title":"Nobody can find him","text":"Herb has emailed Commish and AndNow and asked PayPal to reach him. Cliff suggests it might just be an ISP blocking SmallBall's email. Others pile in with their own missing tickets and passwords.","thread":50640},
+{"date":"Feb 10","title":"Greek Wizard makes contact","text":"The forum admin gets through to Commish and tells everyone replies are coming.","quotes":[["The man is busy, but i did get a hold of him.","Greek Wizard"]],"thread":50640},
+{"date":"Feb 12","title":"Lawyers and blondes","text":["Herb threatens to collect the unfilled orders and hand them to a lawyer. nraider claims he has notified the FBI, and that Commish owes him three hot blondes and a back rub.","mlthmp, who had been waiting to order a third 700 team, figures Commish will turn up now that GW has been sicced on him."],"thread":50640},
+{"date":"Feb 13","title":"A sighting, a refund, a rule","text":"mlthmp spots Commish online for a few minutes. Herb gets his refund and vows to keep helping others get theirs. When people start posting Commish's real name, moderator Beaner edits it out every single time.","thread":50640},
+{"date":"Mar 7","title":"COMMISH! Protest Petition","text":"BP starts a boycott: no Mall purchases until customer support improves. He remembers when Commish posted a few times a day and dropped into chat to ask if anything was broken. Slip'N'Sliders signs second. DarkElf, pizzaguy, Kindred and Lil_Smit sign too.","quotes":[["I don't care about SB Hockey. Screw it.","BP"]],"thread":51318,"tag":"169 posts"},
+{"date":"Mar 8","title":"The case for staying","text":"LCD has two 700 packs bought on January 31 and still nothing. bailey argues the other side. Rowdy Rooster says what a lot of people feel.","quotes":[["If it died, a small part of all of us would die with it.","Rowdy Rooster"]],"thread":51318},
+{"date":"Apr 11","title":"The last post","text":"Commish posts on the forums for what turns out to be the last time in a long time. Nobody knows it yet."},
+{"date":"Jul 27","title":"Mailbox full","text":"bailey's email to Commish bounces back: mail delivery failure, mailbox full.","thread":54444},
+{"date":"Jul 31","title":"Wake up Commish!","text":"Slip'N'Sliders posts that he has finally found the problem at SmallBall customer service, with a three-word caption.","thread":54513},
+{"date":"Aug 10","title":"Beaner for Commissioner","text":"jyrmar suggests it's time for a successor. bailey votes Beaner. Trevor makes it official: a motion for Beaner for Commissioner, all in favor say yay. The same night, Slip opens The Search for Commish.","links":[["The Search for Commish →","../search-for-commish/"]],"thread":54444},
+{"date":"Aug 15","title":"A message in the trainer","text":["Owners loading the trainer get a new message: the season will now end Saturday night instead of Sunday. Footy is suddenly fixed too. ukce1861 notices the copyright now reads 2006 for the first time.","Somebody is doing something, but nobody knows who. Beaner's best guess is that Commish has moved on and someone else at AndNow is minding the game."],"quotes":[["Somebody's doing something...","ukce1861"]],"thread":54805}
+],
+"cast":["commish","greek-wizard","beaner","bp","mlthmp","bailey","slip"],
+"nav":[["Next · Part 2","The Search for Commish","../search-for-commish/"],["Part 3","The Farewell","../the-farewell/"],["Part 4","The Commish Returns","../commish-returns/"]],
+"sources":[["Where's commish?? (Question Answered), Feb 2006",50640],["COMMISH! Protest Petition, Mar 2006",51318],["LOL, commish mailbox is full, Jul 2006",54444],["At Last! I Found the Problem at SmallBall Customer Service!, Jul 2006",54513],["Anyone else see a message in the trainer today?, Aug 2006",54805]]
+}

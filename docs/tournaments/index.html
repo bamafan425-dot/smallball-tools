@@ -36,17 +36,22 @@ td small{color:var(--muted)}
 .empty{color:var(--muted);background:var(--panel);border:1px dashed var(--edge);border-radius:12px;padding:16px;text-align:center}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:14px}
 footer a{margin:0 8px}
+.vault{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);background:linear-gradient(135deg,#3b2a05,#6b4806);border:2px solid var(--gold);border-radius:16px;padding:14px 18px;margin-bottom:8px;box-shadow:0 0 28px rgba(255,209,102,.22)}
+.vault:hover{filter:brightness(1.12)}.vault .vi{font-size:42px;line-height:1}.vault .vt{flex:1}.vault .vt b{display:block;font:400 30px/1 'Bebas Neue',Impact,sans-serif;letter-spacing:1px;color:var(--gold)}.vault .vt small{color:var(--muted);font-size:14px}
+.vault .vb{background:var(--gold);color:#1b1300;font:800 15px system-ui;border-radius:999px;padding:10px 16px;white-space:nowrap}
+@media(max-width:560px){.vault{flex-wrap:wrap}.vault .vb{width:100%;text-align:center}}
 @media(max-width:560px){.card h3{margin-right:0;margin-top:22px}th:nth-child(3),td:nth-child(3){display:none}}
 </style></head><body><div class="wrap">
 <header><h1>🏆 SmallBall Tournaments</h1><p>What's coming up, what's live, and every champion so far.</p></header>
+<a class="vault" href="../vault/"><span class="vi">🏦</span><span class="vt"><b>The Prize Vault</b><small>Donated tickets for our winners. See what's up for grabs, or gift one yourself.</small></span><span class="vb">🎁 Donate a ticket</span></a>
 <div id="app"><p class="empty">Loading…</p></div>
-<footer><a href="../">🛠️ SmallBall ToolKits</a>·<a href="../hill/">⛰️ Hold the Hill board</a>·<a href="https://discord.gg/TyuPzcR5mR">💬 Tournament Discord</a></footer>
+<footer><a href="../vault/">🏦 Prize Vault</a>·<a href="../">🛠️ SmallBall ToolKits</a>·<a href="../hill/">⛰️ Hold the Hill board</a>·<a href="https://discord.gg/TyuPzcR5mR">💬 Tournament Discord</a></footer>
 </div>
 <script>
 var REPO='slipnsliders/smallball-tools',PATH='docs/tournaments/index.json';
 var SRC=['https://api.github.com/repos/'+REPO+'/contents/'+PATH+'?ref=main','https://raw.githubusercontent.com/'+REPO+'/main/'+PATH,'index.json'];
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function when(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}
+function when(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):''}
 function day(ms){return ms?new Date(ms).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}):''}
 function left(ms){var d=ms-Date.now();if(d<=0)return'now';var h=Math.floor(d/36e5),m=Math.floor(d%36e5/6e4);return h>=48?Math.round(h/24)+' days':h?h+'h '+m+'m':m+'m'}
 function fetchFirst(urls,i,ok,fail){i=i||0;if(i>=urls.length)return fail&&fail();var u=urls[i]+(i?(urls[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
