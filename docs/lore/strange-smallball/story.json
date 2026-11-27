@@ -1,0 +1,23 @@
+{
+"kicker":"Storyline · Oddities · Forum threads",
+"title":"Strange SmallBall",
+"titleAccent":"The Weird Files",
+"dates":"2004 – 2006",
+"accent":"#a78bfa",
+"dek":"Frog racing leagues, a trainer that whispered at night, a will for your teams, and two Deluxe Trainers open at once. The side of SmallBall that never made the Home Plate News.",
+"stats":[["118","posts about frog racing"],["2","DTs open at once"],["20 years","for one prank to pay off"],["1","business email signed with a SmallBall name"]],
+"logTitle":"The files",
+"chapters":[
+{"date":"Jul 20, 2004","title":"Been in SmallBall too long when…","text":"DidleySquat sends a quote to a business client and signs it with his SmallBall username, job title and all.","thread":33600},
+{"date":"Nov 10, 2004","title":"The SmallBall will","text":"Issued-Away asks who you'd leave your teams to if you had to leave forever. The forum starts writing wills: dynasties to best friends, DT teams split among clanmates, master passwords to the one person you trust.","quotes":[["I'd probably give the Commish a kiss on the cheek.","Issued-Away"],["All my stuff is being buried with me. None of you deserve it.","solipsta"]],"thread":38146},
+{"date":"Dec 7, 2004","title":"SmallFrog","text":"solipsta posts a link to a frog racing game: you feed, train and entertain your frog, then it races. The forum goes all in. Beaner founds the SB Frog Society in the Stumpy Creek region, and race reports start arriving in the frogs' own voices. Possibly where \"frogging\" comes from.","quotes":[["Last thing I needed was another internet addiction","SlotTech"]],"thread":39258,"tag":"118 posts"},
+{"date":"Jan 25, 2005","title":"The DT is talking to me","text":"ivy is training in the Deluxe Trainer when she hears it: \"Swing batter-batter.\" Every two or three minutes. Her son hears it too. It turns out to be her brother, finally paying her back for something from when he was five.","quotes":[["It took him 20 years to get me back.","ivy"]],"thread":40880},
+{"date":"May 25, 2005","title":"Coolest SmallBall Player Name Awards","text":"ALT holds an awards show for player names, with a good feeling as the only prize. Nominees include a full team named after a movie cast, the Lazy Boyz (whose first baseman is a snot-nosed kid), and the unbeatable Feces Flinging Monkeys.","thread":43555},
+{"date":"Aug 10, 2006","title":"Total chaos and anarchy","text":"The_Safo opens two Deluxe Trainers on one PC and the error message never comes. Slip'N'Sliders finds the trick the next day. chspogo starts planning twelve windows at once, one player each, and redbirds33 worries they'll crash the server and end SmallBall for good.","quotes":[["IT'S TOTAL CHAOS AND ANARCHY IN SB LAND.","The_Safo"],["Aha! I found the trick.","Slip'N'Sliders"]],"thread":54722},
+{"date":"Aug 22, 2006","title":"Myth or reality?","text":"West Coast asks a simple question: do you lose more skill the more games you play? The answers split three ways. Myth, says bailey. Only the pitchers, says mlthmp. True, says SB_Knights, and the more you play the more you lose."
+,"thread":54998}
+],
+"cast":["slip","beaner","mlthmp","bailey","trainer-monkey","old-man"],
+"nav":[["Storyline","Season 100","../season-100/"],["Storyline","Champions & Clans","../champions-and-clans/"]],
+"sources":[["Been in smallball too long when..., Jul 2004",33600],["If you had a SmallBall will..., Nov 2004",38146],["SmallFrog, Dec 2004",39258],["DT talking to me, Jan 2005",40880],["Coolest SmallBall Player Name Awards, May 2005",43555],["WOW, you don't see this everyday!, Aug 2006",54722],["Myth or reality??, Aug 2006",54998]]
+}

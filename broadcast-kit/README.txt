@@ -1,5 +1,21 @@
 (Renamed from the Tournament Kit in 0.8.0. Your settings and queue carry over: remove the old Tournament Kit in chrome://extensions before loading this one.)
 
+📺 NOW CALLED MULTIVIEW (0.12.0)
+  The Broadcast Kit is now SmallBall Multiview: watch several games at once, no spoilers, with Stream Mode built in
+  for streaming. Same extension, same settings and queue; only the name changed.
+
+📼 SYNTHIA SMALL (0.11.1)
+  Synthia Small, the original voice of SmallBall Radio (2002), is back in the booth and a little off her rocker.
+  Once a game Mack brings in "the O.G. of SmallBall Radio" for a season report from whatever year she thinks it
+  is (Johnny Bosco the frog, the Eighth League, two-day pies, the open line), and now and then she pipes up
+  mid-game. Switch her off with 📼 Synthia in the booth settings.
+
+📻 RADIO: THE COMMISH RETURNS (0.11.1)
+  New lore      Thirty-three new booth lines from the famous August 16, 2007 chat and the Commish's comebacks, the night the Commish came
+                back after two years (form ID 666, "fix stuff", brb, the PS2 version, SmallBall Boxing, poof).
+  Fixes         The booth now catches plays written without a jersey number ("Roger Maris strikes out") and
+                the batter when his position runs into the next message, so fewer plays go uncalled.
+
 🎲 RANDOM LIVE GAME (0.11.0)
   🎲 Random live game   Picks a game that's on the air right now and starts it on a free tile. It looks at the
                         clubs you follow, your own clubs, and the clubs those have played lately.
@@ -15,7 +31,7 @@
   Queue first        The queue sits at the top of the panel. ＋ Tile (or ▶ Play while live) puts one game on a
                      tile; ⤒ moves a game to the front.
   Your clubs         Your own clubs (from the site's club picker) with Follow and Games buttons: no typing numbers.
-  On a watch page    "📺＋ Add this game to the Broadcast" sits next to the Broadcast button.
+  On a watch page    "📺＋ Add this game to Multiview" sits next to the Multiview button.
   Paste links        The Add games box takes game numbers or watch links.
 
 📻 NEW RADIO DEFAULTS (0.9.5)
@@ -30,7 +46,7 @@
   (home-team homer or down the middle), plus "📋 How the show goes" in the radio panel.
   The same radio is in the SmallBall Club Kit (1.25.1+), for games you watch in the site's own player.
 
-SmallBall Broadcast Kit
+SmallBall Multiview
 ========================
 A watch-along multiview for play.smallball.com: put up to four games on screen at once in SmallBall's
 own game player, start them together on a countdown, and keep the results hidden until you've watched.
@@ -45,7 +61,7 @@ INSTALL (Chrome, Edge, Brave)
   It works alongside the SmallBall Club Kit; they're separate extensions.
 
 USING IT
-  The red  📺 Broadcast  button (bottom left) opens the broadcast. Its number is games waiting to watch.
+  The red  📺 Multiview  button (bottom left) opens Multiview. Its number is games waiting to watch.
   Tournament clubs  Follow clubs by number. New games they play from then on join the queue by
                     themselves (checked about once a minute while play.smallball.com is open), with
                     no scores shown.

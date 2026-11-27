@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -132,7 +132,28 @@ const DEFAULTS = {
   REVENGE_THRESHOLD: [500, "Reign points needed to earn the Ace's Revenge"],
   REVENGE_DECLARE_HOURS: [12, "Hours a dethroned Ace has to declare the Ace's Revenge"],
   EX_ACE_RANK: [3, 'Ladder spot a dethroned Ace drops to'],
-  MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; each day with no title charge opens it one more spot, down to this spot'],
+  ACE_LOSS_RANK: [5, '🩹 Lose a charge at the Ace (title, Bell or revenge) and you drop to this spot (or one spot, if you were already lower)'],
+  ACE_LOSS_REST_HOURS: [2, '🩹 After losing a charge at the Ace: hours of recovery before you can charge anyone'],
+  ACE_LOSS_REST_KNUCKLES_HOURS: [3, '🩹 The same, when the Ace was wearing Brass Knuckles'],
+  MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; with no title charge it opens one more spot at a time, down to this spot'],
+  MOUND_FIRST_HOURS: [8, 'Open mound: hours with no title charge before #2 can charge the Ace too'],
+  MOUND_STEP_HOURS: [24, 'Open mound: after that, hours for each further spot (#3, #4...)'],
+  BELL_PER_WEEK: [3, '🔔 The Bell: open-mound windows a week (0 = off). While it rings, anyone on the climb can charge the Ace'],
+  BELL_MINUTES: [60, '🔔 The Bell: how long each window lasts'],
+  BELL_WEEKDAY: ['06:30-08:00, 11:30-13:00, 21:00-22:30', '🔔 The Bell: Mountain-time windows it can ring in, Mon–Fri'],
+  BELL_WEEKEND: ['08:00-10:00, 13:00-15:00, 21:00-22:30', '🔔 The Bell: Mountain-time windows it can ring in, Sat–Sun'],
+  BELL_GAP_HOURS: [36, '🔔 The Bell: at least this many hours between rings'],
+  BELL_WARN_MINUTES: [30, '🔔 The Bell: heads-up post this many minutes before it rings'],
+  BELL_MARGIN: [3, '🔔 The Bell: win by this much to take the title. A smaller win makes you the #1 contender'],
+  BELL_SHIELD_HOURS: [48, '🔔 The Bell: after the Ace beats a Bell charge, no Bell rings for this long'],
+  BELL_BOUNTY: [50, '🔔 The Bell: Brawl Bucks to the Ace for beating a Bell charge'],
+  BELL_ROLE_ID: ['', '🔔 The Bell: Discord role ID to ping when it rings (an opt-in "Mound Alerts" role). Blank = no ping'],
+  STATE_BELL_NEXT: ['', 'Managed by script'],
+  STATE_BELL_WARNED: ['', 'Managed by script'],
+  STATE_BELL_UNTIL: ['', 'Managed by script'],
+  STATE_BELL_USED: ['', 'Managed by script'],
+  STATE_BELL_SHIELD: ['', 'Managed by script'],
+  MOUND_QUIET: ['22:30-06:30', 'Open mound: the mound never opens wider during these Mountain hours (it waits for morning). Blank = any time'],
   DAILY_POINTS: ['10,5,4,3,2,2,1,1,1,1,1', 'Brawl points paid once a day for where you sit: the Ace, then #1, #2, #3 … (comma separated)'],
   LADDER_POST_SIZE: [15, 'How many contenders to show in Discord standings'],
   EMAIL_REJECTIONS: ['TRUE', 'Email players when a submission is rejected (TRUE/FALSE)'],
@@ -148,6 +169,10 @@ const DEFAULTS = {
   STATE_MOUND_OPEN_TO: ['', 'Managed by script'],
   STATE_SEASON_CLOSED: ['', 'Managed by script'],
 };
+// 🌱 Farm Hill settings, and a Farm copy of every STATE_ key (its own Ace, revenge, Bell and open mound).
+DEFAULTS.FARM_ON = ['true', '🌱 Farm Hill on (true/false): the ladder for clubs at or under FARM_MAX_STARS; Hold the Hill is for clubs above it'];
+DEFAULTS.FARM_MAX_STARS = [6, '🌱 Farm Hill: clubs at or under this many stars (the 1–10 star rating on the club page) play on the Farm; above it, Hold the Hill. A Farm club that grows past it is called up'];
+Object.keys(DEFAULTS).filter(function (k) { return /^STATE_/.test(k); }).forEach(function (k) { DEFAULTS['FARM_' + k] = [DEFAULTS[k][0], '🌱 Farm Hill: ' + DEFAULTS[k][1]]; });
 
 const ACTIONS = {
   REGISTER: '📝 Register my club (new players start here)',
@@ -190,6 +215,8 @@ const Q = {
   ITEM: 'Item to buy',
   USE_ITEM: 'Use an item on this charge?',
   VOTE: 'Your Bleacher Vote',
+  LADDER: 'Which ladder?',
+  MY_CLUB: 'Charging with (your Farm club ID, only if you have several)',
 };
 
 const ACE_CHOICE = '♠ THE ACE (charge the mound: title shot, #1 contender, or lower when the mound is open)';
@@ -198,6 +225,34 @@ const BOOK_HELP = 'Play money only: everyone starts the season with 1,000 Brawl 
 const FORM_CONFIRM = 'Got it! Check Discord in about a minute: ✅ it posts in #hill-feed (bets in #sportsbook) if it went through, or ❌ a red REJECTED post (and an email) tells you exactly what to fix. Nothing either way after 5 minutes? Ask in #hill-help.';
 const NO_LINES = 'No open lines right now. Lines open when someone charges the hill.';
 const KINDS = { 'BigLeague': 'big', 'Pro League': 'pro', 'Exhibition': 'exhibition' };
+
+// ───────────────────────────── 🌱 Two ladders: the Hill and the Farm Hill ─────────────────────────────
+// The same engine runs both. LAD_ says which one the code is working on: '' = the main Hill, 'farm' = the Farm Hill.
+// Each ladder has its own Players, Challenges, Matches, Reigns and Payouts tabs (the Farm's start with "Farm ") and
+// its own STATE_ settings (FARM_STATE_...): Ace, revenge, Bell, open mound. Everything tied to the owner is shared:
+// Brawl Bucks wallet, streaks, items, bets, wagers and votes. Farm charges are F-0001, F-0002...
+let LAD_ = '';
+const PER_LAD_ = { Players: 1, Challenges: 1, Matches: 1, Reigns: 1, Payouts: 1 };
+const LADS_ = ['', 'farm'];
+function isFarm_() { return LAD_ === 'farm'; }
+// Farm clubs are keyed "email#clubId" so an owner can have several; the Brawl Bucks wallet, items and item
+// cooldowns always go by the account (the part before #).
+function acct_(e) { return String(e == null ? '' : e).split('#')[0]; }
+function farmKey_(email, clubId) { return lc_(acct_(email)) + '#' + norm_(clubId).replace(/\D/g, ''); }
+function ladTab_(name) { return isFarm_() && PER_LAD_[name] ? 'Farm ' + name : name; }
+function withLad_(lad, fn) { const prev = LAD_; LAD_ = lad || ''; try { return fn(); } finally { LAD_ = prev; } }
+function farmReady_() { try { return !!SpreadsheetApp.getActive().getSheetByName('Farm Players') && lc_(withLad_('', cfg_).FARM_ON) !== 'false'; } catch (e) { return false; } }
+// Runs fn on each ladder that is set up; one ladder failing never stops the other.
+function eachLad_(fn) {
+  LADS_.forEach(function (l) {
+    if (l === 'farm' && !farmReady_()) return;
+    try { withLad_(l, fn); } catch (e) { log_('system', 'ERROR (' + (l || 'hill') + ')', String(e && e.stack || e)); }
+  });
+}
+const FARM_ACE_CHOICE = '🌱 THE FARM ACE (charge the Farm mound: title shot, #1 contender, or lower when the mound is open)';
+function aceChoice_() { return isFarm_() ? FARM_ACE_CHOICE : ACE_CHOICE; }
+const LADDER_CHOICES = ['⛰️ Hold the Hill (7★ and up)', '🌱 Farm Hill (6★ and under)'];
+const ladLabel_ = () => (isFarm_() ? '🌱 Farm Hill' : '⛰️ Hold the Hill');
 
 // ───────────────────────────── Small helpers ─────────────────────────────
 
@@ -227,8 +282,8 @@ function parseScore_(v) {
 // ───────────────────────────── Sheet tables ─────────────────────────────
 
 function sheet_(name) {
-  const sh = SpreadsheetApp.getActive().getSheetByName(name);
-  if (!sh) fail_('Missing tab "' + name + '". Run setup.');
+  const tab = ladTab_(name), sh = SpreadsheetApp.getActive().getSheetByName(tab);
+  if (!sh) fail_('Missing tab "' + tab + '". Run setup' + (isFarm_() ? ' (or 🌱 Set up the Farm Hill)' : '') + '.');
   return sh;
 }
 
@@ -298,10 +353,12 @@ function cfg_() {
     if (typeof def === 'number') c[r.Key] = (r.Value === '' || r.Value === null) ? def : Number(r.Value);
     else c[r.Key] = r.Value instanceof Date ? r.Value.toISOString() : norm_(r.Value);
   });
+  if (isFarm_()) Object.keys(c).forEach(function (k) { if (/^STATE_/.test(k)) c[k] = c['FARM_' + k]; });
   return c;
 }
 
 function setCfg_(key, val) {
+  if (isFarm_() && /^STATE_/.test(key)) key = 'FARM_' + key;
   const t = readTable_(SHEETS.CONFIG);
   const r = t.rows.find(function (x) { return x.Key === key; });
   if (r) { r.Value = val; writeRow_(t, r); }
@@ -345,7 +402,8 @@ const AWARDS = [
   { key: 'bleacher', icon: '🏟️', name: 'The Bleacher Vote', what: 'Voted by the players: who made the season the most fun' },
 ];
 
-// ── Open mound: only #1 can charge the Ace, then one more spot opens each day nobody charges.
+// ── Open mound: only #1 can charge the Ace; with no title charge, #2 joins after MOUND_FIRST_HOURS (8),
+//    then one more spot every MOUND_STEP_HOURS (24), down to MOUND_OPEN_MAX. It never widens overnight (MOUND_QUIET).
 function lastTitle_(C) {
   let t;
   if (C.STATE_LAST_TITLE_ACTIVITY) t = new Date(C.STATE_LAST_TITLE_ACTIVITY);
@@ -353,9 +411,96 @@ function lastTitle_(C) {
   const st = seasonStart_(C);
   return st && st > t ? st : t;   // the open-mound clock never starts before the season does
 }
+function moundQuiet_(C) {
+  const m = norm_(C.MOUND_QUIET).match(/^(\d{1,2}):?(\d{2})\s*-\s*(\d{1,2}):?(\d{2})$/);
+  if (!m) return false;
+  const hm = Utilities.formatDate(now_(), 'America/Denver', 'HH:mm').split(':');
+  const t = Number(hm[0]) * 60 + Number(hm[1]), a = Number(m[1]) * 60 + Number(m[2]), b = Number(m[3]) * 60 + Number(m[4]);
+  return a <= b ? (t >= a && t < b) : (t >= a || t < b);
+}
+function moundRaw_(C) {
+  const h = (now_() - lastTitle_(C)) / 3600000, first = Number(C.MOUND_FIRST_HOURS) || 24, step = Number(C.MOUND_STEP_HOURS) || 24;
+  const to = h < first ? 1 : 2 + Math.floor((h - first) / step);
+  return Math.max(1, Math.min(Number(C.MOUND_OPEN_MAX) || 1, to));
+}
 function moundOpenTo_(C) {
-  const days = Math.floor((now_() - lastTitle_(C)) / 86400000);
-  return Math.max(1, Math.min(Number(C.MOUND_OPEN_MAX) || 1, 1 + days));
+  const raw = moundRaw_(C), was = Math.max(1, Number(C.STATE_MOUND_OPEN_TO) || 1);
+  return raw > was && moundQuiet_(C) ? was : raw;   // overnight it holds where it was; it widens in the morning
+}
+// ── 🔔 The Bell: a few random one-hour windows a week, at sane Mountain hours, when anyone on the climb can
+//    charge the Ace. Win by BELL_MARGIN to take the hill; a smaller win makes you the #1 contender. Beat a Bell
+//    charge and the Ace earns BELL_BOUNTY Brawl Bucks and a BELL_SHIELD_HOURS break from the Bell.
+function bellState_(C) {
+  const t = now_(), until = C.STATE_BELL_UNTIL ? new Date(C.STATE_BELL_UNTIL) : null, next = C.STATE_BELL_NEXT ? new Date(C.STATE_BELL_NEXT) : null;
+  const warn = (Number(C.BELL_WARN_MINUTES) || 30) * 60000;
+  return { on: Number(C.BELL_PER_WEEK) > 0, open: !!(until && until > t), until: until, used: !!norm_(C.STATE_BELL_USED), next: next,
+    soon: !!(next && next - t <= warn && next > t), shield: C.STATE_BELL_SHIELD && new Date(C.STATE_BELL_SHIELD) > t ? new Date(C.STATE_BELL_SHIELD) : null };
+}
+function bellWindows_(C, d) {   // [[startMin, endMin], ...] for that Mountain day
+  const dow = Number(Utilities.formatDate(d, 'America/Denver', 'u'));   // 1 = Mon … 7 = Sun
+  return norm_(dow >= 6 ? C.BELL_WEEKEND : C.BELL_WEEKDAY).split(',').map(function (x) {
+    const m = x.trim().match(/^(\d{1,2}):?(\d{2})\s*-\s*(\d{1,2}):?(\d{2})$/);
+    return m ? [Number(m[1]) * 60 + Number(m[2]), Number(m[3]) * 60 + Number(m[4])] : null;
+  }).filter(Boolean);
+}
+function bellFits_(C, d) {   // can a Bell start at d and finish inside the same window?
+  const hm = Utilities.formatDate(d, 'America/Denver', 'HH:mm').split(':'), t = Number(hm[0]) * 60 + Number(hm[1]), len = Number(C.BELL_MINUTES) || 60;
+  return bellWindows_(C, d).some(function (w) { return t >= w[0] && t + len <= w[1]; });
+}
+function bellPick_(C, from) {   // a random 15-minute start between from and ~2 average gaps later
+  const per = Math.max(1, Number(C.BELL_PER_WEEK) || 3), avg = 168 / per, gap = Number(C.BELL_GAP_HOURS) || 0;
+  const span = Math.max(12, 2 * Math.max(0, avg - gap)) * 3600000;
+  const q = 15 * 60000, start = new Date(Math.ceil(from.getTime() / q) * q);
+  for (let tries = 0; tries < 4; tries++) {
+    const ok = [];
+    for (let x = start.getTime(); x <= start.getTime() + span * (tries + 1); x += q) { const d = new Date(x); if (bellFits_(C, d)) ok.push(d); }
+    if (ok.length) return ok[Math.floor(Math.random() * ok.length)];
+  }
+  return null;
+}
+function bellTxt_(C) { return 'win by **' + (Number(C.BELL_MARGIN) || 3) + '+** to take the hill; a smaller win makes you the **#1 contender**'; }
+function bellTick_(C) {
+  const t = now_(), B = bellState_(C), pt = players_(), ace = ace_(pt);
+  if (!B.on) { if (C.STATE_BELL_NEXT || C.STATE_BELL_UNTIL) { setCfg_('STATE_BELL_NEXT', ''); setCfg_('STATE_BELL_UNTIL', ''); setCfg_('STATE_BELL_WARNED', ''); } return; }
+  if (B.until && !B.open) {   // closing time
+    const used = norm_(C.STATE_BELL_USED);
+    setCfg_('STATE_BELL_UNTIL', ''); setCfg_('STATE_BELL_USED', ''); setCfg_('STATE_BELL_NEXT', '');
+    post_(used ? '🔔 The Bell is done. One challenger answered it; that fight plays out as charged.' : '🔕 The Bell is done. Nobody answered it' + (ace ? ': ' + esc_(ace.Discord) + ' rests easy.' : '.'));
+    C = cfg_();
+  }
+  if (B.open) return;
+  const blocked = !ace || !seasonOpen_(C) || seasonOver_(C) || !!C.STATE_REVENGE_EX_ACE;
+  let next = C.STATE_BELL_NEXT ? new Date(C.STATE_BELL_NEXT) : null;
+  const lastEnd = B.until || null, gap = (Number(C.BELL_GAP_HOURS) || 0) * 3600000;
+  const earliest = new Date(Math.max(t.getTime() + 6 * 3600000, lastEnd ? lastEnd.getTime() + gap : 0, B.shield ? B.shield.getTime() : 0));
+  if (!next || (B.shield && next < B.shield)) {
+    if (blocked) return;
+    next = bellPick_(C, earliest);
+    if (next) { setCfg_('STATE_BELL_NEXT', next.toISOString()); setCfg_('STATE_BELL_WARNED', ''); }
+    return;
+  }
+  const warn = (Number(C.BELL_WARN_MINUTES) || 30) * 60000;
+  if (!blocked && t >= new Date(next.getTime() - warn) && norm_(C.STATE_BELL_WARNED) !== next.toISOString() && t < next) {
+    setCfg_('STATE_BELL_WARNED', next.toISOString());
+    post_('🔔 **The Bell rings at ' + ts_(next) + '.** For ' + (Number(C.BELL_MINUTES) || 60) + ' minutes, anyone on the climb can charge ♠ ' + who_(ace) + ': ' + bellTxt_(C) + '.');
+  }
+  if (t >= next) {
+    setCfg_('STATE_BELL_NEXT', ''); setCfg_('STATE_BELL_WARNED', '');
+    if (blocked) return;   // no Ace, revenge pending or season closed: skip this one, the next gets picked
+    const until = new Date(t.getTime() + (Number(C.BELL_MINUTES) || 60) * 60000);
+    setCfg_('STATE_BELL_UNTIL', until.toISOString()); setCfg_('STATE_BELL_USED', '');
+    const role = norm_(C.BELL_ROLE_ID).replace(/\D/g, '');
+    post_((role ? '<@&' + role + '> ' : '') + '🔔🔔 **THE BELL! THE MOUND IS OPEN TO EVERYONE** until ' + ts_(until) + '.\n' +
+      'Anyone on the climb can charge ♠ ' + who_(ace) + ' (' + clubIdTxt_(ace) + '). First one in gets the shot: ' + bellTxt_(C) + '.\n' +
+      '📝 Pick **♠ THE ACE** on the Master Form' + (norm_(C.FORM_LINK) ? ': <' + norm_(C.FORM_LINK) + '>' : '.'));
+  }
+}
+function moundNext_(C) {   // words for when the next spot opens, e.g. "#2 joins in about 5 hours"
+  const to = moundOpenTo_(C), max = Number(C.MOUND_OPEN_MAX) || 1;
+  if (to >= max) return '';
+  const first = Number(C.MOUND_FIRST_HOURS) || 24, step = Number(C.MOUND_STEP_HOURS) || 24;
+  const at = lastTitle_(C).getTime() + 3600000 * (first + step * (to - 1)), hrs = Math.max(0, (at - now_()) / 3600000);
+  return '#' + (to + 1) + ' joins ' + (hrs < 1 ? 'within the hour' : 'in about ' + Math.round(hrs) + ' hours') + ' if nobody charges (never overnight).';
 }
 
 // ── Daily Brawl points: paid once a day (just after midnight Mountain) for the day before, by spot.
@@ -406,7 +551,7 @@ function lockIfOver_(C) {
 }
 
 // Lowest and highest spot each club has held this season (the Ace counts as spot 0), for Biggest Climber.
-function climbKey_() { return 'CLIMB_S' + cfg_().SEASON; }
+function climbKey_() { return (isFarm_() ? 'CLIMB_F' : 'CLIMB_S') + cfg_().SEASON; }
 function trackClimb_(rows) {
   const props = PropertiesService.getScriptProperties();
   const key = climbKey_();
@@ -597,6 +742,26 @@ function dropOne_(arr, p) {
   const i = arr.indexOf(p);
   if (i >= 0 && i < arr.length - 1) { arr[i] = arr[i + 1]; arr[i + 1] = p; }
 }
+// 🩹 Recovery after a failed charge at the Ace: no charging anyone until it's over. Kept in script properties.
+function rests_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(isFarm_() ? 'FARM_REST' : 'HILL_REST') || '{}'); } catch (e) { return {}; } }
+function restUntil_(email) { const r = rests_()[lc_(email)]; return r && new Date(r) > now_() ? new Date(r) : null; }
+function setRest_(email, hours) {
+  const r = rests_(), now = now_();
+  Object.keys(r).forEach(function (k) { if (new Date(r[k]) <= now) delete r[k]; });
+  if (hours > 0) r[lc_(email)] = hoursFrom_(now, hours).toISOString(); else delete r[lc_(email)];
+  PropertiesService.getScriptProperties().setProperty(isFarm_() ? 'FARM_REST' : 'HILL_REST', JSON.stringify(r));
+  return hours > 0 ? new Date(r[lc_(email)]) : null;
+}
+// A charge at the Ace that failed: down to ACE_LOSS_RANK (or one spot if already lower), then recovery.
+function aceLoss_(lad, ch, c, C, extra) {
+  const cur = lad.indexOf(ch) + 1, to = Math.max(Number(C.ACE_LOSS_RANK) || 5, cur + 1);
+  if (cur > 0) insertAt_(lad, ch, to);
+  const kn = /🥊/.test(String(c.Notes || '')) && !/🧽/.test(String(c.Notes || ''));
+  const hrs = Number(kn ? C.ACE_LOSS_REST_KNUCKLES_HOURS : C.ACE_LOSS_REST_HOURS) || 0;
+  const until = setRest_(ch.Email, hrs);
+  extra.push('🩹 ' + esc_(ch.Discord) + ' limps off the mound' + (cur > 0 ? ' to **#' + Math.min(to, lad.length) + '**' : '') +
+    (until ? ' and is recovering' + (kn ? ' from the 🥊 Brass Knuckles' : '') + ': no charges until ' + ts_(until) + '.' : '.'));
+}
 
 function activeMe_(pt, email) {
   const me = findBy_(pt, email);
@@ -657,7 +822,7 @@ function needOf_(c) { const m = /Must win by (\d+)/.exec(String(c.Notes || ''));
 
 function newChallenge_(ct, type, status, ch, df, deadline, note) {
   const c = {
-    ID: 'C-' + pad_(ct.rows.length + 1), Type: type, Status: status,
+    ID: (isFarm_() ? 'F-' : 'C-') + pad_(ct.rows.length + 1), Type: type, Status: status,
     Challenger: ch.Email, ChallengerName: ch.Discord, Defender: df.Email, DefenderName: df.Discord,
     Created: now_(), AcceptedAt: status === 'Accepted' ? now_() : '', Deadline: deadline,
     GameID: '', ChallengerReport: '', DefenderReport: '', CommishScore: '', Notes: note || '',
@@ -670,7 +835,10 @@ function newChallenge_(ct, type, status, ch, df, deadline, note) {
 
 // Sportsbook posts (bets, daily odds) go to BOOK_WEBHOOK_URL if it's set, otherwise to the main feed.
 function postBook_(content) { return post_(content, 'book'); }
+// Farm posts say so up front (sportsbook and shop posts are shared, so they don't).
+function ladPost_(content, where) { return isFarm_() && where !== 'book' && where !== 'shop' && !/^🌱/.test(content) ? '🌱 **FARM HILL** · ' + content : content; }
 function post_(content, where) {
+  content = ladPost_(content, where);
   snapshotBoard_();   // the HtH Leaderboard shows what Discord has been told
   let C;
   try { C = cfg_(); } catch (e) { return; }
@@ -692,7 +860,7 @@ function post_(content, where) {
 function sendChunk_(url, name, chunk) {
   const send = function (text) {
     return UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-      payload: JSON.stringify({ content: text, username: name, allowed_mentions: { parse: ['users'] } }) });
+      payload: JSON.stringify({ content: text, username: name, allowed_mentions: { parse: ['users', 'roles'] } }) });
   };
   let res, code;
   try { res = send(chunk); code = res.getResponseCode(); } catch (e) { log_('system', 'Discord error', String(e)); return 0; }
@@ -796,7 +964,7 @@ function notifyReject_(sub, msg) {
   try { C = cfg_(); } catch (e) { return; }
   if (String(C.EMAIL_REJECTIONS).toUpperCase() !== 'TRUE' || !sub.email) return;
   try {
-    MailApp.sendEmail(sub.email, '❌ Hold the Hill: your ' + (actionOf_(sub.action) || 'form').replace(/\s*\(.*$/, '').toLowerCase() + ' did NOT go through',
+    MailApp.sendEmail(acct_(sub.email), '❌ Hold the Hill: your ' + (actionOf_(sub.action) || 'form').replace(/\s*\(.*$/, '').toLowerCase() + ' did NOT go through',
       'Your "' + (sub.action || 'form') + '" submission was not accepted:\n\n' + msg +
       '\n\nFix it and submit the form again. Questions? Ask the commish in Discord.');
   } catch (e) { log_('system', 'Email error', String(e)); }
@@ -840,7 +1008,7 @@ function rejectPost_(sub, msg) {
   const C = cfg_();
   if (lc_(C.POST_REJECTIONS) === 'false') return;
   let who = '';
-  try { const p = findBy_(players_(), sub.email); if (p) who = tag_(p); } catch (e) { }
+  try { const p = findBy_(players_(), acct_(sub.email)); if (p) who = tag_(p); } catch (e) { }
   if (!who) { const d = norm_(sub.f && sub.f[Q.DISCORD]); who = d ? '**' + esc_(d) + '**' : 'Someone'; }
   const a = actionOf_(sub.action);
   const kind = a === ACTIONS.REGISTER ? ACTION_SHORT.Register : a === ACTIONS.CHALLENGE ? ACTION_SHORT.Charge : a === ACTIONS.REPORT ? ACTION_SHORT.Report :
@@ -876,14 +1044,15 @@ function handleSubmission_(sub) {
   try {
     if (!sub.email) fail_('No verified email came through with the form. The commish needs to set the form to collect verified emails.');
     const C = cfg_();
+    const onLad = function (lad, fn) { return withLad_(lad, function () { return fn(sub, cfg_()); }); };
     switch (actionOf_(sub.action)) {
-      case ACTIONS.REGISTER: doRegister_(sub, C); break;
-      case ACTIONS.CHALLENGE: doChallenge_(sub, C); break;
-      case ACTIONS.REPORT: doReport_(sub, C); break;
-      case ACTIONS.REVENGE: doRevenge_(sub, C); break;
+      case ACTIONS.REGISTER: onLad(/farm|🌱/i.test(norm_(sub.f[Q.LADDER])) ? 'farm' : '', doRegister_); break;
+      case ACTIONS.CHALLENGE: if (/^🌱/.test(norm_(sub.f[Q.OPPONENT]))) withLad_('farm', function () { doChallenge_(farmSub_(sub, 'charge'), cfg_()); }); else onLad('', doChallenge_); break;
+      case ACTIONS.REPORT: if (reportLad_(sub.email) === 'farm') withLad_('farm', function () { doReport_(farmSub_(sub, 'report'), cfg_()); }); else onLad('', doReport_); break;
+      case ACTIONS.REVENGE: if (revengeLad_(sub.email) === 'farm') withLad_('farm', function () { doRevenge_(Object.assign({}, sub, { email: cfg_().STATE_REVENGE_EX_ACE }), cfg_()); }); else onLad('', doRevenge_); break;
       case ACTIONS.BET: doBet_(sub, C); break;
-      case ACTIONS.DISCORD_ID: doDiscordId_(sub, C); break;
-      case ACTIONS.REACH: doReach_(sub, C); break;
+      case ACTIONS.DISCORD_ID: doDiscordId_(sub, C); if (farmReady_()) withLad_('farm', function () { myFarm_(sub.email, true).forEach(function (r) { try { doDiscordId_(Object.assign({}, sub, { email: r.Email }), cfg_()); } catch (e) { if (!(e instanceof HillError)) throw e; } }); }); break;
+      case ACTIONS.REACH: reachBoth_(sub); break;
       case ACTIONS.WAGER: doWager_(sub, C); break;
       case ACTIONS.WAGER_REPLY: doWagerReply_(sub, C); break;
       case ACTIONS.SHOP: doShop_(sub, C); break;
@@ -929,9 +1098,14 @@ function reachList_(me, C, pt, ct) {
   const kn = function (p) { return itOn && holds_(inv, p.Email, 'knuckles') > 0 && !itemCooling_(C, p.Email) ? ' 🥊 *(wearing Brass Knuckles: +1 run)*' : ''; };
   if (ace && ace !== me) {
     const openTo = moundOpenTo_(C), busy = ct.rows.some(function (c) { return c.Type !== 'Ladder' && OPEN.indexOf(c.Status) >= 0; });
+    const Bw = bellState_(C);
+    if (Number(me.Rank) > openTo && Bw.open && !Bw.used && !Bw.shield) out.push('🔔 **The Bell is ringing** until ' + ts_(Bw.until) + ': ♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + clubIdTxt_(ace) + ': ' + bellTxt_(C) +
+      (busy ? ' ⏳ *(a title fight is already on: wait for it)*' : ''));
     if (Number(me.Rank) <= openTo) out.push('♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + esc_(ace.Club) + ' · ' + clubIdTxt_(ace) + (kn(ace) ? ': **title shot, win by 2+**' + kn(ace) : ': **title shot, just win**') +
       (busy ? ' ⏳ *(a title fight is already on: wait for it)*' : revengeOpen ? " ⏳ *(the Ace's Revenge is pending)*" : ''));
   }
+  const myRest = restUntil_(me.Email);
+  if (myRest) out.push('🩹 **Recovering** from your last charge at the Ace: you can charge again after ' + Utilities.formatDate(myRest, 'America/Denver', 'EEE h:mm a') + ' MT.');
   ladder_(pt).forEach(function (p) {
     const gap = Number(me.Rank) - Number(p.Rank);
     const jump = itOn && gap === reach + 1;
@@ -973,9 +1147,156 @@ function doReach_(sub, C) {
   post_(msg, 'help');
 }
 
+// Which ladder a report or revenge is about: the one where this player has the open charge (or the revenge).
+// This account's Farm clubs (active only, unless all).
+function myFarm_(email, all) { return players_().rows.filter(function (p) { return lc_(acct_(p.Email)) === lc_(acct_(email)) && (all || p.Status === 'Active'); }); }
+// Which of my Farm clubs a charge or report is for: the club ID on the form, else the only one that fits.
+function farmSub_(sub, what) {
+  const mine = myFarm_(sub.email);
+  if (!mine.length) fail_('This Google account has no club on the Farm Hill. Register a 6★-or-under club on the Master Form first.');
+  const want = norm_(sub.f[Q.MY_CLUB]).replace(/\D/g, '');
+  let pick = null;
+  if (want) { pick = mine.find(function (p) { return norm_(p.ClubID) === want; }); if (!pick) fail_('Club ' + want + ' is not one of your Farm clubs (' + mine.map(function (p) { return p.Club + ' ' + p.ClubID; }).join(', ') + ').'); }
+  else if (mine.length === 1) pick = mine[0];
+  else {
+    const ct = challenges_();
+    let fits = mine;
+    if (what === 'report') fits = mine.filter(function (p) { return openFor_(ct, p.Email); });
+    else {
+      const opp = norm_(sub.f[Q.OPPONENT]), pt = players_(), tgt = pt.rows.find(function (p) { return lc_(oppLabel_(p)) === lc_(opp); });
+      const C = cfg_(), reach = Number(C.CHALLENGE_REACH) || 3, openTo = moundOpenTo_(C), B = bellState_(C);
+      fits = mine.filter(function (p) {
+        if (openFor_(ct, p.Email) || restUntil_(p.Email) || Number(p.Rank) === 0) return false;
+        if (opp === FARM_ACE_CHOICE) return Number(p.Rank) <= openTo || (B.open && !B.used && !B.shield);
+        const gap = tgt ? Number(p.Rank) - Number(tgt.Rank) : 0; return gap >= 1 && gap <= reach + 1;
+      });
+    }
+    if (fits.length === 1) pick = fits[0];
+    else fail_('You have ' + mine.length + ' Farm clubs' + (fits.length ? ' and ' + fits.length + ' of them could ' + what + ' this one' : '') + ': put the club ID in "Charging with" (' + mine.map(function (p) { return p.Club + ' ' + p.ClubID; }).join(', ') + ').');
+  }
+  return Object.assign({}, sub, { email: pick.Email });
+}
+function reportLad_(email) {
+  if (!farmReady_()) return '';
+  const has = function (lad) { return withLad_(lad, function () { const ct = challenges_(); const rows = lad ? myFarm_(email) : [findBy_(players_(), email)].filter(Boolean); let best = null; rows.forEach(function (me) { const c = openFor_(ct, me.Email); if (c && (!best || new Date(c.Created) > new Date(best.Created))) best = c; }); return best; }); };
+  const a = has(''), b = has('farm');
+  if (b && (!a || new Date(b.Created) > new Date(a.Created))) return 'farm';
+  return '';
+}
+function revengeLad_(email) { return farmReady_() && lc_(acct_(withLad_('farm', cfg_).STATE_REVENGE_EX_ACE)) === lc_(acct_(email)) ? 'farm' : ''; }
+// "Who can I charge?" answers for every ladder the player is on.
+function reachBoth_(sub) {
+  let done = 0, err = null;
+  LADS_.forEach(function (l) {
+    if (l === 'farm' && !farmReady_()) return;
+    try { withLad_(l, function () { (l ? myFarm_(sub.email) : [findBy_(players_(), sub.email)].filter(Boolean)).forEach(function (me) { doReach_(Object.assign({}, sub, { email: me.Email }), cfg_()); done++; }); }); } catch (e) { if (e instanceof HillError) err = e; else throw e; }
+  });
+  if (!done) { if (err) throw err; fail_('This Google account is not registered on the Hill or the Farm Hill yet. Register your club first, then ask again.'); }
+}
+// A club's stars (0–100) from its public SmallBall page.
+// A club's star rating (the 1–10 stars on its SmallBall page; star10 in the club data). SmallBall only shows
+// club data to someone signed in, so this uses the connected login (🔑 Connect SmallBall). Without one (or if
+// it fails), it falls back to the stars the player gave on the Master Form (Stars tab), then to `typed`.
+function clubStars_(clubId, typed) {
+  const id = norm_(clubId).replace(/\D/g, ''), sp = PropertiesService.getScriptProperties(), ck = sp.getProperty('SB_COOKIE');
+  if (ck && !sp.getProperty('SB_BAD')) {
+    try {
+      const r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + encodeURIComponent(id) + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } });
+      const code = r.getResponseCode();
+      if (code === 401 || code === 403) { sp.setProperty('SB_BAD', String(Date.now())); log_('system', 'SmallBall login expired', 'Star checks use the form until you reconnect (🔑 Connect SmallBall).'); }
+      else if (code === 200) { const d = JSON.parse(r.getContentText()); const n = Number(d.star10 != null ? d.star10 : Math.round(Number(d.stars) / 10)); if (isFinite(n)) return { stars: n, name: norm_(d.name), src: 'smallball' }; }
+    } catch (e) { }
+  }
+  const m = starsMap_(); if (id in m) return { stars: m[id], name: '', src: 'form' };
+  const t = Number(String(typed == null ? '' : typed).replace(/[^\d]/g, ''));
+  return String(typed == null ? '' : typed).trim() !== '' && t >= 0 && t <= 10 ? { stars: t, name: '', src: 'form' } : null;
+}
+// 🔑 Lets the Hill read club star ratings (SmallBall only shows them to someone signed in). Read-only.
+function sbCookieFrom_(txt) {
+  const t = String(txt || '').trim();
+  const m = /-H\s+\$?['"]cookie:\s*([^'"]+)['"]/i.exec(t) || /-b\s+\$?['"]([^'"]+)['"]/i.exec(t) || /["']cookie["']\s*:\s*["']([^"']+)["']/i.exec(t);
+  return (m ? m[1] : t.replace(/^cookie:\s*/i, '')).trim();
+}
+function adminConnectSmallBall() {
+  const ui = SpreadsheetApp.getUi(), pr = PropertiesService.getScriptProperties();
+  const r = ui.prompt('🔑 Connect SmallBall (star ratings)',
+    'SmallBall only shows a club\'s star rating to someone logged in. Paste your SmallBall login here and the Hill reads star ratings with it (read-only, nothing else) for the 🌱 Farm Hill line. It is kept in the script\'s private settings, not on any tab.\n\n' +
+    'On play.smallball.com (logged in) press Ctrl+Shift+I → Network tab → reload the page → right-click any row → Copy → Copy as cURL, then paste the whole thing here.\n\nLeave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const v = sbCookieFrom_(r.getResponseText());
+  if (!v) { pr.deleteProperty('SB_COOKIE'); pr.deleteProperty('SB_BAD'); ui.alert('Disconnected. Star checks use the stars players give on the Master Form.'); return; }
+  pr.setProperty('SB_COOKIE', v); pr.deleteProperty('SB_BAD');
+  const t = clubStars_('1064');
+  ui.alert(t && t.src === 'smallball' ? '✅ Connected: club 1064 reads as ' + t.stars + '★.' : '❌ That login did not work. Copy it again while logged in to SmallBall and paste it in.');
+}
+// The Farm line in stars out of 10 (a value over 10 is left over from the first 0–100 draft: use 6).
+function farmMax_(C) { const n = Number(C.FARM_MAX_STARS); return n >= 1 && n <= 10 ? n : 6; }
+function p0_(club, clubId) { return { Club: club, ClubID: clubId }; }
+function farmStarsMap_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('FARM_STARS') || '{}'); } catch (e) { return {}; } }
+// 🌱 Farm sign-up: a second club, at or under FARM_MAX_STARS, locked at sign-up. The first club on an empty Farm holds it.
+function doRegisterFarm_(sub, C) {
+  if (lc_(C.FARM_ON) === 'false') fail_('The Farm Hill is closed right now.');
+  const f = sub.f, pt = players_();
+  const discord = norm_(f[Q.DISCORD]), did = norm_(f[Q.DISCORD_ID]).replace(/\D/g, ''), owner = norm_(f[Q.OWNER]), club = norm_(f[Q.CLUB]), clubId = norm_(f[Q.CLUB_ID]).replace(/\D/g, '');
+  if (!discord || !owner || !club || !clubId) fail_('Discord username, owner ID, club name and club ID are all required.');
+  const key = farmKey_(sub.email, clubId), ex = findBy_(pt, key);
+  if (pt.rows.some(function (p) { return lc_(p.ClubID) === lc_(clubId) && p.Status === 'Active'; })) fail_('Club ' + clubId + ' is already on the Farm Hill.');
+  const main = withLad_('', function () { return players_().rows; });
+  if (main.some(function (p) { return lc_(p.ClubID) === lc_(clubId) && p.Status === 'Active'; })) fail_('Club ' + clubId + ' is on Hold the Hill. A club plays on one ladder.');
+  const st = clubStars_(clubId, f[Q.STARS]);
+  if (!st) fail_('Could not read the star rating for club ' + clubId + '. Put your club\'s stars (0-10, on its club page) in the Club stars box and try again.');
+  try { setStars_(p0_(club, clubId), st.stars, st.src); } catch (e) { }
+  const max = farmMax_(C);
+  if (st.stars > max) fail_('Club ' + clubId + ' is ' + st.stars + '★. The Farm Hill is for clubs at ' + max + '★ or under: this one is ready for Hold the Hill.');
+  const sp = PropertiesService.getScriptProperties(), fm = farmStarsMap_(); fm[clubId] = st.stars; sp.setProperty('FARM_STARS', JSON.stringify(fm));
+  const empty = !ace_(pt) && !ladder_(pt).length;
+  const rank = empty ? 0 : ladder_(pt).length + 1;
+  const p = { Email: key, Discord: discord, DiscordID: did, OwnerID: owner, Club: club, ClubID: clubId,
+    Status: 'Active', Rank: rank, Joined: now_(), Wins: 0, Losses: 0, CareerPts: 0, Defenses: 0, Reigns: 0, BestReignPts: 0 };
+  if (ex) { Object.assign(ex, p); writeRow_(pt, ex); } else appendObj_(SHEETS.PLAYERS, p);
+  trackClimb_([p]);
+  log_(sub.email, 'Register (Farm)', discord + ' / ' + club + ' (' + clubId + ', ' + st.stars + '★) at ' + (empty ? 'Ace' : '#' + rank));
+  if (empty) {
+    const pt2 = players_(), me = findBy_(pt2, key);
+    startReign_(me, false, C); savePlayers_(pt2); setCfg_('STATE_LAST_TITLE_ACTIVITY', now_().toISOString());
+    post_('🆕 ' + who_(p) + ' (' + st.stars + '★) is the first club on the Farm and **holds the Farm mound** as the first 🌱 Farm Ace. Come and take it.');
+  } else post_('🆕 ' + who_(p) + ' (' + st.stars + '★) joins the Farm Hill at **#' + rank + '**.' + (myFarm_(sub.email).length > 1 ? ' (' + esc_(discord) + ' now has ' + myFarm_(sub.email).length + ' clubs on the Farm.)' : ''));
+  refreshFormChoices();
+}
+// 📣 Call-ups: a Farm club that grows past FARM_MAX_STARS leaves the Farm (hourly, a few clubs at a time).
+function farmCallUps_() {
+  const C = cfg_(), max = farmMax_(C), sp = PropertiesService.getScriptProperties();
+  const pt = players_(), ct = challenges_(), fm = farmStarsMap_();
+  const act = pt.rows.filter(function (p) { return p.Status === 'Active' && hasRank_(p) && norm_(p.ClubID); });
+  if (!act.length) return;
+  let at = Number(sp.getProperty('FARM_CU_AT') || 0) % act.length;
+  const pick = act.slice(at, at + 8).concat(at + 8 > act.length ? act.slice(0, at + 8 - act.length) : []).slice(0, Math.min(8, act.length));
+  sp.setProperty('FARM_CU_AT', String(at + pick.length));
+  pick.forEach(function (p) {
+    const st = clubStars_(norm_(p.ClubID)); if (!st || st.src !== 'smallball') return;
+    fm[norm_(p.ClubID)] = st.stars;
+    if (st.stars <= max || openFor_(ct, p.Email)) return;
+    const pt2 = players_(), me = findBy_(pt2, p.Email); if (!me) return;
+    const wasAce = ace_(pt2) === me;
+    if (wasAce) endReign_('Called up');
+    const pt3 = players_(), m3 = findBy_(pt3, p.Email);
+    m3.Status = 'Called up'; m3.Rank = '';
+    setLadder_(ladder_(pt3)); savePlayers_(pt3);
+    log_('system', 'Farm call-up', m3.Discord + ' (' + st.stars + '★)');
+    post_('📣 **CALLED UP!** ' + who_(m3) + ' has grown to **' + st.stars + '★**, past the Farm\'s ' + max + '★ line, and graduates from the Farm Hill' + (wasAce ? ' as the reigning 🌱 Farm Ace (the Farm mound is open: the commish crowns the next one)' : '') + '. Ready for Hold the Hill: register it on the Master Form (⛰️ Hold the Hill).');
+    refreshFormChoices();
+  });
+  sp.setProperty('FARM_STARS', JSON.stringify(fm));
+}
 function doRegister_(sub, C) {
+  if (isFarm_()) return doRegisterFarm_(sub, C);
   const f = sub.f;
   const pt = players_();
+  if (farmReady_() && withLad_('farm', function () { return players_().rows.some(function (p) { return lc_(p.ClubID) === lc_(norm_(f[Q.CLUB_ID])) && p.Status === 'Active'; }); })) fail_('Club ' + norm_(f[Q.CLUB_ID]) + ' is on the Farm Hill. A club plays on one ladder.');
+  if (farmReady_() && norm_(f[Q.CLUB_ID])) {   // Hold the Hill is for clubs above the Farm line: smaller clubs go to the Farm
+    const st = clubStars_(norm_(f[Q.CLUB_ID]).replace(/\D/g, ''), f[Q.STARS]);
+    if (st && st.stars <= farmMax_(C)) return withLad_('farm', function () { return doRegisterFarm_(sub, cfg_()); });
+  }
   const discord = norm_(f[Q.DISCORD]);
   const did = norm_(f[Q.DISCORD_ID]).replace(/\D/g, '');
   const owner = norm_(f[Q.OWNER]);
@@ -1007,6 +1328,8 @@ function doChallenge_(sub, C) {
   const me = activeMe_(pt, sub.email);
   const mine = openFor_(ct, me.Email);
   if (mine) fail_('You already have an open challenge (' + mine.ID + ', ' + mine.Status + '). One at a time.');
+  const resting = restUntil_(me.Email);
+  if (resting) fail_('🩹 You are still recovering from your last charge at the Ace. You can charge again after ' + Utilities.formatDate(resting, 'America/Denver', 'EEE h:mm a') + ' MT.');
   const ace = ace_(pt);
   if (ace === me) fail_('The Ace defends the hill and does not issue challenges.');
   const revengeOpen = !!C.STATE_REVENGE_EX_ACE;
@@ -1015,11 +1338,15 @@ function doChallenge_(sub, C) {
 
   const choice = norm_(sub.f[Q.OPPONENT]);
   const pick = itemKeyOf_(sub.f[Q.USE_ITEM]);
-  let type, opp, need = 1, gap = 0;
-  if (choice === ACE_CHOICE) {
-    if (!ace) fail_('There is no Ace right now. The commish will crown one.');
-    const openTo = moundOpenTo_(C);
-    if (Number(me.Rank) > openTo) fail_('The mound is open to ' + (openTo === 1 ? 'the #1 contender only' : '#1–#' + openTo) + ' right now. You are #' + me.Rank + '. It opens one more spot each day nobody charges.');
+  let type, opp, need = 1, gap = 0, viaBell = false;
+  if (choice === aceChoice_()) {
+    if (!ace) fail_('There is no ' + (isFarm_() ? 'Farm ' : '') + 'Ace right now. The commish will crown one.');
+    const openTo = moundOpenTo_(C), B = bellState_(C);
+    if (Number(me.Rank) > openTo) {
+      if (B.open && !B.used && !B.shield) viaBell = true;
+      else fail_('The mound is open to ' + (openTo === 1 ? 'the #1 contender only' : '#1–#' + openTo) + ' right now. You are #' + me.Rank + '. ' + moundNext_(C) +
+        (B.open && B.used ? ' 🔔 The Bell rang, but someone already answered it.' : ''));
+    }
     if (ct.rows.some(function (c) { return c.Type !== 'Ladder' && OPEN.indexOf(c.Status) >= 0; })) fail_('Someone is already charging the mound. Wait for that fight to settle.');
     if (revengeOpen) fail_("The Ace's Revenge is pending. Title challenges reopen once it is settled.");
     type = 'Title'; opp = ace;
@@ -1047,9 +1374,11 @@ function doChallenge_(sub, C) {
   if (type === 'Ladder' && starGap) need = Math.max(1, need - starGap);
   const needBefore = need, IT = chargeItems_(C, me, opp, type, gap, need, pick);   // 🛒 Brawl Bucks items (may buy on the spot)
   need = IT.need;
+  if (viaBell) need = Math.max(need, Number(C.BELL_MARGIN) || 3);   // 🔔 the Bell's margin; items can't go under it
   const deadline = hoursFrom_(now_(), C.MATCH_HOURS);
-  const note = [need > 1 ? 'Must win by ' + need + '+' : '', ms != null && os != null ? 'Stars ' + ms + 'v' + os : '', IT.notes.length ? 'Items ' + IT.notes.join(' ') : ''].filter(Boolean).join(' · ');
+  const note = [viaBell ? '🔔 Bell' : '', need > 1 ? 'Must win by ' + need + '+' : '', ms != null && os != null ? 'Stars ' + ms + 'v' + os : '', IT.notes.length ? 'Items ' + IT.notes.join(' ') : ''].filter(Boolean).join(' · ');
   const c = newChallenge_(ct, type, 'Accepted', me, opp, deadline, note);
+  if (viaBell) setCfg_('STATE_BELL_USED', c.ID);
   useItems_(C, IT.used, c.ID);
   const itemTxt = IT.post.length ? '\n' + IT.post.join('\n') + (need !== needBefore || IT.notes.length ? ' ' + esc_(me.Discord) + ' needs ' + (need > 1 ? '**' + need + '+ runs**' : '**any win**') + '.' : '') : '';
   log_(sub.email, 'Challenge', c.ID + ' ' + type + ': ' + me.Discord + ' → ' + opp.Discord + (IT.notes.length ? ' (items ' + IT.notes.join(' ') + ')' : ''));
@@ -1057,8 +1386,8 @@ function doChallenge_(sub, C) {
   try { if (bookOn_(C)) { const Lc = readTable_(SHEETS.LINES).rows.filter(function (x) { return x.ChallengeID === c.ID; })[0]; betsClosedPost_(c, me, opp, Lc); } } catch (e) { }
   try { potTick_(true); } catch (e) { }
   if (type === 'Title') {
-    post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
-      ' holds it.' + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
+    post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : viaBell ? ', from #' + me.Rank + ', answers 🔔 THE BELL and' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
+      ' holds it.' + (viaBell ? ' 🔔 Bell rules: win by **' + need + '+** to take the hill; a smaller win makes ' + esc_(me.Discord) + ' the **#1 contender**.' : '') + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   } else {
     post_('🥊 ' + who_(me) + ' (#' + me.Rank + ') charges the hill at ' + who_(opp) + ' (#' + opp.Rank + ')! Benches clear. ' +
       (ms != null && os != null ? '(' + starTag_(ms) + ' vs ' + starTag_(os) + ') ' : '') +
@@ -1198,13 +1527,19 @@ function finalize_(ct, c, cr, dr, source) {
     const rt = readTable_(SHEETS.REIGNS);
     const reign = currentReign_(rt);
     if (!reign) fail_('No active reign on file. The commish should crown the Ace again.');
-    const tNeed = needOf_(c);
-    if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small changes nothing
-      dropOne_(lad, ch);
+    const tNeed = needOf_(c), isBell = /🔔 Bell/.test(String(c.Notes || ''));
+    if (isBell && chWins && !forfeit && margin < tNeed) {   // 🔔 a Bell win that's too small: #1 contender, the Ace keeps the hill
+      if (Number(ch.Rank) !== 1) { removeFrom_(lad, ch); insertAt_(lad, ch, 1); }
+      setLadder_(lad);
+      outcome = 'Bell: won by ' + margin + ', needed ' + tNeed + '+: #1 contender';
+      headline = '🔔 ' + who_(ch) + ' answers the Bell and beats ' + who_(df) + ' ' + scoreTxt + '! Not by **' + tNeed + '+**, so ♠️ ' + who_(df) +
+        ' keeps the hill, but ' + esc_(ch.Discord) + ' jumps to **#1 contender**.';
+    } else if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small is a failed charge
+      aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = 'Won by ' + margin + ', needed ' + tNeed + '+: the Ace holds';
       headline = '🥊 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + ' but needed to win by **' + tNeed + '+** through the Brass Knuckles. ' +
-        '♠️ ' + who_(df) + ' keeps the hill. Nobody moves, no points.';
+        '♠️ ' + who_(df) + ' keeps the hill, no points.';
     } else if (!chWins) {
       const n = num_(reign.Defenses) + 1;
       points = reward_(n, C);
@@ -1215,11 +1550,17 @@ function finalize_(ct, c, cr, dr, source) {
       df.CareerPts = num_(df.CareerPts) + points;
       df.Defenses = num_(df.Defenses) + 1;
       df.BestReignPts = Math.max(num_(df.BestReignPts), reign.ReignPts);
-      dropOne_(lad, ch);
+      aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = 'Defense #' + n + ' (+' + points + ')';
       headline = '♠️ **The Ace holds the hill!** ' + who_(df) + ' beats ' + who_(ch) + ' ' + scoreTxt +
         '. Defense #' + n + ', **+' + points + '** pts (reign total ' + reign.ReignPts + ').';
+      if (isBell) {
+        const bounty = Number(C.BELL_BOUNTY) || 0, sh = hoursFrom_(now_(), Number(C.BELL_SHIELD_HOURS) || 0);
+        if (bounty) ledger_(C, df, bounty, '🔔 Bell defense bounty (' + c.ID + ')');
+        setCfg_('STATE_BELL_SHIELD', sh.toISOString());
+        extra.push('🔔 Bell defense: ' + (bounty ? '**+' + bounty + ' BB** bounty, and ' : '') + '🛡️ no Bell rings again until ' + ts_(sh) + '.');
+      }
       if (before < C.REVENGE_THRESHOLD && reign.ReignPts >= C.REVENGE_THRESHOLD) {
         extra.push('🛡️ ' + esc_(df.Discord) + ' has passed ' + C.REVENGE_THRESHOLD + " reign points and earned the **Ace's Revenge** if dethroned.");
       }
@@ -1259,7 +1600,7 @@ function finalize_(ct, c, cr, dr, source) {
       headline = "🔥 **THE ACE'S REVENGE!** " + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt +
         ' and takes the hill back. A new reign begins.';
     } else {
-      dropOne_(lad, ch);
+      aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = chWins ? 'Revenge fell short (won by ' + margin + ', needed more than ' + need + ')' : 'Revenge denied';
       headline = chWins
@@ -1280,7 +1621,7 @@ function finalize_(ct, c, cr, dr, source) {
 
   const mt = readTable_(SHEETS.MATCHES);
   appendObj_(SHEETS.MATCHES, {
-    MatchID: 'M-' + pad_(mt.rows.length + 1), Date: now_(), Season: C.SEASON, ChallengeID: c.ID, Type: c.Type,
+    MatchID: (isFarm_() ? 'FM-' : 'M-') + pad_(mt.rows.length + 1), Date: now_(), Season: C.SEASON, ChallengeID: c.ID, Type: c.Type,
     GameID: c.GameID, Winner: W.Discord, WinnerEmail: W.Email, Loser: L.Discord, LoserEmail: L.Email,
     WinnerRuns: forfeit ? '' : Math.max(cr, dr), LoserRuns: forfeit ? '' : Math.min(cr, dr),
     Margin: margin, Outcome: outcome, Points: points, Source: source,
@@ -1314,7 +1655,7 @@ function tie_(ct, c, runs, source, C, pt, ch, df) {
   writeRow_(ct, c);
   const mt = readTable_(SHEETS.MATCHES);
   appendObj_(SHEETS.MATCHES, {
-    MatchID: 'M-' + pad_(mt.rows.length + 1), Date: now_(), Season: C.SEASON, ChallengeID: c.ID, Type: c.Type,
+    MatchID: (isFarm_() ? 'FM-' : 'M-') + pad_(mt.rows.length + 1), Date: now_(), Season: C.SEASON, ChallengeID: c.ID, Type: c.Type,
     GameID: c.GameID, Winner: df.Discord, WinnerEmail: df.Email, Loser: ch.Discord, LoserEmail: ch.Email,
     WinnerRuns: runs, LoserRuns: runs, Margin: 0, Outcome: 'Tie: ' + df.Discord + ' holds', Points: 0, Source: source,
   });
@@ -1338,7 +1679,7 @@ function postResult_(c, text, where) {
   if (!at || at <= now_().getTime()) { post_(where === 'book' ? text : text + '\n\n' + standingsText_(), where); return; }
   const props = PropertiesService.getScriptProperties();
   let q = []; try { q = JSON.parse(props.getProperty('POST_QUEUE') || '[]'); } catch (e) { q = []; }
-  q.push({ at: at, text: text, where: where || '' });
+  q.push({ at: at, text: text, where: where || '', lad: LAD_ });
   props.setProperty('POST_QUEUE', JSON.stringify(q));
   log_('system', 'Result queued', 'posts at ' + new Date(at).toISOString());
 }
@@ -1398,22 +1739,23 @@ function flushPosts() {
   try {
     const props = PropertiesService.getScriptProperties();
     const t = now_().getTime();
-    let anyOpen = true;
-    try { anyOpen = challenges_().rows.some(function (c) { return OPEN.indexOf(c.Status) >= 0; }); } catch (e) { }
-    if (anyOpen) {
+    eachLad_(function () {
+      let anyOpen = true;
+      try { anyOpen = challenges_().rows.some(function (c) { return OPEN.indexOf(c.Status) >= 0; }); } catch (e) { }
+      if (!anyOpen) return;
       try { autoDetect_(); } catch (err) { log_('system', 'ERROR (auto-detect)', String(err && err.stack || err)); }
       try { settleChallengerReports_(); } catch (err) { log_('system', 'ERROR (settle)', String(err && err.stack || err)); }
-    }
+    });
     try { flushRetries_(); } catch (err) { log_('system', 'ERROR (retries)', String(err && err.stack || err)); }
     let q = []; try { q = JSON.parse(props.getProperty('POST_QUEUE') || '[]'); } catch (e) { q = []; }
     const due = q.filter(function (x) { return x.at <= t; });
     if (due.length) {
       props.setProperty('POST_QUEUE', JSON.stringify(q.filter(function (x) { return x.at > t; })));
-      due.forEach(function (x) { post_(x.where === 'book' ? x.text : x.text + '\n\n' + standingsText_(), x.where); });
+      due.forEach(function (x) { withLad_(x.lad || '', function () { post_(x.where === 'book' ? x.text : x.text + '\n\n' + standingsText_(), x.where); }); });
     }
     if (t - Number(props.getProperty('FLUSH5_AT') || 0) >= 290000) {
       props.setProperty('FLUSH5_AT', String(t));
-      try { tick_(); } catch (err) { log_('system', 'ERROR (deadlines)', String(err && err.stack || err)); }
+      eachLad_(tick_);
       try { bookChoicesTick_(); } catch (err) { log_('system', 'ERROR (book)', String(err && err.stack || err)); }
       try { wagersTick_(); } catch (err) { log_('system', 'ERROR (wagers)', String(err && err.stack || err)); }
       try { flushLog_(); } catch (err) { }
@@ -1456,7 +1798,7 @@ const ITEMS = {
   rain: { icon: '🌧️', name: 'Rain Delay', kind: 'streak', what: 'Saves your 🔥 Hill streak once, on a day you don\'t play' },
 };
 const itemLabel_ = (k) => ITEMS[k].icon + ' ' + ITEMS[k].name;
-function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && bookOn_(C); }
+function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && lc_(C.BOOK_ON) !== 'false'; }   // Farm games pay and use items too, even without a Farm sportsbook
 function itemPrices_(C) {
   const out = { knuckles: 250, eraser: 200, jump: 150, jumpplus: 300, rain: 100 };
   norm_(C.ITEM_PRICES).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
@@ -1478,7 +1820,7 @@ function inventory_(C) {
   } catch (e) { }
   return inv;
 }
-const holds_ = (inv, email, key) => ((inv[lc_(email)] || {})[key] || 0);
+const holds_ = (inv, email, key) => ((inv[lc_(acct_(email))] || {})[key] || 0);
 // When this player last used an item (refunded uses don't count).
 function lastItemUse_(C, email) {
   const season = String(C.SEASON), refunded = {}; let last = 0;
@@ -1488,14 +1830,14 @@ function lastItemUse_(C, email) {
   return last;
 }
 function itemCooling_(C, email) {
-  const h = Number(C.ITEM_COOLDOWN_HOURS) || 24, last = lastItemUse_(C, email);
+  const h = Number(C.ITEM_COOLDOWN_HOURS) || 24, last = lastItemUse_(C, acct_(email));
   return last && now_().getTime() - last < h * 3600e3 ? new Date(last + h * 3600e3) : null;
 }
 function itemRow_(C, p, key, action, price, cid, note) {
-  appendObj_(SHEETS.ITEMS, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: p.Discord, Item: key, Action: action, Price: price || '', ChallengeID: cid || '', Notes: note || '' });
+  appendObj_(SHEETS.ITEMS, { Date: now_(), Season: C.SEASON, Email: acct_(p.Email), Player: p.Discord, Item: key, Action: action, Price: price || '', ChallengeID: cid || '', Notes: note || '' });
 }
 function ledger_(C, p, amount, reason) {
-  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: p.Discord, Amount: amount, Reason: reason });
+  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: acct_(p.Email), Player: p.Discord, Amount: amount, Reason: reason });
 }
 // Buy one item (from the shop, or on the spot when charging with an item you don't hold yet).
 function buyItem_(C, p, key, isAce) {
@@ -1813,6 +2155,78 @@ function refreshVoteChoices_(form) {
   const names = players_().rows.filter(function (p) { return p.Status === 'Active'; }).map(voteLabel_).sort(function (a, b) { return a.localeCompare(b); });
   if (names.length) it.asListItem().setChoiceValues(names);
 }
+// 🌱 Adds the Farm tabs, the "Which ladder?" question on the Register page, and the Farm clubs in the Opponent list.
+function ensureFarmForm_(form) {
+  let q = form.getItems(FormApp.ItemType.MULTIPLE_CHOICE).find(function (i) { return i.getTitle() === Q.LADDER; });
+  if (!q) {
+    q = form.addMultipleChoiceItem().setTitle(Q.LADDER);
+    const after = form.getItems().find(function (i) { return i.getTitle() === Q.CLUB_ID; });
+    if (after) form.moveItem(q.getIndex(), after.getIndex() + 1);
+  }
+  const mc = q.asMultipleChoiceItem ? q.asMultipleChoiceItem() : q;
+  mc.setChoiceValues(LADDER_CHOICES).setRequired(false)
+    .setHelpText('Hold the Hill is for clubs above ' + farmMax_(cfg_()) + '★; the 🌱 Farm Hill is for clubs at ' + farmMax_(cfg_()) + '★ and under (the star rating on the club page, checked when you sign up, so a smaller club lands on the Farm by itself). One Hold the Hill club per owner; on the Farm, put in as many young clubs as you like (one sign-up each). One Brawl Bucks wallet.');
+  const cid = form.getItems().find(function (i) { return i.getTitle() === Q.CLUB_ID; });
+  if (cid) try { cid.setHelpText('One Hold the Hill club per owner. On the 🌱 Farm Hill you can register as many young clubs as you like (one form per club).'); } catch (e) { }
+  if (!form.getItems().some(function (i) { return i.getTitle() === Q.MY_CLUB; })) {
+    const mc2 = form.addTextItem().setTitle(Q.MY_CLUB).setRequired(false)
+      .setHelpText('Only for the 🌱 Farm Hill, and only if you have more than one Farm club: the club ID you are charging (or reporting) with. Leave it blank otherwise.');
+    const opp = form.getItems().find(function (i) { return i.getTitle() === Q.OPPONENT; });
+    if (opp) form.moveItem(mc2.getIndex(), opp.getIndex() + 1);
+  }
+}
+function adminSetupFarm() {
+  withUi_(function () {
+    const ss = SpreadsheetApp.getActive();
+    ensureSheets_(ss);
+    withLad_('farm', function () { ensureSheets_(ss); });
+    const C = cfg_();
+    if (C.FORM_ID) { const form = FormApp.openById(C.FORM_ID); ensureFarmForm_(form); }
+    refreshFormChoices();
+    snapshotBoard_();
+    return '🌱 The Farm Hill is set up: Farm tabs in the Sheet, "Which ladder?" on the Register page of the Master Form, and Farm clubs in the Opponent list as they sign up. Clubs at ' + (farmMax_(C)) + '★ or under can join; the first one in holds the Farm mound.';
+  });
+}
+// 🌱 Moves every Hold the Hill club at or under the Farm line down to the Farm (skips clubs in an open charge).
+// Order is kept: the highest-ranked mover is placed first; on an empty Farm the first one holds the Farm mound.
+function moveDownToFarm_() {
+  const C = cfg_(), max = farmMax_(C), moved = [], skipped = [];
+  if (!farmReady_()) fail_('Set up the Farm Hill first (🌱 Set up the Farm Hill).');
+  const pt = players_(), ct = challenges_(), ace = ace_(pt);
+  const cand = (ace ? [ace] : []).concat(ladder_(pt)).filter(function (p) { return p.Status === 'Active' && norm_(p.ClubID); });
+  cand.forEach(function (p) {
+    const st = clubStars_(norm_(p.ClubID)); if (!st || st.stars > max) return;
+    if (openFor_(ct, p.Email)) { skipped.push(p.Discord + ' (in an open charge)'); return; }
+    const fkey = farmKey_(p.Email, p.ClubID), onFarm = withLad_('farm', function () { return findBy_(players_(), fkey); });
+    // off the Hill
+    const pt2 = players_(), me = findBy_(pt2, p.Email), wasAce = ace_(pt2) === me;
+    if (wasAce) endReign_('Moved to the Farm');
+    const pt3 = players_(), m3 = findBy_(pt3, p.Email), oldRank = wasAce ? 'the Ace' : '#' + m3.Rank;
+    m3.Status = 'Moved to Farm'; m3.Rank = '';
+    setLadder_(ladder_(pt3)); savePlayers_(pt3);
+    // onto the Farm
+    withLad_('farm', function () {
+      const sp = PropertiesService.getScriptProperties(), fm = farmStarsMap_(); fm[norm_(p.ClubID)] = st.stars; sp.setProperty('FARM_STARS', JSON.stringify(fm));
+      const fpt = players_(), empty = !ace_(fpt) && !ladder_(fpt).length, rank = empty ? 0 : ladder_(fpt).length + 1;
+      const row = { Email: fkey, Discord: p.Discord, DiscordID: p.DiscordID, OwnerID: p.OwnerID, Club: p.Club, ClubID: p.ClubID, Status: 'Active', Rank: rank, Joined: now_(), Wins: 0, Losses: 0, CareerPts: 0, Defenses: 0, Reigns: 0, BestReignPts: 0 };
+      if (onFarm) { Object.assign(onFarm, row); writeRow_(fpt, onFarm); } else appendObj_(SHEETS.PLAYERS, row);
+      trackClimb_([row]);
+      if (empty) { const f2 = players_(), m = findBy_(f2, fkey); startReign_(m, false, cfg_()); savePlayers_(f2); setCfg_('STATE_LAST_TITLE_ACTIVITY', now_().toISOString()); }
+      post_('⬇️ ' + who_(row) + ' (' + st.stars + '★) moves from Hold the Hill (' + oldRank + ') to the Farm Hill, the ladder for clubs at ' + max + '★ and under' + (empty ? ', and as the first club down **holds the Farm mound**: the first 🌱 Farm Ace.' : ', starting at **#' + rank + '**.') + ' Grow past ' + max + '★ and you get called back up.');
+    });
+    log_('commish', 'Moved to Farm', p.Discord + ' (' + st.stars + '★) from ' + oldRank);
+    moved.push(p.Discord + ' (' + st.stars + '★, was ' + oldRank + ')');
+  });
+  if (moved.length) { refreshFormChoices(); snapshotBoard_(); }
+  return { moved: moved, skipped: skipped };
+}
+function adminMoveDownToFarm() {
+  withUi_(function () {
+    if (Number(cfg_().FARM_MAX_STARS) > 10) setCfg_('FARM_MAX_STARS', 6);
+    const r = moveDownToFarm_();
+    return (r.moved.length ? '🌱 Moved to the Farm: ' + r.moved.join(', ') + '.' : 'No Hold the Hill club is at ' + farmMax_(cfg_()) + '★ or under.') + (r.skipped.length ? ' Skipped: ' + r.skipped.join(', ') + '.' : '');
+  });
+}
 function adminAddVote() {
   withUi_(function () {
     ensureSheets_(SpreadsheetApp.getActive());
@@ -1827,9 +2241,10 @@ function adminAddVote() {
 // ───────────────────────────── Hourly deadline check ─────────────────────────────
 
 function hourlyTick() {
+  try { prefillInfo_(cfg_()); } catch (e) { }   // outside the lock: works out the pre-filled charge link once
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
-  try { payday_(); try { streakDay_(); } catch (e) { log_('system', 'ERROR (streaks)', String(e && e.stack || e)); } tick_(); seasonTick_(); futuresTick_(); starsDaily_(); potExpire_(); potTick_(); oddsBoardTick_(); nudgeTick_(); }
+  try { eachLad_(payday_); try { streakDay_(); } catch (e) { log_('system', 'ERROR (streaks)', String(e && e.stack || e)); } eachLad_(tick_); try { if (farmReady_()) withLad_('farm', farmCallUps_); } catch (e) { log_('system', 'ERROR (call-ups)', String(e && e.stack || e)); } seasonTick_(); futuresTick_(); starsDaily_(); potExpire_(); potTick_(); oddsBoardTick_(); nudgeTick_(); }
   catch (err) { log_('system', 'ERROR (hourly)', String(err && err.stack || err)); }
   finally { lock.releaseLock(); }
 }
@@ -1867,6 +2282,9 @@ function tick_() {
     post_("⌛ The Ace's Revenge window for " + esc_(ex ? ex.Discord : 'the former Ace') + ' has closed. Title challenges are open again.');
   }
 
+  // 🔔 The Bell
+  try { bellTick_(cfg_()); } catch (e) { log_('system', 'Bell error', String(e && e.message || e)); }
+
   // Open mound: announce each time it opens one more spot
   C = cfg_();
   const pt0 = players_();
@@ -1879,8 +2297,9 @@ function tick_() {
       if (to > was && !titleOpen) {
         const lad = ladder_(pt0);
         const who = lad.filter(function (p) { return Number(p.Rank) <= to; }).map(function (p) { return tag_(p); }).join(', ');
-        post_('⏰ **The mound is open to #1–#' + to + '.** Nobody has charged the Ace in ' + (to - 1) + (to === 2 ? ' day' : ' days') +
-          '. ' + who + ': any of you can charge the hill. Any win takes it.');
+        const hrs = Math.round((now_() - lastTitle_(C)) / 3600000);
+        post_('⏰ **The mound is open to #1–#' + to + '.** Nobody has charged the Ace in ' + (hrs < 48 ? hrs + ' hours' : Math.floor(hrs / 24) + ' days') +
+          '. ' + who + ': any of you can charge the hill. Any win takes it. ' + moundNext_(C));
       }
     }
   }
@@ -1940,7 +2359,7 @@ function selectedRow_(sheetName) {
 function withUi_(fn) {
   const ui = SpreadsheetApp.getUi();
   const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
+  lock.waitLock(150000);   // the 1-minute check can take a while; wait for it instead of failing
   try { const msg = fn(); if (msg) ui.alert(msg); }
   catch (err) { ui.alert(err instanceof HillError ? err.message : 'Error: ' + err); }
   finally { lock.releaseLock(); }
@@ -1948,6 +2367,13 @@ function withUi_(fn) {
 
 function adminCrownAce() {
   withUi_(function () {
+    if (SpreadsheetApp.getActiveSheet().getName() === 'Farm Players') return withLad_('farm', function () {
+      const row = SpreadsheetApp.getActiveSheet().getActiveRange().getRow();
+      const p = players_().rows.find(function (r) { return r._row === row; });
+      if (!p) fail_('No player on that row.');
+      crownAce_(p.Email, Session.getActiveUser().getEmail());
+      return p.Discord + ' is now the 🌱 Farm Ace.';
+    });
     const row = selectedRow_(SHEETS.PLAYERS);
     const p = players_().rows.find(function (r) { return r._row === row; });
     if (!p) fail_('No player on that row.');
@@ -2000,6 +2426,8 @@ function adminPostStandings() {
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('⛰️ Hold the Hill')
+    .addItem('🎛️ Commish dashboard', 'adminDashboard')
+    .addSeparator()
     .addItem('Setup / repair', 'setup')
     .addSeparator()
     .addItem('Crown selected player as Ace', 'adminCrownAce')
@@ -2029,6 +2457,9 @@ function onOpen() {
     .addItem('🛒 Add the Brawl Bucks items shop to the form', 'adminAddItems')
     .addItem('🤝 Allow a big wager (commish OK, up to 10%)', 'adminBigWager')
     .addItem('🏟️ Add the Bleacher Vote to the form', 'adminAddVote')
+    .addItem('🌱 Set up the Farm Hill', 'adminSetupFarm')
+    .addItem('⬇️ Move 6★-and-under clubs to the Farm', 'adminMoveDownToFarm')
+    .addItem('🔑 Connect SmallBall (star ratings)', 'adminConnectSmallBall')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub HtH Leaderboard', 'adminConnectGithub')
     .addToUi();
@@ -2068,8 +2499,9 @@ function setup() {
 
 function ensureSheets_(ss) {
   Object.keys(HEADERS).forEach(function (name) {
-    let sh = ss.getSheetByName(name);
-    if (!sh) sh = ss.insertSheet(name);
+    if (isFarm_() && !PER_LAD_[name]) return;
+    let sh = ss.getSheetByName(ladTab_(name));
+    if (!sh) sh = ss.insertSheet(ladTab_(name));
     const h = HEADERS[name];
     const first = sh.getRange(1, 1, 1, h.length).getValues()[0];
     if (first.every(function (v) { return v === ''; })) {
@@ -2080,6 +2512,7 @@ function ensureSheets_(ss) {
       if (TEXT_COLUMNS.indexOf(col) >= 0) sh.getRange(1, i + 1, sh.getMaxRows(), 1).setNumberFormat('@');
     });
   });
+  if (isFarm_()) return;
   const t = readTable_(SHEETS.CONFIG);
   Object.keys(DEFAULTS).forEach(function (k) {
     if (!t.rows.some(function (r) { return r.Key === k; })) {
@@ -2116,7 +2549,7 @@ function buildForm_(ss) {
     .setValidation(FormApp.createTextValidation().requireNumberBetween(0, 10).setHelpText('A number from 0 to 10').build());
 
   const pCh = form.addPageBreakItem().setTitle(ACTIONS.CHALLENGE)
-    .setHelpText('Charge anyone up to 3 spots above you. 1 spot up: just win. 2 spots up: win by 3+. 3 spots up: win by 4+. Only #1 can charge THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound. One open challenge at a time. No accepting needed: once you declare it, you start the game in SmallBall as the visitor and report the game ID and score. The defender only reports to dispute.');
+    .setHelpText('Charge anyone up to 3 spots above you. 1 spot up: just win. 2 spots up: win by 3+. 3 spots up: win by 4+. Only #1 can charge THE ACE at first; if nobody does, #2 joins after 8 hours, then one more spot each day, down to #5 (never overnight). Any win takes the mound. One open challenge at a time. No accepting needed: once you declare it, you start the game in SmallBall as the visitor and report the game ID and score. The defender only reports to dispute.');
   pCh.setGoToPage(SUBMIT);
   form.addListItem().setTitle(Q.OPPONENT).setChoiceValues([ACE_CHOICE]).setRequired(true);
 
@@ -2146,7 +2579,34 @@ function buildForm_(ss) {
 }
 
 // Opponent list on the form: "#2 · philipgonzales3 · Leming Satellites · club ID 640335"
-function oppLabel_(p) { return '#' + p.Rank + ' · ' + norm_(p.Discord) + ' · ' + norm_(p.Club) + (norm_(p.ClubID) ? ' · club ID ' + norm_(p.ClubID) : ''); }
+// The Master Form's pre-filled charge link: the "entry.N" names of the action and opponent questions, worked out
+// once per form (cached) so the Club Kit and the leaderboard can open the form with a charge already filled in.
+function prefillCached_(C) {   // the snapshot only ever reads the cache (never opens the form while holding the lock)
+  try { const c = JSON.parse(PropertiesService.getScriptProperties().getProperty('PREFILL_INFO') || 'null'); if (c && c.v === 2 && c.formId === norm_(C.FORM_ID)) return c.info; } catch (e) { }
+  return null;
+}
+function prefillInfo_(C) {
+  const props = PropertiesService.getScriptProperties(), cached = prefillCached_(C);
+  if (cached) return cached;
+  try {
+    const form = FormApp.openById(C.FORM_ID), items = form.getItems();
+    const act = items.find(function (i) { return i.getTitle() === Q.ACTION; }), opp = items.find(function (i) { return i.getTitle() === Q.OPPONENT; });
+    if (!act || !opp) return null;
+    const mc = items.find(function (i) { return i.getTitle() === Q.MY_CLUB; });
+    let rs = form.createResponse()
+      .withItemResponse(act.asMultipleChoiceItem().createResponse(ACTIONS.CHALLENGE))
+      .withItemResponse(opp.asListItem().createResponse(ACE_CHOICE));
+    if (mc) rs = rs.withItemResponse(mc.asTextItem().createResponse('424242'));
+    const url = rs.toPrefilledUrl();
+    const ent = {};
+    url.replace(/entry\.(\d+)=([^&]*)/g, function (m, id, v) { ent[decodeURIComponent(v.replace(/\+/g, ' '))] = 'entry.' + id; return m; });
+    const info = { url: url.split('?')[0], action: ent[ACTIONS.CHALLENGE] || '', charge: ACTIONS.CHALLENGE, opp: ent[ACE_CHOICE] || '', ace: ACE_CHOICE, club: ent['424242'] || '', farmAce: FARM_ACE_CHOICE };
+    if (!info.action || !info.opp) return null;
+    props.setProperty('PREFILL_INFO', JSON.stringify({ v: 2, formId: norm_(C.FORM_ID), info: info }));
+    return info;
+  } catch (e) { return null; }
+}
+function oppLabel_(p) { return (isFarm_() ? '🌱 ' : '') + '#' + p.Rank + ' · ' + norm_(p.Discord) + ' · ' + norm_(p.Club) + (norm_(p.ClubID) ? ' · club ID ' + norm_(p.ClubID) : ''); }
 
 // A link that opens SmallBall on the opponent's page with the big Play button. sbx_as tells the Club Kit which
 // of your clubs should be picked (it shows a banner and a one-click switch); without the kit the page still works.
@@ -2169,7 +2629,9 @@ function refreshFormChoices() {
   const names = players_().rows.filter(function (p) { return p.Status === 'Active' && hasRank_(p) && Number(p.Rank) > 0; })
     .sort(function (a, b) { return Number(a.Rank) - Number(b.Rank); })
     .map(function (p) { return oppLabel_(p); });
-  item.asListItem().setChoiceValues([ACE_CHOICE].concat(names));
+  let farm = [];
+  try { if (farmReady_()) farm = withLad_('farm', function () { const pt = players_(); return (ace_(pt) ? [FARM_ACE_CHOICE] : []).concat(pt.rows.filter(function (p) { return p.Status === 'Active' && hasRank_(p) && Number(p.Rank) > 0; }).sort(function (a, b) { return Number(a.Rank) - Number(b.Rank); }).map(function (p) { return oppLabel_(p); })); }); } catch (e) { farm = []; }
+  item.asListItem().setChoiceValues([ACE_CHOICE].concat(names, farm));
   try { refreshVoteChoices_(form); } catch (e) { }
   try { item.setHelpText('Each club shows its ladder spot and SmallBall club ID. After you charge, start a BigLeague game in SmallBall against that club ID, as the visitor, within the hour. The Hill finds the game by itself.'); } catch (e) { }
   const bi = form.getItems(FormApp.ItemType.LIST).find(function (i) { return i.getTitle() === Q.BET; });
@@ -2188,7 +2650,7 @@ function refreshFormChoices() {
 // Players in the game may only bet on themselves (moneyline or run line), never against themselves or on the total.
 // Odds come only from Hill results this season (runs scored and allowed), pulled toward an average club early on.
 
-function bookOn_(C) { return lc_(C.BOOK_ON) !== 'false'; }
+function bookOn_(C) { return !isFarm_() && lc_(C.BOOK_ON) !== 'false'; }   // no sportsbook on the Farm (yet)
 function phi_(x) {   // standard normal CDF
   const t = 1 / (1 + 0.2316419 * Math.abs(x));
   const d = 0.3989423 * Math.exp(-x * x / 2);
@@ -2836,7 +3298,7 @@ function wagerHelp_(C) {
     'They accept on this form. The next BigLeague game between your two clubs within ' + (Number(C.WAGER_PLAY_HOURS) || 48) + ' hours of accepting settles it, once it has aired. ' +
     'No house cut: the winner takes the loser\'s stake. A tie (straight up or odds) or no game in time = everyone gets their bucks back. ' + WAGER_WARN;
 }
-function bankOf_(br, email) { const e = lc_(email); return e in br.bank ? br.bank[e] : br.base; }
+function bankOf_(br, email) { const e = lc_(acct_(email)); return e in br.bank ? br.bank[e] : br.base; }
 function wagerId_(raw) {
   const m = /(\d+)/.exec(norm_(raw));
   return m ? 'W-' + pad_(Number(m[1])) : '';
@@ -3091,7 +3553,7 @@ function ensureWagerForm_(form) {
 // these labels, keeps every choice pointing at its own section, and puts 🥊 Charge the Hill first.
 const ACTION_ORDER = ['CHALLENGE', 'REACH', 'REPORT', 'REVENGE', 'BET', 'WAGER', 'WAGER_REPLY', 'SHOP', 'VOTE', 'REGISTER', 'DISCORD_ID'];
 const CHARGE_HELP = '🥊 Pick who you are charging. You can charge anyone up to 3 spots above you: 1 spot up, just win. 2 spots up, win by 3+. 3 spots up, win by 4+. ' +
-  'Only #1 can charge ♠ THE ACE at first; each day nobody does, one more spot opens, down to #5. Any win takes the mound.\n\n' +
+  'Only #1 can charge ♠ THE ACE at first; if nobody does, #2 joins after 8 hours, then one more spot each day, down to #5 (never overnight). Any win takes the mound. 🔔 When the Bell rings (a few random hours a week), anyone can charge the Ace: win by 3+ for the title, less makes you #1 contender.\n\n' +
   'After you submit: start the game in SmallBall as the VISITOR at their park, BigLeague. No report needed: the Hill finds the game on its own and posts the result once it has aired. One open charge at a time.';
 const CHARGE_ITEMS_HELP = '\n\n🛒 Items (optional, Brawl Bucks): 🧽 Margin Eraser = any win will do. 🪜 Ladder Jump = charge one spot past your reach (win by 5+); 🪜 Ladder Jump+ = the same, and any win will do. If the player you charge wears 🥊 Brass Knuckles, you need 1 more run (2+ against the Ace), unless you swing the Eraser.';
 function ensureTidyForm_(form) {
@@ -3145,7 +3607,7 @@ function finePlayer_(email, amountRaw, reason, expel, actor) {
     .sort(function (x, y) { return (hasRank_(x) ? Number(x.Rank) : 999) - (hasRank_(y) ? Number(y.Rank) : 999); });
   const share = others.length ? Math.floor(amt / others.length) : 0, rem = others.length ? amt - share * others.length : 0;
   const why = 'Commish ruling: unfair wagering' + (norm_(reason) ? ' (' + norm_(reason) + ')' : '');
-  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: p.Email, Player: norm_(p.Discord), Amount: -amt, Reason: why });
+  appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: acct_(p.Email), Player: norm_(p.Discord), Amount: -amt, Reason: why });
   others.forEach(function (x, i) {
     const give = share + (i < rem ? 1 : 0);
     if (give > 0) appendObj_(SHEETS.LEDGER, { Date: now_(), Season: C.SEASON, Email: x.Email, Player: norm_(x.Discord), Amount: give, Reason: 'Share of ' + norm_(p.Discord) + "'s fine" });
@@ -3558,7 +4020,8 @@ function demoBoard_() {
 
 const BOARD_TAB = 'Board';
 
-function snapshotBoard_() {
+function snapshotBoard_() { withLad_('', snapshotMain_); }
+function snapshotMain_() {
   try {
     const ss = SpreadsheetApp.getActive();
     let sh = ss.getSheetByName(BOARD_TAB);
@@ -3575,10 +4038,10 @@ function snapshotBoard_() {
     let bookOpen = [];
     try { if (bookOn_(C)) bookOpen = openLines_().map(function (L) { return { id: L.ChallengeID, away: L.Away, home: L.Home, aml: L.AwayML, hml: L.HomeML, fav: L.Fav, frl: L.FavRL, drl: L.DogRL, total: L.Total, ou: L.OverOdds, closes: iso(L.Closes) }; }); } catch (e) { bookOpen = []; }
     let rjs = []; try { rjs = JSON.parse(PropertiesService.getScriptProperties().getProperty('REJECTS') || '[]').filter(function (x) { return now_() - new Date(x.at) < 3600e3; }); } catch (e) { rjs = []; }
-    const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), bookOn: bookOn_(C), bookOpen: bookOpen, moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
+    const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), prefill: prefillCached_(C), bookOn: bookOn_(C), bookOpen: bookOpen, bell: (function () { const B = bellState_(C); return B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null; })(), moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
     if (!pending.length || !prev.ladder) {   // a result still waiting to air keeps the standings as they were
       const pt = players_();
-      const pub = function (p) { return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), best: num_(p.BestReignPts), pts: num_(p.CareerPts) }; };
+      const pub = function (p) { const rs = restUntil_(p.Email); return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), opt: Number(p.Rank) > 0 ? oppLabel_(p) : '', rest: rs ? rs.toISOString() : '', rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), best: num_(p.BestReignPts), pts: num_(p.CareerPts) }; };
       const ace = ace_(pt), reigns = readTable_(SHEETS.REIGNS).rows, cur = currentReign_(readTable_(SHEETS.REIGNS));
       snap.ace = ace ? Object.assign(pub(ace), cur ? { reign: cur.Reign, since: iso(cur.Start), rdef: num_(cur.Defenses), rpts: num_(cur.ReignPts), next: reward_(num_(cur.Defenses) + 1, C), revenge: cur.Revenge === 'Yes' } : {}) : null;
       snap.ladder = ladder_(pt).map(pub);
@@ -3602,11 +4065,31 @@ function snapshotBoard_() {
         if (bookOn_(C)) { snap.book = null; const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
+    try { snap.farm = farmReady_() ? withLad_('farm', farmSnap_) : null; } catch (e) { log_('system', 'Farm board error', String(e)); }
     sh.getRange('A1').setValue(JSON.stringify(snap));
     ghPush_(snap);
   } catch (e) { log_('system', 'Board snapshot error', String(e)); }
 }
 
+
+// The 🌱 Farm Hill's part of the leaderboard: its Ace, ladder, open charges, recent results and its own mound and Bell.
+function farmSnap_() {
+  const C = cfg_(), pt = players_(), fm = farmStarsMap_();
+  const iso = function (d) { return d ? new Date(d).toISOString() : ''; };
+  const pub = function (p) { const rs = restUntil_(p.Email); return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), stars: fm[norm_(p.ClubID)], opt: Number(p.Rank) > 0 ? oppLabel_(p) : '', rest: rs ? rs.toISOString() : '', rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), pts: num_(p.CareerPts) }; };
+  const ace = ace_(pt), cur = currentReign_(readTable_(SHEETS.REIGNS));
+  const B = bellState_(C);
+  return {
+    max: farmMax_(C), aceChoice: FARM_ACE_CHOICE,
+    ace: ace ? Object.assign(pub(ace), cur ? { reign: cur.Reign, since: iso(cur.Start), rdef: num_(cur.Defenses), rpts: num_(cur.ReignPts), next: reward_(num_(cur.Defenses) + 1, C) } : {}) : null,
+    ladder: ladder_(pt).map(pub),
+    charges: challenges_().rows.filter(function (c) { return OPEN.indexOf(c.Status) >= 0; }).map(function (c) { return { type: c.Type, ch: norm_(c.ChallengerName), df: norm_(c.DefenderName), created: iso(c.Created), deadline: iso(c.Deadline), status: c.Status === 'Started' ? 'Game reported' : c.Status === 'Review' ? 'With the commish' : 'Waiting on the game' }; }),
+    matches: readTable_(SHEETS.MATCHES).rows.slice(-10).reverse().map(function (m) { return { date: iso(m.Date), type: m.Type, w: norm_(m.Winner), l: norm_(m.Loser), wr: m.WinnerRuns, lr: m.LoserRuns, outcome: norm_(m.Outcome), game: norm_(m.GameID) }; }),
+    calledUp: pt.rows.filter(function (p) { return p.Status === 'Called up'; }).map(function (p) { return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID) }; }),
+    moundOpenTo: moundOpenTo_(C),
+    bell: B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null,
+  };
+}
 
 // ===================== The HtH Leaderboard on GitHub Pages =====================
 // The token lives in Script Properties (never on a tab). Each change to the board is saved as one JSON file in the
@@ -3679,7 +4162,252 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function adminRefreshBoard() { withUi_(function () { snapshotBoard_(); return 'Board updated.'; }); }
+// ───────────────────────────── 🎛️ Commish dashboard ─────────────────────────────
+// A panel in the Sheet (menu: 🎛️ Commish dashboard) with the settings people tune most, in plain words, plus live
+// status and a few buttons. Only people who can edit the Sheet can open it. Saving writes the Config tab.
+const DASH_GROUPS_ = [
+  { id: 'bell', title: '🔔 The Bell', blurb: 'A few random one-hour windows a week when anyone on the climb can charge the Ace.', items: [
+    { k: 'BELL_PER_WEEK', label: 'Rings a week', t: 'range', min: 0, max: 7, step: 1, unit: '', help: '0 turns the Bell off.' },
+    { k: 'BELL_MINUTES', label: 'How long it rings', t: 'range', min: 15, max: 120, step: 15, unit: 'min' },
+    { k: 'BELL_MARGIN', label: 'Win by, to take the title', t: 'range', min: 1, max: 6, step: 1, unit: 'runs', help: 'A smaller win makes the challenger #1 contender.' },
+    { k: 'BELL_BOUNTY', label: 'Ace bounty for a defense', t: 'range', min: 0, max: 200, step: 10, unit: 'BB' },
+    { k: 'BELL_SHIELD_HOURS', label: 'Ace shield after a defense', t: 'range', min: 0, max: 96, step: 6, unit: 'hrs' },
+    { k: 'BELL_GAP_HOURS', label: 'At least this long between rings', t: 'range', min: 12, max: 96, step: 6, unit: 'hrs' },
+    { k: 'BELL_WARN_MINUTES', label: 'Heads-up before it rings', t: 'range', min: 0, max: 60, step: 5, unit: 'min' },
+    { k: 'BELL_WEEKDAY', label: 'Weekday windows (Mon–Fri)', t: 'windows', help: 'Mountain time, like 06:30-08:00, 11:30-13:00' },
+    { k: 'BELL_WEEKEND', label: 'Weekend windows (Sat–Sun)', t: 'windows' },
+    { k: 'BELL_ROLE_ID', label: 'Discord role to ping', t: 'text', help: 'The role ID of an opt-in "Mound Alerts" role. Blank = no ping.' },
+  ] },
+  { id: 'mound', title: '⏰ Open mound', blurb: 'Who can charge the Ace when nobody has for a while.', items: [
+    { k: 'MOUND_FIRST_HOURS', label: '#2 can charge the Ace after', t: 'range', min: 1, max: 48, step: 1, unit: 'hrs' },
+    { k: 'MOUND_STEP_HOURS', label: 'Then one more spot every', t: 'range', min: 4, max: 72, step: 4, unit: 'hrs' },
+    { k: 'MOUND_OPEN_MAX', label: 'Opens down to spot', t: 'range', min: 1, max: 10, step: 1, unit: '#' },
+    { k: 'MOUND_QUIET', label: 'Never opens wider during', t: 'windows', help: 'Mountain time, like 22:30-06:30. Blank = any time.' },
+  ] },
+  { id: 'ladder', title: '🥊 Ladder & charges', blurb: 'The basic rules of the climb.', items: [
+    { k: 'CHALLENGE_REACH', label: 'Charge up to this many spots above you', t: 'range', min: 1, max: 6, step: 1, unit: 'spots' },
+    { k: 'MATCH_HOURS', label: 'Time to start the game after a charge', t: 'range', min: 1, max: 6, step: 1, unit: 'hrs' },
+    { k: 'COOLDOWN_HOURS', label: 'Rematch cooldown', t: 'range', min: 0, max: 72, step: 6, unit: 'hrs' },
+    { k: 'BASE_REWARD', label: 'Points for the first defense', t: 'range', min: 5, max: 50, step: 5, unit: 'pts' },
+    { k: 'DOUBLE_UNTIL', label: 'Defense points double through defense #', t: 'range', min: 1, max: 10, step: 1, unit: '' },
+    { k: 'REVENGE_THRESHOLD', label: "Reign points to earn the Ace's Revenge", t: 'range', min: 100, max: 1000, step: 50, unit: 'pts' },
+    { k: 'EX_ACE_RANK', label: 'A dethroned Ace drops to', t: 'range', min: 1, max: 10, step: 1, unit: '#' },
+    { k: 'ACE_LOSS_RANK', label: '🩹 Lose a charge at the Ace: drop to', t: 'range', min: 2, max: 10, step: 1, unit: '#' },
+    { k: 'ACE_LOSS_REST_HOURS', label: '🩹 …and recover this long', t: 'range', min: 0, max: 12, step: 1, unit: 'hrs' },
+    { k: 'ACE_LOSS_REST_KNUCKLES_HOURS', label: '🩹 …or this long if the Ace wore 🥊 Brass Knuckles', t: 'range', min: 0, max: 12, step: 1, unit: 'hrs' },
+    { k: 'TIE_RULE', label: 'A tie', t: 'choice', options: [['HOLD', 'Defender holds'], ['REPLAY', 'Play again']] },
+    { k: 'FARM_ON', label: '🌱 Farm Hill open', t: 'choice', options: [['true', 'Open'], ['false', 'Closed']] },
+    { k: 'FARM_MAX_STARS', label: '🌱 Farm Hill: clubs up to', t: 'range', min: 1, max: 9, step: 1, unit: '★' },
+  ] },
+  { id: 'bucks', title: '💰 Brawl Bucks', blurb: 'What players earn and what the shop costs.', items: [
+    { k: 'PLAY_BUCKS', label: 'Pay for a Hill game', t: 'pairs', parts: [['played', 'Both clubs'], ['win', 'Winner extra'], ['charge', 'Challenger extra']] },
+    { k: 'PAID_GAMES_PER_DAY', label: 'Paid Hill games a day', t: 'range', min: 1, max: 10, step: 1, unit: 'games' },
+    { k: 'STREAK_BUCKS', label: '🔥 Streak pay', t: 'pairs', parts: [['day', 'Any day played'], ['step', '+ per day in a row'], ['max', 'Streak extra tops out at']] },
+    { k: 'STREAK_MILESTONES', label: '🔥 Streak milestones', t: 'text', help: 'days:BB, like 3:25,7:75,14:150' },
+    { k: 'BOOK_BANKROLL', label: 'Starting Brawl Bucks', t: 'number', min: 0, max: 100000 },
+    { k: 'ITEMS_ON', label: '🛒 Items shop', t: 'toggle' },
+    { k: 'ITEM_PRICES', label: 'Item prices', t: 'pairs', parts: [['knuckles', '🥊 Brass Knuckles'], ['eraser', '🧽 Margin Eraser'], ['jump', '🪜 Ladder Jump'], ['jumpplus', '🪜 Ladder Jump+'], ['rain', '🌧️ Rain Delay']] },
+    { k: 'ITEM_ACE_X', label: 'The Ace pays this many times the price', t: 'range', min: 1, max: 4, step: 0.5, unit: '×' },
+    { k: 'ITEM_COOLDOWN_HOURS', label: 'Hours between items', t: 'range', min: 0, max: 72, step: 6, unit: 'hrs' },
+  ] },
+  { id: 'book', title: '🎰 Sportsbook & wagers', blurb: 'Play-money betting limits.', items: [
+    { k: 'BOOK_ON', label: 'Sportsbook', t: 'toggle' },
+    { k: 'WAGER_ON', label: 'Head-to-head wagers', t: 'toggle' },
+    { k: 'BET_MAX_PCT', label: 'Biggest bet, % of Brawl Bucks', t: 'range', min: 1, max: 20, step: 0.1, unit: '%' },
+    { k: 'BET_MAX_FLAT', label: 'Never more than', t: 'range', min: 50, max: 1000, step: 50, unit: 'BB' },
+    { k: 'WAGER_MAX_PCT', label: 'Biggest wager, % of Brawl Bucks', t: 'range', min: 1, max: 20, step: 0.1, unit: '%' },
+    { k: 'WAGER_BIG_PCT', label: 'With your OK, up to', t: 'range', min: 5, max: 50, step: 1, unit: '%' },
+    { k: 'BOOK_POST_BETS', label: 'Post each bet in Discord', t: 'toggle' },
+  ] },
+  { id: 'discord', title: '📣 Discord', blurb: 'Callouts and posts.', items: [
+    { k: 'NUDGES', label: 'Callouts for idle clubs', t: 'toggle' },
+    { k: 'NUDGE_HOURS', label: 'Callout hours (0–23, Mountain)', t: 'text', help: 'Like 11,17,21' },
+    { k: 'NUDGE_IDLE_HOURS', label: 'Call out after this long idle', t: 'range', min: 6, max: 96, step: 6, unit: 'hrs' },
+    { k: 'POST_REJECTIONS', label: 'Post rejected submissions', t: 'toggle' },
+    { k: 'LADDER_POST_SIZE', label: 'Contenders shown in standings posts', t: 'range', min: 5, max: 30, step: 1, unit: '' },
+  ] },
+  { id: 'season', title: '📅 Season', blurb: 'Dates and prizes.', items: [
+    { k: 'SEASON_START', label: 'Season opens', t: 'datetime' },
+    { k: 'SEASON_END', label: 'Season ends', t: 'datetime' },
+    { k: 'VOTE_DAYS', label: '🏟️ Bleacher Vote opens this many days before the end', t: 'range', min: 1, max: 14, step: 1, unit: 'days' },
+    { k: 'PRIZES', label: 'Prizes', t: 'text' },
+  ] },
+];
+const DASH_BELL_KEYS_ = ['BELL_PER_WEEK', 'BELL_MINUTES', 'BELL_WEEKDAY', 'BELL_WEEKEND', 'BELL_GAP_HOURS'];
+function adminDashboard() {
+  const html = HtmlService.createHtmlOutput(DASH_HTML_).setWidth(980).setHeight(720);
+  SpreadsheetApp.getUi().showModelessDialog(html, '🎛️ Commish dashboard');
+}
+function dashFmt_(d) { return d ? Utilities.formatDate(new Date(d), 'America/Denver', "EEE MMM d, h:mm a") : ''; }
+function dashStatus_(C) {
+  const pt = players_(), ace = ace_(pt), B = bellState_(C);
+  return {
+    ace: ace ? norm_(ace.Discord) + ' · ' + norm_(ace.Club) : 'No Ace right now',
+    mound: moundOpenTo_(C) === 1 ? 'Only #1 can charge the Ace' : '#1–#' + moundOpenTo_(C) + ' can charge the Ace',
+    moundNext: moundNext_(C).replace(/\*/g, ''),
+    bell: !B.on ? 'Off' + (PropertiesService.getScriptProperties().getProperty('BELL_PAUSED_PER') ? ' (paused)' : '') :
+      B.open ? (B.used ? 'Ringing until ' + dashFmt_(B.until) + ' · answered' : 'RINGING until ' + dashFmt_(B.until)) :
+      B.next ? 'Next ring: ' + dashFmt_(B.next) : 'Picking the next time…',
+    shield: B.shield ? 'Ace shield until ' + dashFmt_(B.shield) : '',
+    paused: !!PropertiesService.getScriptProperties().getProperty('BELL_PAUSED_PER'),
+    players: ladder_(pt).length + (ace ? 1 : 0),
+  };
+}
+function dashData() {
+  const C = cfg_(), vals = {};
+  DASH_GROUPS_.forEach(function (g) { g.items.forEach(function (it) { vals[it.k] = C[it.k]; }); });
+  return { groups: DASH_GROUPS_, values: vals, status: dashStatus_(C), notes: Object.keys(vals).reduce(function (o, k) { o[k] = (DEFAULTS[k] || ['', ''])[1]; return o; }, {}) };
+}
+function dashClean_(it, v) {
+  const s = String(v == null ? '' : v).trim();
+  if (it.t === 'range' || it.t === 'number') {
+    const n = Number(s); if (!isFinite(n)) throw new Error(it.label + ': not a number');
+    return Math.max(it.min, Math.min(it.max, n));
+  }
+  if (it.t === 'toggle') return /^(true|1|on|yes)$/i.test(s) ? 'TRUE' : 'FALSE';
+  if (it.t === 'choice') { if (!it.options.some(function (o) { return o[0] === s; })) throw new Error(it.label + ': pick one of the options'); return s; }
+  if (it.t === 'windows') {
+    if (!s) return '';
+    s.split(',').forEach(function (w) { if (!/^\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*$/.test(w)) throw new Error(it.label + ': "' + w.trim() + '" should look like 06:30-08:00'); });
+    return s.split(',').map(function (w) { return w.replace(/\s+/g, ''); }).join(', ');
+  }
+  if (it.t === 'datetime') { if (!/^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}$/.test(s)) throw new Error(it.label + ': use YYYY-MM-DD HH:MM'); return s; }
+  if (it.t === 'pairs') {
+    const out = s.split(',').map(function (x) { const kv = x.split(':'); const n = Number(kv[1]); if (!kv[0] || !isFinite(n)) throw new Error(it.label + ': bad value ' + x); return kv[0].trim() + ':' + Math.max(0, n); });
+    return out.join(',');
+  }
+  return s;
+}
+function dashSave(changes) {
+  const lock = LockService.getScriptLock(); lock.waitLock(150000);
+  try {
+    const C = cfg_(), who = Session.getActiveUser().getEmail() || 'commish', done = [];
+    const byKey = {}; DASH_GROUPS_.forEach(function (g) { g.items.forEach(function (it) { byKey[it.k] = it; }); });
+    Object.keys(changes || {}).forEach(function (k) {
+      const it = byKey[k]; if (!it) throw new Error('Not a dashboard setting: ' + k);
+      const v = dashClean_(it, changes[k]);
+      if (String(v) === String(C[k])) return;
+      setCfg_(k, it.t === 'range' || it.t === 'number' ? v : (it.t === 'datetime' ? v : v));
+      done.push(it.label + ': ' + (C[k] === '' ? '(blank)' : C[k]) + ' → ' + (v === '' ? '(blank)' : v));
+      log_(who, 'Dashboard', k + ': ' + C[k] + ' → ' + v);
+    });
+    if (done.length && Object.keys(changes).some(function (k) { return DASH_BELL_KEYS_.indexOf(k) >= 0; })) {
+      const C2 = cfg_(); if (!bellState_(C2).open) { setCfg_('STATE_BELL_NEXT', ''); setCfg_('STATE_BELL_WARNED', ''); try { bellTick_(cfg_()); } catch (e) { } }
+    }
+    if (done.length) { try { snapshotBoard_(); } catch (e) { } }
+    return { done: done, data: dashData() };
+  } finally { lock.releaseLock(); }
+}
+function dashAction(name) {
+  const lock = LockService.getScriptLock(); lock.waitLock(150000);
+  let msg = '';
+  try {
+    const props = PropertiesService.getScriptProperties(), who = Session.getActiveUser().getEmail() || 'commish';
+    let C = cfg_();
+    if (name === 'ring') {
+      if (!ace_(players_())) throw new Error('There is no Ace to ring the Bell for.');
+      if (bellState_(C).open) throw new Error('The Bell is already ringing.');
+      if (Number(C.BELL_PER_WEEK) <= 0) throw new Error('The Bell is off. Resume it (or set Rings a week above 0) first.');
+      setCfg_('STATE_BELL_SHIELD', ''); setCfg_('STATE_BELL_WARNED', ''); setCfg_('STATE_BELL_NEXT', new Date(now_().getTime() - 1000).toISOString());
+      bellTick_(cfg_());
+      msg = '🔔 The Bell is ringing. Discord has the post.';
+    } else if (name === 'skip') {
+      const B = bellState_(C);
+      if (!B.next) throw new Error('No Bell is scheduled right now.');
+      const nx = bellPick_(C, new Date(B.next.getTime() + 3 * 3600000));
+      setCfg_('STATE_BELL_NEXT', nx ? nx.toISOString() : ''); setCfg_('STATE_BELL_WARNED', '');
+      msg = 'Skipped ' + dashFmt_(B.next) + '. ' + (nx ? 'Next ring: ' + dashFmt_(nx) + '.' : '');
+    } else if (name === 'pause') {
+      if (Number(C.BELL_PER_WEEK) <= 0) throw new Error('The Bell is already off.');
+      props.setProperty('BELL_PAUSED_PER', String(C.BELL_PER_WEEK));
+      setCfg_('BELL_PER_WEEK', 0); bellTick_(cfg_());
+      msg = '⏸️ The Bell is paused. Resume brings back ' + C.BELL_PER_WEEK + ' a week.';
+    } else if (name === 'resume') {
+      const per = Number(props.getProperty('BELL_PAUSED_PER')) || 3;
+      props.deleteProperty('BELL_PAUSED_PER');
+      setCfg_('BELL_PER_WEEK', per); bellTick_(cfg_());
+      msg = '▶️ The Bell is back: ' + per + ' a week.';
+    } else if (name === 'board') {
+      snapshotBoard_(); msg = '📊 The Live Hold the Hill Leaderboard is updated.';
+    } else throw new Error('Unknown button.');
+    log_(who, 'Dashboard', name + ': ' + msg);
+    try { snapshotBoard_(); } catch (e) { }
+    return { msg: msg, data: dashData() };
+  } finally { lock.releaseLock(); }
+}
+const DASH_HTML_ = `<!DOCTYPE html><html><head><base target="_top"><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;background:#0e1b33;color:#f4ebd9;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.top{position:sticky;top:0;z-index:5;background:#0e1b33;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.12)}
+.stat{display:flex;flex-wrap:wrap;gap:8px}.chip{background:rgba(255,255,255,.08);border-radius:999px;padding:6px 12px;font-size:13px}.chip b{color:#fde68a}
+.chip.hot{background:#facc15;color:#1b1300}.chip.hot b{color:#1b1300}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button{font:700 13px/1 system-ui,sans-serif;border:0;border-radius:999px;padding:9px 14px;cursor:pointer;background:rgba(255,255,255,.12);color:inherit}
+button.gold{background:#facc15;color:#1b1300}button.red{background:#c8102e;color:#fff}button:disabled{opacity:.45;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}.tabs button{background:transparent;border:1px solid rgba(255,255,255,.2)}.tabs button.on{background:#f4ebd9;color:#0e1b33}
+.wrap{padding:12px 16px 90px}.blurb{opacity:.75;margin:2px 0 12px}
+.row{display:grid;grid-template-columns:minmax(200px,1.1fr) 2fr;gap:6px 16px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);margin-bottom:6px}
+.row.ch{background:rgba(250,204,21,.12);outline:1px solid rgba(250,204,21,.5)}
+.row label{font-weight:700}.row .h{grid-column:1/-1;font-size:12px;opacity:.65;margin-top:-2px}
+.ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ctl input[type=range]{flex:1;min-width:160px;accent-color:#facc15}
+.val{min-width:72px;font-weight:800;color:#fde68a;text-align:right}
+input[type=text],input[type=number],input[type=datetime-local],select{font:inherit;background:#13254a;color:#f4ebd9;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 9px}
+input[type=text]{width:100%}.pair{display:flex;flex-direction:column;gap:2px;font-size:12px}.pair input{width:110px}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;background:#475569;cursor:pointer;flex:none}.sw.on{background:#16a34a}.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}.sw.on::after{left:23px}
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;align-items:center;padding:10px 16px;background:#13254a;border-top:1px solid rgba(255,255,255,.15)}
+.bar .msg{flex:1;font-size:13px}.ok{color:#86efac}.err{color:#fca5a5}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:9}.modal.on{display:grid}.box{background:#13254a;border-radius:14px;padding:18px;max-width:440px}.box p{margin:0 0 14px}
+</style></head><body>
+<div class="top"><div class="stat" id="stat">Loading…</div><div class="acts" id="acts"></div></div>
+<div class="tabs" id="tabs"></div><div class="wrap" id="wrap"></div>
+<div class="bar"><span class="msg" id="msg">Change anything, then press Save. Nothing changes until you do.</span><button id="undo">Undo changes</button><button class="gold" id="save" disabled>Save</button></div>
+<div class="modal" id="modal"><div class="box"><p id="mq"></p><div style="display:flex;gap:8px;justify-content:flex-end"><button id="mno">Cancel</button><button class="gold" id="myes">Yes, do it</button></div></div></div>
+<script>
+var D=null,cur={},tab='bell',busy=false;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function load(){google.script.run.withSuccessHandler(function(d){D=d;cur={};render();}).withFailureHandler(fail).dashData();}
+function fail(e){busy=false;$('msg').innerHTML='<span class="err">'+esc(e&&e.message||e)+'</span>';setBusy(false);}
+function changed(){var n=0;for(var k in cur){if(String(cur[k])!==String(D.values[k]))n++;}return n;}
+function val(k){return k in cur?cur[k]:D.values[k];}
+function pairsGet(s){var o={};String(s||'').split(',').forEach(function(x){var kv=x.split(':');if(kv[0])o[kv[0].trim()]=kv[1];});return o;}
+function dtToInput(s){var m=String(s||'').match(/^(\\d{4}-\\d{2}-\\d{2}) (\\d{1,2}):(\\d{2})/);if(!m)return '';return m[1]+'T'+(m[2].length<2?'0'+m[2]:m[2])+':'+m[3];}
+function status(){var s=D.status;var hot=/RINGING/.test(s.bell);
+ $('stat').innerHTML='<span class="chip">♠ <b>'+esc(s.ace)+'</b></span><span class="chip">⏰ '+esc(s.mound)+'</span>'+(s.moundNext?'<span class="chip">'+esc(s.moundNext)+'</span>':'')+'<span class="chip'+(hot?' hot':'')+'">🔔 <b>'+esc(s.bell)+'</b></span>'+(s.shield?'<span class="chip">🛡️ '+esc(s.shield)+'</span>':'')+'<span class="chip">'+s.players+' on the Hill</span>';
+ $('acts').innerHTML='<button class="gold" data-a="ring">🔔 Ring the Bell now</button><button data-a="skip">⏭️ Skip the next Bell</button>'+(s.paused?'<button data-a="resume">▶️ Resume the Bell</button>':'<button data-a="pause">⏸️ Pause the Bell</button>')+'<button data-a="board">📊 Update the leaderboard</button><button data-a="refresh">🔄 Refresh</button>';
+ Array.prototype.forEach.call(document.querySelectorAll('[data-a]'),function(b){b.onclick=function(){act(b.getAttribute('data-a'));};});}
+var Q={ring:'Ring the Bell right now? For the next hour anyone on the climb can charge the Ace, and Discord gets the post. It also clears the Ace shield.',skip:'Skip the next scheduled Bell? A new time gets picked after it.',pause:'Pause the Bell? No rings until you resume.',resume:'Turn the Bell back on?',board:'Update the Live Hold the Hill Leaderboard now?'};
+function ask(q,yes){$('mq').textContent=q;$('modal').className='modal on';$('myes').onclick=function(){$('modal').className='modal';yes();};$('mno').onclick=function(){$('modal').className='modal';};}
+function act(a){if(a==='refresh'){load();return;}ask(Q[a],function(){setBusy(true);$('msg').textContent='Working…';google.script.run.withSuccessHandler(function(r){D=r.data;setBusy(false);status();$('msg').innerHTML='<span class="ok">'+esc(r.msg)+'</span>';}).withFailureHandler(fail).dashAction(a);});}
+function setBusy(b){busy=b;Array.prototype.forEach.call(document.querySelectorAll('button'),function(x){if(x.id!=='mno'&&x.id!=='myes')x.disabled=b;});if(!b)$('save').disabled=!changed();}
+function render(){status();
+ $('tabs').innerHTML=D.groups.map(function(g){return '<button class="'+(g.id===tab?'on':'')+'" data-t="'+g.id+'">'+esc(g.title)+'</button>';}).join('');
+ Array.prototype.forEach.call(document.querySelectorAll('[data-t]'),function(b){b.onclick=function(){tab=b.getAttribute('data-t');render();};});
+ var g=D.groups.filter(function(x){return x.id===tab;})[0];
+ var h='<div class="blurb">'+esc(g.blurb)+'</div>';
+ g.items.forEach(function(it){var v=val(it.k),c=(it.k in cur&&String(cur[it.k])!==String(D.values[it.k]));h+='<div class="row'+(c?' ch':'')+'"><label>'+esc(it.label)+'</label><div class="ctl">'+ctl(it,v)+'</div>'+(it.help||D.notes[it.k]?'<div class="h">'+esc(it.help||D.notes[it.k])+'</div>':'')+'</div>';});
+ $('wrap').innerHTML=h;wire(g);$('save').disabled=busy||!changed();
+ var n=changed();if(n)$('msg').textContent=n+' unsaved change'+(n>1?'s':'')+'. Press Save to keep '+(n>1?'them':'it')+'.';}
+function ctl(it,v){
+ if(it.t==='range')return '<input type="range" min="'+it.min+'" max="'+it.max+'" step="'+it.step+'" value="'+esc(v)+'" data-k="'+it.k+'"><span class="val">'+esc(v)+' '+esc(it.unit||'')+'</span>';
+ if(it.t==='number')return '<input type="number" min="'+it.min+'" max="'+it.max+'" value="'+esc(v)+'" data-k="'+it.k+'">';
+ if(it.t==='toggle')return '<div class="sw'+(/^true$/i.test(v)?' on':'')+'" data-k="'+it.k+'" data-sw="1"></div><span>'+(/^true$/i.test(v)?'On':'Off')+'</span>';
+ if(it.t==='choice')return '<select data-k="'+it.k+'">'+it.options.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===v?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>';
+ if(it.t==='datetime')return '<input type="datetime-local" value="'+dtToInput(v)+'" data-k="'+it.k+'" data-dt="1"> <span style="opacity:.7">Mountain time</span>';
+ if(it.t==='pairs'){var o=pairsGet(v);return it.parts.map(function(p){return '<span class="pair">'+esc(p[1])+'<input type="number" min="0" value="'+esc(o[p[0]]==null?'':o[p[0]])+'" data-k="'+it.k+'" data-p="'+p[0]+'"></span>';}).join('');}
+ return '<input type="text" value="'+esc(v)+'" data-k="'+it.k+'">';}
+function wire(g){
+ Array.prototype.forEach.call(document.querySelectorAll('#wrap [data-k]'),function(el){var k=el.getAttribute('data-k'),it=g.items.filter(function(x){return x.k===k;})[0];
+  if(el.getAttribute('data-sw')){el.onclick=function(){cur[k]=/^true$/i.test(val(k))?'FALSE':'TRUE';render();};return;}
+  if(el.getAttribute('data-p')){el.onchange=function(){var o=pairsGet(val(k));o[el.getAttribute('data-p')]=el.value;cur[k]=it.parts.map(function(p){return p[0]+':'+(o[p[0]]==null?0:o[p[0]]);}).concat(Object.keys(o).filter(function(x){return !it.parts.some(function(p){return p[0]===x;});}).map(function(x){return x+':'+o[x];})).join(',');render();};return;}
+  if(el.getAttribute('data-dt')){el.onchange=function(){cur[k]=el.value.replace('T',' ');render();};return;}
+  if(el.type==='range'){el.oninput=function(){el.nextElementSibling.textContent=el.value+' '+(it.unit||'');};el.onchange=function(){cur[k]=Number(el.value);render();};return;}
+  el.onchange=function(){cur[k]=el.type==='number'?Number(el.value):el.value;render();};});}
+$('save').onclick=function(){var ch={};for(var k in cur){if(String(cur[k])!==String(D.values[k]))ch[k]=cur[k];}if(!Object.keys(ch).length)return;setBusy(true);$('msg').textContent='Saving…';
+ google.script.run.withSuccessHandler(function(r){D=r.data;cur={};setBusy(false);render();$('msg').innerHTML='<span class="ok">✓ Saved: '+esc(r.done.join(' · ')||'nothing changed')+'</span>';}).withFailureHandler(fail).dashSave(ch);};
+$('undo').onclick=function(){cur={};render();$('msg').textContent='Changes undone.';};
+load();setInterval(function(){if(!busy&&!changed())google.script.run.withSuccessHandler(function(d){D=d;status();}).dashData();},60000);
+</script></body></html>`;
+function adminRefreshBoard() { try { prefillInfo_(cfg_()); } catch (e) { } withUi_(function () { snapshotBoard_(); return 'Board updated.'; }); }
 
 const BOARD_HTML_ = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="60">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
@@ -3777,7 +4505,7 @@ body{background-color:#0E1B33;background-image:repeating-linear-gradient(90deg,r
 @keyframes run{to{transform:translateX(-100%)}}
 .foot{margin-top:22px;opacity:.55;font-size:12px;text-align:center}
 .rej{margin:14px 0 0;background:rgba(200,16,46,.18);border:2px solid #C8102E;padding:10px 14px}.rej b{font-size:22px;color:#ff6b7d;display:block;margin-bottom:4px}.rej div{font-size:14px;padding:2px 0}.rej small{opacity:.6}
-.cta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;margin:14px 0 0}.cta a{background:#C8102E;color:#F4EBD9;text-decoration:none;padding:8px 18px;font-family:'Bebas Neue',Impact,sans-serif;font-size:22px;letter-spacing:.04em;box-shadow:0 4px 0 #000}.cta a:hover{background:#e01535}.cta span{font-size:13px;opacity:.75}
+.bell{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:0 0 14px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,#3b2a00,#1e1600);border:2px solid #facc15;color:#fde68a}.bell b{font-size:20px;letter-spacing:.04em}.bell span{flex:1 1 260px;color:#f4ebd9}.bell a{background:#facc15;color:#1b1300;font-weight:700;padding:8px 16px;border-radius:999px;text-decoration:none}.bell.on{animation:bellpulse 1.6s ease-in-out infinite}@keyframes bellpulse{50%{box-shadow:0 0 0 6px rgba(250,204,21,.25)}}.cta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;margin:14px 0 0}.cta a{background:#C8102E;color:#F4EBD9;text-decoration:none;padding:8px 18px;font-family:'Bebas Neue',Impact,sans-serif;font-size:22px;letter-spacing:.04em;box-shadow:0 4px 0 #000}.cta a:hover{background:#e01535}.cta span{font-size:13px;opacity:.75}
 .sea{margin:18px 0 0;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#14532d,#0E1B33);border-left:5px solid #ffd166;padding:10px 16px;box-shadow:0 4px 0 #000}
 .sea .big{font-size:22px;color:#ffd166}.sea .clk{font-size:26px}
 .hw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px}@media(max-width:820px){.hw{grid-template-columns:1fr}}
@@ -3885,12 +4613,22 @@ if(D.revenge)h+='<div class="alert bb">🔥 ACE\\'S REVENGE PENDING: '+esc(D.rev
 var lad=D.ladder||[],ch=D.charges||[],ms=D.matches||[],rg=D.reigns||[];
 if((D.rejects||[]).length)h+='<div class="rej"><b class="bb">❌ Didn’t go through</b>'+D.rejects.slice().reverse().map(function(x){return '<div><span class="bb">'+esc(x.who)+'</span> · '+esc(x.kind)+' · <i>'+esc(x.why)+'</i> <small>'+when(x.at)+'</small></div>';}).join('')+'<div style="font-size:12px;opacity:.7">Fix it and send the Master Form again. Shows for an hour.</div></div>';
 if(D.formLink)h+='<div class="cta"><a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">📝 Master Form</a><span>The one form for everything: sign up, charge, report, bet, shop</span></div>';
+var BL=D.bell;if(BL&&(BL.open||BL.soon||BL.answered))h+='<div class="bell'+(BL.open?' on':'')+'"><b class="bb">'+(BL.open?'🔔 THE BELL IS RINGING':BL.answered?'🔔 THE BELL WAS ANSWERED':'🔔 THE BELL RINGS AT '+esc(when(BL.next)).toUpperCase())+'</b><span>'+(BL.open?'Anyone on the climb can charge the Ace until '+esc(when(BL.until))+'. Win by '+esc(BL.margin)+'+ for the title; a smaller win makes you the #1 contender. First one in.':BL.answered?'A challenger took the shot. Watch for the result.':'For an hour, anyone on the climb can charge the Ace. Win by '+esc(BL.margin)+'+ for the title.')+'</span>'+(BL.open&&D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener">🔔 Charge the Ace</a>':'')+'</div>';
 if(D.seasonStart&&new Date(D.seasonStart)>new Date()){h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+' · OPENS '+day(D.seasonStart).toUpperCase()+'</span><span>Register now. Charges and Brawl points start at kickoff.</span><span class="bb clk">⏱ '+left(D.seasonStart)+'</span></div>';}
 else if(D.seasonEnd){var se=new Date(D.seasonEnd),over=D.seasonClosed||se<=new Date();h+='<div class="sea"><span class="bb big">🎄 SEASON '+esc(D.season)+(D.seasonClosed?' · FINAL':over?' · FINAL BUZZER':'')+'</span><span>'+(over?(D.seasonClosed?'The awards are in.':'No new charges. Charges in flight are being settled.'):'Ends '+when(D.seasonEnd))+'</span>'+(over?'':'<span class="bb clk">⏱ '+left(D.seasonEnd)+'</span>')+'</div>';}
 h+='<div class="cols"><div><h2 class="bb">The Climb</h2><div class="climb">'+(A?'<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">'+esc(A.name)+'<small>'+esc(A.club)+(A.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(A.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(A.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+(A.since?'<b>'+ndays(A.since)+'</b>'+(ndays(A.since)===1?'day':'days')+' up top':'<b>'+(A.rdef||0)+'</b>defenses')+'</span></div>':'<div class="step ace open"><span class="tag bb">♠ THE ACE</span><span class="rk bb">⛰️</span><span class="who bb">The mound is open<small>Win the title fight to plant the flag</small></span><span class="wl bb"></span></div>')+(lad.length?lad.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(D.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+';animation-delay:'+(i*0.06)+'s"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank" title="Open on SmallBall">ID '+esc(p.clubId)+'</a>':'')+'</small>'+reachTxt(p,i)+'</span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the climb yet. Register on the form and you start at the bottom.</div>')+'</div>'+(lad.length?'<div class="rnote">⤴ Who each spot can charge. Underdogs win by less (1 run off per star behind). Pick 🔎 Who can I charge? on the Master Form for your own list in #hill-help.</div>':'')+'</div>';
 h+='<div><h2 class="bb">Charging the Hill</h2><div class="fights">'+(ch.length?ch.map(function(c,i){return '<div class="fight '+(c.type==='Title'?'title':c.type==='Revenge'?'rev':'')+'" style="animation-delay:'+(i*0.08)+'s"><span class="kind bb">'+(c.type==='Title'?'TITLE FIGHT':c.type==='Revenge'?'ACE\\'S REVENGE':'LADDER')+'</span><div class="vs bb">🥊 '+esc(c.ch)+'<em>VS</em>'+esc(c.df)+'</div><div class="meta"><span>'+(c.status==='Game reported'?'<span class="stamp bb">GAME REPORTED</span>':esc(c.status))+'</span><span class="bb" style="font-size:20px">⏱ '+left(c.deadline)+'</span></div></div>';}).join(''):'<div class="empty">No charges right now. Somebody charge the hill.</div>')+'</div></div></div>';
 h+='<h2 class="bb">Recent results</h2>'+(ms.length?'<div class="results">'+ms.slice(0,9).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'</div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'</div>'+(m.wr!==''?'<div class="s bb">'+esc(m.wr)+' – '+esc(m.lr)+'</div>':'')+'<div class="o">'+esc(m.outcome)+(m.pts?' · +'+m.pts+' pts':'')+'</div></div>';}).join('')+'</div>':'<div class="empty">No results yet. They show up here once each game has aired.</div>');
 h+='<h2 class="bb">Reigns</h2>'+(rg.length?'<div class="reigns">'+rg.map(function(r){return '<div class="rg"><div class="n bb">#'+esc(r.n)+(r.revenge?' 🔥':'')+'</div><div class="nm bb">'+esc(r.name)+'</div><div class="m">'+esc(r.club)+'</div><div class="m">'+day(r.start)+' – '+(r.end?day(r.end):'now')+' · '+ndays(r.start,r.end)+(ndays(r.start,r.end)===1?' day':' days')+'</div><div class="m">'+r.defenses+' defenses · '+r.pts+' pts'+(r.endedBy?' · ended by '+esc(r.endedBy):'')+'</div></div>';}).join('')+'</div>':'<div class="empty">The first reign starts when the first Ace is crowned.</div>');
+var F=D.farm;if(F){var FA=F.ace,FL=F.ladder||[],FC=F.charges||[],FM=F.matches||[],FB=F.bell;
+h+='<!--TAB:farm--><h2 class="bb">🌱 The Farm Hill</h2><div class="rnote" style="margin-bottom:14px">The ladder for clubs at <b>'+esc(F.max)+'★ and under</b> (Hold the Hill is for bigger clubs). Same rules, same Master Form, same Brawl Bucks wallet. <b>Bring your young clubs:</b> put as many as you like on the Farm. Grow past '+esc(F.max)+'★ and you get <b>called up</b>.</div>';
+if(FB&&(FB.open||FB.soon))h+='<div class="bell'+(FB.open?' on':'')+'"><b class="bb">'+(FB.open?'🔔 THE FARM BELL IS RINGING':'🔔 THE FARM BELL RINGS AT '+esc(when(FB.next)).toUpperCase())+'</b><span>'+(FB.open?'Anyone on the Farm can charge the Farm Ace until '+esc(when(FB.until))+'. Win by '+esc(FB.margin)+'+ for the title.':'For an hour, anyone on the Farm can charge the Farm Ace.')+'</span></div>';
+h+='<div class="cols"><div><h2 class="bb">The Farm Climb</h2><div class="climb">'+(FA?'<div class="step ace"><span class="tag bb">🌱 THE FARM ACE</span><span class="rk bb">👑</span><span class="who bb">'+esc(FA.name)+'<small>'+esc(FA.club)+(FA.stars!=null?' · '+esc(FA.stars)+'★':'')+(FA.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(FA.clubId)+'" target="_blank">ID '+esc(FA.clubId)+'</a>':'')+'</small></span><span class="wl bb"><b>'+(FA.rdef||0)+'</b>defenses</span></div>':'<div class="step ace open"><span class="tag bb">🌱 THE FARM ACE</span><span class="rk bb">🌱</span><span class="who bb">The Farm mound is open<small>The first club on the Farm holds it</small></span><span class="wl bb"></span></div>')
+ +(FL.length?FL.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(F.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+'"><span class="rk bb">#'+esc(p.rank)+'</span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.stars!=null?' · '+esc(p.stars)+'★':'')+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank">ID '+esc(p.clubId)+'</a>':'')+'</small></span><span class="wl bb">'+p.w+'-'+p.l+'</span></div>';}).join(''):'<div class="empty">Nobody on the Farm climb yet. Register a 6★-or-under club on the Master Form.</div>')+'</div></div>';
+h+='<div><h2 class="bb">Charging the Farm</h2><div class="fights">'+(FC.length?FC.map(function(c){return '<div class="fight '+(c.type==='Title'?'title':'')+'"><span class="kind bb">'+(c.type==='Title'?'FARM TITLE FIGHT':c.type==='Revenge'?'REVENGE':'LADDER')+'</span><div class="vs bb">🥊 '+esc(c.ch)+'<em>VS</em>'+esc(c.df)+'</div><div class="meta"><span>'+esc(c.status)+'</span><span class="bb" style="font-size:20px">⏱ '+left(c.deadline)+'</span></div></div>';}).join(''):'<div class="empty">No Farm charges right now.</div>')+'</div>';
+h+='<h2 class="bb">Farm results</h2>'+(FM.length?'<div class="results">'+FM.slice(0,8).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'</div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'</div>'+(m.wr!==''?'<div class="d">'+esc(m.wr)+'-'+esc(m.lr)+' · '+esc(m.outcome)+'</div>':'')+'</div>';}).join('')+'</div>':'<div class="empty">No Farm games yet.</div>');
+if((F.calledUp||[]).length)h+='<h2 class="bb">📣 Called up</h2><div class="results">'+F.calledUp.map(function(p){return '<div class="res"><div class="w bb">'+esc(p.name)+'</div><div class="d">'+esc(p.club)+' graduated to Hold the Hill</div></div>';}).join('')+'</div>';
+h+='</div></div>';}
 h+='<!--TAB:bucks-->';
 var fo=function(o){o=+o;return o>0?'+'+o:'−'+Math.abs(o);};
 var WL=D.wallet||[],IT=D.items,SK=D.streaks;
@@ -3922,11 +4660,11 @@ h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">🥊 Charge the hill</h3><p>Pick a fight with anyone up to <b>3 spots above you</b>. Reach higher, win bigger.</p><div class="reach"><div class="no">#2 · too far</div><div class="ok">#3 · win by 4+</div><div class="ok">#4 · win by 3+</div><div class="ok">#5 · just win</div><div class="me">#6 · YOU</div></div></div>'
 +'<div class="card"><h3 class="bb">⚾ Play it, report it</h3><div class="steps3"><div><b>1</b>Charge on the form. The clock starts.</div><div><b>2</b>The challenger starts the game in SmallBall as the visitor, at the defender\\'s park. The first game counts.</div><div><b>3</b>Nothing to report: the Hill finds the game on SmallBall by itself. Hand reports still work as a backup. Results post once the game has aired: no spoilers.</div></div><p style="opacity:.75;font-size:13px">Win by enough and you take their spot. Win short of the margin and nobody moves. Lose and you drop one. A tie: the defender holds.</p></div>'
 +'<div class="card"><h3 class="bb">♠ Points per defense</h3><p>Every title defense pays double the last, up to 320.</p><div class="bars">'+pts.map(function(p,i){return '<div style="height:'+(p/320*100)+'%;animation-delay:'+(i*0.1)+'s"><span>'+p+'</span><i>D'+(i+1)+'</i></div>';}).join('')+'</div><p style="margin-top:28px">Hold it six times and every defense after that is worth 320.</p></div>'
-+'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. Every day nobody charges, one more spot gets a title shot, down to <b>#5</b>. Any win takes the hill: no margins on the mound.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
-+'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
++'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p>🩹 <b>Lose a charge at the Ace</b> (title, Bell or revenge) and you limp back to <b>#5</b>, then recover for <b>2 hours</b> (<b>3</b> if the Ace wore 🥊 Brass Knuckles) before you can charge anyone.</p><p>🔔 <b>The Bell:</b> a few times a week, at random but never at night, the Bell rings for an hour (30-minute heads-up in Discord). While it rings, <b>anyone</b> on the climb can charge the Ace, first one in. Win by <b>3+</b> to take the hill; a smaller win makes you the <b>#1 contender</b> (no injury). If the Ace wins, they earn a <b>50 BB</b> bounty and two days off from the Bell.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
++'<div class="card"><h3 class="bb">🌱 The Farm Hill</h3><p>The ladder for clubs at <b>6★ and under</b>; Hold the Hill is for 7★ and up. Same rules, with its own <b>🌱 Farm Ace</b>, open mound and Bell. Register on the Master Form: a 6★-or-under club lands on the Farm by itself. <b>Bring your young clubs:</b> an owner can put as many as they like on the Farm, all on one Brawl Bucks wallet.</p><p>Grow past 6★ and your club is <b>called up</b> to Hold the Hill.</p></div>'+'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
 +'<div class="card"><h3 class="bb"><span class="flame">🔥</span> The Ace\\'s Revenge</h3><p>An Ace who built <b>500+ reign points</b> and loses the hill gets one shot back, declared within 12 hours.</p><p>The catch: they must win by <b>more runs than they lost by</b>. Lost 5–3? You need a 3-run win.</p><p style="opacity:.75;font-size:13px">A dethroned Ace without revenge drops to #3..</p></div>'
 +'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Master Form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
-var TABS=[['hill','⛰️ The Hill'],['bucks','💰 Brawl Bucks'],['book','🎰 Sportsbook'],['season','🏆 Season'],['how','📖 How it works']],parts=h.split(/<!--TAB:(\w+)-->/),P={hill:parts[0]};for(var q=1;q<parts.length;q+=2)P[parts[q]]=(P[parts[q]]||'')+parts[q+1];
+var TABS=[['hill','⛰️ The Hill']].concat(D.farm?[['farm','🌱 Farm Hill']]:[],[['bucks','💰 Brawl Bucks'],['book','🎰 Sportsbook'],['season','🏆 Season'],['how','📖 How it works']]),parts=h.split(/<!--TAB:(\w+)-->/),P={hill:parts[0]};for(var q=1;q<parts.length;q+=2)P[parts[q]]=(P[parts[q]]||'')+parts[q+1];
 var cur=(location.hash||'').slice(1);if(!P[cur])cur='hill';
 document.getElementById('app').innerHTML='<nav class="tabs">'+TABS.filter(function(t){return P[t[0]];}).map(function(t){return '<a href="#'+t[0]+'" data-t="'+t[0]+'"'+(t[0]===cur?' class="on"':'')+'>'+t[1]+'</a>';}).join('')+'</nav>'+TABS.filter(function(t){return P[t[0]];}).map(function(t){return '<section class="pane'+(t[0]===cur?' on':'')+'" id="p-'+t[0]+'">'+P[t[0]]+'</section>';}).join('');
 function showTab(k){if(!P[k])k='hill';document.querySelectorAll('.tabs a').forEach(function(a){a.className=a.dataset.t===k?'on':'';});document.querySelectorAll('.pane').forEach(function(x){x.className='pane'+(x.id==='p-'+k?' on':'');});}

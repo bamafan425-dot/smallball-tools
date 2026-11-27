@@ -126,7 +126,7 @@ details.rules summary::-webkit-details-marker{display:none}
 <script>
 var D={"name":"Sunday Sandlot Scramble"};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):''}
+function t(ms){return ms?new Date(ms).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):''}
 function tp(n){return n===0?'E':n>0?'+'+n:'−'+(-n)}
 function hf(x){if(x==null)return'';var w=Math.floor(x);return x%1?(w?w:'')+'½':String(x)}
 function cid(c){return '<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank">'+esc(c.id)+'</a>'}
@@ -283,4 +283,4 @@ function load(i){
 render();load();
 setInterval(function(){if(!document.hidden)load()},90000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
-</script></body></html>
+</script><a id="vault-pill" href="https://slipnsliders.github.io/smallball-tools/vault/" target="_blank" rel="noopener" style="position:fixed;left:14px;bottom:14px;z-index:50;display:flex;align-items:center;gap:8px;text-decoration:none;font:800 14px/1 system-ui,sans-serif;color:#1b1300;background:linear-gradient(135deg,#fde68a,#f59e0b);border-radius:999px;padding:11px 16px;box-shadow:0 8px 24px rgba(0,0,0,.45)">🏦 Prize Vault · 🎁 Donate a ticket</a></body></html>
