@@ -2525,7 +2525,7 @@ function render(){
     h+=rules();
     var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
     h+='<div class="sec wb"><h2 class="bb">'+(P.fmt==='double'?'🏆 Winners bracket':'🏆 Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2><div class="byes" style="max-width:none;font-size:13px">One loss drops you here, so it fills in as the winners bracket plays: '+PL.filter(function(m){return !m.byeA&&!m.byeZ}).length+' matches over '+(function(){var r={};PL.forEach(function(m){r[m.r]=1});return Object.keys(r).length})()+' rounds, then the grand final. It shows up in full once the bracket is drawn.</div></div>';
+    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2><div class="byes" style="max-width:none;font-size:13px">One loss drops you here (two and you\u2019re out), so it fills in as the winners bracket plays and feeds the grand final. It shows up in full once the bracket is drawn.</div></div>';
     if(PF.length)h+='<div class="sec gf"><h2 class="bb">👑 Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
   if(!D.matches){
