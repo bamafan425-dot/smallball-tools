@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🏦 SmallBall Prize Vault</title>
+<meta property="og:title" content="🏦 SmallBall Prize Vault"><meta property="og:description" content="Tickets donated by the community, waiting for tournament and league winners. See what's in store and gift one yourself.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E1B33;--panel:#15274a;--edge:#2b4170;--ink:#F4EBD9;--muted:#c3cfe6;--red:#C8102E;--gold:#ffd166;--green:#34d399}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg) repeating-linear-gradient(135deg,rgba(255,255,255,.02) 0 1px,transparent 1px 14px);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--gold)}
+.wrap{max-width:960px;margin:0 auto;padding:22px 16px 40px}
+header{text-align:center;padding:10px 0 18px;border-bottom:3px solid var(--gold);margin-bottom:22px}
+h1{font:400 clamp(44px,9vw,72px)/1 'Bebas Neue',Impact,sans-serif;letter-spacing:2px;margin:0}
+header p{color:var(--muted);margin:6px 0 0;font-size:16px}
+h2{font:400 30px/1 'Bebas Neue',Impact,sans-serif;letter-spacing:1.5px;margin:30px 0 12px;display:flex;align-items:center;gap:10px}
+h2 .n{font:600 13px system-ui;background:var(--edge);color:var(--ink);border-radius:999px;padding:2px 9px;letter-spacing:0}
+.donate{background:linear-gradient(135deg,#3b2a05,#5a3d06);border:2px solid var(--gold);border-radius:16px;padding:18px 20px;box-shadow:0 0 30px rgba(255,209,102,.18)}
+.donate h2{margin:0 0 10px;color:var(--gold)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.steps div{background:rgba(0,0,0,.25);border-radius:12px;padding:12px 14px}
+.steps b.k{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--gold);color:#1b1300;font-weight:900;margin-right:6px}
+.vid{display:inline-block;font:900 22px/1 'Bebas Neue',Impact,sans-serif;letter-spacing:1px;background:var(--gold);color:#1b1300;border-radius:8px;padding:4px 10px;margin:2px 0;cursor:pointer;border:0}
+.btn{display:inline-block;text-decoration:none;font:700 14px system-ui;border-radius:9px;padding:9px 16px;border:1px solid var(--edge);color:var(--ink);background:#0f1f3d}
+.btn.go{background:var(--gold);color:#1b1300;border-color:var(--gold)}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.tier{background:linear-gradient(180deg,#1a2f59,var(--panel));border:1px solid var(--edge);border-radius:14px;padding:14px 16px}
+.tier h3{margin:0;font:400 26px/1 'Bebas Neue',Impact,sans-serif;letter-spacing:1px}
+.tier .who{color:var(--muted);font-size:13px;margin:3px 0 10px}
+.tier.t1{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.tk{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid var(--edge)}
+.tk b{flex:1}.tk small{color:var(--muted);text-align:right}
+.count{font:400 40px/1 'Bebas Neue',Impact,sans-serif;color:var(--gold);float:right}
+.empty{color:var(--muted);background:var(--panel);border:1px dashed var(--edge);border-radius:12px;padding:14px;text-align:center}
+.wall{display:flex;flex-wrap:wrap;gap:8px}
+.wall span{background:var(--panel);border:1px solid var(--edge);border-radius:999px;padding:6px 12px}
+.wall span b{color:var(--gold)}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--edge);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--edge)}
+th{font:600 12px system-ui;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);background:#10203f}
+tr:last-child td{border-bottom:0}
+.note{color:var(--muted);font-size:13px;margin-top:8px}
+footer{margin-top:34px;text-align:center;color:var(--muted);font-size:14px}
+footer a{margin:0 8px}
+</style></head><body><div class="wrap">
+<header><h1>🏦 The Prize Vault</h1><p>Tickets donated by the SmallBall community, waiting for tournament and league winners.</p></header>
+
+<div class="donate" id="donate">
+  <h2>🎁 Donate a ticket</h2>
+  <div class="steps">
+    <div><b class="k">1</b><b>Buy a ticket</b><br>In SmallBall's <a href="https://play.smallball.com/#/shop" target="_blank" rel="noopener">Ticket Shop</a>, buy any ticket for one of your own clubs. It lands in that club's tray.</div>
+    <div><b class="k">2</b><b>Gift it to the vault</b><br>Open that club's trainer, click the ticket in the tray, choose <b>Gift</b>, and send it to the Prize Vault club:<br><button class="vid" id="vid" title="Copy the club ID">ID 1008</button> <small id="vname">Teton Sliders</small></div>
+    <div><b class="k">3</b><b>Watch it show up</b><br>Within the hour it appears below with your club's name on it, and you join the donor wall. Thank you! 🙌</div>
+  </div>
+  <p class="note">Every ticket goes to a winner: Tier 1 to tournament champions, Tier 2 to runners-up, Tier 3 to semifinalists. The commish gifts each prize out from the vault and it's logged below.</p>
+</div>
+
+<div id="app"><p class="empty">Opening the vault…</p></div>
+<footer><a href="../tournaments/">🏆 Tournaments</a>·<a href="../hill/">⛰️ Hold the Hill</a>·<a href="../">🛠️ SmallBall ToolKits</a>·<a href="https://discord.gg/TyuPzcR5mR">💬 Discord</a></footer>
+</div>
+<script>
+var REPO='slipnsliders/smallball-tools',PATH='docs/vault/vault.json';
+var SRC=['https://api.github.com/repos/'+REPO+'/contents/'+PATH+'?ref=main','https://raw.githubusercontent.com/'+REPO+'/main/'+PATH,'vault.json'];
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function day(ms){return ms?new Date(ms).toLocaleDateString([],{month:'short',day:'numeric'}):''}
+function ago(ms){var m=Math.round((Date.now()-ms)/6e4);return m<2?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' days ago'}
+function fetchFirst(urls,i,ok,fail){i=i||0;if(i>=urls.length)return fail&&fail();var u=urls[i]+(i?(urls[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
+  fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(ok).catch(function(){fetchFirst(urls,i+1,ok,fail)})}
+var TIERS=[[1,'🏆 Tier 1','For tournament champions','Ticket Pack, Quick Train Pack, stadiums, Aluminum Bat'],[2,'🥈 Tier 2','For runners-up','Holiday, Field Balls, Batting Camp, Balance, Name Changer'],[3,'🥉 Tier 3','For semifinalists','Single Quick Trains']];
+function render(v){
+  if(v.club){document.getElementById('vid').textContent='ID '+v.club.id;document.getElementById('vname').textContent=String(v.club.name||'').replace(/\s*-[A-Za-z]{2,4}-\s*$/,'')}
+  var T=v.tickets||[],h='<h2>In the vault <span class="n">'+T.length+' ticket'+(T.length===1?'':'s')+'</span></h2><div class="tiers">';
+  TIERS.forEach(function(t){var L=T.filter(function(x){return x.tier===t[0]});
+    h+='<div class="tier t'+t[0]+'"><span class="count">'+L.length+'</span><h3>'+t[1]+'</h3><div class="who">'+t[2]+' · '+esc(t[3])+'</div>'+
+      (L.length?L.map(function(x){return'<div class="tk"><b>'+esc(x.label)+'</b><small>from '+esc(x.by)+'<br>'+day(x.at)+'</small></div>'}).join(''):'<div class="tk"><small style="text-align:left">Empty for now. Be the first!</small></div>')+'</div>'});
+  h+='</div><p class="note">Updated '+(v.updated?ago(v.updated):'soon')+'. The vault is read straight from the vault club\'s tray every hour.</p>';
+  var D=v.donors||[];
+  h+='<h2>🙌 Donor wall <span class="n">'+D.length+'</span></h2>'+(D.length?'<div class="wall">'+D.map(function(d){return'<span>'+esc(d.name)+(d.n>1?' <b>×'+d.n+'</b>':'')+'</span>'}).join('')+'</div>':'<p class="empty">No donors yet. Your club\'s name could be the first one here.</p>');
+  var G=v.given||[];
+  if(G.length)h+='<h2>🎉 Prizes given out <span class="n">'+G.length+'</span></h2><table><tr><th>Prize</th><th>Donated by</th><th>Given out</th></tr>'+G.map(function(g){return'<tr><td>'+esc(g.label)+'</td><td>'+esc(g.by)+'</td><td>'+day(g.out)+'</td></tr>'}).join('')+'</table>';
+  document.getElementById('app').innerHTML=h}
+document.getElementById('vid').onclick=function(){var t=this.textContent.replace(/\D/g,'');try{navigator.clipboard.writeText(t);this.textContent='Copied ✓';var b=this;setTimeout(function(){b.textContent='ID '+t},1500)}catch(e){}};
+function load(){fetchFirst(SRC,0,render,function(){document.getElementById('app').innerHTML='<p class="empty">The vault opens soon: its first count is on the way.</p>'})}
+load();setInterval(function(){if(!document.hidden)load()},120000);
+</script></body></html>

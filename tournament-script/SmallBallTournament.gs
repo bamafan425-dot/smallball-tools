@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -489,6 +489,7 @@ const watchUrl_ = (gid) => 'https://play.smallball.com/training?watch=' + gid;
 // The one-minute clock: each tournament in turn (a sleeping one costs one property read).
 function tick() {
   slots_().forEach((sl) => { try { withSlot_(sl, tickOne_); } catch (e) { try { withSlot_(sl, () => log_('system', 'ERROR (clock)', String(e && e.stack || e))); } catch (x) { } } });
+  try { const why = vaultTick_(false); if (why) PropertiesService['getScriptProperties']().setProperty('VAULT_LAST_ERR', why); else PropertiesService['getScriptProperties']().deleteProperty('VAULT_LAST_ERR'); } catch (e) { }
 }
 function tickOne_() {
   const pr = props_();
@@ -871,6 +872,7 @@ function onOpen() {
     .addItem('🗂️ Post the bracket to Discord', 'adminPostBracket')
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
+    .addItem('🏦 Update the Prize Vault now', 'adminVaultNow')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
     .addItem('🔑 Connect SmallBall box scores (Scramble)', 'adminConnectSmallBall')
     .addItem('🧪 Practice round (Scramble box-score test)', 'adminPracticeRound')
@@ -1179,6 +1181,7 @@ function archive_(C, T, ents) {
 }
 
 // The bracket page for this tournament's folder: the same page as the Apps Script one, reading its bracket.json.
+const VAULT_PILL_ = '<a id="vault-pill" href="https://slipnsliders.github.io/smallball-tools/vault/" target="_blank" rel="noopener" style="position:fixed;left:14px;bottom:14px;z-index:50;display:flex;align-items:center;gap:8px;text-decoration:none;font:800 14px/1 system-ui,sans-serif;color:#1b1300;background:linear-gradient(135deg,#fde68a,#f59e0b);border-radius:999px;padding:11px 16px;box-shadow:0 8px 24px rgba(0,0,0,.45)">🏦 Prize Vault · 🎁 Donate a ticket</a>';
 function pageHtml_(C) {
   const name = norm_(C.TOURNEY_NAME) || 'SmallBall Tournament', repo = norm_(C.GITHUB_REPO) || 'slipnsliders/smallball-tools', path = norm_(C.GITHUB_PATH);
   const head = '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + htmlEsc_(name) + ' · live bracket</title>\n' +
@@ -1194,8 +1197,69 @@ function pageHtml_(C) {
   const reload = "render();\nif(!/demo=1/.test(location.search))setTimeout(function(){location.reload()},60000);";
   let t = isScr_(C) ? GOLF_HTML_ : BRACKET_HTML_;
   if (t.indexOf(reload) < 0 || t.indexOf('var D=__DATA__;') < 0) throw new Error('bracket page template changed');
+  t = t.replace('</body>', () => VAULT_PILL_ + '</body>');
   t = t.replace('<meta charset="utf-8">', () => head).replace('var D=__DATA__;', () => 'var D=' + JSON.stringify({ name }).replace(/</g, '\\u003c') + ';').replace(reload, () => loader);
   return t;
+}
+
+// ----- 🏦 The Prize Vault: club 1008's ticket tray, published for everyone to see -----
+// Donors gift tickets to the vault club from their trainer tray. Only the owner can see a tray, so this reads
+// it with the connected SmallBall login (🔑) once an hour and saves docs/vault/vault.json for the Prize Vault page.
+// A running ledger (who gave what, what has left the vault) keeps donors on the wall after their tickets go out.
+const VAULT_CLUB_DEFAULT = 1008;
+const VAULT_SKILL_ = { pitch_skill: 'Pitching', catch_skill: 'Catching', pass_power: 'Throwing', run_speed: 'Running', swing_skill: 'Bat Skill', swing_power: 'Bat Power', contact_odds: 'Bat Contact' };
+// Tier 1 = the champion's prizes ($5–8), Tier 2 = runner-up ($2–3), Tier 3 = semifinalists ($1).
+function vaultTicket_(t) {
+  const k = String(t.kind || '').toLowerCase(), arg = String(t.arg || '');
+  if (/manual/.test(k)) return null;   // the free Owner's Manual isn't a prize
+  if (k === 'qt' && VAULT_SKILL_[arg]) return { label: 'Quick Train: ' + VAULT_SKILL_[arg], tier: 3 };
+  if (/qt|quick/.test(k) && /pack|all|seven/.test(k + arg)) return { label: 'Quick Train Pack (all seven skills)', tier: 1 };
+  if (/ticket.?pack|pack/.test(k)) return { label: 'The Ticket Pack', tier: 1 };
+  if (t.park_name || /park|stadium/.test(k)) return { label: 'Stadium: ' + (t.park_name || 'a new park'), tier: 1 };
+  if (/abat|alum|bat$/.test(k)) return { label: 'Aluminum Bat', tier: 1 };
+  if (/deluxe/.test(k)) return { label: 'Deluxe Trainer', tier: 1 };
+  if (/holiday/.test(k)) return { label: 'Holiday', tier: 2 };
+  if (/field.?ball/.test(k)) return { label: 'Field Balls', tier: 2 };
+  if (/camp/.test(k)) return { label: 'Batting Camp', tier: 2 };
+  if (/balance/.test(k)) return { label: 'Balance', tier: 2 };
+  if (/name/.test(k)) return { label: 'Name Changer', tier: 2 };
+  return { label: k.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'Ticket', tier: 2 };
+}
+function vaultTick_(force) {
+  const sp = PropertiesService['getScriptProperties']();
+  if (!force && Date.now() < Number(sp.getProperty('VAULT_NEXT') || 0)) return '';
+  sp.setProperty('VAULT_NEXT', String(Date.now() + 55 * 60000));
+  const ck = sbCookie_(); if (!ck) return 'No SmallBall login connected (🔑).';
+  if (!sp.getProperty('GITHUB_TOKEN') || sp.getProperty('GH_BAD')) return 'GitHub is not connected (🐙).';
+  const club = Number(sp.getProperty('VAULT_CLUB') || VAULT_CLUB_DEFAULT);
+  let r; try { r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + club + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } }); } catch (e) { return 'SmallBall did not answer.'; }
+  const code = r.getResponseCode();
+  if (code === 401 || code === 403) { sp.setProperty('SB_BAD', String(Date.now())); return 'The SmallBall login has expired (🔑 to reconnect).'; }
+  if (code !== 200) return 'SmallBall answered ' + code + '.';
+  let d; try { d = JSON.parse(r.getContentText()); } catch (e) { return 'Unreadable club data.'; }
+  if (!d.mine || !d.inventory) return 'The connected login does not own club ' + club + ', so its tray is hidden.';
+  let led = {}; try { led = JSON.parse(sp.getProperty('VAULT_LEDGER') || '{}'); } catch (e) { led = {}; }
+  const now = Date.now(), inTray = {}, tickets = [];
+  for (const t of (d.inventory.tickets || [])) {
+    const v = vaultTicket_(t); if (!v) continue;
+    const id = String(t.ticket_id); inTray[id] = 1;
+    const fromOwn = t.gift_from == null;   // in the vault's tray but not gifted (bought for the vault, or a site gift)
+    const L = led[id] || (led[id] = { label: v.label, tier: v.tier, from: fromOwn ? null : t.gift_from, by: fromOwn ? 'The commish' : (t.gift_from_name || ('club ' + t.gift_from)), at: Date.parse(t.granted_at || '') || now });
+    L.label = v.label; L.tier = v.tier; delete L.out;
+    tickets.push({ id, label: v.label, tier: v.tier, by: L.by, from: L.from, at: L.at });
+  }
+  Object.keys(led).forEach((id) => { if (!inTray[id] && !led[id].out) led[id].out = now; });   // left the vault: given out as a prize
+  const ids = Object.keys(led).sort((a, b) => (led[b].out || led[b].at) - (led[a].out || led[a].at)).slice(0, 400), nl = {}; ids.forEach((id) => (nl[id] = led[id])); led = nl;
+  sp.setProperty('VAULT_LEDGER', JSON.stringify(led));
+  const donors = {};
+  Object.values(led).forEach((L) => { if (!L.from && L.by === 'The commish') return; const k = L.by; const o = donors[k] || (donors[k] = { name: k, club: L.from, n: 0, last: 0 }); o.n++; o.last = Math.max(o.last, L.at); });
+  const given = Object.values(led).filter((L) => L.out).sort((a, b) => b.out - a.out).slice(0, 30).map((L) => ({ label: L.label, tier: L.tier, by: L.by, out: L.out }));
+  const snap = { updated: now, club: { id: club, name: d.name || '' }, tickets: tickets.sort((a, b) => a.tier - b.tier || a.at - b.at),
+    donors: Object.values(donors).sort((a, b) => b.n - a.n || b.last - a.last), given };
+  return withSlot_(null, () => ghPut_('docs/vault/vault.json', JSON.stringify(snap), '🏦 Prize Vault: ' + tickets.length + ' ticket' + (tickets.length === 1 ? '' : 's'), JSON.stringify(Object.assign({}, snap, { updated: 0 })))) ? '' : 'GitHub save failed (see the Log).';
+}
+function adminVaultNow() {
+  withUi_((ui) => { const why = vaultTick_(true); ui.alert('🏦 Prize Vault', why || 'Updated. The Prize Vault page shows it within a minute or two.', ui.ButtonSet.OK); });
 }
 
 // ----- The Tournaments page: docs/tournaments/index.json lists every tournament any Sheet has run -----
