@@ -1194,14 +1194,44 @@ function reachBoth_(sub) {
   if (!done) { if (err) throw err; fail_('This Google account is not registered on the Hill or the Farm Hill yet. Register your club first, then ask again.'); }
 }
 // A club's stars (0–100) from its public SmallBall page.
-// A club's star rating (the 1–10 stars on its SmallBall page; star10 in the club data).
-function clubStars_(clubId) {
-  const r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + encodeURIComponent(clubId) + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json' } });
-  if (r.getResponseCode() !== 200) return null;
-  try { const d = JSON.parse(r.getContentText()); const n = Number(d.star10 != null ? d.star10 : Math.round(Number(d.stars) / 10)); return isFinite(n) ? { stars: n, name: norm_(d.name) } : null; } catch (e) { return null; }
+// A club's star rating (the 1–10 stars on its SmallBall page; star10 in the club data). SmallBall only shows
+// club data to someone signed in, so this uses the connected login (🔑 Connect SmallBall). Without one (or if
+// it fails), it falls back to the stars the player gave on the Master Form (Stars tab), then to `typed`.
+function clubStars_(clubId, typed) {
+  const id = norm_(clubId).replace(/\D/g, ''), sp = PropertiesService.getScriptProperties(), ck = sp.getProperty('SB_COOKIE');
+  if (ck && !sp.getProperty('SB_BAD')) {
+    try {
+      const r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + encodeURIComponent(id) + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } });
+      const code = r.getResponseCode();
+      if (code === 401 || code === 403) { sp.setProperty('SB_BAD', String(Date.now())); log_('system', 'SmallBall login expired', 'Star checks use the form until you reconnect (🔑 Connect SmallBall).'); }
+      else if (code === 200) { const d = JSON.parse(r.getContentText()); const n = Number(d.star10 != null ? d.star10 : Math.round(Number(d.stars) / 10)); if (isFinite(n)) return { stars: n, name: norm_(d.name), src: 'smallball' }; }
+    } catch (e) { }
+  }
+  const m = starsMap_(); if (id in m) return { stars: m[id], name: '', src: 'form' };
+  const t = Number(String(typed == null ? '' : typed).replace(/[^\d]/g, ''));
+  return String(typed == null ? '' : typed).trim() !== '' && t >= 0 && t <= 10 ? { stars: t, name: '', src: 'form' } : null;
+}
+// 🔑 Lets the Hill read club star ratings (SmallBall only shows them to someone signed in). Read-only.
+function sbCookieFrom_(txt) {
+  const t = String(txt || '').trim();
+  const m = /-H\s+\$?['"]cookie:\s*([^'"]+)['"]/i.exec(t) || /-b\s+\$?['"]([^'"]+)['"]/i.exec(t) || /["']cookie["']\s*:\s*["']([^"']+)["']/i.exec(t);
+  return (m ? m[1] : t.replace(/^cookie:\s*/i, '')).trim();
+}
+function adminConnectSmallBall() {
+  const ui = SpreadsheetApp.getUi(), pr = PropertiesService.getScriptProperties();
+  const r = ui.prompt('🔑 Connect SmallBall (star ratings)',
+    'SmallBall only shows a club\'s star rating to someone logged in. Paste your SmallBall login here and the Hill reads star ratings with it (read-only, nothing else) for the 🌱 Farm Hill line. It is kept in the script\'s private settings, not on any tab.\n\n' +
+    'On play.smallball.com (logged in) press Ctrl+Shift+I → Network tab → reload the page → right-click any row → Copy → Copy as cURL, then paste the whole thing here.\n\nLeave it blank and click OK to disconnect.', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const v = sbCookieFrom_(r.getResponseText());
+  if (!v) { pr.deleteProperty('SB_COOKIE'); pr.deleteProperty('SB_BAD'); ui.alert('Disconnected. Star checks use the stars players give on the Master Form.'); return; }
+  pr.setProperty('SB_COOKIE', v); pr.deleteProperty('SB_BAD');
+  const t = clubStars_('1064');
+  ui.alert(t && t.src === 'smallball' ? '✅ Connected: club 1064 reads as ' + t.stars + '★.' : '❌ That login did not work. Copy it again while logged in to SmallBall and paste it in.');
 }
 // The Farm line in stars out of 10 (a value over 10 is left over from the first 0–100 draft: use 6).
 function farmMax_(C) { const n = Number(C.FARM_MAX_STARS); return n >= 1 && n <= 10 ? n : 6; }
+function p0_(club, clubId) { return { Club: club, ClubID: clubId }; }
 function farmStarsMap_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('FARM_STARS') || '{}'); } catch (e) { return {}; } }
 // 🌱 Farm sign-up: a second club, at or under FARM_MAX_STARS, locked at sign-up. The first club on an empty Farm holds it.
 function doRegisterFarm_(sub, C) {
@@ -1213,8 +1243,9 @@ function doRegisterFarm_(sub, C) {
   if (pt.rows.some(function (p) { return lc_(p.ClubID) === lc_(clubId) && p.Status === 'Active'; })) fail_('Club ' + clubId + ' is already on the Farm Hill.');
   const main = withLad_('', function () { return players_().rows; });
   if (main.some(function (p) { return lc_(p.ClubID) === lc_(clubId) && p.Status === 'Active'; })) fail_('Club ' + clubId + ' is on Hold the Hill. A club plays on one ladder.');
-  const st = clubStars_(clubId);
-  if (!st) fail_('Could not read club ' + clubId + ' on SmallBall. Check the club ID (the number on its club page) and try again.');
+  const st = clubStars_(clubId, f[Q.STARS]);
+  if (!st) fail_('Could not read the star rating for club ' + clubId + '. Put your club\'s stars (0-10, on its club page) in the Club stars box and try again.');
+  try { setStars_(p0_(club, clubId), st.stars, st.src); } catch (e) { }
   const max = farmMax_(C);
   if (st.stars > max) fail_('Club ' + clubId + ' is ' + st.stars + '★. The Farm Hill is for clubs at ' + max + '★ or under: this one is ready for Hold the Hill.');
   const sp = PropertiesService.getScriptProperties(), fm = farmStarsMap_(); fm[clubId] = st.stars; sp.setProperty('FARM_STARS', JSON.stringify(fm));
@@ -1242,7 +1273,7 @@ function farmCallUps_() {
   const pick = act.slice(at, at + 8).concat(at + 8 > act.length ? act.slice(0, at + 8 - act.length) : []).slice(0, Math.min(8, act.length));
   sp.setProperty('FARM_CU_AT', String(at + pick.length));
   pick.forEach(function (p) {
-    const st = clubStars_(norm_(p.ClubID)); if (!st) return;
+    const st = clubStars_(norm_(p.ClubID)); if (!st || st.src !== 'smallball') return;
     fm[norm_(p.ClubID)] = st.stars;
     if (st.stars <= max || openFor_(ct, p.Email)) return;
     const pt2 = players_(), me = findBy_(pt2, p.Email); if (!me) return;
@@ -1263,7 +1294,7 @@ function doRegister_(sub, C) {
   const pt = players_();
   if (farmReady_() && withLad_('farm', function () { return players_().rows.some(function (p) { return lc_(p.ClubID) === lc_(norm_(f[Q.CLUB_ID])) && p.Status === 'Active'; }); })) fail_('Club ' + norm_(f[Q.CLUB_ID]) + ' is on the Farm Hill. A club plays on one ladder.');
   if (farmReady_() && norm_(f[Q.CLUB_ID])) {   // Hold the Hill is for clubs above the Farm line: smaller clubs go to the Farm
-    const st = clubStars_(norm_(f[Q.CLUB_ID]).replace(/\D/g, ''));
+    const st = clubStars_(norm_(f[Q.CLUB_ID]).replace(/\D/g, ''), f[Q.STARS]);
     if (st && st.stars <= farmMax_(C)) return withLad_('farm', function () { return doRegisterFarm_(sub, cfg_()); });
   }
   const discord = norm_(f[Q.DISCORD]);
@@ -2428,6 +2459,7 @@ function onOpen() {
     .addItem('🏟️ Add the Bleacher Vote to the form', 'adminAddVote')
     .addItem('🌱 Set up the Farm Hill', 'adminSetupFarm')
     .addItem('⬇️ Move 6★-and-under clubs to the Farm', 'adminMoveDownToFarm')
+    .addItem('🔑 Connect SmallBall (star ratings)', 'adminConnectSmallBall')
     .addItem('🥊 Tidy up the form (emoji labels, Charge first)', 'adminTidyForm')
     .addItem('🐙 Connect the GitHub HtH Leaderboard', 'adminConnectGithub')
     .addToUi();
