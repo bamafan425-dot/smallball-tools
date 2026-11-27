@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -1954,6 +1954,7 @@ function adminAddVote() {
 // ───────────────────────────── Hourly deadline check ─────────────────────────────
 
 function hourlyTick() {
+  try { prefillInfo_(cfg_()); } catch (e) { }   // outside the lock: works out the pre-filled charge link once
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try { payday_(); try { streakDay_(); } catch (e) { log_('system', 'ERROR (streaks)', String(e && e.stack || e)); } tick_(); seasonTick_(); futuresTick_(); starsDaily_(); potExpire_(); potTick_(); oddsBoardTick_(); nudgeTick_(); }
@@ -2071,7 +2072,7 @@ function selectedRow_(sheetName) {
 function withUi_(fn) {
   const ui = SpreadsheetApp.getUi();
   const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
+  lock.waitLock(150000);   // the 1-minute check can take a while; wait for it instead of failing
   try { const msg = fn(); if (msg) ui.alert(msg); }
   catch (err) { ui.alert(err instanceof HillError ? err.message : 'Error: ' + err); }
   finally { lock.releaseLock(); }
@@ -2281,9 +2282,13 @@ function buildForm_(ss) {
 // Opponent list on the form: "#2 · philipgonzales3 · Leming Satellites · club ID 640335"
 // The Master Form's pre-filled charge link: the "entry.N" names of the action and opponent questions, worked out
 // once per form (cached) so the Club Kit and the leaderboard can open the form with a charge already filled in.
+function prefillCached_(C) {   // the snapshot only ever reads the cache (never opens the form while holding the lock)
+  try { const c = JSON.parse(PropertiesService.getScriptProperties().getProperty('PREFILL_INFO') || 'null'); if (c && c.v === 1 && c.formId === norm_(C.FORM_ID)) return c.info; } catch (e) { }
+  return null;
+}
 function prefillInfo_(C) {
-  const props = PropertiesService.getScriptProperties();
-  try { const c = JSON.parse(props.getProperty('PREFILL_INFO') || 'null'); if (c && c.v === 1 && c.formId === norm_(C.FORM_ID)) return c.info; } catch (e) { }
+  const props = PropertiesService.getScriptProperties(), cached = prefillCached_(C);
+  if (cached) return cached;
   try {
     const form = FormApp.openById(C.FORM_ID), items = form.getItems();
     const act = items.find(function (i) { return i.getTitle() === Q.ACTION; }), opp = items.find(function (i) { return i.getTitle() === Q.OPPONENT; });
@@ -3728,7 +3733,7 @@ function snapshotBoard_() {
     let bookOpen = [];
     try { if (bookOn_(C)) bookOpen = openLines_().map(function (L) { return { id: L.ChallengeID, away: L.Away, home: L.Home, aml: L.AwayML, hml: L.HomeML, fav: L.Fav, frl: L.FavRL, drl: L.DogRL, total: L.Total, ou: L.OverOdds, closes: iso(L.Closes) }; }); } catch (e) { bookOpen = []; }
     let rjs = []; try { rjs = JSON.parse(PropertiesService.getScriptProperties().getProperty('REJECTS') || '[]').filter(function (x) { return now_() - new Date(x.at) < 3600e3; }); } catch (e) { rjs = []; }
-    const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), prefill: prefillInfo_(C), bookOn: bookOn_(C), bookOpen: bookOpen, bell: (function () { const B = bellState_(C); return B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null; })(), moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
+    const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), prefill: prefillCached_(C), bookOn: bookOn_(C), bookOpen: bookOpen, bell: (function () { const B = bellState_(C); return B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null; })(), moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
     if (!pending.length || !prev.ladder) {   // a result still waiting to air keeps the standings as they were
       const pt = players_();
       const pub = function (p) { return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), opt: Number(p.Rank) > 0 ? oppLabel_(p) : '', rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), best: num_(p.BestReignPts), pts: num_(p.CareerPts) }; };
@@ -3944,7 +3949,7 @@ function dashClean_(it, v) {
   return s;
 }
 function dashSave(changes) {
-  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const lock = LockService.getScriptLock(); lock.waitLock(150000);
   try {
     const C = cfg_(), who = Session.getActiveUser().getEmail() || 'commish', done = [];
     const byKey = {}; DASH_GROUPS_.forEach(function (g) { g.items.forEach(function (it) { byKey[it.k] = it; }); });
@@ -3964,7 +3969,7 @@ function dashSave(changes) {
   } finally { lock.releaseLock(); }
 }
 function dashAction(name) {
-  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  const lock = LockService.getScriptLock(); lock.waitLock(150000);
   let msg = '';
   try {
     const props = PropertiesService.getScriptProperties(), who = Session.getActiveUser().getEmail() || 'commish';
@@ -4072,7 +4077,7 @@ $('save').onclick=function(){var ch={};for(var k in cur){if(String(cur[k])!==Str
 $('undo').onclick=function(){cur={};render();$('msg').textContent='Changes undone.';};
 load();setInterval(function(){if(!busy&&!changed())google.script.run.withSuccessHandler(function(d){D=d;status();}).dashData();},60000);
 </script></body></html>`;
-function adminRefreshBoard() { withUi_(function () { snapshotBoard_(); return 'Board updated.'; }); }
+function adminRefreshBoard() { try { prefillInfo_(cfg_()); } catch (e) { } withUi_(function () { snapshotBoard_(); return 'Board updated.'; }); }
 
 const BOARD_HTML_ = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="60">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
