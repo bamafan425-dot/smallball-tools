@@ -154,7 +154,7 @@ const SBX_TABLET = true;
   // Features you can switch on and off from the ⚙ menu. Everything starts on.
   const FEATURES = [
     ["tabs", "Quick tabs"], ["selector", "Club selector: readable, recent first"], ["logos", "Club logos"],
-    ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"], ["explorer", "🔭 Explorer link in the top menu (the site's Team explorer, normally only in the footer)"], ["scout", "🔎 Scouting report and ⚔️ rivalry on other clubs' pages"], ["alerts", "🔔 Alerts and inbox: charges, the Bell, wagers and tournament matches (top right)"], ["tplan", "🏋️ Training plan button (on your club page and the trainer)"], ["hotcold", "🔥🧊 Hot and cold tags in the squad (last 10 games vs the 15 before)"],
+    ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"], ["explorer", "🔭 Explorer link in the top menu (the site's Team explorer, normally only in the footer)"], ["scout", "🔎 Scouting report (record, lineup card, hot and cold, pitching) and ⚔️ rivalry on other clubs' pages"], ["alerts", "🔔 Alerts and inbox: charges, the Bell, wagers and tournament matches (top right)"], ["tplan", "🏋️ Training plan button (on your club page and the trainer)"], ["hotcold", "🔥🧊 Hot and cold tags in the squad (last 10 games vs the 15 before)"],
     ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["hillcard", "⛰️ Hold the Hill card (bottom right): your ladder spot, who you can charge, your Brawl Bucks"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
     ["opps", "Most played opponents"], ["squadtp", "TP column in the squad"], ["squadview", "Squad: Skills / Stats views"], ["mood", "Mood faces"], ["pitching", "Pitching stats"], ["compare", "Compare two date ranges"], ["recap", "Training Effectiveness (your clubs)"], ["notes", "Team notes"], ["livebar", "Live games bar: stack, row or hide"], ["grades", "Player grade colors"],
     ["cd", "Game countdown: when each club can play again"], ["cdding", "Chime when a club can play again (off to start)"], ["cdhide", "Hide scores of games still on the air behind their countdown (click to reveal) (off to start)"],
@@ -1033,6 +1033,7 @@ const SBX_TABLET = true;
   // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
   const CHANGELOG = [
     { v: "1.40.1", d: "Nov 27", items: [
+      "🔎 <b>Scouting report, rebuilt</b> as a real baseball report: their record, runs for and against, last 10 and streak; a lineup card with career AVG/OBP/SLG, HR, RBI, K%, fielding and the last 10 games; who\'s 🔥 hot and 🧊 cold with the numbers; and their pitching staff (RA/9, WHIP, K/9). No more tips.",
       "🔭 <b>Explorer</b> link at the end of the top menu, to the site's Team explorer (it was only in the footer).",
       "🛠️ Fixed: the trainer page could freeze with the 🏋️ Training plan button on. It loads normally again.",
     ] },
@@ -1237,11 +1238,20 @@ const SBX_TABLET = true;
         const L = {};
         for (const g of list) {
           const [S] = sideOf(BOX[g.game_id], team); if (!S) continue;
-          for (const [id, x] of Object.entries(S.p)) { const a = L[id] || (L[id] = { g: 0, ab: 0, h: 0, b2: 0, b3: 0, hr: 0, bb: 0 }); a.g++; a.ab += x[0]; a.h += x[1]; a.b2 += x[2]; a.b3 += x[3]; a.hr += x[4]; a.bb += x[5]; }
+          for (const [id, x] of Object.entries(S.p)) { const a = L[id] || (L[id] = { g: 0, ab: 0, h: 0, b2: 0, b3: 0, hr: 0, bb: 0, k: 0 }); a.g++; a.ab += x[0]; a.h += x[1]; a.b2 += x[2]; a.b3 += x[3]; a.hr += x[4]; a.bb += x[5]; a.k += x[6] || 0; }
         }
         return L;
       };
       const R = sum(games.slice(0, 10)), B = sum(games.slice(10)), map = {}, f3 = (x) => x.toFixed(3).replace(/^0/, "");
+      // Their pitching over these games, from the box scores (the site's career pitching numbers aren't reliable).
+      const arms = {};
+      for (const g of games) {
+        const [S, O] = sideOf(BOX[g.game_id], team); if (!S || !O) continue;
+        const ids = Object.keys(S.p).filter((id) => S.p[id][7] > 0), ipAll = ids.reduce((t, id) => t + S.p[id][7], 0) || 1;
+        const tot = { h: 0, bb: 0, k: 0, hr: 0 }; for (const L of Object.values(O.p)) { tot.h += L[1]; tot.bb += L[5]; tot.k += L[6]; tot.hr += L[4]; }
+        for (const id of ids) { const f = S.p[id][7] / ipAll, a = arms[id] || (arms[id] = { g: 0, ip: 0, r: 0, h: 0, bb: 0, k: 0, hr: 0 }); a.g++; a.ip += S.p[id][7]; a.r += S.ra * f; a.h += tot.h * f; a.bb += tot.bb * f; a.k += tot.k * f; a.hr += tot.hr * f; }
+      }
+      H.last10 = R; H.arms = arms; H.n = games.length;
       for (const p of (prof && prof.roster) || []) {
         const a = R[String(p.player_id)], b = B[String(p.player_id)], c = p.career || {};
         if (!a || a.ab < 15) continue;
@@ -1252,8 +1262,9 @@ const SBX_TABLET = true;
         if (now == null || base == null || !base) continue;
         const rel = (now - base) / base;
         const tip = "Last " + a.g + " games: " + a.h + "-for-" + a.ab + (a.hr ? ", " + a.hr + " HR" : "") + (a.bb ? ", " + a.bb + " BB" : "") + " · OPS " + f3(now) + " (" + vs + ": " + f3(base) + ")";
-        if (rel >= 0.2) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip };
-        else if (rel <= -0.2) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip };
+        const num = { g: a.g, ab: a.ab, h: a.h, hr: a.hr, bb: a.bb, now, base, vs };
+        if (rel >= 0.2) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip, num };
+        else if (rel <= -0.2) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip, num };
       }
       H.map = map; H.at = Date.now();
     } catch (_) { H.at = Date.now() - 8 * 60000; }
@@ -1479,7 +1490,7 @@ const SBX_TABLET = true;
   // ───────── 🔎 Scouting report + ⚔️ rivalry, on other clubs' pages ─────────
   // From what SmallBall already shows anyone: their roster, their recent games and your games against them.
   const SC = {};   // team -> { busy, at, prof, h2h }
-  const SCOUT_OPEN = "sbx-scoutT-open";
+  const SCOUT_OPEN = "sbx-scoutU-open";
   async function loadScout(team) {
     const S = SC[team] || (SC[team] = { busy: false, at: 0 });
     if (S.busy || Date.now() - S.at < 10 * 60000) return;
@@ -1494,39 +1505,56 @@ const SBX_TABLET = true;
         const o = h2h[opp] || (h2h[opp] = { t: [0, 0, 0], g: [], name: String(g.home_team_id === team ? g.away_name : g.home_name || "") });
         o.t["wlt".indexOf(resultOf(g, opp))]++; o.g.push(g);
       }
-      S.h2h = h2h; S.at = Date.now();
+      S.h2h = h2h; S.games = games.filter((g) => g.finished_at); S.at = Date.now();
     } catch (_) { S.at = Date.now() - 8 * 60000; }
     finally { S.busy = false; setTimeout(tick, 0); }
   }
   function scoutHtml(team, S) {
-    // Other clubs' skill numbers aren't public, so this reads what is: the lineup, star ratings and career lines.
+    // A baseball scouting report: what they've done, not advice. Career lines come from the club page;
+    // recent form and pitching come from their last 25 box scores. Other clubs' skill numbers aren't public.
     const P = S.prof, roster = (P && P.roster) || [], st = roster.filter((p) => p.position).sort((a, b) => (+a.bats || 9) - (+b.bats || 9));
     if (!st.length) return '<div class="muted">No lineup to read yet.</div>';
-    const line = (c) => { c = c || {}; const ab = c.at_bats || 0, bb = c.walks || 0, h = c.hits || 0; if (ab < 60) return null; const tb = h + (c.doubles || 0) + 2 * (c.triples || 0) + 3 * (c.home_runs || 0); return { ops: (h + bb) / (ab + bb) + tb / ab, avg: h / ab, hr: (c.home_runs || 0) / ab, k: (c.strikeouts || 0) / ab }; };
-    const fld = (c) => { c = c || {}; const ch = (c.putouts || 0) + (c.assists || 0) + (c.errors || 0); return ch >= 30 ? { f: ((c.putouts || 0) + (c.assists || 0)) / ch, e: c.errors || 0, g: c.games || 0 } : null; };
-    const f3 = (x) => x.toFixed(3).replace(/^0/, ""), mean = (xs) => (xs.length ? xs.reduce((t, x) => t + x, 0) / xs.length : null);
-    const hot = ((HOT[team] || {}).map) || {}, tag = (p) => { const h = hot[p.player_id]; return h ? '<span title="' + esc(h.tip) + '">' + (h.tag === "hot" ? "🔥" : "🧊") + "</span> " : ""; };
-    const them = st.filter((p) => p.position !== "P"), pit = st.find((p) => p.position === "P");
-    const myTeam = Number((document.getElementById("who-team") || {}).value || 0), myC = PROF[myTeam], mine = myC && myC.data && myC.data.roster ? myC.data.roster.filter((p) => p.position && p.position !== "P") : [];
-    if (myTeam && !myC) profileOf(myTeam, 300000).then(() => setTimeout(tick, 0)).catch(() => {});
-    const agg = (list) => { const L = list.map((p) => line(p.career)).filter(Boolean); return L.length ? { ops: mean(L.map((x) => x.ops)), hr: mean(L.map((x) => x.hr)), k: mean(L.map((x) => x.k)), star: mean(list.map((p) => +p.overall || 0)) } : null; };
-    const T = agg(them), M = mine.length ? agg(mine) : null;
-    const bats = them.map((p) => ({ p, l: line(p.career) })).filter((x) => x.l).sort((a, b) => b.l.ops - a.l.ops).slice(0, 3);
-    const gloves = them.map((p) => ({ p, f: fld(p.career) })).filter((x) => x.f).sort((a, b) => a.f.f - b.f.f);
-    const tips = [];
-    if (pit) { const ps = +pit.overall || 0; if (ps >= 9) tips.push("🎯 Their pitcher is rated " + ps + "★ (" + esc(pit.name) + "): contact bats over power."); else if (ps && ps <= 6) tips.push("💣 Their pitcher is rated " + ps + "★ (" + esc(pit.name) + "): load up on power."); }
-    if (T && M && T.hr - M.hr >= 0.02) tips.push("🧤 They hit more homers (" + (T.hr * 100).toFixed(1) + "% of at-bats vs your " + (M.hr * 100).toFixed(1) + "%): your best gloves and arms in the outfield.");
-    if (T && M && M.ops - T.ops >= 0.08) tips.push("💪 Your lineup out-hits theirs (career OPS " + f3(M.ops) + " vs " + f3(T.ops) + ").");
-    if (T && M && T.ops - M.ops >= 0.08) tips.push("⚠️ Their lineup out-hits yours (career OPS " + f3(T.ops) + " vs " + f3(M.ops) + "): lean on defense and your best pitcher.");
-    if (gloves.length && gloves[0].f.f < 0.95) tips.push("🎯 Shaky glove at " + esc(gloves[0].p.position) + ": " + esc(gloves[0].p.name) + " (fielding " + f3(gloves[0].f.f) + ", " + gloves[0].f.e + " errors).");
-    const hotOne = them.find((p) => (hot[p.player_id] || {}).tag === "hot"); if (hotOne) tips.push("🔥 Watch " + esc(hotOne.name) + ": hot over the last 10 games.");
-    const it = (k, v, t) => '<span class="it" title="' + esc(t || "") + '"><span class="k">' + k + "</span><b>" + v + "</b></span>";
-    return '<div class="sc-row"><b>Lineup</b> ' + st.map((p, i) => '<span class="sc-man" title="' + esc(p.name) + " · " + p.position + " · " + (+p.overall || 0) + '★">' + (i + 1) + ". " + tag(p) + esc(p.name) + " <i>" + esc(p.position) + " " + (+p.overall || 0) + "★</i></span>").join("") + "</div>" +
-      (T ? '<div class="sc-row">' + it("Lineup OPS", f3(T.ops) + (M ? ' <span style="opacity:.7">vs ' + f3(M.ops) + "</span>" : ""), "Their starters' career OPS" + (M ? " vs yours" : "")) + it("Homers", (T.hr * 100).toFixed(1) + "%" + (M ? ' <span style="opacity:.7">vs ' + (M.hr * 100).toFixed(1) + "%</span>" : ""), "Home runs per at-bat") + it("Strikeouts", (T.k * 100).toFixed(0) + "%" + (M ? ' <span style="opacity:.7">vs ' + (M.k * 100).toFixed(0) + "%</span>" : ""), "Strikeouts per at-bat") + it("Avg ★", T.star.toFixed(1)) + (pit ? it("Pitcher", esc(pit.name) + " · " + (+pit.overall || 0) + "★") : "") + "</div>" : "") +
-      (bats.length ? '<div class="sc-row"><b>Best bats</b> ' + bats.map((x) => tag(x.p) + esc(x.p.name) + ' <span style="opacity:.7">' + f3(x.l.avg) + " · OPS " + f3(x.l.ops) + "</span>").join(" · ") + "</div>" : "") +
-      (gloves.length ? '<div class="sc-row"><b>Shakiest gloves</b> ' + gloves.slice(0, 2).map((x) => esc(x.p.position) + " " + esc(x.p.name) + ' <span style="opacity:.7">fielding ' + f3(x.f.f) + "</span>").join(" · ") + "</div>" : "") +
-      (tips.length ? '<div class="sc-row sc-tips">' + tips.slice(0, 4).map((t) => "<div>" + t + "</div>").join("") + "</div>" : "") +
-      '<div class="sc-row muted" style="font-size:12px">From their career lines and star ratings (other clubs\' skill numbers aren\'t public). 🔥🧊 = last 10 games vs the 15 before.</div>';
+    const f3 = (x) => (x == null || !isFinite(x) ? "–" : x.toFixed(3).replace(/^0/, "")), f1 = (x) => (x == null || !isFinite(x) ? "–" : x.toFixed(1)), f2 = (x) => (x == null || !isFinite(x) ? "–" : x.toFixed(2));
+    const slash = (ab, h, b2, b3, hr, bb) => (ab ? { avg: h / ab, obp: (h + bb) / (ab + bb), slg: (h + b2 + 2 * b3 + 3 * hr) / ab } : null);
+    const HT = HOT[team] || {}, hot = HT.map || {}, l10 = HT.last10 || {}, arms = HT.arms || {};
+    const tag = (p) => { const h = hot[p.player_id]; return h ? '<span title="' + esc(h.tip) + '">' + (h.tag === "hot" ? "🔥" : "🧊") + "</span> " : ""; };
+    // Team form, from their recent games
+    const G = (S.games || []).slice().sort((a, b) => String(b.finished_at).localeCompare(String(a.finished_at)));
+    let form = "";
+    if (G.length) {
+      const t = [0, 0, 0]; let rf = 0, ra = 0; const res = G.map((g) => resultOf(g, team));
+      G.forEach((g, i) => { t["wlt".indexOf(res[i])]++; const home = g.home_team_id === team; rf += Number(home ? g.home_runs : g.away_runs) || 0; ra += Number(home ? g.away_runs : g.home_runs) || 0; });
+      const l = res.slice(0, 10), l10r = [0, 0, 0]; l.forEach((r) => l10r["wlt".indexOf(r)]++);
+      let k = 0; while (k < res.length && res[k] === res[0]) k++;
+      const rec = (x) => x[0] + "–" + x[1] + (x[2] ? "–" + x[2] : ""), n = G.length, rd = rf - ra;
+      const it = (k2, v, ti) => '<span class="it" title="' + esc(ti || "") + '"><span class="k">' + k2 + "</span><b>" + v + "</b></span>";
+      form = '<div class="sc-h">Team</div><div class="sc-row">' + it("Record", rec(t), "Their last " + n + " games") + it("Win %", f3(t[0] / Math.max(1, t[0] + t[1])).replace(/^\./, ".")) +
+        it("Runs/G", f2(rf / n), "Runs scored per game") + it("Allowed/G", f2(ra / n), "Runs allowed per game") + it("Run diff", (rd > 0 ? "+" : "") + rd) +
+        it("Last 10", rec(l10r)) + it("Streak", (res[0] || "").toUpperCase() + k) + '<span class="muted" style="font-size:12px">last ' + n + " games</span></div>";
+    }
+    // Lineup card
+    const rows = st.map((p, i) => {
+      const c = p.career || {}, ab = c.at_bats || 0, sl = slash(ab, c.hits || 0, c.doubles || 0, c.triples || 0, c.home_runs || 0, c.walks || 0);
+      const ch = (c.putouts || 0) + (c.assists || 0) + (c.errors || 0), fp = ch >= 20 ? ((c.putouts || 0) + (c.assists || 0)) / ch : null;
+      const r = l10[String(p.player_id)], rs = r && r.ab ? slash(r.ab, r.h, r.b2, r.b3, r.hr, r.bb) : null;
+      return "<tr><td>" + (i + 1) + "</td><td>" + esc(p.position) + '</td><td class="nm">' + tag(p) + esc(p.name) + "</td>" +
+        "<td>" + (sl && ab >= 20 ? f3(sl.avg) + "/" + f3(sl.obp) + "/" + f3(sl.slg) : '<span class="muted">' + ab + " AB</span>") + "</td><td>" + (c.home_runs || 0) + "</td><td>" + (c.runs_batted_in != null ? c.runs_batted_in : c.rbi != null ? c.rbi : "–") + "</td><td>" + (ab ? Math.round(100 * (c.strikeouts || 0) / ab) + "%" : "–") + "</td>" +
+        "<td>" + (fp != null ? f3(fp) : "–") + "</td><td>" + (c.errors || 0) + "</td>" +
+        "<td>" + (r ? r.h + "-" + r.ab + (r.hr ? ", " + r.hr + " HR" : "") + (rs ? ' <span class="muted">' + f3(rs.avg) + "</span>" : "") : "–") + "</td></tr>";
+    }).join("");
+    const card = '<div class="sc-h">Lineup</div><div class="sc-scroll"><table class="sc-t"><thead><tr><th>#</th><th>Pos</th><th>Name</th><th title="Career batting average / on-base / slugging">Career AVG/OBP/SLG</th><th title="Career home runs">HR</th><th title="Career runs batted in">RBI</th><th title="Career strikeouts per at-bat">K%</th><th title="Career fielding percentage">Fld%</th><th title="Career errors">E</th><th title="Hits-at-bats over their last 10 games">Last 10</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    // Hot and cold
+    const hc = st.filter((p) => hot[p.player_id]).concat(roster.filter((p) => !p.position && hot[p.player_id]));
+    const hcHtml = hc.length ? '<div class="sc-h">Hot and cold</div>' + hc.map((p) => { const h = hot[p.player_id], n = h.num || {}; return '<div class="sc-row"><span>' + (h.tag === "hot" ? "🔥" : "🧊") + " <b>" + esc(p.name) + "</b> " + esc(p.position || "bench") + '</span><span class="muted">last ' + n.g + " games: " + n.h + "-for-" + n.ab + (n.hr ? ", " + n.hr + " HR" : "") + (n.bb ? ", " + n.bb + " BB" : "") + " · OPS " + f3(n.now) + " (" + esc(n.vs || "before") + " " + f3(n.base) + ")</span></div>"; }).join("")
+      : HT.at ? '<div class="sc-h">Hot and cold</div><div class="sc-row muted">Nobody running hot or cold: every regular is within 20% of his usual OPS.</div>' : "";
+    // Pitching staff
+    const byId = new Map(roster.map((p) => [String(p.player_id), p]));
+    const staff = Object.entries(arms).map(([id, a]) => ({ id, a, p: byId.get(id) })).filter((x) => x.a.ip >= 3).sort((x, y) => y.a.ip - x.a.ip).slice(0, 4);
+    const pitHtml = staff.length ? '<div class="sc-h">Pitching</div><div class="sc-scroll"><table class="sc-t"><thead><tr><th>Pitcher</th><th>G</th><th>IP</th><th title="Runs allowed per 9 innings">RA/9</th><th title="Walks plus hits per inning">WHIP</th><th title="Strikeouts per 9">K/9</th><th title="Walks per 9">BB/9</th><th title="Home runs per 9">HR/9</th></tr></thead><tbody>' +
+      staff.map((x) => { const a = x.a, n9 = 9 / a.ip; return '<tr><td class="nm">' + esc(x.p ? x.p.name : "#" + x.id) + (x.p && x.p.position === "P" ? ' <span class="muted">starter</span>' : "") + "</td><td>" + a.g + "</td><td>" + Math.round(a.ip) + "</td><td>" + f2(a.r * n9) + "</td><td>" + f2((a.h + a.bb) / a.ip) + "</td><td>" + f1(a.k * n9) + "</td><td>" + f1(a.bb * n9) + "</td><td>" + f1(a.hr * n9) + "</td></tr>"; }).join("") + "</tbody></table></div>"
+      : HT.at ? "" : '<div class="sc-row muted">Reading their box scores for form and pitching…</div>';
+    return form + card + hcHtml + pitHtml +
+      '<div class="sc-row muted" style="font-size:12px">Career lines from their club page. Last 10, hot and cold (last 10 games vs the 15 before) and pitching from their last ' + (HT.n || 25) + " box scores.</div>";
   }
 
   function h2hHtml(S) {
@@ -1544,22 +1572,22 @@ const SBX_TABLET = true;
   }
   function nameOfClub(id) { const o = [...((document.getElementById("who-team") || {}).options || [])].find((x) => Number(x.value) === id); return o ? o.textContent.replace(/\s*-[A-Za-z]{2,4}-\s*$/, "").trim() : "club " + id; }
   function mountScout() {
-    let el = document.getElementById("sbx-scoutT");
+    let el = document.getElementById("sbx-scoutU");
     const m = location.hash.match(/^#\/team\/(\d+)/), head = document.querySelector("main .teamhead");
     if (!m || !head || ownIds().has(m[1]) || !ownIds().size) { if (el) el.remove(); return; }
     const team = Number(m[1]), S = SC[team];
     if (!S || (!S.busy && Date.now() - S.at > 10 * 60000)) loadScout(team);
     if (!HOT[team] || (!HOT[team].busy && Date.now() - HOT[team].at > 10 * 60000)) loadHot(team);
     let open = true; try { open = localStorage.getItem(SCOUT_OPEN) !== "0"; } catch (_) {}
-    if (!document.getElementById("sbx-scoutT-css")) {
-      const st = document.createElement("style"); st.id = "sbx-scoutT-css";
-      st.textContent = "#sbx-scoutT{margin:10px 0;padding:10px 14px;border-radius:12px;background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.3);font:13.5px/1.45 system-ui,sans-serif}#sbx-scoutT summary{cursor:pointer;font-weight:800;font-size:15px}#sbx-scoutT .sc-row{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}#sbx-scoutT .sc-man{white-space:nowrap}#sbx-scoutT .sc-man i{opacity:.6;font-style:normal;font-size:11.5px}#sbx-scoutT .it{display:inline-flex;gap:5px;align-items:baseline;background:rgba(127,127,127,.14);border-radius:999px;padding:2px 9px}#sbx-scoutT .it .k{opacity:.7;font-size:12px}#sbx-scoutT .sc-tips{display:block;padding:6px 10px;border-radius:9px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4)}#sbx-scoutT .chips i{display:inline-block;width:18px;text-align:center;font-style:normal;font-weight:800;font-size:11px;border-radius:4px;margin-left:2px}#sbx-scoutT .chips i.w{background:#16a34a;color:#fff}#sbx-scoutT .chips i.l{background:#dc2626;color:#fff}#sbx-scoutT .chips i.t{background:#64748b;color:#fff}";
+    if (!document.getElementById("sbx-scoutU-css")) {
+      const st = document.createElement("style"); st.id = "sbx-scoutU-css";
+      st.textContent = "#sbx-scoutU{margin:10px 0;padding:10px 14px;border-radius:12px;background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.3);font:13.5px/1.45 system-ui,sans-serif}#sbx-scoutU summary{cursor:pointer;font-weight:800;font-size:15px}#sbx-scoutU .sc-row{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}#sbx-scoutU .sc-man{white-space:nowrap}#sbx-scoutU .sc-man i{opacity:.6;font-style:normal;font-size:11.5px}#sbx-scoutU .it{display:inline-flex;gap:5px;align-items:baseline;background:rgba(127,127,127,.14);border-radius:999px;padding:2px 9px}#sbx-scoutU .it .k{opacity:.7;font-size:12px}#sbx-scoutU .sc-h{margin-top:12px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}#sbx-scoutU .sc-scroll{overflow-x:auto;margin-top:4px}#sbx-scoutU .sc-t{border-collapse:collapse;font-size:12.5px;width:100%;white-space:nowrap}#sbx-scoutU .sc-t th{text-align:left;font-weight:700;opacity:.7;padding:3px 8px;border-bottom:1px solid rgba(127,127,127,.35)}#sbx-scoutU .sc-t td{padding:3px 8px;border-bottom:1px solid rgba(127,127,127,.15);font-variant-numeric:tabular-nums}#sbx-scoutU .sc-t td.nm{font-weight:700}#sbx-scoutU .sc-tips{display:block;padding:6px 10px;border-radius:9px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4)}#sbx-scoutU .chips i{display:inline-block;width:18px;text-align:center;font-style:normal;font-weight:800;font-size:11px;border-radius:4px;margin-left:2px}#sbx-scoutU .chips i.w{background:#16a34a;color:#fff}#sbx-scoutU .chips i.l{background:#dc2626;color:#fff}#sbx-scoutU .chips i.t{background:#64748b;color:#fff}";
       document.head.appendChild(st);
     }
-    const body = !S || !S.prof ? '<div class="sc-row muted">Reading their roster and your games against them…</div>' : h2hHtml(S) + scoutHtml(team, S);
+    const body = !S || !S.prof ? '<div class="sc-row muted">Reading their roster and your games against them…</div>' : scoutHtml(team, S) + '<div class="sc-h">Head to head</div>' + h2hHtml(S);
     const key = team + "|" + (S ? S.at : 0) + "|" + ((HOT[team] || {}).at || 0) + "|" + open + "|" + (PROF[Number((document.getElementById("who-team") || {}).value || 0)] ? 1 : 0);
     if (el && el.dataset.k === key && el.isConnected) return;
-    if (!el) { el = document.createElement("details"); el.id = "sbx-scoutT"; el.addEventListener("toggle", () => { try { localStorage.setItem(SCOUT_OPEN, el.open ? "1" : "0"); } catch (_) {} }); }
+    if (!el) { el = document.createElement("details"); el.id = "sbx-scoutU"; el.addEventListener("toggle", () => { try { localStorage.setItem(SCOUT_OPEN, el.open ? "1" : "0"); } catch (_) {} }); }
     el.dataset.k = key; el.open = open;
     el.innerHTML = "<summary>🔎 Scouting report</summary>" + body;
     const after = document.getElementById("sbx-hillbar") || head;
