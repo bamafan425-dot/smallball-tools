@@ -1813,6 +1813,7 @@ const SBX_TABLET = true;
     try { localStorage.setItem("sbx-alert-seen", JSON.stringify(o)); } catch (_) {}
   }
   // Everything that's waiting on one of your clubs right now.
+  window.__hi = (m) => hillViews(LIVE.H).flatMap((V) => hillItems(V, m)).map((x) => x.title + " || " + x.lines.map((l) => l.t.replace(/<[^>]+>/g, "") + (l.go ? " [" + decodeURIComponent(l.go).slice(0, 260) + "]" : "")).join(" | "));
   window.__ae = (m) => alertEvents(LIVE.H, LIVE.items, m);
   function alertEvents(H0, items, mine) {
     const ev = [], now = Date.now();
