@@ -489,7 +489,9 @@ const watchUrl_ = (gid) => 'https://play.smallball.com/training?watch=' + gid;
 // The one-minute clock: each tournament in turn (a sleeping one costs one property read).
 function tick() {
   slots_().forEach((sl) => { try { withSlot_(sl, tickOne_); } catch (e) { try { withSlot_(sl, () => log_('system', 'ERROR (clock)', String(e && e.stack || e))); } catch (x) { } } });
-  try { const why = vaultTick_(false); if (why) PropertiesService['getScriptProperties']().setProperty('VAULT_LAST_ERR', why); else PropertiesService['getScriptProperties']().deleteProperty('VAULT_LAST_ERR'); } catch (e) { }
+  const vsp = PropertiesService['getScriptProperties']();
+  try { const why = vaultTick_(false); if (why) vsp.setProperty('VAULT_LAST_ERR', why); else vsp.deleteProperty('VAULT_LAST_ERR'); }
+  catch (e) { vsp.setProperty('VAULT_LAST_ERR', 'Error: ' + String(e && e.stack || e).slice(0, 400)); vsp.setProperty('VAULT_NEXT', String(Date.now() + 10 * 60000)); }
 }
 function tickOne_() {
   const pr = props_();
@@ -1227,8 +1229,8 @@ function vaultTicket_(t) {
 }
 function vaultTick_(force) {
   const sp = PropertiesService['getScriptProperties']();
-  if (!force && Date.now() < Number(sp.getProperty('VAULT_NEXT') || 0)) return '';
-  sp.setProperty('VAULT_NEXT', String(Date.now() + 55 * 60000));
+  if (!force && sp.getProperty('VAULT_LEDGER') && Date.now() < Number(sp.getProperty('VAULT_NEXT') || 0)) return '';
+  sp.setProperty('VAULT_NEXT', String(Date.now() + 10 * 60000));   // pushed out to an hour once it works
   const ck = sbCookie_(); if (!ck) return 'No SmallBall login connected (🔑).';
   if (!sp.getProperty('GITHUB_TOKEN') || sp.getProperty('GH_BAD')) return 'GitHub is not connected (🐙).';
   const club = Number(sp.getProperty('VAULT_CLUB') || VAULT_CLUB_DEFAULT);
@@ -1250,7 +1252,7 @@ function vaultTick_(force) {
   }
   Object.keys(led).forEach((id) => { if (!inTray[id] && !led[id].out) led[id].out = now; });   // left the vault: given out as a prize
   const ids = Object.keys(led).sort((a, b) => (led[b].out || led[b].at) - (led[a].out || led[a].at)).slice(0, 400), nl = {}; ids.forEach((id) => (nl[id] = led[id])); led = nl;
-  sp.setProperty('VAULT_LEDGER', JSON.stringify(led));
+  sp.setProperty('VAULT_LEDGER', JSON.stringify(led)); sp.setProperty('VAULT_NEXT', String(Date.now() + 55 * 60000));
   const donors = {};
   Object.values(led).forEach((L) => { if (!L.from && L.by === 'The commish') return; const k = L.by; const o = donors[k] || (donors[k] = { name: k, club: L.from, n: 0, last: 0 }); o.n++; o.last = Math.max(o.last, L.at); });
   const given = Object.values(led).filter((L) => L.out).sort((a, b) => b.out - a.out).slice(0, 30).map((L) => ({ label: L.label, tier: L.tier, by: L.by, out: L.out }));
