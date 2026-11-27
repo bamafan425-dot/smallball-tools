@@ -1032,7 +1032,7 @@ function adminMockTournament() {
     if (r.getSelectedButton() !== ui.Button.OK) return '';
     const n = Math.max(4, Math.min(8, Number(norm_(r.getResponseText())) || 6));
     const out = mockRun_(n);
-    return '🧪 Mock tournament done: ' + out.posts + ' test posts in Discord' + (out.champ ? ', ' + out.champ + ' won' : '') + '.\n' + out.steps.join(' → ') + '\n\nWhen you\'re done looking: 🛠 → 🗑️ Delete the mock test posts.';
+    return '🧪 Mock tournament done: ' + out.posts + ' test posts in Discord' + (out.champ ? ', ' + out.champ + ' won' : '') + '.\n' + out.steps.join(' → ') + '\n\nWhen you\'re done looking: 🏆 Tournament → 🗑️ Delete the mock test posts.';
   });
 }
 function mockRun_(n) {
