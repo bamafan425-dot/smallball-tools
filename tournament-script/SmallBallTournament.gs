@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -1391,21 +1391,32 @@ function vaultTick_(force) {
   let d; try { d = JSON.parse(r.getContentText()); } catch (e) { return 'Unreadable club data.'; }
   if (!d.mine || !d.inventory) return 'The connected login does not own club ' + club + ', so its tray is hidden.';
   let led = {}; try { led = JSON.parse(sp.getProperty('VAULT_LEDGER') || '{}'); } catch (e) { led = {}; }
-  const now = Date.now(), inTray = {}, tickets = [];
+  const now = Date.now(), inTray = {}, tickets = [], owners = {};
+  // Each donor is shown as their SmallBall owner name and club. A gift's club comes with the ticket; its owner is
+  // read from that club's public profile once and kept in the ledger.
+  const ownerOf = (cid) => {
+    if (owners[cid] !== undefined) return owners[cid];
+    let nick = ''; try { const q = UrlFetchApp.fetch('https://play.smallball.com/teams/' + cid + '/profile', { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } }); if (q.getResponseCode() === 200) nick = norm_(JSON.parse(q.getContentText()).owner_nick); } catch (e) { }
+    return (owners[cid] = nick);
+  };
+  const vaultOwner = norm_(d.owner_nick) || 'Slip', vaultTeam = norm_(d.name) || 'club ' + club;
   for (const t of (d.inventory.tickets || [])) {
     const v = vaultTicket_(t); if (!v) continue;
     const id = String(t.ticket_id); inTray[id] = 1;
-    const fromOwn = t.gift_from == null;   // in the vault's tray but not gifted (bought for the vault, or a site gift)
-    const L = led[id] || (led[id] = { label: v.label, tier: v.tier, from: fromOwn ? null : t.gift_from, by: fromOwn ? 'The commish' : (t.gift_from_name || ('club ' + t.gift_from)), at: Date.parse(t.granted_at || '') || now });
+    const fromOwn = t.gift_from == null;   // in the vault's tray but not gifted: bought in the shop for the vault
+    const L = led[id] || (led[id] = { label: v.label, tier: v.tier, from: fromOwn ? club : t.gift_from, at: Date.parse(t.granted_at || '') || now });
+    if (fromOwn) { L.from = club; L.owner = vaultOwner; L.team = vaultTeam; L.bought = t.reason === 'shop' || undefined; }
+    else { L.from = t.gift_from; L.team = norm_(t.gift_from_name) || L.team || 'club ' + t.gift_from; if (!L.owner) L.owner = ownerOf(t.gift_from); }
+    L.by = (L.owner ? L.owner + ' · ' : '') + L.team;
     L.label = v.label; L.tier = v.tier; delete L.out;
-    tickets.push({ id, label: v.label, tier: v.tier, by: L.by, from: L.from, at: L.at });
+    tickets.push({ id, label: v.label, tier: v.tier, owner: L.owner || '', team: L.team, by: L.by, from: L.from, at: L.at });
   }
   Object.keys(led).forEach((id) => { if (!inTray[id] && !led[id].out) led[id].out = now; });   // left the vault: given out as a prize
   const ids = Object.keys(led).sort((a, b) => (led[b].out || led[b].at) - (led[a].out || led[a].at)).slice(0, 400), nl = {}; ids.forEach((id) => (nl[id] = led[id])); led = nl;
   sp.setProperty('VAULT_LEDGER', JSON.stringify(led)); sp.setProperty('VAULT_NEXT', String(Date.now() + 55 * 60000));
   const donors = {};
-  Object.values(led).forEach((L) => { if (!L.from && L.by === 'The commish') return; const k = L.by; const o = donors[k] || (donors[k] = { name: k, club: L.from, n: 0, last: 0 }); o.n++; o.last = Math.max(o.last, L.at); });
-  const given = Object.values(led).filter((L) => L.out).sort((a, b) => b.out - a.out).slice(0, 30).map((L) => ({ label: L.label, tier: L.tier, by: L.by, out: L.out }));
+  Object.values(led).forEach((L) => { if (!L.team && !L.owner) return; const k = (L.owner || '') + '|' + (L.from || L.team); const o = donors[k] || (donors[k] = { name: L.owner || L.team, owner: L.owner || '', team: L.team || '', club: L.from, n: 0, last: 0 }); o.n++; o.last = Math.max(o.last, L.at); });
+  const given = Object.values(led).filter((L) => L.out).sort((a, b) => b.out - a.out).slice(0, 30).map((L) => ({ label: L.label, tier: L.tier, owner: L.owner || '', team: L.team || '', by: L.by, out: L.out }));
   const snap = { updated: now, club: { id: club, name: d.name || '' }, tickets: tickets.sort((a, b) => a.tier - b.tier || a.at - b.at),
     donors: Object.values(donors).sort((a, b) => b.n - a.n || b.last - a.last), given };
   return withSlot_(null, () => ghPut_('docs/vault/vault.json', JSON.stringify(snap), '🏦 Prize Vault: ' + tickets.length + ' ticket' + (tickets.length === 1 ? '' : 's'), JSON.stringify(Object.assign({}, snap, { updated: 0 })))) ? '' : 'GitHub save failed (see the Log).';

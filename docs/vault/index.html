@@ -27,7 +27,7 @@ h2 .n{font:600 13px system-ui;background:var(--edge);color:var(--ink);border-rad
 .tier .who{color:var(--muted);font-size:13px;margin:3px 0 10px}
 .tier.t1{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
 .tk{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid var(--edge)}
-.tk b{flex:1}.tk small{color:var(--muted);text-align:right}
+.tk b{flex:1}.tk small{color:var(--muted);text-align:right}.tk .x{color:var(--gold);font-weight:800}.tk small .own{color:inherit;font-weight:700}.wall span b.own{color:inherit}
 .count{font:400 40px/1 'Bebas Neue',Impact,sans-serif;color:var(--gold);float:right}
 .empty{color:var(--muted);background:var(--panel);border:1px dashed var(--edge);border-radius:12px;padding:14px;text-align:center}
 .wall{display:flex;flex-wrap:wrap;gap:8px}
@@ -64,18 +64,22 @@ function day(ms){return ms?new Date(ms).toLocaleDateString([],{month:'short',day
 function ago(ms){var m=Math.round((Date.now()-ms)/6e4);return m<2?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' days ago'}
 function fetchFirst(urls,i,ok,fail){i=i||0;if(i>=urls.length)return fail&&fail();var u=urls[i]+(i?(urls[i].indexOf('?')<0?'?':'&')+'t='+Date.now():'');
   fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(ok).catch(function(){fetchFirst(urls,i+1,ok,fail)})}
+// Donor: SmallBall owner name and club ("Crez · Kingdom Keys"); older entries only have one line.
+function who(x){var t=String(x.team||'').replace(/\s*-[A-Za-z]{2,4}-\s*$/,'');return x.owner?'<b class="own">'+esc(x.owner)+'</b>'+(t?' · '+esc(t):''):esc(x.by||x.name||t)}
+// Identical tickets from the same donor show once with a count (a donor's 2 Monster Park stadiums = one card ×2).
+function group(L){var m={},o=[];L.forEach(function(x){var k=x.label+'|'+(x.owner||'')+'|'+(x.team||x.by);if(!m[k]){m[k]=Object.assign({n:0},x);o.push(m[k])}m[k].n++;m[k].at=Math.max(m[k].at||0,x.at||0)});return o}
 var TIERS=[[1,'🏆 Tier 1','For tournament champions','Ticket Pack, Quick Train Pack, stadiums, Aluminum Bat'],[2,'🥈 Tier 2','For runners-up','Holiday, Field Balls, Batting Camp, Balance, Name Changer'],[3,'🥉 Tier 3','For semifinalists','Single Quick Trains']];
 function render(v){
   if(v.club){document.getElementById('vid').textContent='ID '+v.club.id;document.getElementById('vname').textContent=String(v.club.name||'').replace(/\s*-[A-Za-z]{2,4}-\s*$/,'')}
   var T=v.tickets||[],h='<h2>In the vault <span class="n">'+T.length+' ticket'+(T.length===1?'':'s')+'</span></h2><div class="tiers">';
   TIERS.forEach(function(t){var L=T.filter(function(x){return x.tier===t[0]});
     h+='<div class="tier t'+t[0]+'"><span class="count">'+L.length+'</span><h3>'+t[1]+'</h3><div class="who">'+t[2]+' · '+esc(t[3])+'</div>'+
-      (L.length?L.map(function(x){return'<div class="tk"><b>'+esc(x.label)+'</b><small>from '+esc(x.by)+'<br>'+day(x.at)+'</small></div>'}).join(''):'<div class="tk"><small style="text-align:left">Empty for now. Be the first!</small></div>')+'</div>'});
+      (L.length?group(L).map(function(x){return'<div class="tk"><b>'+esc(x.label)+(x.n>1?' <span class="x">×'+x.n+'</span>':'')+'</b><small>from '+who(x)+'<br>'+day(x.at)+'</small></div>'}).join(''):'<div class="tk"><small style="text-align:left">Empty for now. Be the first!</small></div>')+'</div>'});
   h+='</div><p class="note">Updated '+(v.updated?ago(v.updated):'soon')+'. The vault is read straight from the vault club\'s tray every hour.</p>';
   var D=v.donors||[];
-  h+='<h2>🙌 Donor wall <span class="n">'+D.length+'</span></h2>'+(D.length?'<div class="wall">'+D.map(function(d){return'<span>'+esc(d.name)+(d.n>1?' <b>×'+d.n+'</b>':'')+'</span>'}).join('')+'</div>':'<p class="empty">No donors yet. Your club\'s name could be the first one here.</p>');
+  h+='<h2>🙌 Donor wall <span class="n">'+D.length+'</span></h2>'+(D.length?'<div class="wall">'+D.map(function(d){return'<span>'+who(d)+(d.n>1?' <b>×'+d.n+'</b>':'')+'</span>'}).join('')+'</div>':'<p class="empty">No donors yet. Your name could be the first one here.</p>');
   var G=v.given||[];
-  if(G.length)h+='<h2>🎉 Prizes given out <span class="n">'+G.length+'</span></h2><table><tr><th>Prize</th><th>Donated by</th><th>Given out</th></tr>'+G.map(function(g){return'<tr><td>'+esc(g.label)+'</td><td>'+esc(g.by)+'</td><td>'+day(g.out)+'</td></tr>'}).join('')+'</table>';
+  if(G.length)h+='<h2>🎉 Prizes given out <span class="n">'+G.length+'</span></h2><table><tr><th>Prize</th><th>Donated by</th><th>Given out</th></tr>'+G.map(function(g){return'<tr><td>'+esc(g.label)+'</td><td>'+who(g)+'</td><td>'+day(g.out)+'</td></tr>'}).join('')+'</table>';
   document.getElementById('app').innerHTML=h}
 document.getElementById('vid').onclick=function(){var t=this.textContent.replace(/\D/g,'');try{navigator.clipboard.writeText(t);this.textContent='Copied ✓';var b=this;setTimeout(function(){b.textContent='ID '+t},1500)}catch(e){}};
 function load(){fetchFirst(SRC,0,render,function(){document.getElementById('app').innerHTML='<p class="empty">The vault opens soon: its first count is on the way.</p>'})}
