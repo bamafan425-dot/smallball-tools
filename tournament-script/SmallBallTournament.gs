@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -449,14 +449,34 @@ function champion_(T) {
 function seededEntrants_(entrants, C) {
   const how = lc_(C.SEEDING), e = entrants.slice();
   if (how === 'stars') e.sort((a, b) => (Number(b.Stars) || 0) - (Number(a.Stars) || 0) || new Date(a.Joined) - new Date(b.Joined));
-  else e.sort((a, b) => new Date(a.Joined) - new Date(b.Joined));   // random seeding: the preview shows sign-up order
+  else if (how === 'random') {
+    // Random seeding is redrawn whenever the field changes (a new entry, a swap, a withdrawal), with the same
+    // nudges as the real draw, and kept: the preview shows it, and it's the bracket that gets drawn.
+    const ids = e.map((x) => Number(x.ClubID)), pr = props_();
+    let ord = []; try { ord = JSON.parse(pr.getProperty('SEED_ORDER') || '[]'); } catch (x) { ord = []; }
+    if (!(ord.length === ids.length && ids.every((c) => ord.indexOf(c) >= 0))) {
+      ord = ids.length >= 2 ? createTournament_(e, C, true).seeds.map((x) => x.club) : ids;
+      pr.setProperty('SEED_ORDER', JSON.stringify(ord));
+    }
+    e.sort((a, b) => ord.indexOf(Number(a.ClubID)) - ord.indexOf(Number(b.ClubID)));
+  }
+  else e.sort((a, b) => new Date(a.Joined) - new Date(b.Joined));
   return e;
 }
-function createTournament_(entrants, C) {
+function createTournament_(entrants, C, fresh) {
   const how = lc_(C.SEEDING), e = entrants.slice();
+  // The random seeds already shown on the preview (drawn at the last sign-up) are the ones used.
+  if (how === 'random' && !fresh) {
+    let ord = []; try { ord = JSON.parse(props_().getProperty('SEED_ORDER') || '[]'); } catch (x) { ord = []; }
+    const ids = e.map((x) => Number(x.ClubID));
+    if (ord.length === ids.length && ids.every((c) => ord.indexOf(c) >= 0)) {
+      e.sort((a, b) => ord.indexOf(Number(a.ClubID)) - ord.indexOf(Number(b.ClubID)));
+      return createTournament_(e, Object.assign({}, C, { SEEDING: 'signup-kept' }), true);
+    }
+  }
   if (how === 'stars') e.sort((a, b) => (Number(b.Stars) || 0) - (Number(a.Stars) || 0) || new Date(a.Joined) - new Date(b.Joined));
   else if (how === 'random') { for (let i = e.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = e[i]; e[i] = e[j]; e[j] = x; } }
-  else e.sort((a, b) => new Date(a.Joined) - new Date(b.Joined));
+  else if (how !== 'signup-kept') e.sort((a, b) => new Date(a.Joined) - new Date(b.Joined));
   const clubs = e.map((x) => Number(x.ClubID));
   let fmt = lc_(C.FORMAT) === 'single' ? 'single' : 'double';
   if (fmt === 'double' && clubs.length < 3) fmt = 'single';
@@ -572,7 +592,11 @@ function tickOne_() {
       try { flushLog_(); } catch (e) { }
       T = stateGet_();
       // Sign-ups snapshot themselves as they come in; nothing else happens until sign-ups close.
-      if (!T) { pr.setProperty('NEXT_AT', String(close && t < close ? Math.min(close, t + 30 * 60000) : t + 5 * 60000)); return; }
+      if (!T) {
+        // A Config change (prizes, times...) reaches the bracket page on the next check.
+        const h = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(C)));
+        if (pr.getProperty('CFG_HASH') !== h) { try { snapshot_(); pr.setProperty('CFG_HASH', h); } catch (e) { log_('system', 'ERROR (snapshot)', String(e && e.stack || e)); } }
+        pr.setProperty('NEXT_AT', String(close && t < close ? Math.min(close, t + 30 * 60000) : t + 5 * 60000)); return; }
     }
     if (T.done) { try { flushLog_(); } catch (e) { } pr.setProperty('NEXT_AT', String(t + 6 * 3600e3)); return; }
     let changed = false;
@@ -801,6 +825,26 @@ function lowStarBest_(T, E, lim, champ) {
   rows.sort((a, b) => b.wins - a.wins || b.at - a.at || a.stars - b.stars);
   return rows[0] || null;
 }
+// ⏰ The prizes and how long is left to sign up, for a nudge before sign-ups close.
+function reminderText_(C) {
+  const close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), t = Date.now();
+  const n = (() => { try { return entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length; } catch (e) { return 0; } })();
+  const hrs = close > t ? (close - t) / 3600e3 : 0, left = hrs >= 1.5 ? Math.round(hrs) + ' hours' : hrs > 0 ? Math.max(1, Math.round(hrs * 60)) + ' minutes' : '';
+  const prizes = norm_(C.PRIZES).split(/\s+·\s+/).map(norm_).filter(Boolean);
+  return (left ? '# ⏰ ' + left + ' left to join the ' + esc_(C.TOURNEY_NAME) + '!\n' : '# 🏆 The ' + esc_(C.TOURNEY_NAME) + '\n') +
+    '**' + n + ' club' + (n === 1 ? '' : 's') + ' in.** Sign-ups close ' + ts_(close) + ' (' + tsR_(close) + ')' + (start ? ', first pitch ' + ts_(start) : '') + '.' +
+    (Math.max(1, Number(C.MAX_PER_OWNER) || 1) > 1 ? ' Owners can enter up to ' + Math.max(1, Number(C.MAX_PER_OWNER) || 1) + ' clubs.' : '') + '\n' +
+    (prizes.length ? '\n**🎁 Up for grabs**\n' + prizes.map((x) => '> ' + esc_(x)).join('\n') + '\n' : '') +
+    (lc_(C.SEEDING) === 'random' ? '\n-# Seeds are a random draw, reshuffled with every new sign-up: clubs with similar stars meet in their first games, and one owner\'s clubs are kept apart. Check the live bracket for where you stand.' : '') + linksLine_(C);
+}
+function adminSignupReminder() {
+  withUi_((ui) => {
+    const C = cfg_(); if (!webhook_(C)) return 'No Discord webhook in Config for the ' + norm_(C.TOURNEY_NAME) + '.';
+    const txt = reminderText_(C);
+    if (ui.alert('⏰ Post this to Discord?', txt.slice(0, 1500), ui.ButtonSet.YES_NO) !== ui.Button.YES) return '';
+    post_(txt); return 'Posted.';
+  });
+}
 // 🎙️ A Discord poll for the tournament's Most Valuable Chatter (or anything else), posted by the tournament's webhook.
 function adminMvcPoll() {
   withUi_((ui) => {
@@ -979,6 +1023,7 @@ function onOpen() {
     .addItem('🗂️ Post the bracket to Discord', 'adminPostBracket')
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
+    .addItem('⏰ Post the prizes + sign-up reminder', 'adminSignupReminder')
     .addItem('🎙️ Post an MVC poll (Most Valuable Chatter)', 'adminMvcPoll')
     .addItem('🧪 Mock tournament (test posts in Discord)', 'adminMockTournament')
     .addItem('🗑️ Delete the mock test posts', 'adminDeleteMockPosts')
@@ -1048,7 +1093,7 @@ function installTriggers_() {
     if (id) try { ScriptApp.newTrigger('onTourneyFormSubmit').forForm(FormApp.openById(id)).onFormSubmit().create(); } catch (e) { log_('system', 'Form trigger failed', String(e.message || e)); } }));
   ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();
 }
-function adminCheckNow() { withUi_(() => { wake_(); tick(); const T = stateGet_(); return T ? 'Checked. Wave ' + (T.wave || 0) + (T.done ? ' · finished' : '') + '. See the Matches tab.' : 'Checked. No bracket yet: it\'s drawn when sign-ups close.'; }); }
+function adminCheckNow() { withUi_(() => { wake_(); tick(); const T = stateGet_(); if (!T) snapshot_(); return T ? 'Checked. Wave ' + (T.wave || 0) + (T.done ? ' · finished' : '') + '. See the Matches tab.' : 'Checked. No bracket yet: it\'s drawn when sign-ups close.'; }); }
 function adminDrawNow() { withUi_((ui) => { if (stateGet_()) return 'The bracket is already drawn.'; if (ui.alert('Close sign-ups and draw the bracket now?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return ''; drawBracket_(); snapshot_(); return stateGet_() ? 'Bracket drawn and posted.' : 'Not enough clubs yet.'; }); }
 function adminPostBracket() { withUi_(() => { const T = stateGet_(); if (!T) return 'No bracket yet.'; post_(bracketText_(T)); return 'Posted.'; }); }
 function bracketText_(T) {
@@ -2428,7 +2473,7 @@ function render(){
   var IDL=D.matches?(D.seeds||[]):(D.entrants||[]);
   h+='<div class="sec"><h2 class="bb">'+(D.matches?'🆔 Club IDs':'Signed up · '+IDL.length)+'</h2><div style="color:var(--muted);font-size:13px;margin:-4px 0 8px">The club ID is what you play in SmallBall. Tap one to open that club, with the Play button.</div>'+(IDL.length?'<div class="ids">'+IDL.map(function(e){return '<a href="https://play.smallball.com/#/team/'+esc(e.id)+'" target="_blank">'+(e.s?'<em>#'+esc(e.s)+'</em>':'')+'<span>'+esc(e.n)+' <i>'+esc(e.o||'')+(e.st!==''&&e.st!=null?' · '+esc(e.st)+'★':'')+'</i></span><b>'+esc(e.id)+'</b></a>'}).join('')+'</div>':'<div class="empty">Nobody yet. Be the first!</div>')+'</div>';
   if(!D.matches&&D.preview){
-    var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw when sign-ups close'}[P.seeding]||'sign-up order';
+    var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw, reshuffled with every new sign-up (similar stars meet first, one owner\u2019s clubs kept apart)'}[P.seeding]||'sign-up order';
     h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we\u2019re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who\u2019s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
     h+=rules();
     var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
