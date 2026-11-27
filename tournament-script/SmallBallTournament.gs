@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -462,24 +462,38 @@ function createTournament_(entrants, C) {
   const T = { fmt, seeds: e.map((x, i) => ({ club: Number(x.ClubID), seed: i + 1 })), created: Date.now(), wave: 0, matches: [], final: null };
   const build = (cl) => (fmt === 'double' ? buildDouble_(cl, lc_(C.GRAND_FINAL_RESET) !== 'no') : buildSingle_(cl, {}));
   let built = build(clubs);
-  // Random seeding: an owner with more than one club gets them spread apart, so they meet as late as possible.
+  // Random seeding, with two nudges: an owner with more than one club gets them spread apart (they meet as late
+  // as possible), and first games pair clubs of similar stars (the low-star clubs play each other, not the giants).
   if (how === 'random') {
-    const own = {}; e.forEach((x) => { const k = lc_(x.Email) || lc_(x.Discord) || String(x.ClubID); (own[k] = own[k] || []).push(Number(x.ClubID)); });
+    const own = {}, stars = {}; e.forEach((x) => { const k = lc_(x.Email) || lc_(x.Discord) || String(x.ClubID); (own[k] = own[k] || []).push(Number(x.ClubID)); stars[Number(x.ClubID)] = Number(x.Stars) || 0; });
     const pairs = []; Object.keys(own).forEach((k) => { const c = own[k]; for (let i = 0; i < c.length; i++) for (let j = i + 1; j < c.length; j++) pairs.push([c[i], c[j]]); });
-    if (pairs.length) {
-      let best = { cl: clubs, b: built, score: meetScore_(built.matches, pairs) };
-      for (let t = 0; t < 600 && best.score > 0; t++) {
-        const cl = clubs.slice(); for (let i = cl.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = cl[i]; cl[i] = cl[j]; cl[j] = x; }
-        const b = build(cl), sc = meetScore_(b.matches, pairs);
-        if (sc < best.score) best = { cl, b, score: sc };
-      }
-      clubs.splice(0, clubs.length, ...best.cl); built = best.b;
-      T.seeds = clubs.map((c, i) => ({ club: c, seed: i + 1 }));
+    const cost = (cl, b) => (pairs.length ? meetScore_(b.matches, pairs) * 1000 : 0) + firstGap_(b, cl, fmt, stars);
+    let best = { cl: clubs, b: built, score: cost(clubs, built) };
+    for (let t = 0; t < 1500 && best.score > 0; t++) {
+      const cl = clubs.slice(); for (let i = cl.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = cl[i]; cl[i] = cl[j]; cl[j] = x; }
+      const b = build(cl), sc = cost(cl, b);
+      if (sc < best.score) best = { cl, b, score: sc };
     }
+    clubs.splice(0, clubs.length, ...best.cl); built = best.b;
+    T.seeds = clubs.map((c, i) => ({ club: c, seed: i + 1 }));
   }
   Object.assign(T, built);
   settle_(T);
   return T;
+}
+// Star gaps in everyone's first game (after byes): a club waiting on a first-round winner counts the gap to both.
+function firstGap_(b, cl, fmt, stars) {
+  const T = { fmt, seeds: cl.map((c, i) => ({ club: c, seed: i + 1 })), matches: JSON.parse(JSON.stringify(b.matches)), final: b.final };
+  settle_(T);
+  let g = 0;
+  T.matches.forEach((m) => {
+    if (m.winner || m.void || m.bracket !== 'W') return;
+    const x = sideClub_(T, m.a), y = sideClub_(T, m.b);
+    if (x > 0 && y > 0) { const d = (stars[x] || 0) - (stars[y] || 0); g += d * d; return; }
+    const one = x > 0 ? x : y > 0 ? y : 0, other = x > 0 ? m.b : m.a;
+    if (one && other && other.from) { const f = T.matches.find((z) => z.id === other.from); if (f && !f.winner) [sideClub_(T, f.a), sideClub_(T, f.b)].forEach((z) => { if (z > 0) { const d = (stars[one] || 0) - (stars[z] || 0); g += d * d / 2; } }); }
+  });
+  return g;
 }
 // How early same-owner clubs could meet: for every match, which clubs could be on each side and how many games
 // deep it is. Each pair scores more the earlier they could meet (0 = only in the last game or never).
