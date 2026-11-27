@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -132,6 +132,9 @@ const DEFAULTS = {
   REVENGE_THRESHOLD: [500, "Reign points needed to earn the Ace's Revenge"],
   REVENGE_DECLARE_HOURS: [12, "Hours a dethroned Ace has to declare the Ace's Revenge"],
   EX_ACE_RANK: [3, 'Ladder spot a dethroned Ace drops to'],
+  ACE_LOSS_RANK: [5, '🩹 Lose a charge at the Ace (title, Bell or revenge) and you drop to this spot (or one spot, if you were already lower)'],
+  ACE_LOSS_REST_HOURS: [2, '🩹 After losing a charge at the Ace: hours of recovery before you can charge anyone'],
+  ACE_LOSS_REST_KNUCKLES_HOURS: [3, '🩹 The same, when the Ace was wearing Brass Knuckles'],
   MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; with no title charge it opens one more spot at a time, down to this spot'],
   MOUND_FIRST_HOURS: [8, 'Open mound: hours with no title charge before #2 can charge the Ace too'],
   MOUND_STEP_HOURS: [24, 'Open mound: after that, hours for each further spot (#3, #4...)'],
@@ -703,6 +706,26 @@ function dropOne_(arr, p) {
   const i = arr.indexOf(p);
   if (i >= 0 && i < arr.length - 1) { arr[i] = arr[i + 1]; arr[i + 1] = p; }
 }
+// 🩹 Recovery after a failed charge at the Ace: no charging anyone until it's over. Kept in script properties.
+function rests_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('HILL_REST') || '{}'); } catch (e) { return {}; } }
+function restUntil_(email) { const r = rests_()[lc_(email)]; return r && new Date(r) > now_() ? new Date(r) : null; }
+function setRest_(email, hours) {
+  const r = rests_(), now = now_();
+  Object.keys(r).forEach(function (k) { if (new Date(r[k]) <= now) delete r[k]; });
+  if (hours > 0) r[lc_(email)] = hoursFrom_(now, hours).toISOString(); else delete r[lc_(email)];
+  PropertiesService.getScriptProperties().setProperty('HILL_REST', JSON.stringify(r));
+  return hours > 0 ? new Date(r[lc_(email)]) : null;
+}
+// A charge at the Ace that failed: down to ACE_LOSS_RANK (or one spot if already lower), then recovery.
+function aceLoss_(lad, ch, c, C, extra) {
+  const cur = lad.indexOf(ch) + 1, to = Math.max(Number(C.ACE_LOSS_RANK) || 5, cur + 1);
+  if (cur > 0) insertAt_(lad, ch, to);
+  const kn = /🥊/.test(String(c.Notes || '')) && !/🧽/.test(String(c.Notes || ''));
+  const hrs = Number(kn ? C.ACE_LOSS_REST_KNUCKLES_HOURS : C.ACE_LOSS_REST_HOURS) || 0;
+  const until = setRest_(ch.Email, hrs);
+  extra.push('🩹 ' + esc_(ch.Discord) + ' limps off the mound' + (cur > 0 ? ' to **#' + Math.min(to, lad.length) + '**' : '') +
+    (until ? ' and is recovering' + (kn ? ' from the 🥊 Brass Knuckles' : '') + ': no charges until ' + ts_(until) + '.' : '.'));
+}
 
 function activeMe_(pt, email) {
   const me = findBy_(pt, email);
@@ -1041,6 +1064,8 @@ function reachList_(me, C, pt, ct) {
     if (Number(me.Rank) <= openTo) out.push('♠ **The Ace**, ' + esc_(ace.Discord) + ' · ' + esc_(ace.Club) + ' · ' + clubIdTxt_(ace) + (kn(ace) ? ': **title shot, win by 2+**' + kn(ace) : ': **title shot, just win**') +
       (busy ? ' ⏳ *(a title fight is already on: wait for it)*' : revengeOpen ? " ⏳ *(the Ace's Revenge is pending)*" : ''));
   }
+  const myRest = restUntil_(me.Email);
+  if (myRest) out.push('🩹 **Recovering** from your last charge at the Ace: you can charge again after ' + Utilities.formatDate(myRest, 'America/Denver', 'EEE h:mm a') + ' MT.');
   ladder_(pt).forEach(function (p) {
     const gap = Number(me.Rank) - Number(p.Rank);
     const jump = itOn && gap === reach + 1;
@@ -1116,6 +1141,8 @@ function doChallenge_(sub, C) {
   const me = activeMe_(pt, sub.email);
   const mine = openFor_(ct, me.Email);
   if (mine) fail_('You already have an open challenge (' + mine.ID + ', ' + mine.Status + '). One at a time.');
+  const resting = restUntil_(me.Email);
+  if (resting) fail_('🩹 You are still recovering from your last charge at the Ace. You can charge again after ' + Utilities.formatDate(resting, 'America/Denver', 'EEE h:mm a') + ' MT.');
   const ace = ace_(pt);
   if (ace === me) fail_('The Ace defends the hill and does not issue challenges.');
   const revengeOpen = !!C.STATE_REVENGE_EX_ACE;
@@ -1320,12 +1347,12 @@ function finalize_(ct, c, cr, dr, source) {
       outcome = 'Bell: won by ' + margin + ', needed ' + tNeed + '+: #1 contender';
       headline = '🔔 ' + who_(ch) + ' answers the Bell and beats ' + who_(df) + ' ' + scoreTxt + '! Not by **' + tNeed + '+**, so ♠️ ' + who_(df) +
         ' keeps the hill, but ' + esc_(ch.Discord) + ' jumps to **#1 contender**.';
-    } else if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small changes nothing
-      dropOne_(lad, ch);
+    } else if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small is a failed charge
+      aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = 'Won by ' + margin + ', needed ' + tNeed + '+: the Ace holds';
       headline = '🥊 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + ' but needed to win by **' + tNeed + '+** through the Brass Knuckles. ' +
-        '♠️ ' + who_(df) + ' keeps the hill. Nobody moves, no points.';
+        '♠️ ' + who_(df) + ' keeps the hill, no points.';
     } else if (!chWins) {
       const n = num_(reign.Defenses) + 1;
       points = reward_(n, C);
@@ -1336,7 +1363,7 @@ function finalize_(ct, c, cr, dr, source) {
       df.CareerPts = num_(df.CareerPts) + points;
       df.Defenses = num_(df.Defenses) + 1;
       df.BestReignPts = Math.max(num_(df.BestReignPts), reign.ReignPts);
-      dropOne_(lad, ch);
+      aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = 'Defense #' + n + ' (+' + points + ')';
       headline = '♠️ **The Ace holds the hill!** ' + who_(df) + ' beats ' + who_(ch) + ' ' + scoreTxt +
@@ -1386,7 +1413,7 @@ function finalize_(ct, c, cr, dr, source) {
       headline = "🔥 **THE ACE'S REVENGE!** " + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt +
         ' and takes the hill back. A new reign begins.';
     } else {
-      dropOne_(lad, ch);
+      aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = chWins ? 'Revenge fell short (won by ' + margin + ', needed more than ' + need + ')' : 'Revenge denied';
       headline = chWins
@@ -3736,7 +3763,7 @@ function snapshotBoard_() {
     const snap = Object.assign({}, prev, { rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), prefill: prefillCached_(C), bookOn: bookOn_(C), bookOpen: bookOpen, bell: (function () { const B = bellState_(C); return B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null; })(), moundOpenTo: moundOpenTo_(C), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
     if (!pending.length || !prev.ladder) {   // a result still waiting to air keeps the standings as they were
       const pt = players_();
-      const pub = function (p) { return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), opt: Number(p.Rank) > 0 ? oppLabel_(p) : '', rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), best: num_(p.BestReignPts), pts: num_(p.CareerPts) }; };
+      const pub = function (p) { const rs = restUntil_(p.Email); return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID), opt: Number(p.Rank) > 0 ? oppLabel_(p) : '', rest: rs ? rs.toISOString() : '', rank: p.Rank, w: num_(p.Wins), l: num_(p.Losses), defenses: num_(p.Defenses), reigns: num_(p.Reigns), best: num_(p.BestReignPts), pts: num_(p.CareerPts) }; };
       const ace = ace_(pt), reigns = readTable_(SHEETS.REIGNS).rows, cur = currentReign_(readTable_(SHEETS.REIGNS));
       snap.ace = ace ? Object.assign(pub(ace), cur ? { reign: cur.Reign, since: iso(cur.Start), rdef: num_(cur.Defenses), rpts: num_(cur.ReignPts), next: reward_(num_(cur.Defenses) + 1, C), revenge: cur.Revenge === 'Yes' } : {}) : null;
       snap.ladder = ladder_(pt).map(pub);
@@ -3867,6 +3894,9 @@ const DASH_GROUPS_ = [
     { k: 'DOUBLE_UNTIL', label: 'Defense points double through defense #', t: 'range', min: 1, max: 10, step: 1, unit: '' },
     { k: 'REVENGE_THRESHOLD', label: "Reign points to earn the Ace's Revenge", t: 'range', min: 100, max: 1000, step: 50, unit: 'pts' },
     { k: 'EX_ACE_RANK', label: 'A dethroned Ace drops to', t: 'range', min: 1, max: 10, step: 1, unit: '#' },
+    { k: 'ACE_LOSS_RANK', label: '🩹 Lose a charge at the Ace: drop to', t: 'range', min: 2, max: 10, step: 1, unit: '#' },
+    { k: 'ACE_LOSS_REST_HOURS', label: '🩹 …and recover this long', t: 'range', min: 0, max: 12, step: 1, unit: 'hrs' },
+    { k: 'ACE_LOSS_REST_KNUCKLES_HOURS', label: '🩹 …or this long if the Ace wore 🥊 Brass Knuckles', t: 'range', min: 0, max: 12, step: 1, unit: 'hrs' },
     { k: 'TIE_RULE', label: 'A tie', t: 'choice', options: [['HOLD', 'Defender holds'], ['REPLAY', 'Play again']] },
   ] },
   { id: 'bucks', title: '💰 Brawl Bucks', blurb: 'What players earn and what the shop costs.', items: [
@@ -4321,7 +4351,7 @@ h+='<!--TAB:how--><h2 class="bb">How the Hill works</h2><div class="how">'
 +'<div class="card"><h3 class="bb">🥊 Charge the hill</h3><p>Pick a fight with anyone up to <b>3 spots above you</b>. Reach higher, win bigger.</p><div class="reach"><div class="no">#2 · too far</div><div class="ok">#3 · win by 4+</div><div class="ok">#4 · win by 3+</div><div class="ok">#5 · just win</div><div class="me">#6 · YOU</div></div></div>'
 +'<div class="card"><h3 class="bb">⚾ Play it, report it</h3><div class="steps3"><div><b>1</b>Charge on the form. The clock starts.</div><div><b>2</b>The challenger starts the game in SmallBall as the visitor, at the defender\\'s park. The first game counts.</div><div><b>3</b>Nothing to report: the Hill finds the game on SmallBall by itself. Hand reports still work as a backup. Results post once the game has aired: no spoilers.</div></div><p style="opacity:.75;font-size:13px">Win by enough and you take their spot. Win short of the margin and nobody moves. Lose and you drop one. A tie: the defender holds.</p></div>'
 +'<div class="card"><h3 class="bb">♠ Points per defense</h3><p>Every title defense pays double the last, up to 320.</p><div class="bars">'+pts.map(function(p,i){return '<div style="height:'+(p/320*100)+'%;animation-delay:'+(i*0.1)+'s"><span>'+p+'</span><i>D'+(i+1)+'</i></div>';}).join('')+'</div><p style="margin-top:28px">Hold it six times and every defense after that is worth 320.</p></div>'
-+'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p>🔔 <b>The Bell:</b> a few times a week, at random but never at night, the Bell rings for an hour (30-minute heads-up in Discord). While it rings, <b>anyone</b> on the climb can charge the Ace, first one in. Win by <b>3+</b> to take the hill; a smaller win makes you the <b>#1 contender</b>. If the Ace wins, they earn a <b>50 BB</b> bounty and two days off from the Bell.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
++'<div class="card"><h3 class="bb">⏰ The open mound</h3><p>Only <b>#1</b> can charge the Ace at first. If nobody charges, <b>#2</b> gets a title shot after 8 hours, then one more spot each day, down to <b>#5</b> (it never widens overnight). Any win takes the hill: no margins on the mound.</p><p>🩹 <b>Lose a charge at the Ace</b> (title, Bell or revenge) and you limp back to <b>#5</b>, then recover for <b>2 hours</b> (<b>3</b> if the Ace wore 🥊 Brass Knuckles) before you can charge anyone.</p><p>🔔 <b>The Bell:</b> a few times a week, at random but never at night, the Bell rings for an hour (30-minute heads-up in Discord). While it rings, <b>anyone</b> on the climb can charge the Ace, first one in. Win by <b>3+</b> to take the hill; a smaller win makes you the <b>#1 contender</b> (no injury). If the Ace wins, they earn a <b>50 BB</b> bounty and two days off from the Bell.</p><p class="bb" style="font-size:22px;color:#ffd166">Open to '+((D.moundOpenTo||1)===1?'#1':'#1–#'+D.moundOpenTo)+' now</p></div>'
 +'<div class="card"><h3 class="bb">📅 Daily Brawl points</h3><p>Every night at midnight, clubs get paid for where they sit:</p><div class="reach">'+(D.daily||[]).slice(0,6).map(function(v,i){return '<div class="ok">'+(i===0?'♠ Ace':'#'+i)+' · '+v+' pts/day</div>';}).join('')+'</div><p style="opacity:.75;font-size:13px">Defense points plus daily pay = Brawl points. Most at the end of the season wins the The Bench Clearer Cup.</p></div>'
 +'<div class="card"><h3 class="bb"><span class="flame">🔥</span> The Ace\\'s Revenge</h3><p>An Ace who built <b>500+ reign points</b> and loses the hill gets one shot back, declared within 12 hours.</p><p>The catch: they must win by <b>more runs than they lost by</b>. Lost 5–3? You need a 3-run win.</p><p style="opacity:.75;font-size:13px">A dethroned Ace without revenge drops to #3..</p></div>'
 +'</div><div class="foot">'+(D.formLink?'<a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="color:#ffd166">📝 Master Form</a> · ':'')+'Updated '+(D.updated?when(D.updated):'never')+' · refreshes every minute · results appear once each game has aired</div>';
