@@ -295,7 +295,7 @@ function steps(){var d=D(),reach=+d.reach||3,S=[
  {t:'🏆 The Season',sel:'.tabs a[data-t=season]',tab:'season',b:'The season awards and who\'s leading them, and in the last week the 🏟️ Bleacher Vote for the player who made the season the most fun.'},
  {t:'📖 How it works',sel:'.tabs a[data-t=how]',tab:'how',b:'Every rule in one place: charges, margins, the open mound, the Bell, items, payouts. When in doubt, it\'s here.'},
  {t:'📰 The ticker',sel:'.tick',tab:'hill',b:'Along the bottom: the latest results and charges, and the odds on the Ace with green ▲ and red ▼ moves.'},
- {t:'📝 The Master Form',sel:'.foot',tab:'hill',b:'One form for everything: register your club, charge, report a game, bet, shop and vote. Results are picked up from SmallBall on their own once the game has aired. With the <b>🧢 Club Kit</b>, your Hill card and 🥊 Charge buttons sit right on SmallBall.'+(d.formLink?' <a href="'+d.formLink+'" target="_blank" rel="noopener" style="color:#ffd166;font-weight:800">Open the Master Form →</a>':'')}
+ {t:'📝 The Master Form',sel:'#p-how .foot',tab:'how',b:'One form for everything: register your club, charge, report a game, bet, shop and vote. Results are picked up from SmallBall on their own once the game has aired. With the <b>🧢 Club Kit</b>, your Hill card and 🥊 Charge buttons sit right on SmallBall.'+(d.formLink?' <a href="'+d.formLink+'" target="_blank" rel="noopener" style="color:#ffd166;font-weight:800">Open the Master Form →</a>':'')}
 ];return S.filter(function(s){return !s.farm||d.farm;});}
 var el=null,lit=null,i=0;
 function unlight(){if(lit){lit.style.outline='';lit.style.outlineOffset='';lit=null;}}
