@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.7: MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -28,6 +28,7 @@ const DEFAULTS = {
   NO_SHOW: ['higher seed', 'No game in the match window: "higher seed" moves on automatically, or "commish" waits for you'],
   TIE_RULE: ['replay', 'A tie: "replay" (play again; the match gets 30 more minutes) or "higher seed"'],
   MAX_CLUBS: ['32', 'Sign-ups stop at this many clubs'],
+  MAX_PER_OWNER: ['1', 'How many clubs one owner (one Google sign-in) can enter'],
   PREVIEW_SIZE: ['16', 'While sign-ups are open, the bracket page shows a preview bracket this big (16 = no byes). It grows to 32 if more sign up'],
   MIN_STARS: ['0', 'Lowest club stars allowed (0 = anyone)'],
   MAX_STARS: ['10', 'Highest club stars allowed'],
@@ -333,7 +334,13 @@ function register_(sub) {
   }
   if (isScr_(C)) ensureCol_(SHEETS.ENTRANTS, 'Partner');
   const et = entrants_(), active = et.rows.filter((r) => r.Status !== 'Withdrawn');
-  const mine = et.rows.find((r) => lc_(r.Email) === sub.email);
+  // One owner (Google sign-in) can enter up to MAX_PER_OWNER clubs. With one, sending the form again swaps your
+  // club; with more, it updates that club's entry or adds another club, up to the limit.
+  const per = Math.max(1, Number(C.MAX_PER_OWNER) || 1);
+  const ownRows = et.rows.filter((r) => lc_(r.Email) === sub.email);
+  const mine = per > 1 ? ownRows.find((r) => norm_(r.ClubID) === sub.clubId) : ownRows[0];
+  const ownActive = ownRows.filter((r) => r.Status !== 'Withdrawn');
+  if (per > 1 && !mine && ownActive.length >= per) fail_('You already have ' + per + ' clubs in: ' + ownActive.map((r) => r.Club + ' (' + r.ClubID + ')').join(' and ') + '. That\'s the most per owner. To swap one, ask the commish.');
   const clash = active.find((r) => norm_(r.ClubID) === sub.clubId && r !== mine);
   if (clash) fail_('Club ID ' + sub.clubId + ' is already signed up (' + clash.Discord + ').');
   if (!mine && active.length >= Number(C.MAX_CLUBS || 32)) fail_('The bracket is full (' + C.MAX_CLUBS + ' clubs).');
@@ -733,7 +740,7 @@ function snapshot_(T) {
     if (e && e.team) return { id, n: 'Team ' + norm_(e.Discord), s: seedOf_(T, id), how: e.team.how, clubs: e.team.clubs.map((c) => ({ id: c, n: E[c] ? norm_(E[c].Club) : 'Club ' + c, o: E[c] ? norm_(E[c].Discord) : '' })) };
     return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: T ? seedOf_(T, id) : 0, st: norm_(e.Stars) } : { id, n: 'Club ' + id }; };
   const snap = {
-    name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), form: norm_(C.FORM_LINK),
+    name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), form: norm_(C.FORM_LINK), perOwner: Math.max(1, Number(C.MAX_PER_OWNER) || 1),
     signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), tz: tz_(C),
     entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars), p: norm_(r.Partner) })),
   };
@@ -875,6 +882,7 @@ function onOpen() {
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
     .addItem('🏦 Update the Prize Vault now', 'adminVaultNow')
+    .addItem('👥 Allow two clubs per owner', 'adminTwoPerOwner')
     .addItem('🐙 Connect the GitHub bracket page', 'adminConnectGithub')
     .addItem('🔑 Connect SmallBall box scores (Scramble)', 'adminConnectSmallBall')
     .addItem('🧪 Practice round (Scramble box-score test)', 'adminPracticeRound')
@@ -1259,6 +1267,10 @@ function vaultTick_(force) {
   const snap = { updated: now, club: { id: club, name: d.name || '' }, tickets: tickets.sort((a, b) => a.tier - b.tier || a.at - b.at),
     donors: Object.values(donors).sort((a, b) => b.n - a.n || b.last - a.last), given };
   return withSlot_(null, () => ghPut_('docs/vault/vault.json', JSON.stringify(snap), '🏦 Prize Vault: ' + tickets.length + ' ticket' + (tickets.length === 1 ? '' : 's'), JSON.stringify(Object.assign({}, snap, { updated: 0 })))) ? '' : 'GitHub save failed (see the Log).';
+}
+function adminTwoPerOwner() {
+  setCfg_('MAX_PER_OWNER', 2); snapshot_();
+  try { SpreadsheetApp.getUi().alert('👥 Two clubs per owner', 'Owners can now sign up a second club (one form each). Set MAX_PER_OWNER in Config back to 1 to undo.', SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) { }
 }
 function adminVaultNow() {
   withUi_((ui) => { const why = vaultTick_(true); ui.alert('🏦 Prize Vault', why || 'Updated. The Prize Vault page shows it within a minute or two.', ui.ButtonSet.OK); });
@@ -2187,7 +2199,7 @@ function rules(){
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
   h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
-  h+=card('✍️ Signing up',['One club per owner. <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
   h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed starts the game</b>: tap the Start-the-game link in the ping, check YOUR CLUB at the top of SmallBall, then hit Play (not Exhibition). Nothing for the higher seed to accept.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
