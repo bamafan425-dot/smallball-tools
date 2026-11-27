@@ -1,0 +1,61 @@
+name: 📜 Submit SmallBall lore
+description: Send a chat log, forum thread, screenshot or story for the SmallBall Lore Vault.
+title: "[Lore] "
+labels: ["lore"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for adding to the vault! Lore is about the game and the community.
+        **Please leave out real names, phone numbers, addresses and anything personal.** We'll trim anything like that before it goes up.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of artifact is it?
+      options:
+        - Chat log
+        - Forum thread
+        - Screenshot or image
+        - Club history / record
+        - Story or memory
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: when
+    attributes:
+      label: When was it from?
+      description: A date, a year or a season, as close as you know.
+      placeholder: "Summer 2006, or Season 174"
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Link (if there is one)
+      description: An archive thread, an image link, a Wayback Machine page...
+      placeholder: "https://www.archives.sbforums.org/phpBB2/viewtopic.php?t=..."
+  - type: textarea
+    id: content
+    attributes:
+      label: The lore
+      description: Paste the log or text, tell the story, or drag screenshots in here.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does it matter?
+      description: Context for people who weren't there. Who's who, what was going on.
+  - type: input
+    id: credit
+    attributes:
+      label: Credit as
+      description: Your SmallBall or Discord name, or leave blank to stay anonymous.
+  - type: checkboxes
+    id: ok
+    attributes:
+      label: Okay to post
+      options:
+        - label: I'm okay with this being posted on the SmallBall Lore pages, edited for length and privacy.
+          required: true

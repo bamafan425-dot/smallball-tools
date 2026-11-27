@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Search for Commish</title>
+<meta name="description" content="Case #54720: the 2006 SmallBall forum manhunt for the missing Commish. A SmallBall Lore exhibit.">
+<meta property="og:title" content="The Search for Commish (2006)"><meta property="og:description" content="287 posts, busy signals, a missing poster and a ghost on Who's Online. SmallBall Lore.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: deadpan detective, affectionate — a kids' manhunt treated like a real case
+   IDEA: a manila case file on a desk, with a missing poster clipped to the front
+   PICTURE: the MISSING poster hero beside the case header and a red CLOSED stamp
+   COLOUR and TYPE: manila paper, typewriter ink, stamp red, desk wood; Special Elite + Plex Sans
+   LAYOUT: poster + case header, case log, updates, theories board, the frisbee incident, epilogue */
+:root{color-scheme:light dark;--desk:light-dark(#5b3b22,#1e140c);--paper:#efe2bd;--paper2:#e6d5a8;--ink:#2a2118;--dim:#6b5a43;--red:#b3261e;--blue:#1f4e8c;--chalk:light-dark(#f7ecd2,#e9dcc0)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--desk);color:var(--ink);font:16.5px/1.6 "IBM Plex Sans",system-ui,sans-serif;overflow-x:clip;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 9px),linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.15))}
+.top{max-width:1180px;margin:0 auto;padding:16px max(4vw,16px) 0;display:flex;gap:18px;flex-wrap:wrap;font-weight:600;font-size:15px}
+.top a{color:var(--chalk);text-decoration:none;opacity:.85}.top a:hover{opacity:1;text-decoration:underline}
+.folder{max-width:1180px;margin:18px auto 40px;padding:0 max(3vw,10px)}
+.sheet{background:var(--paper);border-radius:4px 14px 6px 6px;box-shadow:0 18px 40px rgba(0,0,0,.45);padding:clamp(22px,4vw,56px);position:relative}
+.tab{display:inline-block;background:var(--paper2);color:var(--ink);font:15px "Special Elite",monospace;padding:8px 22px 6px;border-radius:12px 12px 0 0;margin-left:24px}
+h1,h2,h3{font-family:"Special Elite",Courier,monospace;font-weight:400;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(36px,5.4vw,52px)}h2{font-size:clamp(26px,3.6vw,34px);margin-bottom:14px}h3{font-size:20px}
+.hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(22px,4vw,48px);align-items:center}
+.poster{background:#fbf7ea;border:1px solid #cfc3a0;padding:22px 22px 18px;transform:rotate(-2deg);box-shadow:0 10px 24px rgba(0,0,0,.25);position:relative;text-align:center}
+.poster::before{content:"";position:absolute;top:-14px;left:50%;width:70px;height:26px;margin-left:-35px;background:rgba(220,210,170,.75);transform:rotate(3deg)}
+.poster .m{font:clamp(48px,8vw,76px)/.9 "Special Elite",monospace;color:var(--red);letter-spacing:.04em}
+.poster svg{width:150px;height:150px;margin:10px auto;display:block}
+.poster .q{font:22px "Special Elite",monospace;margin:4px 0 12px}
+.poster dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;text-align:left;font-size:14.5px;margin:0}
+.poster dt{font-weight:700}.poster dd{margin:0}
+.case .meta{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 16px;margin:20px 0 0;font-size:15.5px}
+.case .meta dt{font:15px "Special Elite",monospace;color:var(--dim)}.case .meta dd{margin:0}
+.case p.lede{font-size:18px;margin:16px 0 0;max-width:56ch}
+.stamp{display:inline-block;margin-top:22px;border:4px solid var(--red);color:var(--red);font:26px/1 "Special Elite",monospace;padding:10px 16px 8px;transform:rotate(-6deg);border-radius:6px;opacity:.88;mix-blend-mode:multiply}
+.stamp small{display:block;font-size:13px;margin-top:4px}
+section.part{margin-top:clamp(36px,5vw,60px);padding-top:clamp(24px,3vw,36px);border-top:2px dashed rgba(42,33,24,.25)}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding:12px 0;border-bottom:1px solid rgba(42,33,24,.14)}
+.log time{font:16px "Special Elite",monospace;color:var(--red);white-space:nowrap}
+.log b{font-weight:700}.log q{font-style:italic;quotes:"\201C" "\201D"}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+.updates{background:#fbf7ea;border:1px solid #cfc3a0;padding:20px 22px;box-shadow:0 6px 14px rgba(0,0,0,.12)}
+.updates ul{list-style:none;margin:10px 0 0;padding:0;columns:2;column-gap:22px}
+.updates li{break-inside:avoid;padding:3px 0 3px 26px;position:relative;font-size:15px}
+.updates li::before{content:"✗";position:absolute;left:4px;color:var(--red);font-weight:700}
+.updates .by{font-size:13.5px;color:var(--dim);margin:12px 0 0}
+.others p{margin:0 0 12px}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:18px}
+.card{background:#fffdf5;border-top:22px solid #d9cfb0;padding:14px 16px 16px;box-shadow:0 5px 12px rgba(0,0,0,.14);position:relative}
+.card:nth-child(3n+1){transform:rotate(-1deg)}.card:nth-child(3n+2){transform:rotate(.8deg)}
+.card p{margin:0 0 8px;font-size:15.5px}.card .who{font-size:13.5px;color:var(--dim);margin:0}
+.verdict{display:inline-block;margin-top:10px;font:13.5px "Special Elite",monospace;border:2px solid currentColor;padding:3px 8px 1px;border-radius:4px;transform:rotate(-3deg)}
+.v-yes{color:#1d6b35}.v-no{color:var(--red)}.v-open{color:var(--blue)}
+.frisbee{display:grid;grid-template-columns:120px minmax(0,1fr);gap:22px;align-items:center;background:var(--paper2);padding:20px 22px;border-radius:8px}
+.frisbee svg{width:110px;height:110px}
+.frisbee p{margin:0 0 8px}
+.epi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center}
+.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:999px;background:var(--red);color:#fff;font-weight:700;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#8f1d17}
+a:focus-visible,.btn:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.note{font-size:14px;color:var(--dim);margin-top:30px}
+.note a{color:var(--ink)}
+@media(max-width:800px){.hero,.two{grid-template-columns:1fr}.poster{max-width:420px;margin:0 auto}.epi{grid-template-columns:1fr}}
+@media(max-width:600px){.log li{grid-template-columns:1fr;gap:2px}.updates ul{columns:1}.frisbee{grid-template-columns:1fr;text-align:left}.frisbee svg{width:80px;height:80px}.case .meta{grid-template-columns:1fr;gap:0}.case .meta dd{margin-bottom:8px}}
+@media(prefers-reduced-motion:no-preference){.stamp{animation:thunk .5s cubic-bezier(.2,1.6,.4,1) .4s both}@keyframes thunk{from{transform:rotate(-6deg) scale(2.2);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:.88}}}
+</style></head><body>
+<div class="top"><a href="../">← SmallBall Lore</a><a href="../commish-returns/">Sequel: The Commish Returns (2007)</a><a href="../../">⚾ SmallBall ToolKits</a></div>
+<div class="folder"><span class="tab">CASE #54720 · SBFORUMS</span>
+<div class="sheet">
+
+<div class="hero">
+<div class="poster" aria-label="Missing poster for the Commish">
+<div class="m">MISSING</div>
+<svg viewBox="0 0 150 150" aria-hidden="true"><rect width="150" height="150" fill="#e8e0c8"/><circle cx="75" cy="58" r="30" fill="#8a7c62"/><path d="M22 150c4-34 26-52 53-52s49 18 53 52z" fill="#8a7c62"/><text x="75" y="70" text-anchor="middle" font-family="Special Elite,monospace" font-size="38" fill="#efe6cf">?</text></svg>
+<div class="q">Have you seen this Commish?</div>
+<dl><dt>Last seen</dt><dd>SmallBall forums, April 11, 2006</dd><dt>Answers to</dt><dd>Commish, C-Man, the Commissioner</dd><dt>Calls to</dt><dd>Busy signal, or "no longer in service"</dd><dt>Reward</dt><dd>2 free 1★ ST teams (bailey's offer)</dd></dl>
+</div>
+<div class="case">
+<h1>The Search for Commish</h1>
+<p class="lede">Football was down, the Mall was selling teams nobody received, and the man who built SmallBall hadn't posted in four months. So one owner opened a thread and the whole forum went looking.</p>
+<dl class="meta"><dt>Opened by</dt><dd>Slip'N'Sliders, Thu Aug 10, 2006, 8:41 pm</dd><dt>Subtitle</dt><dd>"Mission Impossible?"</dd><dt>Filed in</dt><dd>Bugs, Problems, Complaints, Suggestions &amp; Compliments</dd><dt>Size</dt><dd>287 posts, 6 pages, 54 days</dd></dl>
+<div class="stamp">CASE CLOSED<small>Subject resurfaced Aug 16, 2007</small></div>
+</div>
+</div>
+
+<section class="part"><h2>The case log</h2>
+<ol class="log">
+<li><time>Apr 11, 2006</time><span><b>Last known post.</b> Commish posts on the forums, then goes silent.</span></li>
+<li><time>Aug 10</time><span><b>The case opens.</b> Inspired by Footy being down, Slip checks the obvious places, then Google, and turns up a Commish profile on a sports site. He signs up and sends friend requests. <q>No word yet.</q></span></li>
+<li><time>Aug 10</time><span><b>The phones.</b> Wookie8662 calls the company numbers: busy signals, then "no longer in service." chspogo swears he once heard Commish's voice on an answering machine.</span></li>
+<li><time>Aug 10</time><span><b>Escalation.</b> oaf proposes a SmallBall gathering outside Commish's house, <q>with torches and pitchforks and the whole deal.</q></span></li>
+<li><time>Aug 11</time><span><b>"FOUND..."</b> amg111 thinks he may have found a way to save SmallBall and is waiting for a phone number by email. It is the last the thread hears of the plan.</span></li>
+<li><time>Aug 12</time><span><b>The confession.</b> pizzaguy: <q>Ok ok ok, I admit, I'm the commish...</q> hferris: <q>That explains the state of Smallball.</q></span></li>
+<li><time>Aug 12</time><span><b>The boycott.</b> TThomp's plan: stop spending. <q>Grab him by the wallet.</q> Texas floats a theory that the owner disappeared for six months on purpose to see if the game can float.</span></li>
+<li><time>Aug 14</time><span><b>A legend is born.</b> jefeesdios: <q>Hockey is coming out Tomorrow!</q> By September it's in people's signatures. In 2007 jt was still saying it.</span></li>
+<li><time>Aug 14</time><span><b>A real lead.</b> Feldon reports the last word was that Commish took a product development job at Nokia's N-Gage.</span></li>
+<li><time>Aug 14–17</time><span><b>The Great Ultimate Frisbee War.</b> See exhibit C. Nobody finds Commish.</span></li>
+<li><time>Aug 20</time><span><b>Footy is fixed.</b> Slip calls the search <q>semi-successful</q> and asks if it's been long enough to file a missing persons report.</span></li>
+<li><time>Aug 21</time><span><b>The poster.</b> nyyderek2 makes a Commish "missing" poster and hangs it around his neighborhood. The reward gets bid up in the replies.</span></li>
+<li><time>Sep 10</time><span><b>The ghost.</b> Slip spots <q>the infamous black bold letters of Commish</q> in Who's Online. West Coast refreshes and the name is gone. A day later it's off the list again.</span></li>
+<li><time>Sep 13</time><span><b>"He is a tease!"</b> Slip on the drive-by visit. Money adds that Commish hasn't read one of his PMs in four months.</span></li>
+<li><time>Sep 14</time><span><b>The turn.</b> Greek Wizard: the game and the community are two separate things. <q>The game might not be able to be saved, but the community can be.</q> The thread answers yes.</span></li>
+<li><time>Sep 18</time><span><b>Why keep going?</b> When people ask to shut the thread down, Slip answers: <q>Some still have hope.</q></span></li>
+<li><time>Sep 19</time><span><b>A sighting.</b> jon2s says he located a quote from Commish on a phone site.</span></li>
+<li><time>Oct 3, 2006</time><span><b>Last entry.</b> Someone checks the records: smallball.com is renewed through 2010, but the forum domain expires October 22. The game would outlive its forums.</span></li>
+</ol></section>
+
+<section class="part"><h2>Exhibit A: The Commish Updates</h2>
+<div class="two">
+<div class="updates"><h3>Places Commish was not</h3>
+<ul><li>Under my bed</li><li>My local Safeway</li><li>My neighbor's garage</li><li>My refrigerator</li><li>Radio Shack</li><li>My backyard</li><li>My closet</li><li>Foot Locker</li><li>Red Lobster</li><li>Macy's</li><li>The state fair pony rides</li><li>My hotel room</li><li>The dentist's office</li><li>Driving the garbage truck (today)</li><li>On "Oprah"</li><li>My Driver's Ed class</li><li>Watching reruns of "Lost"</li></ul>
+<p class="by">Field reports from nyyderek2, Aug 14 – Sep 1, 2006. Possible paw prints were found in his dog's food dish.</p></div>
+<div class="others">
+<h3>Other search parties</h3>
+<p><b>carsonlorts</b> checked his shoe, then his sock. He reasoned they'd been playing hide and seek since April.</p>
+<p><b>Beaner</b> thought he saw Commish at the 7-11 with Elvis.</p>
+<p><b>GCool</b> confirmed he was not sitting on him, and he was not in GCool's 128-man Mario Tennis tournament.</p>
+<p><b>Trevor</b> checked his own head and found only some math tests he never showed his parents.</p>
+<p><b>TNT1</b> would have put out a BOLO, but nobody knew what Commish looked like.</p>
+<p><b>SB_Knights</b> called it the SmallBall version of Where's Waldo.</p>
+</div></div></section>
+
+<section class="part"><h2>Exhibit B: The theories board</h2>
+<div class="board">
+<div class="card"><p>He took a job at Nokia's N-Gage.</p><p class="who">Feldon</p><span class="verdict v-yes">CONFIRMED · "i was at nokia for a while"</span></div>
+<div class="card"><p>He'll come back when he wants to. It's not like he forgot about SmallBall.</p><p class="who">kingjames</p><span class="verdict v-yes">CONFIRMED · Aug 2007</span></div>
+<div class="card"><p>The game might not be saved, but the community can be.</p><p class="who">Greek Wizard</p><span class="verdict v-yes">CONFIRMED · still here</span></div>
+<div class="card"><p>Hockey is coming out tomorrow.</p><p class="who">jefeesdios</p><span class="verdict v-open">STILL OPEN</span></div>
+<div class="card"><p>He left for six months to test whether the game can float on its own.</p><p class="who">Texas</p><span class="verdict v-open">UNPROVEN · he said "personal"</span></div>
+<div class="card"><p>He's one of us, on a new screen name, waiting to yell PSYCH!</p><p class="who">xcrunner1652</p><span class="verdict v-no">BUSTED · as far as we know</span></div>
+<div class="card"><p>I'm the Commish.</p><p class="who">pizzaguy</p><span class="verdict v-no">BUSTED</span></div>
+<div class="card"><p>He's secretly building BigBall. Like SmallBall, but big.</p><p class="who">nifty200305</p><span class="verdict v-no">BUSTED</span></div>
+<div class="card"><p>He's porting Baby Boom to Xbox 360, PS3 and Wii.</p><p class="who">Scud42</p><span class="verdict v-no">BUSTED</span></div>
+<div class="card"><p>He left to take Bud Selig's job.</p><p class="who">xcrunner1652</p><span class="verdict v-no">BUSTED</span></div>
+</div></section>
+
+<section class="part"><h2>Exhibit C: The Great Ultimate Frisbee War</h2>
+<div class="frisbee">
+<svg viewBox="0 0 110 110" aria-hidden="true"><ellipse cx="55" cy="62" rx="48" ry="17" fill="#7a2a1f"/><ellipse cx="55" cy="56" rx="48" ry="17" fill="#b3261e"/><ellipse cx="55" cy="54" rx="30" ry="9" fill="none" stroke="#efe2bd" stroke-width="3"/></svg>
+<div><p>Four days into the search, someone asked why SmallBall's next sport should be hockey and not Ultimate Frisbee. Three pages later the forum had cited Wikipedia and dictionary.com, posted highlight videos, compared it to golf, chess, mini-golf, tee-ball, competitive eating and auto racing, and worked out that you can also play soccer with a dog.</p>
+<p>bailey settled nothing: <q>S ome P ractice O f R ecreational T raining.</q> Then: way off topic, he kept checking to see if the man had turned up, and everyone was still slapping each other around.</p></div>
+</div></section>
+
+<section class="part"><div class="epi">
+<div><h2>Epilogue</h2><p style="margin:0;max-width:60ch">The thread went quiet in October. The old forums closed on New Year's Eve 2006 and the community carried on at smallball.org. Then, one year and six days after Slip opened the case, Commish walked into the chat room and said "hell." Then "hello."</p></div>
+<a class="btn" href="../commish-returns/">Read The Commish Returns →</a>
+</div>
+<p class="note">Compiled from the original thread, <a href="https://www.archives.sbforums.org/phpBB2/viewtopic.php?t=54720">"The Search for Commish"</a> in the SmallBall Sports Forums Archives. Posts are shortened and quoted in small pieces. Phone numbers, addresses, public-records results and real names that came up in the thread are left out on purpose. Got more from this era? <a href="../#submit">Add it to the vault</a>.</p>
+</section>
+
+</div></div>
+</body></html>

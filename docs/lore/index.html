@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmallBall Lore</title>
+<meta name="description" content="The SmallBall Lore Vault: old chat logs, forum threads and stories from the community that wouldn't quit.">
+<meta property="og:title" content="SmallBall Lore"><meta property="og:description" content="Old chat logs, forum threads and stories from the SmallBall community.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/site.css">
+<style>
+/* VOICE: proud, a little misty-eyed, clubhouse storytelling
+   IDEA: the trophy case in the clubhouse hallway — plaques, a timeline painted on the wall
+   PICTURE: two framed "exhibit" plaques and a season-by-season timeline rail
+   COLOUR and TYPE: the site's navy, gold and stitch red; Barlow Condensed plaques
+   LAYOUT: hero, exhibits, timeline, who's who, glossary, submit */
+.lhero{padding-block:clamp(20px,3vw,40px) clamp(28px,4vw,48px);max-width:900px}
+.lhero p{font-size:19px;color:var(--muted);max-width:58ch;margin:0}
+.ex{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:22px}
+.plaque{position:relative;display:flex;flex-direction:column;text-decoration:none;background:linear-gradient(160deg,#1d2945,#121a2e);border:2px solid #3b4b72;border-radius:18px;padding:26px 26px 22px;overflow:hidden;transition:transform .15s,border-color .15s}
+.plaque:hover{transform:translateY(-3px);border-color:var(--gold)}
+.plaque .yr{font:800 72px/.8 "Barlow Condensed",sans-serif;color:rgba(250,204,21,.16);position:absolute;right:18px;top:16px}
+.plaque .kick{font:700 14px Barlow,sans-serif;color:var(--gold)}
+.plaque h3{font-size:34px;margin:8px 0 8px;position:relative}
+.plaque p{margin:0 0 16px;color:var(--muted);position:relative}
+.plaque .go{margin-top:auto;font-weight:700;color:var(--ink)}
+.plaque.red{background:linear-gradient(160deg,#3a1420,#1a0e18);border-color:#6b2232}
+.plaque.red:hover{border-color:#ff6b5a}
+.rail{list-style:none;margin:0;padding:0;position:relative}
+.rail::before{content:"";position:absolute;left:96px;top:6px;bottom:6px;width:3px;background:repeating-linear-gradient(180deg,var(--red) 0 10px,transparent 10px 16px)}
+.rail li{display:grid;grid-template-columns:80px minmax(0,1fr);gap:36px;padding:10px 0;position:relative}
+.rail li::after{content:"";position:absolute;left:90px;top:18px;width:15px;height:15px;border-radius:50%;background:var(--bg);border:3px solid var(--gold)}
+.rail b{font:800 20px/1.2 "Barlow Condensed",sans-serif;color:var(--gold);text-align:right}
+.rail span{color:var(--muted)}.rail em{font-style:normal;font-weight:700;color:var(--ink)}
+.rail a{color:var(--ink)}
+.who{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px}
+.who div{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:14px 16px}
+.who b{font:800 20px "Barlow Condensed",sans-serif;display:block}
+.who span{font-size:15px;color:var(--muted)}
+dl.gl{display:grid;grid-template-columns:minmax(120px,max-content) minmax(0,1fr);gap:8px 20px;margin:0}
+dl.gl dt{font-weight:700;color:var(--gold)}dl.gl dd{margin:0;color:var(--muted)}
+.submit{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:start}
+.ways{display:grid;gap:12px}
+.way{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:16px 18px;text-decoration:none}
+.way:hover{border-color:var(--blue)}
+.way .ic{font-size:26px;line-height:1}
+.way b{display:block;font-size:18px}.way span{color:var(--muted);font-size:15px}
+.wants{margin:0;padding-left:20px;color:var(--muted)}.wants li{margin-bottom:6px}.wants b{color:var(--ink)}
+.rule{margin-top:16px;padding:12px 14px;border-left:4px solid var(--red);background:rgba(200,16,46,.08);border-radius:0 10px 10px 0;font-size:15px;color:var(--muted)}
+.sec{padding-block:clamp(28px,4vw,52px)}
+@media(max-width:700px){.submit{grid-template-columns:1fr}.rail::before{left:66px}.rail li{grid-template-columns:54px minmax(0,1fr);gap:30px}.rail li::after{left:60px}.rail b{font-size:17px}dl.gl{grid-template-columns:1fr}dl.gl dd{margin-bottom:8px}}
+@media(prefers-reduced-motion:reduce){.plaque{transition:none}}
+</style></head>
+<body><div class="seam"></div>
+<div class="wrap"><nav><div style="display:flex;align-items:center;gap:10px"><a class="back" href="../">← Home</a><a class="brand" href="../">⚾ SmallBall ToolKits</a></div>
+<div class="navlinks"><a href="../club-kit/">Club Kit</a><a href="../broadcast-kit/">Broadcast Kit</a><a href="../tournament-kit/">Tournament Kit</a><a href="../hold-the-hill/">Hold the Hill</a><a href="../tournaments/">Tournaments</a><a href="../vault/">🏦 Prize Vault</a><a class="lore" href="./"><span class="ball">⚾</span>SmallBall Lore</a><a href="https://github.com/slipnsliders/smallball-tools">GitHub</a></div></nav></div>
+
+<div class="wrap"><section class="lhero">
+<h1>SmallBall <span>Lore</span></h1>
+<p>The game went quiet more than once. The community never did. This is where we keep the receipts: old chat logs, forum threads, inside jokes and the stories behind the clubs.</p>
+</section>
+
+<section class="sec" style="padding-top:0"><h2>The exhibits</h2>
+<div class="ex">
+<a class="plaque" href="search-for-commish/"><span class="yr">2006</span><span class="kick">Prequel · Aug 10 – Oct 3, 2006</span><h3>The Search for Commish</h3><p>The game's creator vanished, so the forum launched a 287-post manhunt: busy signals, missing posters, a ghost sighting on Who's Online and a fight over whether Ultimate Frisbee counts as a sport.</p><span class="go">Open the case file →</span></a>
+<a class="plaque red" href="commish-returns/"><span class="yr">2007</span><span class="kick">Chat log · Aug 16, 2007</span><h3>The Commish Returns</h3><p>A year and six days later, he walked into chat. The room broke its record, jon2s ran a live Q&amp;A, and jt got banned at the exact wrong moment. The full transcript, searchable.</p><span class="go">Read the transcript →</span></a>
+</div></section>
+
+<section class="sec"><h2>The timeline</h2>
+<ol class="rail">
+<li><b>Oct 2002</b><span><em>The forums open.</em> Greek Wizard is member #1, Commissioner #2, C_J #3.</span></li>
+<li><b>Apr 2006</b><span><em>Commish's last forum post</em> (April 11). Nobody knows it yet.</span></li>
+<li><b>Aug 2006</b><span>Football goes down and Slip'N'Sliders opens <a href="search-for-commish/">The Search for Commish</a> (Aug 10).</span></li>
+<li><b>Sep 2006</b><span>Commish's name flashes on Who's Online, then vanishes (Sep 10). Greek Wizard asks: the game might not be saved, but can the community? Chat closes and the "goodbye everybody" posts start (Sep 23).</span></li>
+<li><b>Dec 2006</b><span><em>The old forums close.</em> Greek Wizard's last post on New Year's Eve says Commish had his chance to respond. The community moves to smallball.org.</span></li>
+<li><b>Aug 2007</b><span><a href="commish-returns/">The Commish Returns</a> (Aug 16): 39 people in chat, a new record.</span></li>
+<li><b>Apr 2009</b><span>Old players come back to the forums, and "Commish being back and active" gets the credit.</span></li>
+<li><b>2026</b><span><em>The relaunch</em> at play.smallball.com, a Discord, Hold the Hill, and this Lore Vault.</span></li>
+</ol></section>
+
+<section class="sec"><h2>Who's who</h2>
+<div class="who">
+<div><b>Commish</b><span>The creator. Also "C-Man." Forum member #2. Vanished in 2006, came back in 2007: "sb is my baby."</span></div>
+<div><b>Greek Wizard</b><span>Forum member #1, ran the forums, "11 time PL1 Champion." Kept the community alive when the game wasn't.</span></div>
+<div><b>jon2s</b><span>Glue of the 2006–07 community. Moderated the Commish Q&amp;A, found him on a phone site, admitted to training bots.</span></div>
+<div><b>Slip'N'Sliders</b><span>Started The Search for Commish. Club 3249, Chatt. Tide Pride, then and now.</span></div>
+<div><b>nyyderek2</b><span>Author of the Commish Updates and the missing poster.</span></div>
+<div><b>jefeesdios</b><span>First to post "Hockey is coming out Tomorrow!" It still isn't out.</span></div>
+<div><b>pizzaguy</b><span>Confessed to being the Commish (he wasn't). Saved the chat log. Posted "Priceless."</span></div>
+<div><b>mlthmp, Wookie8662, bailey, TThomp</b><span>Community regulars who kept the search, the chat and the forums going.</span></div>
+</div></section>
+
+<section class="sec"><h2>Glossary</h2>
+<dl class="gl">
+<dt>Footy</dt><dd>SmallBall Football (soccer). Its going down kicked off the search.</dd>
+<dt>PL1, PL2…</dt><dd>The Pro Leagues. PL1 is the top. "Qual list" means you're about to qualify in.</dd>
+<dt>DT</dt><dd>A team type you'll see everywhere in old signatures, as in "9* DT." (Know the official meaning? Submit it.)</dd>
+<dt>★ / *</dt><dd>A club's star level. 9★ is elite; after the 2007 downtime, nobody had one.</dd>
+<dt>700 teams</dt><dd>Premium teams sold in the SmallBall Mall. Some buyers never got theirs.</dd>
+<dt>AndNow</dt><dd>The company behind SmallBall in the 2000s.</dd>
+<dt>Hockey comes out tomorrow</dt><dd>The running joke since 2006. It is always tomorrow.</dd>
+<dt>BRB, Commish terms</dt><dd>About 2 years (pizzaguy, 2007).</dd>
+</dl></section>
+
+<section class="sec" id="submit"><h2>Add to the vault</h2>
+<div class="submit">
+<div class="ways">
+<a class="way" href="https://github.com/slipnsliders/smallball-tools/issues/new?template=lore.yml"><span class="ic">📜</span><span><b>Submit a lore artifact</b><span>A short form for a chat log, thread, screenshot or story. Needs a free GitHub account.</span></span></a>
+<a class="way" href="https://discord.gg/DH6KxXHgR"><span class="ic">💬</span><span><b>Drop it in the Discord</b><span>Post it in chat or DM slipnsliders. Files and screenshots welcome.</span></span></a>
+<a class="way" href="https://www.archives.sbforums.org/phpBB2/index.php"><span class="ic">🏛️</span><span><b>Dig in the old forum archive</b><span>The 2002–2006 forums, kept online by the community. Find a thread, send us the link.</span></span></a>
+</div>
+<div>
+<h3>What we're looking for</h3>
+<ul class="wants">
+<li><b>Chat logs</b> from the old chat room, emailed, saved or screenshotted.</li>
+<li><b>Forum threads</b> worth remembering: feuds, records, legendary trades.</li>
+<li><b>Club histories</b>: the oldest clubs, PL1 title runs, famous rivalries.</li>
+<li><b>Screenshots</b> of the old game, the Mall, the loader messages.</li>
+<li><b>Stories.</b> Where were you when footy went down?</li>
+</ul>
+<p class="rule">Lore is about the game and the community. Leave out real names, phone numbers, addresses and anything personal. We'll trim them before anything goes up.</p>
+</div>
+</div></section>
+</div>
+<footer><div class="wrap">SmallBall Lore is fan-made and unofficial. · <a href="../">⚾ SmallBall ToolKits</a> · <a href="https://discord.gg/DH6KxXHgR">Discord</a></div></footer>
+</body></html>
