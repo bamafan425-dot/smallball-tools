@@ -748,7 +748,8 @@ function dropOne_(arr, p) {
 }
 // 🩹 Recovery after a failed charge at the Ace: no charging anyone until it's over. Kept in script properties.
 function rests_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(isFarm_() ? 'FARM_REST' : 'HILL_REST') || '{}'); } catch (e) { return {}; } }
-function restUntil_(email) { const r = rests_()[lc_(email)]; return r && new Date(r) > now_() ? new Date(r) : null; }
+function restUntil_(email) { if (isFarm_()) return null;   // 🌱 no recovery on the Farm (old rests from before 3.23 don't count either)
+  const r = rests_()[lc_(email)]; return r && new Date(r) > now_() ? new Date(r) : null; }
 function setRest_(email, hours) {
   const r = rests_(), now = now_();
   Object.keys(r).forEach(function (k) { if (new Date(r[k]) <= now) delete r[k]; });
