@@ -2582,7 +2582,7 @@ function buildForm_(ss) {
 // The Master Form's pre-filled charge link: the "entry.N" names of the action and opponent questions, worked out
 // once per form (cached) so the Club Kit and the leaderboard can open the form with a charge already filled in.
 function prefillCached_(C) {   // the snapshot only ever reads the cache (never opens the form while holding the lock)
-  try { const c = JSON.parse(PropertiesService.getScriptProperties().getProperty('PREFILL_INFO') || 'null'); if (c && c.v === 1 && c.formId === norm_(C.FORM_ID)) return c.info; } catch (e) { }
+  try { const c = JSON.parse(PropertiesService.getScriptProperties().getProperty('PREFILL_INFO') || 'null'); if (c && c.v === 2 && c.formId === norm_(C.FORM_ID)) return c.info; } catch (e) { }
   return null;
 }
 function prefillInfo_(C) {
@@ -2592,14 +2592,17 @@ function prefillInfo_(C) {
     const form = FormApp.openById(C.FORM_ID), items = form.getItems();
     const act = items.find(function (i) { return i.getTitle() === Q.ACTION; }), opp = items.find(function (i) { return i.getTitle() === Q.OPPONENT; });
     if (!act || !opp) return null;
-    const url = form.createResponse()
+    const mc = items.find(function (i) { return i.getTitle() === Q.MY_CLUB; });
+    let rs = form.createResponse()
       .withItemResponse(act.asMultipleChoiceItem().createResponse(ACTIONS.CHALLENGE))
-      .withItemResponse(opp.asListItem().createResponse(ACE_CHOICE)).toPrefilledUrl();
+      .withItemResponse(opp.asListItem().createResponse(ACE_CHOICE));
+    if (mc) rs = rs.withItemResponse(mc.asTextItem().createResponse('424242'));
+    const url = rs.toPrefilledUrl();
     const ent = {};
     url.replace(/entry\.(\d+)=([^&]*)/g, function (m, id, v) { ent[decodeURIComponent(v.replace(/\+/g, ' '))] = 'entry.' + id; return m; });
-    const info = { url: url.split('?')[0], action: ent[ACTIONS.CHALLENGE] || '', charge: ACTIONS.CHALLENGE, opp: ent[ACE_CHOICE] || '', ace: ACE_CHOICE };
+    const info = { url: url.split('?')[0], action: ent[ACTIONS.CHALLENGE] || '', charge: ACTIONS.CHALLENGE, opp: ent[ACE_CHOICE] || '', ace: ACE_CHOICE, club: ent['424242'] || '', farmAce: FARM_ACE_CHOICE };
     if (!info.action || !info.opp) return null;
-    props.setProperty('PREFILL_INFO', JSON.stringify({ v: 1, formId: norm_(C.FORM_ID), info: info }));
+    props.setProperty('PREFILL_INFO', JSON.stringify({ v: 2, formId: norm_(C.FORM_ID), info: info }));
     return info;
   } catch (e) { return null; }
 }
