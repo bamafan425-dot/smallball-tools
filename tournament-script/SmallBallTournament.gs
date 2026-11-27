@@ -2601,3 +2601,20 @@ function png(){
 render();
 if(!/demo=1/.test(location.search))setTimeout(function(){location.reload()},60000);
 </script></body></html>`;
+
+// One-off: the Black Friday Brawl countdown hype post (run from the editor; posts to the Brawl's channel).
+function postBrawlHype() {
+  withSlot_(null, () => {
+    const C = cfg_(), close = when_(C.SIGNUP_CLOSE, C), start = when_(C.START, C), t = Date.now();
+    const n = entrants_().rows.filter((r) => r.Status !== 'Withdrawn').length;
+    const mins = Math.round((close - t) / 60000), left = mins >= 105 ? 'T-MINUS 2 HOURS' : mins >= 60 ? 'UNDER 2 HOURS' : mins > 0 ? 'UNDER AN HOUR' : 'SIGN-UPS CLOSED';
+    const T = (ms, f) => '<t:' + Math.floor(ms / 1000) + ':' + f + '>';
+    post_('# ⏰ ' + left + ': THE BLACK FRIDAY BRAWL 🥊\nLeftovers are gone. The Brawl is not.\n\n' +
+      '**🗓️ Sign-ups close ' + T(close, 't') + '** (' + T(close, 'R') + ')\n**⚾ Wave 1 first pitch ' + T(start, 't') + '** (' + T(start, 'R') + ')\n\n' +
+      '**' + n + ' clubs are in.** Double elimination, BigLeague games only. Two losses and you\'re out, and the grand final can reset if the losers-bracket champ wins.\n\n' +
+      '**🎁 What\'s on the line**\n> 🏟️ **Field of Dreams stadium** for the champion\n> ⚾ **Batting Camp** for the best club at 6★ and under\n> ⚡ **Quick Train** each for both grand finalists\n> 🎙️ **Quick Train** for the MVC (Most Valuable Chatter, picked by poll), so bring the noise\n\n' +
+      '**🎲 How the bracket works**\n> Seeds are a random draw, reshuffled with every new sign-up.\n> The lowest-star clubs play the **play-in games**, and everyone else gets a bye.\n> Clubs with similar stars meet in their first games, and one owner\'s two clubs are kept apart.\n\n' +
+      '**🥊 When your match opens**\n> You get pinged here, then have **' + Math.round(waveMs_(C) / 60000) + ' minutes** to play.\n> The **lower seed starts the game**: use the link in the ping, check YOUR CLUB, then hit **Play** (not Exhibition).\n> The bracket finds the game by itself, and results post once the game airs. No spoilers.\n> Play early: the sooner your result airs, the sooner your next match opens. Stick around while you\'re alive.\n\n' +
+      'Up to ' + Math.max(1, Number(C.MAX_PER_OWNER) || 1) + ' clubs per owner. Last call to grab a spot. 🐶\n🗂️ [Live bracket + sign-up](<https://slipnsliders.github.io/smallball-tools/brawl/>)');
+  });
+}
