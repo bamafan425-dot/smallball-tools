@@ -2,7 +2,8 @@
 
 An opt-in, on-device neural voice engine for SmallBall Radio (`../radio.js`). In ⚙ Booth settings, **Voices** is
 **Standard** (the browser's own `speechSynthesis`, the default and always the fallback) or **Enhanced** (Kokoro-82M,
-made on this computer). User-facing text says "Enhanced"; Kokoro is named in the informational lines and here.
+made on this computer). The interface only says "Standard" and "Enhanced"; Kokoro is named in the docs (here,
+`README.txt`) and the code, not in the panel.
 
 No accounts, keys, installs or paid services. All code ships in the kit; only the model's data files are
 downloaded, once, from Hugging Face. Nothing about the game or the person is sent anywhere.
@@ -99,9 +100,16 @@ The selected engine (`engine`) and the runtime state (`K.st`: off, loading, read
 once-a-second check unloads the engine (removes the frame, which ends the worker and frees the GPU) whenever none of
 these need it: the radio on the air, getting ready to go on the air, the booth test, or an explicit setup/update.
 
-* **Turn the radio on** (Enhanced): the button reads *Getting the voices ready · click to cancel*, the caption shows
-  the phase and progress (with *Start now with Standard voices*), and the broadcast starts by itself when the engine
-  is ready. If it fails, the broadcast starts on Standard voices with the reason in the box.
+* **Turn the radio on** (Enhanced): the radio button shows a turning ⏳ *Tuning in the station…* and is disabled
+  (it's a status, not a control); the caption reads *Preparing Enhanced voices for your broadcast.* with one
+  button, *Start with Standard voices*. The broadcast starts by itself when the engine is ready and the button goes
+  back to on/off. **This can take up to a minute even after setup**: the model (~326 MB) is read back from storage
+  and the graphics card compiles its shaders and checks each voice every time the engine starts. Nothing is
+  downloaded again.
+* **Start with Standard voices** runs this broadcast (or booth test) on the Standard voices and unloads the engine;
+  Voices stays on Enhanced, so the next time the radio goes on it uses Enhanced again.
+* **Never stuck:** if the engine fails, stops loading, or goes two minutes without a sign of life while the radio is
+  getting ready, the broadcast starts on the Standard voices and the reason shows in the Enhanced box.
 * **Turn the radio off:** speech stops at once, the queue is cleared, a line still being made can't play (nothing is
   speaking to receive it), and the engine is unloaded immediately (measured: frame gone within the same second).
   An explicit setup or update in progress keeps running.
@@ -110,7 +118,11 @@ these need it: the radio on the air, getting ready to go on the air, the booth t
 * **Switching to Standard** unloads the engine at once and pauses any setup. **Switching to Enhanced** runs setup
   if it isn't done, or starts the engine if the radio is on (Standard voices fill in while it loads).
 * **Changing an Enhanced voice or a guest checkbox** re-pins the recordings for the new assignments and, 2.5 s after
-  the last change, loads the engine to record what's missing, then unloads again.
+  the last change, loads the engine to prepare what's missing, then unloads again. **This takes a few minutes** (a
+  character's share of the ~48 minutes of commentary × the card's RTF), so the box says so up front and shows
+  *Voice changed: preparing its commentary in a moment…*, then *Preparing commentary for the new voice: n of N,
+  about M minutes left*. Commentary already prepared for that voice (for example, switching back) is reused, and if
+  nothing is missing the box says it was reused.
 
 ## Saved clips and the cache lookup fix
 

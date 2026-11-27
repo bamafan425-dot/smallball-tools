@@ -32,6 +32,10 @@
     #sbx-radio .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; } #sbx-radio .hd b { font-size: 15px; } #sbx-radio .hd .x { margin-left: auto; background: none; border: 0; color: #94a3b8; font-size: 16px; cursor: pointer; }
     #sbx-radio .big { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #fff; font: 800 14px system-ui, sans-serif; cursor: pointer; }
     #sbx-radio .big.on { background: #b91c1c; border-color: #ef4444; }
+    #sbx-radio .big:disabled { cursor: default; opacity: 1; background: #172033; }
+    #sbx-radio .spin { display: inline-block; animation: sbx-radio-spin 1.6s linear infinite; }
+    @keyframes sbx-radio-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { #sbx-radio .spin { animation-duration: 4s; } }
     #sbx-radio .rcap { min-height: 2.9em; margin: 8px 0 10px; padding: 7px 9px; border-radius: 8px; background: #111a2e; font-size: 13px; } #sbx-radio .rcap b { color: #fca5a5; }
     #sbx-radio .rrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 9px; }
     #sbx-radio .lbl { width: 84px; font-size: 12px; opacity: .7; }
@@ -70,7 +74,12 @@
   launch.title = "SmallBall Radio: Mack and Dewey call the game you're watching, out loud. No spoilers.";
   function paintStage() {
     launch.classList.toggle("on", !!R.on);
-    const b = ov.querySelector('[data-act="radio"]'); if (b) { b.classList.toggle("on", !!R.on); b.textContent = R.on ? "📻 On the air · click to turn off" : prep === "radio" ? "⏳ Getting the voices ready · click to cancel" : "📻 Turn the radio on"; }
+    const b = ov.querySelector('[data-act="radio"]');
+    if (b) {   // while the Enhanced voices get ready, the button is a status, not a control
+      b.classList.toggle("on", !!R.on); b.disabled = prep === "radio";
+      if (prep === "radio") { if (!b.querySelector(".spin")) b.innerHTML = `<span class="spin" aria-hidden="true">⏳</span> Tuning in the station…`; }
+      else b.textContent = R.on ? "📻 On the air · click to turn off" : "📻 Turn the radio on";
+    }
     if (!prep && !R.on) { const cap = ov.querySelector(".rcap"); if (cap && cap.querySelector('[data-act="prepskip"]')) cap.textContent = ""; }
     const id = S.air[0], g = ov.querySelector('[data-k="game"]'); if (g) g.innerHTML = id ? label(S.meta[id]) : "";
   }
@@ -907,7 +916,8 @@
   const kEff = () => kAvail() && R.engine === "enhanced";                        // Enhanced is picked and can run here
   const kSetUp = () => !!(R.ksetup && R.ksetup.done);
   const kChar = (it) => (it.who === "p" || it.who === "c" ? it.who : it.who === "g" ? it.g || "quiz" : "");
-  const kVoice = (it) => { const ch = kChar(it); return ch && kEff() ? R.ev[ch] || "" : ""; };   // "" = this character uses Standard
+  let stdOnly = false;   // "Start with Standard voices": this broadcast (or test) skips Enhanced; the setting stays
+  const kVoice = (it) => { const ch = kChar(it); return ch && kEff() && !stdOnly ? R.ev[ch] || "" : ""; };   // "" = this character uses Standard
   const kLive = (it) => K.st === "ready" && !(K.slow && TTS) && !!kVoice(it);
   const kKey = (v, sp, text) => `fp32|${v}|${sp}|${text}`;   // model, voice, speed, words: a clip is only reused for exactly that
   function kJob(it) {
@@ -1016,7 +1026,7 @@
   function kStart() {
     if (!kEff()) return;
     if (K.st === "ready" || (K.st === "loading" && K.want)) return;
-    K.want = true; K.st = "loading"; K.phase = "start"; K.err = "";
+    K.want = true; K.st = "loading"; K.phase = "start"; K.err = ""; K.act = Date.now();
     if (K.port) kBoot(); else kFrame();
     kPaint(); paintStage();
   }
@@ -1045,8 +1055,13 @@
   }
   // Is the engine needed right now? If not, the housekeeping below unloads it.
   const testActive = () => Date.now() - testing < 120000 && (RQ.some((x) => x.test) || !!(speaking && speaking.test));
-  const kNeed = () => kEff() && K.st !== "failed" && (R.on || !!prep || testActive() || !!(K.pre && K.pre.explicit));
-  function kHouse() { if (K.frame && !K.op && !K.after && !kNeed()) kStop(); }
+  const kNeed = () => kEff() && K.st !== "failed" && ((!stdOnly && (R.on || !!prep || testActive())) || !!(K.pre && K.pre.explicit));
+  function kHouse() {
+    // never leave the radio stuck getting ready: if the engine stopped loading, or went quiet for two minutes, go on with Standard
+    if (prep && K.st !== "loading") prepDone();
+    else if (prep && Date.now() - (K.act || 0) > 120000) kFail("the voices took too long to start");
+    if (K.frame && !K.op && !K.after && !kNeed()) kStop();
+  }
   setInterval(kHouse, 1000);
 
   // ---- Pre-recording: during setup, and whenever the voices change ----
@@ -1077,22 +1092,26 @@
     const p = K.pre; K.pre = null;
     const first = !kSetUp();
     R.ksetup = { done: true, at: Date.now() }; rsave();
-    if (p && p.total) K.note = first ? `Setup is done: ${p.total + p.have} lines are pre-recorded. The engine loads by itself when the radio goes on or you test the booth.` : `The new voices are ready: ${p.total} more lines pre-recorded.`;
-    else if (first) K.note = "Setup is done. The engine loads by itself when the radio goes on or you test the booth.";
+    if (p && p.total) K.note = first ? `Setup is done: ${p.total + p.have} lines are prepared. Enhanced voices start by themselves when the radio goes on or you test the booth.` : `The new voice is ready: ${p.total} lines prepared${p.have ? `, ${p.have} reused` : ""}.`;
+    else if (first) K.note = "Setup is done. Enhanced voices start by themselves when the radio goes on or you test the booth.";
+    else if (p && p.explicit) K.note = "The new voice is ready: its commentary was already prepared, so it was reused.";
     kSend({ t: "usage" });
     paintRadio();
   }
   // A voice or guest changed: pre-record what's missing for the new voices, a moment after the last change.
   function kVoicesChanged() {
     clearTimeout(K.vT);
+    K.vPend = kEff() && (kSetUp() || !!K.pre); kPaint();
     K.vT = setTimeout(() => {
-      if (!kEff() || (!kSetUp() && !K.pre)) return;
+      K.vPend = false;
+      if (!kEff() || (!kSetUp() && !K.pre)) return kPaint();
       if (K.st === "ready") { K.pre = K.pre || { kind: kSetUp() ? "update" : "setup", explicit: true, i: 0, made: 0, genMs: 0, n: 0 }; K.pre.explicit = true; K.pre.jobs = null; kPreCheck(); }
       else kPreStart(kSetUp() ? "update" : "setup");
     }, 2500);
   }
 
   function kMsg(m) {
+    K.act = Date.now();   // the engine is alive
     if (m.t === "hello") {
       clearTimeout(K.helloT);
       kSend({ t: "keys" }); kSend({ t: "usage" });   // every clip this browser has saved, so saved lines are never remade or skipped
@@ -1216,31 +1235,32 @@
   const mins = (ms) => (ms < 90000 ? "about a minute" : `about ${Math.round(ms / 60000)} minutes`);
   function kPhase() {
     if (K.phase === "probe") return "Checking the graphics card…";
-    if (K.phase === "download" && K.total) { const p = Math.min(100, Math.round((K.loaded / K.total) * 100)); return `Downloading the voices (first time only): ${p}%, ${mb(K.loaded)} of ${mb(K.total)}.<div class="kbar"><i style="width:${p}%"></i></div>`; }
+    if (K.phase === "download" && K.total) { const p = Math.min(100, Math.round((K.loaded / K.total) * 100)); return `Loading the voices (downloaded the first time, from storage after that): ${p}%, ${mb(K.loaded)} of ${mb(K.total)}.<div class="kbar"><i style="width:${p}%"></i></div>`; }
     if (K.phase === "warmup") return "Starting the voices and checking they sound right…";
     return "Starting the Enhanced voices…";
   }
   function kPreText() {
-    const p = K.pre; if (!p || !p.jobs) return "Checking which lines are already recorded…";
+    const p = K.pre; if (!p || !p.jobs) return "Checking which lines are already prepared…";
     const pc = p.total ? Math.min(100, Math.round((p.n / p.total) * 100)) : 0, left = p.made ? (p.genMs / p.made) * Math.max(0, p.total - p.n) : 0;
-    return `${p.kind === "setup" ? "Pre-recording the booth's lines" : "Pre-recording lines for the new voices"}: ${p.n} of ${p.total}${left ? `, ${mins(left)} left` : ""}.${p.explicit ? "" : " (Only while the booth is quiet.)"}<div class="kbar"><i style="width:${pc}%"></i></div>`;
+    return `${p.kind === "setup" ? "Preparing the booth's commentary" : "Preparing commentary for the new voice"}: ${p.n} of ${p.total}${left ? `, ${mins(left)} left` : ""}.${p.explicit ? "" : " (Only while the booth is quiet.)"}<div class="kbar"><i style="width:${pc}%"></i></div>`;
   }
   function kStatus() {
     if (K.st === "failed") return `⚠️ Enhanced voices couldn't start: ${esc(K.err)}. The booth is using the Standard voices. <button class="mini" data-act="kretry">Try again</button>`;
-    if (K.st === "loading") return `⏳ ${kSetUp() || !K.pre ? "" : "Setting up Enhanced voices. "}${kPhase()}${K.pre && K.pre.explicit ? ` <button class="mini" data-act="kcancel">Stop setup</button>` : ""}`;
+    if (K.vPend) return "⏳ Voice changed: preparing its commentary in a moment…";
+    if (K.st === "loading") return `⏳ ${!K.pre ? "" : K.pre.kind === "setup" ? "Setting up Enhanced voices. " : "Preparing commentary for the new voice. "}${kPhase()}${K.pre && K.pre.explicit ? ` <button class="mini" data-act="kcancel">${K.pre.kind === "setup" ? "Stop setup" : "Stop"}</button>` : ""}`;
     if (K.st === "ready") {
       if (K.slow && TTS) return `🐢 ${esc(K.note)} <button class="mini" data-act="kretry">Try Enhanced again</button>`;
       const pre = K.pre && K.pre.jobs && (K.pre.explicit || R.on) ? `<br>⏺ ${kPreText()}${K.pre.explicit ? ` <button class="mini" data-act="kcancel">Stop</button>` : ""}` : K.pre ? `<br>⏺ ${kPreText()}` : "";
       return `✅ Enhanced voices are running on the graphics card${K.made + K.hits ? `: ${K.made + K.hits} lines so far, ${K.hits} from saved clips${K.late ? `, ${K.late} skipped as too late` : ""}` : ""}.${pre}`;
     }
-    if (!kSetUp()) return `One-time setup: checks the graphics card, downloads the voices (about 330 MB, from Hugging Face), checks they sound right and pre-records the booth's regular lines, then unloads until it's needed. <button class="mini" data-act="kset">${R.ksetup ? "Continue setup" : "Set up Enhanced voices"}</button>`;
+    if (!kSetUp()) return `One-time setup: checks the graphics card, downloads the voices (about 330 MB), checks they sound right and prepares the booth's regular commentary, then unloads until it's needed. <button class="mini" data-act="kset">${R.ksetup ? "Continue setup" : "Set up Enhanced voices"}</button>`;
     return "✅ Set up. The engine loads by itself when the radio goes on or you test the booth, and unloads when neither needs it.";
   }
   function kPaint() {
     if (!isOpen()) return;
     const el = ov.querySelector(".kstat"); if (el) el.innerHTML = kStatus() + (K.note && !(K.slow && K.st === "ready") ? ` <span class="note">${esc(K.note)}</span>` : "");
     const u = ov.querySelector(".kuse"); if (u) u.textContent = K.usage ? `Stored in this browser: ${mb(K.usage.total || 0)}${K.usage.clips ? ` (saved lines: ${mb(K.usage.clips)})` : ""}.` : "";
-    if (prep) { const cap = ov.querySelector(".rcap"); if (cap) cap.innerHTML = `⏳ ${prep === "test" ? "Getting the Enhanced voices ready for the test. " : "Getting the Enhanced voices ready, then we're on the air. "}${K.st === "loading" ? kPhase() : ""} <button class="mini" data-act="prepskip">${prep === "test" ? "Test with Standard voices now" : "Start now with Standard voices"}</button>`; }
+    if (prep) { const cap = ov.querySelector(".rcap"); if (cap && !cap.querySelector('[data-act="prepskip"]')) cap.innerHTML = `${prep === "test" ? "Preparing Enhanced voices for the booth test." : "Preparing Enhanced voices for your broadcast."}<div class="rrow" style="margin:6px 0 0"><button class="mini" data-act="prepskip">${prep === "test" ? "Test with Standard voices" : "Start with Standard voices"}</button></div>`; }
   }
   function kClear() {
     const go = () => kSend({ t: "clear" });
@@ -1306,10 +1326,10 @@
       ${TTS ? "" : `<p class="note">This browser has no speech voices${on ? ", so the radio needs the Enhanced voices below to talk here" : ", so the radio can't talk here"}.</p>`}
       <div class="rrow"><span class="lbl">Voices</span><span class="seg" data-seg="engine"><button data-v="standard" class="${on ? "" : "on"}">Standard</button><button data-v="enhanced" class="${on ? "on" : ""}"${kAvail() && !checking ? "" : " disabled"}>Enhanced${checking ? " (checking…)" : ""}</button></span></div>
       ${why ? `<p class="note">Enhanced voices aren't available here: ${esc(why)}.${R.engine === "enhanced" ? " The Standard voices are on." : ""} They need a graphics card the browser can use through WebGPU; most computers' built-in graphics qualify, in a recent Chrome or Edge (Firefox on Windows from version 141). ${K_OK ? `<button class="mini" data-act="kcheck">Check again</button>` : ""}</p>` : checking ? `<p class="note">Checking whether this computer's graphics card can run the Enhanced voices (nothing is downloaded)…</p>` : ""}
-      ${on ? `<div class="kbox"><b>Enhanced voices · Kokoro, made on this computer</b>
+      ${on ? `<div class="kbox"><b>Enhanced voices · made on this computer</b>
         <p class="note kstat" style="opacity:.9"></p>
         ${eRows}
-        <p class="note">"Not set" uses that character's Standard voice. Nothing about the game is sent anywhere.${gpu && gpu.ok && gpu.gpu ? ` Graphics card: ${esc(gpu.gpu)}.` : ""}</p>
+        <p class="note">"Not set" uses that character's Standard voice. Setup, or changing a voice, can take a few minutes while the booth's commentary is prepared in the new voice; commentary already prepared is reused. Turning the radio on can take up to a minute while the voices start. Nothing about the game is sent anywhere.${gpu && gpu.ok && gpu.gpu ? ` Graphics card: ${esc(gpu.gpu)}.` : ""}</p>
         <div class="rrow"><button class="mini" data-act="kclear">Clear Enhanced downloads</button><span class="note kuse"></span></div>
       </div>
       <details class="kbox"><summary>Standard voices · the backup, and for anyone not set above</summary>${sRows}</details>` : `<div class="kbox"><b>Standard voices · your browser's own</b>${sRows}
@@ -1344,7 +1364,8 @@
   }
   function radioToggle() {
     if (prep === "radio") { prep = ""; paintRadio(); paintStage(); return; }   // stop getting ready: the radio stays off
-    if (R.on) { R.on = false; hush(); kHouse(); paintRadio(); paintStage(); return; }   // off: silence now, and the engine unloads
+    if (R.on) { R.on = false; stdOnly = false; hush(); kHouse(); paintRadio(); paintStage(); return; }   // off: silence now, and the engine unloads
+    stdOnly = false;
     if (!TTS && !kEff()) return;
     if (kEff() && K.st !== "ready") {   // Enhanced: get the engine ready first, then go on the air by itself
       prep = "radio"; kAC(); if (K.st === "failed") K.st = "off"; kStart();
@@ -1364,8 +1385,9 @@
   // (if it isn't running) and unloads after the test unless the radio's on.
   function radioTest() {
     hush(); speechDown = false; fails = 0; BADV.clear(); lastErr = "";
+    if (!R.on) stdOnly = false;
     if (kEff()) { K.slow = false; K.gens = []; kAC(); }
-    if (kEff() && K.st !== "ready") { if (!prep) prep = "test"; if (K.st === "failed") K.st = "off"; kStart(); paintRadio(); paintStage(); return; }
+    if (kEff() && !stdOnly && K.st !== "ready") { if (!prep) prep = "test"; if (K.st === "failed") K.st = "off"; kStart(); paintRadio(); paintStage(); return; }
     testGo();
   }
   function testGo() {
@@ -1433,7 +1455,7 @@
     if (act === "kretry") { K.slow = false; K.gens = []; K.note = ""; if (K.st === "failed") { K.st = "off"; K.err = ""; if (!kSetUp()) { kAC(); kPreStart("setup"); } else if (R.on) { kAC(); kStart(); } } paintRadio(); return; }
     if (act === "kcheck") { R.kgpu = null; rsave(); if (K.st === "failed") { K.st = "off"; K.err = ""; } kProbe(); paintRadio(); return; }
     if (act === "kclear") { kClear(); return; }
-    if (act === "prepskip") { prepDone(); return; }   // go now on Standard voices; Enhanced takes over when it's ready
+    if (act === "prepskip") { stdOnly = true; prepDone(); kHouse(); return; }   // this broadcast (or test) on Standard voices; the setting stays Enhanced
     if (act === "radio") radioToggle();
     else if (act === "rtest") radioTest();
   });

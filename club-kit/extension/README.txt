@@ -38,14 +38,16 @@ A little make-over for play.smallball.com. Everything stays in your own browser.
   Speech is your browser's own, and nothing is sent anywhere. Skill numbers only come up for your own
   clubs.
   🧠 Voices: Standard or Enhanced. Standard is your browser's own speech, as always, and the default. Enhanced
-  gives Mack, Dewey and each guest a natural-sounding voice made on your computer by the free Kokoro model:
+  gives Mack, Dewey and each guest a natural-sounding voice made on your computer (by the free Kokoro model):
   nothing to install, no account, and nothing about the game is sent anywhere. Enhanced needs a graphics card
   your browser can use (WebGPU; most computers' built-in graphics count). The radio checks that before it
   downloads anything, and if this computer can't, Enhanced is greyed out and says why. Picking Enhanced runs a
   one-time setup: it downloads about 330 MB from Hugging Face, checks the voices sound right, and pre-records
   the booth's regular lines (pitch calls, fielding calls, color, banter, stories, trivia, the guests) so they
-  play instantly. After that it starts by itself when you turn the radio on or test the booth, and unloads when
-  neither needs it. Standard and Enhanced voices are set separately for all five characters; a character set to
+  play instantly. After that it starts by itself when you turn the radio on or test the booth ("Tuning in the
+  station…"; this can take up to a minute even after setup, or press "Start with Standard voices" to go on the
+  air right away), and unloads when neither needs it. Changing an Enhanced voice takes a few minutes while the
+  booth's commentary is prepared in the new voice; anything already prepared is reused. Standard and Enhanced voices are set separately for all five characters; a character set to
   "Not set" uses his Standard voice. If Enhanced can't start or falls behind, the Standard voices take over.
   "Clear Enhanced downloads" removes everything it stored. Enhanced voices are in the Club Kit only.
   It's the same booth as the Broadcast Kit's radio and shares its settings (the Standard voices for Mack and
