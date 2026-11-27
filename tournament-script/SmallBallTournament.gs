@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -35,6 +35,7 @@ const DEFAULTS = {
   FORM_LINK: ['', 'Short link to the sign-up form (filled in by setup; swap in a tinyurl if you like)'],
   BOARD_LINK: ['', 'Link to the live bracket for Discord posts. Blank = the web app link, found on its own'],
   PRIZES: ['SmallBall Tickets and pictures of dogs', 'Shown on the bracket and the champion post'],
+  LOW_STAR_PRIZE: ['', 'Stars: the champion post names the club at this many stars or fewer that went furthest (blank = off)'],
   HILL_SHEET_ID: ['', 'Optional: the Hold the Hill spreadsheet ID (the long code in its link). Hill players can then sign up with a blank form'],
   FORM_ID: ['', '(set by setup)'],
   TZ: ['America/Denver', 'Time zone for the times above'],
@@ -774,6 +775,48 @@ function deadlines_(T, C) {
   }
   return changed;
 }
+// Extra honors for the champion post: both grand finalists (double elimination) and the best low-star club.
+function prizeLines_(T, E, C, champ) {
+  let s = '';
+  const gf = T.matches.find((m) => m.id === 'GF');
+  if (T.fmt === 'double' && gf) {
+    const a = sideClub_(T, gf.a), b = sideClub_(T, gf.b);
+    if (a > 0 && b > 0) s += '\n🏅 Grand finalists: ' + tag_(E[a]) + ' (*' + esc_(plainName_(E, a)) + '*, winners-bracket champ) and ' + tag_(E[b]) + ' (*' + esc_(plainName_(E, b)) + '*, losers-bracket champ)';
+  }
+  const lim = Number(norm_(C.LOW_STAR_PRIZE));
+  if (norm_(C.LOW_STAR_PRIZE) !== '' && lim >= 0) {
+    const best = lowStarBest_(T, E, lim, champ);
+    if (best) s += '\n⭐ Best club at ' + lim + '★ and under: ' + tag_(E[best.club]) + ' (*' + esc_(plainName_(E, best.club)) + '*, ' + best.stars + '★) · ' + best.wins + ' win' + (best.wins === 1 ? '' : 's') + (best.last ? ', last played the ' + esc_(best.last) : '');
+  }
+  return s;
+}
+// The low-star club that went furthest: most wins (byes don't count), then the one that lasted longest. The
+// champion has a prize already, so it's the next one.
+function lowStarBest_(T, E, lim, champ) {
+  const rows = T.seeds.map((x) => x.club).filter((c) => c !== champ && E[c] && norm_(E[c].Stars) !== '' && Number(E[c].Stars) <= lim).map((c) => {
+    const ms = T.matches.filter((m) => !m.bye && !m.void && m.winner && (m.winner === c || m.loser === c));
+    const last = ms.sort((a, b) => (a.doneAt || 0) - (b.doneAt || 0)).pop();
+    return { club: c, stars: Number(E[c].Stars), wins: ms.filter((m) => m.winner === c).length, at: last ? last.doneAt || 0 : 0, last: last ? last.label : '' };
+  });
+  rows.sort((a, b) => b.wins - a.wins || b.at - a.at || a.stars - b.stars);
+  return rows[0] || null;
+}
+// 🎙️ A Discord poll for the tournament's Most Valuable Chatter (or anything else), posted by the tournament's webhook.
+function adminMvcPoll() {
+  withUi_((ui) => {
+    const C = cfg_(), url = webhook_(C); if (!url) return 'No Discord webhook in Config for the ' + norm_(C.TOURNEY_NAME) + '.';
+    const r = ui.prompt('🎙️ MVC poll: ' + norm_(C.TOURNEY_NAME), 'Who\'s up for Most Valuable Chatter? Type up to 10 names, separated by commas. The poll runs 24 hours (change it with "hours=12" at the end).', ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    let txt = norm_(r.getResponseText()), hours = 24; const hm = /hours\s*=\s*(\d+)/i.exec(txt); if (hm) { hours = Math.max(1, Math.min(168, Number(hm[1]))); txt = txt.replace(hm[0], ''); }
+    const names = txt.split(/[,\n]/).map(norm_).filter(Boolean).slice(0, 10);
+    if (names.length < 2) return 'Give at least two names.';
+    const res = UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', muteHttpExceptions: true, payload: JSON.stringify({ username: norm_(C.TOURNEY_NAME) || 'Tournament', allowed_mentions: { parse: [] },
+      content: '🎙️ **Most Valuable Chatter of the ' + esc_(C.TOURNEY_NAME) + '!** Who kept the chat rolling? Vote below. ' + (norm_(C.PRIZES) && /mvc|chatter/i.test(C.PRIZES) ? '' : 'The winner gets a prize. ') + '🐶',
+      poll: { question: { text: 'MVC of the ' + norm_(C.TOURNEY_NAME).slice(0, 250) + '?' }, answers: names.map((n) => ({ poll_media: { text: n.slice(0, 55) } })), duration: hours, allow_multiselect: false } }) });
+    const code = res.getResponseCode();
+    return code < 300 ? '🎙️ Poll posted: ' + names.length + ' names, open ' + hours + ' hours.' : 'Discord said ' + code + ': ' + res.getContentText().slice(0, 200);
+  });
+}
 function crown_(T, C) {
   if (T.fmt === 'scramble') return scrCrown_(T, C);
   const E = entrantMap_(), c = champion_(T); T.done = Date.now();
@@ -782,6 +825,7 @@ function crown_(T, C) {
   post_('# 👑 ' + esc_(plainName_(E, c)) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' +
     tag_(E[c]) + ' (#' + seedOf_(T, c) + ' seed) takes it' + (lossless ? ' without a single loss' : ' the hard way, out of the losers bracket') + '. 🎉' +
     (runner ? '\n🥈 Runner-up: ' + tag_(E[runner]) + ' (*' + esc_(plainName_(E, runner)) + '*)' : '') +
+    prizeLines_(T, E, C, c) +
     (norm_(C.PRIZES) ? '\n🎁 Prizes: ' + esc_(C.PRIZES) : '') + '\nThanks for playing, everybody! 🐶' + linksLine_(C));
   log_('system', 'Champion', String(c));
 }
@@ -935,6 +979,7 @@ function onOpen() {
     .addItem('🗂️ Post the bracket to Discord', 'adminPostBracket')
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
+    .addItem('🎙️ Post an MVC poll (Most Valuable Chatter)', 'adminMvcPoll')
     .addItem('🧪 Mock tournament (test posts in Discord)', 'adminMockTournament')
     .addItem('🗑️ Delete the mock test posts', 'adminDeleteMockPosts')
     .addItem('🏦 Update the Prize Vault now', 'adminVaultNow')
