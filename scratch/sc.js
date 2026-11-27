@@ -1,4 +1,4 @@
-(()=>{const esc=(s)=>String(s).replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+(()=>{document.getElementById("sbx-scout")?.remove(); const esc=(s)=>String(s).replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sleep=(ms)=>new Promise(r=>setTimeout(r,ms)); const PROF={}; const BOX={}; const boxSave=()=>{};
 async function getJSON(u){const r=await fetch(u,{credentials:"include"}); if(!r.ok) throw new Error("HTTP "+r.status); return r.json();}
 function ownIds(){const sel=document.getElementById("who-team");return new Set(sel?Array.from(sel.options).map(o=>o.value):[]);}
@@ -108,8 +108,9 @@ const tick=()=>{ try{ mountScout(); }catch(e){console.warn(e)} };
         if (now == null || car == null || (c.at_bats || 0) < 60) continue;
         const d = now - car, f3 = (x) => x.toFixed(3).replace(/^0/, "");
         const tip = "Last " + a.g + " games: " + a.h + "-for-" + a.ab + (a.hr ? ", " + a.hr + " HR" : "") + (a.bb ? ", " + a.bb + " BB" : "") + " · OPS " + f3(now) + " (career " + f3(car) + ")";
-        if (d >= 0.15) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip };
-        else if (d <= -0.15) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip };
+        const rel = d / car;   // 15% better or worse than his own career
+        if (rel >= 0.15) map[p.player_id] = { tag: "hot", tip: "🔥 Hot. " + tip };
+        else if (rel <= -0.15) map[p.player_id] = { tag: "cold", tip: "🧊 Cold. " + tip };
       }
       H.map = map; H.at = Date.now();
     } catch (_) { H.at = Date.now() - 8 * 60000; }
@@ -138,12 +139,6 @@ const tick=()=>{ try{ mountScout(); }catch(e){console.warn(e)} };
   // From what SmallBall already shows anyone: their roster, their recent games and your games against them.
   const SC = {};   // team -> { busy, at, prof, h2h }
   const SCOUT_OPEN = "sbx-scout-open";
-  const DEFIT = {   // the same position fit the Lineup Builder uses: glove, arm and speed
-    "1B": (p) => 0.8 * p.catch_skill + 0.2 * p.pass_power, "2B": (p) => 0.6 * p.catch_skill + 0.2 * p.pass_power + 0.2 * p.run_speed,
-    SS: (p) => 0.45 * p.catch_skill + 0.35 * p.pass_power + 0.2 * p.run_speed, "3B": (p) => 0.5 * p.catch_skill + 0.5 * p.pass_power,
-    LF: (p) => 0.45 * p.catch_skill + 0.25 * p.pass_power + 0.3 * p.run_speed, CF: (p) => 0.35 * p.catch_skill + 0.2 * p.pass_power + 0.45 * p.run_speed,
-    RF: (p) => 0.4 * p.catch_skill + 0.35 * p.pass_power + 0.25 * p.run_speed, C: (p) => 0.55 * p.catch_skill + 0.45 * p.pass_power,
-  };
   async function loadScout(team) {
     const S = SC[team] || (SC[team] = { busy: false, at: 0 });
     if (S.busy || Date.now() - S.at < 10 * 60000) return;
@@ -163,30 +158,36 @@ const tick=()=>{ try{ mountScout(); }catch(e){console.warn(e)} };
     finally { S.busy = false; setTimeout(tick, 0); }
   }
   function scoutHtml(team, S) {
+    // Other clubs' skill numbers aren't public, so this reads what is: the lineup, star ratings and career lines.
     const P = S.prof, roster = (P && P.roster) || [], st = roster.filter((p) => p.position).sort((a, b) => (+a.bats || 9) - (+b.bats || 9));
     if (!st.length) return '<div class="muted">No lineup to read yet.</div>';
-    const ops = (c) => { c = c || {}; const ab = c.at_bats || 0, bb = c.walks || 0; if (ab < 60) return null; const tb = (c.hits || 0) + (c.doubles || 0) + 2 * (c.triples || 0) + 3 * (c.home_runs || 0); return ((c.hits || 0) + bb) / (ab + bb) + tb / ab; };
-    const f3 = (x) => x.toFixed(3).replace(/^0/, ""), avg = (list, k) => list.length ? list.reduce((t, p) => t + (+p[k] || 0), 0) / list.length : 0;
+    const line = (c) => { c = c || {}; const ab = c.at_bats || 0, bb = c.walks || 0, h = c.hits || 0; if (ab < 60) return null; const tb = h + (c.doubles || 0) + 2 * (c.triples || 0) + 3 * (c.home_runs || 0); return { ops: (h + bb) / (ab + bb) + tb / ab, avg: h / ab, hr: (c.home_runs || 0) / ab, k: (c.strikeouts || 0) / ab }; };
+    const fld = (c) => { c = c || {}; const ch = (c.putouts || 0) + (c.assists || 0) + (c.errors || 0); return ch >= 30 ? { f: ((c.putouts || 0) + (c.assists || 0)) / ch, e: c.errors || 0, g: c.games || 0 } : null; };
+    const f3 = (x) => x.toFixed(3).replace(/^0/, ""), mean = (xs) => (xs.length ? xs.reduce((t, x) => t + x, 0) / xs.length : null);
     const hot = ((HOT[team] || {}).map) || {}, tag = (p) => { const h = hot[p.player_id]; return h ? '<span title="' + esc(h.tip) + '">' + (h.tag === "hot" ? "🔥" : "🧊") + "</span> " : ""; };
-    const bats = st.filter((p) => p.position !== "P").map((p) => ({ p, o: ops(p.career) })).filter((x) => x.o != null).sort((a, b) => b.o - a.o).slice(0, 3);
-    const pit = st.find((p) => p.position === "P");
-    const fits = st.filter((p) => DEFIT[p.position]).map((p) => ({ p, f: Math.round(DEFIT[p.position](p)) })).sort((a, b) => a.f - b.f);
-    const myTeam = Number((document.getElementById("who-team") || {}).value || 0), myC = PROF[myTeam], mySt = myC && myC.data && myC.data.roster ? myC.data.roster.filter((p) => p.position && p.position !== "P") : [];
+    const them = st.filter((p) => p.position !== "P"), pit = st.find((p) => p.position === "P");
+    const myTeam = Number((document.getElementById("who-team") || {}).value || 0), myC = PROF[myTeam], mine = myC && myC.data && myC.data.roster ? myC.data.roster.filter((p) => p.position && p.position !== "P") : [];
     if (myTeam && !myC) profileOf(myTeam, 300000).then(() => setTimeout(tick, 0)).catch(() => {});
-    const them = st.filter((p) => p.position !== "P"), A = (k) => Math.round(avg(them, k)), M = (k) => Math.round(avg(mySt, k));
+    const agg = (list) => { const L = list.map((p) => line(p.career)).filter(Boolean); return L.length ? { ops: mean(L.map((x) => x.ops)), hr: mean(L.map((x) => x.hr)), k: mean(L.map((x) => x.k)), star: mean(list.map((p) => +p.overall || 0)) } : null; };
+    const T = agg(them), M = mine.length ? agg(mine) : null;
+    const bats = them.map((p) => ({ p, l: line(p.career) })).filter((x) => x.l).sort((a, b) => b.l.ops - a.l.ops).slice(0, 3);
+    const gloves = them.map((p) => ({ p, f: fld(p.career) })).filter((x) => x.f).sort((a, b) => a.f.f - b.f.f);
     const tips = [];
-    if (pit) { const pv = +pit.pitch_skill || 0; if (pv >= 90) tips.push("🎯 Their pitcher is tough (" + esc(pit.name) + ", P " + pv + "): contact bats over power."); else if (pv && pv <= 75) tips.push("💣 Their pitcher is hittable (" + esc(pit.name) + ", P " + pv + "): load up on power."); }
-    if (mySt.length && M("run_speed") - A("run_speed") >= 4) tips.push("🏃 You're quicker (speed " + M("run_speed") + " vs " + A("run_speed") + "): put speed at the top of your order.");
-    if (mySt.length && A("swing_power") - M("swing_power") >= 4) tips.push("🧤 They hit for more power (" + A("swing_power") + " vs " + M("swing_power") + "): your best gloves and arms in the outfield.");
-    if (fits.length && fits[0].f < 72) tips.push("🎯 Soft spot at " + esc(fits[0].p.position) + ": " + esc(fits[0].p.name) + " (fit " + fits[0].f + ").");
+    if (pit) { const ps = +pit.overall || 0; if (ps >= 9) tips.push("🎯 Their pitcher is rated " + ps + "★ (" + esc(pit.name) + "): contact bats over power."); else if (ps && ps <= 6) tips.push("💣 Their pitcher is rated " + ps + "★ (" + esc(pit.name) + "): load up on power."); }
+    if (T && M && T.hr - M.hr >= 0.02) tips.push("🧤 They hit more homers (" + (T.hr * 100).toFixed(1) + "% of at-bats vs your " + (M.hr * 100).toFixed(1) + "%): your best gloves and arms in the outfield.");
+    if (T && M && M.ops - T.ops >= 0.08) tips.push("💪 Your lineup out-hits theirs (career OPS " + f3(M.ops) + " vs " + f3(T.ops) + ").");
+    if (T && M && T.ops - M.ops >= 0.08) tips.push("⚠️ Their lineup out-hits yours (career OPS " + f3(T.ops) + " vs " + f3(M.ops) + "): lean on defense and your best pitcher.");
+    if (gloves.length && gloves[0].f.f < 0.95) tips.push("🎯 Shaky glove at " + esc(gloves[0].p.position) + ": " + esc(gloves[0].p.name) + " (fielding " + f3(gloves[0].f.f) + ", " + gloves[0].f.e + " errors).");
     const hotOne = them.find((p) => (hot[p.player_id] || {}).tag === "hot"); if (hotOne) tips.push("🔥 Watch " + esc(hotOne.name) + ": hot over the last 10 games.");
-    const cmp = (k, label) => '<span class="it" title="Their starters\' average' + (mySt.length ? " vs yours" : "") + '"><span class="k">' + label + "</span><b>" + A(k) + "</b>" + (mySt.length ? ' <span style="opacity:.7">vs ' + M(k) + "</span>" : "") + "</span>";
-    return '<div class="sc-row"><b>Lineup</b> ' + st.map((p, i) => '<span class="sc-man" title="' + esc(p.name) + " · " + p.position + " · " + (+p.overall || 0) + '★">' + (i + 1) + ". " + tag(p) + esc(p.name) + ' <i>' + esc(p.position) + "</i></span>").join("") + "</div>" +
-      '<div class="sc-row">' + cmp("contact_odds", "Contact") + cmp("swing_skill", "Batting") + cmp("swing_power", "Power") + cmp("run_speed", "Speed") + (pit ? '<span class="it"><span class="k">Pitcher</span><b>' + esc(pit.name) + " · P " + (+pit.pitch_skill || 0) + "</b></span>" : "") + "</div>" +
-      (bats.length ? '<div class="sc-row"><b>Best bats</b> ' + bats.map((x) => tag(x.p) + esc(x.p.name) + ' <span style="opacity:.7">OPS ' + f3(x.o) + "</span>").join(" · ") + "</div>" : "") +
-      (fits.length ? '<div class="sc-row"><b>Weakest gloves</b> ' + fits.slice(0, 2).map((x) => esc(x.p.position) + " " + esc(x.p.name) + ' <span style="opacity:.7">fit ' + x.f + "</span>").join(" · ") + "</div>" : "") +
-      (tips.length ? '<div class="sc-row sc-tips">' + tips.slice(0, 4).map((t) => "<div>" + t + "</div>").join("") + "</div>" : "");
+    const it = (k, v, t) => '<span class="it" title="' + esc(t || "") + '"><span class="k">' + k + "</span><b>" + v + "</b></span>";
+    return '<div class="sc-row"><b>Lineup</b> ' + st.map((p, i) => '<span class="sc-man" title="' + esc(p.name) + " · " + p.position + " · " + (+p.overall || 0) + '★">' + (i + 1) + ". " + tag(p) + esc(p.name) + " <i>" + esc(p.position) + " " + (+p.overall || 0) + "★</i></span>").join("") + "</div>" +
+      (T ? '<div class="sc-row">' + it("Lineup OPS", f3(T.ops) + (M ? ' <span style="opacity:.7">vs ' + f3(M.ops) + "</span>" : ""), "Their starters' career OPS" + (M ? " vs yours" : "")) + it("Homers", (T.hr * 100).toFixed(1) + "%" + (M ? ' <span style="opacity:.7">vs ' + (M.hr * 100).toFixed(1) + "%</span>" : ""), "Home runs per at-bat") + it("Strikeouts", (T.k * 100).toFixed(0) + "%" + (M ? ' <span style="opacity:.7">vs ' + (M.k * 100).toFixed(0) + "%</span>" : ""), "Strikeouts per at-bat") + it("Avg ★", T.star.toFixed(1)) + (pit ? it("Pitcher", esc(pit.name) + " · " + (+pit.overall || 0) + "★") : "") + "</div>" : "") +
+      (bats.length ? '<div class="sc-row"><b>Best bats</b> ' + bats.map((x) => tag(x.p) + esc(x.p.name) + ' <span style="opacity:.7">' + f3(x.l.avg) + " · OPS " + f3(x.l.ops) + "</span>").join(" · ") + "</div>" : "") +
+      (gloves.length ? '<div class="sc-row"><b>Shakiest gloves</b> ' + gloves.slice(0, 2).map((x) => esc(x.p.position) + " " + esc(x.p.name) + ' <span style="opacity:.7">fielding ' + f3(x.f.f) + "</span>").join(" · ") + "</div>" : "") +
+      (tips.length ? '<div class="sc-row sc-tips">' + tips.slice(0, 4).map((t) => "<div>" + t + "</div>").join("") + "</div>" : "") +
+      '<div class="sc-row muted" style="font-size:12px">From their career lines and star ratings (other clubs\' skill numbers aren\'t public). 🔥🧊 = last 10 games vs career.</div>';
   }
+
   function h2hHtml(S) {
     const H = S.h2h || {}, keys = Object.keys(H);
     if (!keys.length) return '<div class="sc-row muted">You haven\'t played them yet.</div>';
