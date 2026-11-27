@@ -149,8 +149,8 @@ function cols(list,name){
       if(m.b==='W'&&+r===1&&(oa||oz)){var c=oa?m.z:m.a;if(c&&!c.open)byes.push(c);return false}
       return true});
     if(!ms.length&&!byes.length)return'';
-    var bl=byes.length?'<div class="byes"><b>'+byes.length+' bye'+(byes.length===1?'':'s')+'</b> straight to the next round'+(D.matches?'':' (until more clubs sign up)')+'<br>'+byes.sort(function(a,b){return (a.s||99)-(b.s||99)}).map(function(c){return '<span>'+(c.s?'#'+esc(c.s)+' ':'')+esc(c.n)+'</span>'}).join('')+'</div>':'';
-    return '<div class="col'+(byes.length?' fold':'')+'"><h3>'+esc(name(r,ms.length?ms:rs[r]))+'</h3>'+bl+'<div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
+    var bl=byes.length?'<div class="byes"><b>'+byes.length+' bye'+(byes.length===1?'':'s')+'</b> straight to the next round'+(D.matches?'':' (until more clubs sign up)')+(ms.length?'; the lowest-star clubs play in':'')+'<br>'+byes.sort(function(a,b){return (a.s||99)-(b.s||99)}).map(function(c){return '<span>'+(c.s?'#'+esc(c.s)+' ':'')+esc(c.n)+'</span>'}).join('')+'</div>':'';
+    return '<div class="col'+(byes.length?' fold':'')+'"><h3>'+(byes.length&&ms.length?'Play-in games':esc(name(r,ms.length?ms:rs[r])))+'</h3>'+bl+'<div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
 }
 function rules(){
   var w=D.waveMin||60,open=!D.matches;
