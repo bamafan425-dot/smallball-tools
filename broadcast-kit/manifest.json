@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "SmallBall Broadcast Kit",
-  "version": "0.11.0",
+  "name": "SmallBall Multiview",
+  "version": "0.12.0",
   "description": "Watch-along multiview for play.smallball.com: up to four games in SmallBall's own player, synced start, spoiler shield, play-by-play booth and a two-voice radio call. Read-only.",
   "content_scripts": [{ "matches": ["https://play.smallball.com/*"], "js": ["tk.js"], "run_at": "document_idle" }]
 }

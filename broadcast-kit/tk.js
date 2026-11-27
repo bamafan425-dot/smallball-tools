@@ -1,5 +1,5 @@
 (() => {
-  // SmallBall Broadcast Kit (formerly the Tournament Kit): a no-spoilers watch-along multiview of the site's own game player.
+  // SmallBall Multiview (formerly the Broadcast Kit, and before that the Tournament Kit): a no-spoilers watch-along multiview of the site's own game player.
   // Read-only: it never plays, trains or saves anything on the site. It only reads game lists and
   // opens the site's own player (/training?watch=<game>) in tiles, the same page the Watch buttons open.
   if (window.top !== window) return;               // not inside our own player tiles
@@ -226,18 +226,18 @@
   document.head.appendChild(css);
 
   const launch = document.createElement("button");
-  launch.id = "tk-launch"; launch.type = "button"; launch.title = "SmallBall Broadcast: watch games together, no spoilers";
+  launch.id = "tk-launch"; launch.type = "button"; launch.title = "SmallBall Multiview: watch several games at once, no spoilers";
   launch.onclick = () => open();
   document.body.appendChild(launch);
-  function paintBadge() { const n = unwatched().length; launch.innerHTML = `📺 Broadcast${n ? ` <span class="n">${n}</span>` : ""}`; }
-  // On a game's own watch page: one click puts that game in the Broadcast queue.
+  function paintBadge() { const n = unwatched().length; launch.innerHTML = `📺 Multiview${n ? ` <span class="n">${n}</span>` : ""}`; }
+  // On a game's own watch page: one click puts that game in the Multiview queue.
   const qThis = document.createElement("button"); qThis.id = "tk-qthis"; qThis.type = "button";
   qThis.style.cssText = "position:fixed;left:16px;bottom:20px;z-index:2147483000;padding:7px 12px;border-radius:999px;border:1px solid #ef4444;background:#111827;color:#fff;font:700 12.5px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)";
   function paintQThis() {
     const gid = Number(new URLSearchParams(location.search).get("watch")) || 0;
     if (!gid || !/^\/training/.test(location.pathname) || isOpen()) { qThis.remove(); return; }
     const inQ = S.queue.includes(gid) || S.air.includes(gid);
-    qThis.textContent = inQ ? "📺 In the Broadcast queue" : "📺＋ Add this game to the Broadcast";
+    qThis.textContent = inQ ? "📺 In the Multiview queue" : "📺＋ Add this game to Multiview";
     qThis.disabled = inQ; qThis.style.opacity = inQ ? ".7" : "1";
     qThis.onclick = async () => { await addIds(String(gid)); paintQThis(); };
     if (!qThis.isConnected) document.body.appendChild(qThis);
@@ -252,7 +252,7 @@
     if (isOpen()) return;
     ov = document.createElement("div"); ov.id = "tk-ov";
     ov.innerHTML = `
-      <div class="top"><h2><span class="live">●</span> SmallBall Broadcast</h2>
+      <div class="top"><h2><span class="live">●</span> SmallBall Multiview</h2>
         <span class="lbl">Layout</span><span class="seg" data-seg="layout"><button data-v="single">Single</button><button data-v="quad">2×2</button><button data-v="main3">Main + 3</button></span>
         <span class="lbl">Speed, all tiles</span><span class="seg" data-seg="speed"><button data-v="1×">1×</button><button data-v="2×">2×</button><button data-v="4×">4×</button></span>
         <label class="sw" title="Blur the scores of games you haven't watched yet, on SmallBall's pages and on Club Kit cards"><input type="checkbox" data-k="shield"> Spoiler shield</label>
@@ -450,7 +450,7 @@
   // Every line has a shelf life. A stale line is skipped, and a big play cuts a joke off, so the booth stays
   // with the pitch instead of drifting behind it. Speech is the browser's own; nothing is sent anywhere.
   const RKEY = "tk-radio-v1";
-  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true } };
+  const RDEF = { synthia: true, on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true } };
   let R; try { R = Object.assign({}, RDEF, JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (_) { R = Object.assign({}, RDEF); }
   R.guests = Object.assign({}, RDEF.guests, R.guests || {});
   if (R.pitches === "auto") R.pitches = "some";            // 0.8: the booth is a show now; the old Auto becomes Some
@@ -479,12 +479,13 @@
     if ((m = /put up (\d+) in the (top|bottom) of the (\d+)/i.exec(t))) return { k: "bigfirst", runs: +m[1], first };
     if (/double play/i.test(t)) return { k: "dp", t, first };
     if (first && (m = /^(\d+)\s+(.+?)\s+—\s+(.+)$/.exec(t))) return { k: "milestone", name: nmClean(m[2]), what: m[3], t };
-    if ((m = /^(\d+)\s+(.+?):\s*(.+?)(?:,\s*(\d+)\s+scored)?$/i.exec(t))) {
+    if ((m = /^(.+?):\s*(forced at|out at|thrown out at|caught stealing|steals|picked off)\s*(\w+)?/i.exec(t)) && !/^\d+\s/.test(t)) return { k: "runner", name: nmClean(m[1]), what: m[2].toLowerCase(), base: (m[3] || "").toLowerCase(), first };
+    if ((m = /^(?:(\d+)\s+)?([^:—]+?):\s*(.+?)(?:,\s*(\d+)\s+scored)?$/i.exec(t))) {
       const what = m[3].toLowerCase(), sc = +(m[4] || 0), name = nmClean(m[2]);
       const k = /grand slam|home run|homer/.test(what) ? "hr" : /triple/.test(what) ? "3b" : /double/.test(what) ? "2b" : /base hit|single|bunt hit|infield hit/.test(what) ? "1b" : "other";
-      return { k, name, what, scored: sc, num: +m[1], first };
+      return { k, name, what, scored: sc, num: +(m[1] || 0), first };
     }
-    if ((m = /^(\d+)\s+(.+?)\s+(strikes out|walks|called out|is hit by(?: a)? pitch|hit by pitch)(?:,\s*(\d+)\s+scored)?/i.exec(t))) {
+    if ((m = /^(?:(\d+)\s+)?(.+?)\s+(strikes out|walks|called out|is hit by(?: a)? pitch|hit by pitch)(?:,\s*(\d+)\s+scored)?/i.exec(t))) {
       const w = m[3].toLowerCase();
       return { k: /strikes/.test(w) ? "k" : /called/.test(w) ? "kc" : /walk/.test(w) ? "bb" : "hbp", name: nmClean(m[2]), scored: +(m[4] || 0), first };
     }
@@ -638,6 +639,40 @@
       "SmallBall used to be run by a company called AndNow. Owners had opinions about AndNow. Strong ones.",
       "The old forums had a thread called The Search for Commish. Two hundred eighty-six replies. The man vanished and the whole league turned detective.",
       "One owner wrote it plain back in 2006: PL4 was a breeze, PL3 is the devil. Five seasons in Third League. Still the truest thing ever posted.",
+      // The Commish Returns: the SmallBall chat room, August 16, 2007 (the log on the ToolKits lore page)
+      "August sixteenth, two thousand seven. The Commish walks into the chat room after two years gone. His first word was hell. Then he fixed it to hello.",
+      "First thing the Commish wanted to know after two years away: is my form ID really six sixty-six? Priorities, Dewey.",
+      "Two minutes into his big comeback, the Commish asks the chat room where the guys who want to sue him are. Reading the room, Mack.",
+      "Right as the Commish logged back in, one guy announced hockey comes out tomorrow. Got kicked from the room for five minutes. Missed the return of the king.",
+      "They asked the Commish what's next for SmallBall. His answer: fix stuff. Well. He used a stronger word than stuff.",
+      "Mid Q and A, the Commish types brb. Somebody says brb in Commish time means two years. He was back in ten minutes. Growth.",
+      "The night the Commish came back, the chat room hit thirty-nine people. Old record was twenty-nine. Somebody typed eat it, Grapevine.",
+      "Lefty Ticket, five bucks. Seven hundred team, eighty-five. The Commish coming back to SmallBall? Priceless. Somebody actually typed that in the chat in oh-seven.",
+      "The Commish came back on August sixteenth, oh-seven. Thirtieth anniversary of Elvis. One owner set his recorder for CNN in case the King came back too.",
+      "Somebody asked the Commish if he was going to ban them. He asked right back: are you going to ban ME? Mutual assured banning.",
+      "The Commish called SmallBall his baby. Said he never meant to be away so long. Time just kept on marching by.",
+      "Hockey was so close, the Commish said, back in oh-seven. Hockey has been coming out tomorrow for about twenty years now.",
+      "There was a SmallBall for the PlayStation 2, Mack. Really cool, the Commish said. Then the company paying for it went under.",
+      "SmallBall Boxing. The Commish loved the idea. Said the training alone would make it worth it. I'd have trained a heavyweight.",
+      "In oh-seven the Commish said new stadiums were coming. Maybe one for season two hundred. We're in the four hundreds, Dewey. I'm still refreshing.",
+      "Somebody made the Commish promise to say something before he ever vanished again. He said yes, or he'd mail them his little finger.",
+      "Alice, Ocean, Jurassic. The rare parks. In oh-seven the Commish swore they'd stay rare. Prizes only.",
+      "The Commish once said six hundred clubs should only ever be prizes, never sold. Somebody write that on a napkin.",
+      "Slip missed the Commish's whole comeback because he was in school. Somebody saved the chat log for him. That's the only reason anybody knows what got said.",
+      "The Commish asked the room for the top ten things he missed while he was gone. Number one: the season crash. Number two: everybody complaining he left.",
+      "The Commish told the chat he was now the newb of SmallBall. Typed not the newb first. Then corrected it. Honest man.",
+      "Autotraining in the Deluxe Trainer, the Commish said, is kind of like a training bot. No little balls, no glory.",
+      "The famous oh-seven chat ends with the Commish typing sniff, then poof. And he was gone. Again.",
+      "Footy came back on the same morning the Commish did. SmallBall Football, Mack. Some guys had their teams at a hundred percent when it went down.",
+      "Somebody in that oh-seven chat pitched a Commish welcome back tournament. Winner gets a seven hundred club. Nobody knows if it ever got played.",
+      "The Commish told the old chat that if people are angry, they don't have to hold back. Bold thing to say to SmallBall owners.",
+      "Which Commish comeback was your favorite, Dewey? Oh-seven or twenty twenty-six? Or are we missing a few?",
+      "The Commish has come back at least twice now, Mack. August oh-seven in a chat room, and November twenty twenty-six with the whole league. I'm starting to think he likes the entrance.",
+      "Oh-seven, he came back to a chat room of thirty-nine people. Twenty twenty-six, he came back to two hundred forty thousand clubs. Bigger crowd, Dewey.",
+      "Rank the Commish comebacks. Oh-seven had the brb and the poof. Twenty twenty-six had seven years of dust and two point nine million men waking up. Tough call.",
+      "If you've got a Commish comeback we don't know about, call the booth. Somebody out there saved a chat log. Somebody always does.",
+      "Three things you can count on in SmallBall: the Commish disappears, the Commish comes back, and somebody asks about hockey.",
+      "Where'd the Commish go for two years? Jobs and projects around San Francisco, he said. Nokia for a while. Even a pinball game for a phone.",
       "Old-timers used to hand out free Deluxe Trainer clubs to new owners on the forums. That's SmallBall. Somebody always hands you a glove.",
     ],
     park: {
@@ -749,7 +784,7 @@
       const score = [Number(tx("#score-a")) || 0, Number(tx("#score-b")) || 0];
       const inn = tx("#inning"), mph = +((/(\d+)\s*MPH/i.exec(tx(".sb-mph")) || [])[1] || 0);
       const outsTxt = tx("#outs");
-      const msg = tx(".sb-msg"), bm = /Now batting:\s*#\d+\s+(?:\d+\s+)?(.+?),\s*(1B|2B|3B|SS|LF|CF|RF|P|C|DH)\b/.exec(msg);
+      const msg = tx(".sb-msg"), bm = /Now batting:\s*#\d+\s+(?:\d+\s+)?(.+?),\s*(1B|2B|3B|SS|LF|CF|RF|DH|P|C)(?![A-Z0-9])/.exec(tx(".sb-msg b") || msg);
       const stats = tx("#stats"), hrN = +((/(\d+)\s*HR/.exec(stats) || [])[1] || 0);
       const errs = [...d.querySelectorAll(".sb-line .e")].map((e) => Number(e.textContent.trim())).filter((x) => !isNaN(x));
       const fastest = +((/fastest today\s*(\d+)/i.exec(tx(".sb-mph")) || [])[1] || 0);
@@ -920,6 +955,71 @@
     const st = pickFresh("story", STORIES);
     st.forEach(([w, t], i) => say(w, t, 2, { maxAge: 90000, seg: true, on: i === 0 ? () => tvCard({ k: "From the archives", h: "Tales from the Dugout", p: "Mack and Dewey dig into SmallBall history." }, 9000 * st.length) : null }));
   }
+  // 📼 Synthia Small: the original voice of SmallBall Radio (2002), still in the booth and a little off her rocker.
+  // Once a game she reads a "season report" from whatever year she thinks it is, and now and then she pipes up mid-game.
+  const SYN = {
+    intro: [
+      "And now, back to the O.G. of SmallBall Radio. She's been doing this since two thousand two. Synthia Small.",
+      "Folks, the original voice of SmallBall Radio is in the building. Synthia, the mic is yours.",
+      "Now back to the O.G. of SmallBall Radio, Synthia Small. Somebody help her find the microphone.",
+      "It's that time, everybody. The first lady of SmallBall Radio, the one, the only, Synthia Small.",
+    ],
+    hello: [
+      "Thank you, Mack. Or is it Mark? It's always been one of you.",
+      "Is this thing on? Johnny, stop chewing on the cord.",
+      "Hello, hello. This is Synthia Small with your season report. Which season? A good one, dear.",
+      "Good evening, SmallBallers. Or good morning. I don't have a window in here.",
+    ],
+    report: [
+      "Here is your season report. The pies are refilling every twelve hours now, so set your alarm clocks, everybody.",
+      "Big news from the Eighth League. There is an Eighth League now. I've been told that's news.",
+      "The Deluxe Trainer is out, and Free DT Fridays are back. Or they're gone. One of those.",
+      "A reminder from the Commissioner: he will never ask for your password. I asked for his once. He didn't give me his either.",
+      "First League standings this week: Ryes Crew is on top. Ryes Crew is always on top. I checked in two thousand three and I haven't needed to check since.",
+      "We have a caller on the open line from Northern California. Go ahead, caller. ... He hung up. They always hang up.",
+      "My grandson tells me the game came back after seven years. I never left, dear. I've been sitting right here in this booth the whole time. Nobody brought me lunch.",
+      "The weather in Half Moon Bay is lovely. That's where the stickers come from. I have four hundred of them in my purse. Would you like one?",
+      "Johnny Bosco the frog sends his regards. He says ribbit. I think he means it this time.",
+      "Don't forget to train your running, folks. Unless it eats your whole pie. Then don't.",
+      "I'm told the score is something to something. I leave the numbers to the young men.",
+      "In my day we loaded the team page on dial-up. Fifteen minutes. It built character. And dust.",
+      "The Fourth League is a crime against humanity. I said that on the air in two thousand four and they made me apologize. I'm not sorry.",
+      "A big hello to the Official SmallBall Chat. Thirty-nine people last night! A record! Somebody tell the Grapevine.",
+      "And the Commish is back! Again! I've baked a pie. A two-day pie. It's in the jar with the jelly beans.",
+      "Hockey comes out tomorrow. I've been saying that since two thousand seven, and one of these days I'm going to be right.",
+      "Somebody asked me what a spawner is. I said it's a fish. They said no. I'm sticking with fish.",
+      "Ten-star clubs are very nice, but I've always liked a nice four-star club. They call more often.",
+    ],
+    out: [
+      "That's your season report. Back to you, Mack. Mack? Where did he go?",
+      "This has been Synthia Small. Eat your vegetables and train your catchers.",
+      "Back to the boys. Somebody wake up Dewey.",
+      "That's all from me. I'll be right here. I'm always right here.",
+    ],
+    react: [
+      ["c", "Thank you, Synthia. Some of that was even from this century."],
+      ["p", "Synthia Small, everybody. A national treasure. Mostly national."],
+      ["c", "She's been in that booth since two thousand two, Mack. Nobody knows how. The door's been locked from the outside."],
+      ["p", "We love you, Synthia. Somebody walk her back to the lounge. The good chair."],
+      ["c", "I'm checking, Mack. There is no Eighth League. There hasn't been for years. Don't tell her."],
+    ],
+    cameo: [
+      "Was that a home run? In my day we called those doubles and we were grateful.",
+      "Is it the seventh inning yet? I brought peanuts. They're from two thousand three but they're sealed.",
+      "That young man in center field looks just like my second husband. He couldn't catch either.",
+      "Mack, dear, is this the Fourth League? It feels like the Fourth League.",
+      "Somebody tell Johnny the frog to get off the scorer's table.",
+      "I'd like to dedicate this pitch to everyone still on dial-up.",
+      "Oh, a walk. Lovely. I love a walk. Good for the heart.",
+    ],
+  };
+  function synthiaSeg() {
+    say("p", pickFresh("synin", SYN.intro), 2, { maxAge: 90000, seg: true, on: () => tvCard({ k: "SmallBall Radio Classic", h: "📼 Synthia Small", p: "The original voice of SmallBall Radio, since 2002" }, 15000) });
+    say("s", pickFresh("synhi", SYN.hello), 2, { maxAge: 90000, seg: true });
+    const n = Math.random() < 0.5 ? 2 : 3; for (let i = 0; i < n; i++) say("s", pickFresh("synrep", SYN.report), 2, { maxAge: 90000, seg: true });
+    say("s", pickFresh("synout", SYN.out), 2, { maxAge: 90000, seg: true });
+    const [w, t] = pick(SYN.react); say(w, t, 2, { maxAge: 90000, seg: true });
+  }
   function triviaSeg(g) {
     const [qq, a] = pickFresh("trivia", TRIVIA), host = g.guestIn && g.guest === "quiz" ? "g" : "p";
     say("p", pickFresh("trivh", ["It's time for SmallBall Trivia!", "SmallBall Trivia time, folks. Play along at home.", "Trivia break! Brought to you by nobody. We have no sponsors."]), 2, { maxAge: 90000, seg: true, on: () => tvCard({ k: "SmallBall Trivia", h: qq, p: "Answer in chat before the booth does." }, 60000) });
@@ -979,6 +1079,8 @@
     if (k === "B3" || k === "B6") return triviaSeg(g);
     if (k === "T5") { leagueSeg(id); return; }
     if (k === "T7") return stretchSeg();
+    if (k === "T6" && R.synthia !== false && Math.random() < 0.8) return synthiaSeg();
+    if (R.synthia !== false && Math.random() < 0.07) return say("s", pickFresh("syncam", SYN.cameo), 1, { maxAge: 20000, ev: e });
     if (Math.random() < 0.6) say(Math.random() < 0.3 ? "p" : "c", pickFresh("lore", L_COL.lore), 1, { maxAge: 20000, ev: e });
   }
 
@@ -1088,14 +1190,15 @@
   function loadVoices() { VO = TTS ? speechSynthesis.getVoices() : []; if (isOpen()) paintRadio(); }
   if (TTS) { loadVoices(); speechSynthesis.addEventListener?.("voiceschanged", loadVoices); }
   function voiceFor(who, localOnly) {
-    const en = VO.filter((v) => /^en/i.test(v.lang) && !BADV.has(v.name) && (!localOnly || v.localService)); const want = who === "c" ? R.color : who === "g" ? R.guestVoice : R.pbp;
+    const en = VO.filter((v) => /^en/i.test(v.lang) && !BADV.has(v.name) && (!localOnly || v.localService)); const want = who === "c" ? R.color : who === "g" ? R.guestVoice : who === "s" ? R.synthiaVoice : R.pbp;
     const byName = en.find((v) => v.name === want); if (byName) return byName;
     const taken = who === "p" ? [] : who === "c" ? [(voiceFor("p", localOnly) || {}).name] : [(voiceFor("p", localOnly) || {}).name, (voiceFor("c", localOnly) || {}).name];
+    if (who === "s") { for (const re of [/Moira|Fiona|Karen|Tessa/i, /UK English Female/i, /Victoria|Samantha|Zira|Hazel|Susan/i, /Female/i]) { const v = en.find((x) => re.test(x.name) && !taken.includes(x.name)); if (v) return v; } }
     const pref = who === "c" ? [/UK English Male/i, /Daniel/i, /Fred/i, /Guy|Ryan|George/i, /Male/i] : who === "g" ? [/UK English Female/i, /Australia|Karen|Moira|Tessa/i, /Samantha|Victoria/i, /Female/i] : [/US English/i, /Alex/i, /Samantha/i, /Aria|Jenny|Mark/i];
     for (const re of pref) { const v = en.find((x) => re.test(x.name) && !taken.includes(x.name)); if (v) return v; }
     return en.find((x) => !taken.includes(x.name)) || en[0] || null;
   }
-  const who2name = (w, id) => (w === "p" ? "Mack" : w === "c" ? "Dewey" : (GUESTS[(GS[id] || {}).guest] || {}).name || "Guest");
+  const who2name = (w, id) => (w === "p" ? "Mack" : w === "c" ? "Dewey" : w === "s" ? "Synthia Small" : (GUESTS[(GS[id] || {}).guest] || {}).name || "Guest");
   function pump() {
     if (speaking || !RQ.length || !talking()) return;
     if (Date.now() - cutAt < 120) { setTimeout(pump, 130); return; }
@@ -1111,8 +1214,8 @@
     const id = radioGame(), G = it.who === "g" ? GUESTS[(GS[id] || {}).guest] : null;
     const u = new SpeechSynthesisUtterance(it.text), v = voiceFor(it.who, it.retry);
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-US";
-    u.rate = it.who === "c" ? 1.0 : it.who === "g" ? (G ? G.rate : 1) : RQ.length > 2 ? 1.2 : 1.1;   // Mack talks faster when he's behind
-    u.pitch = it.who === "c" ? 0.8 : it.who === "g" ? (G ? G.pitch : 1) : 1.05; u.volume = Math.max(0.05, R.vol);
+    u.rate = it.who === "c" ? 1.0 : it.who === "s" ? 0.86 : it.who === "g" ? (G ? G.rate : 1) : RQ.length > 2 ? 1.2 : 1.1;   // Mack talks faster when he's behind; Synthia takes her time
+    u.pitch = it.who === "c" ? 0.8 : it.who === "s" ? 1.25 : it.who === "g" ? (G ? G.pitch : 1) : 1.05; u.volume = Math.max(0.05, R.vol);
     speaking = it; KEEP.push(u); if (KEEP.length > 30) KEEP.shift();
     let started = false;
     const done = () => { if (speaking !== it) return; speaking = null; clearTimeout(rT); setTimeout(pump, it.who === "p" ? 120 : 280); };
@@ -1208,7 +1311,7 @@
       <div class="rrow"><span class="lbl">Mack</span><select data-r="pbp">${opts(R.pbp, "p")}</select></div>
       <div class="rrow"><span class="lbl">Dewey</span><select data-r="color">${opts(R.color, "c")}</select></div>
       <div class="rrow"><span class="lbl">Guest</span><select data-r="guestVoice">${opts(R.guestVoice, "g")}</select></div>
-      <div class="rrow"><span class="lbl">Guests</span>${Object.entries(GUESTS).map(([k, G]) => `<label class="sw"><input type="checkbox" data-g="${k}"${R.guests[k] ? " checked" : ""}> ${esc(G.name.split(" ")[0])}</label>`).join("")}</div>
+      <div class="rrow"><span class="lbl">Guests</span>${Object.entries(GUESTS).map(([k, G]) => `<label class="sw"><input type="checkbox" data-g="${k}"${R.guests[k] ? " checked" : ""}> ${esc(G.name.split(" ")[0])}</label>`).join("")}<label class="sw" title="Synthia Small, the original voice of SmallBall Radio: a season report once a game, and the odd remark"><input type="checkbox" data-r="synthia"${R.synthia !== false ? " checked" : ""}> 📼 Synthia</label></div>
       <div class="rrow"><span class="lbl">Booth style</span>${seg("style", [["show", "The show"], ["pbp", "Play-by-play"]])}</div>
       <div class="rrow"><span class="lbl">Quips</span>${seg("quips", [["off", "Off"], ["some", "Some"], ["lots", "Lots"]])}</div>
       <div class="rrow"><span class="lbl">Pitch calls</span>${seg("pitches", [["some", "Now and then"], ["all", "Every pitch"], ["off", "Off"]])}</div>
@@ -1511,7 +1614,7 @@
     const next = S.air.find((x) => !S.watched[x]) || cands.find((x) => (S.meta[x] || {}).tag) || cands[0];
     if (!next) {
       waiting = true; tvCard(null);
-      tvFull({ k: "Stay tuned", h: "SBSN will be right back", p: S.clubs.length ? `The next game from the ${S.clubs.length} club${S.clubs.length === 1 ? "" : "s"} we follow airs as soon as it's played.` : "Add games or follow clubs in the Broadcast Kit and they air here." });
+      tvFull({ k: "Stay tuned", h: "SBSN will be right back", p: S.clubs.length ? `The next game from the ${S.clubs.length} club${S.clubs.length === 1 ? "" : "s"} we follow airs as soon as it's played.` : "Add games or follow clubs in Multiview and they air here." });
       paintStage(); tvSeason(false); return;
     }
     waiting = false; const m = S.meta[next] || {};
