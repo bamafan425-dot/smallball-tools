@@ -1610,6 +1610,17 @@ const SBX_TABLET = true;
     el.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_MODE, b.dataset.mode); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
   }
 
+  // 🔭 The site's Team explorer only has a footer link: add a quiet one at the end of the top menu.
+  function mountExplorer() {
+    const nav = document.getElementById("nav");
+    if (!nav || nav.querySelector("#sbx-explorer")) return;
+    const a = document.createElement("a");
+    a.id = "sbx-explorer"; a.href = "/explorer"; a.textContent = "Explorer";
+    a.title = "Team explorer: search and filter every club in SmallBall (added by the Club Kit)";
+    a.style.cssText = "opacity:.6";
+    nav.appendChild(a);
+  }
+
   // ───────── 🔔 Alerts & 📥 inbox: what needs you right now, from the Hill and your tournaments ─────────
   // Read-only, from the same public files as the live cards. In the Chrome extension, a background worker also
   // checks every few minutes with SmallBall closed (it shares the "seen" list, so you never get the same alert twice).
