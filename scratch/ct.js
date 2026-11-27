@@ -1,4 +1,4 @@
-(async()=>{
+(async()=>{ clearInterval(window.__cxi); document.getElementById("sbx-cx")?.remove(); document.getElementById("sbx-cx-css")?.remove(); document.getElementById("sbx-kx")?.remove();
 const esc=(s)=>String(s).replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));const on=()=>true;const bs_boxOpen=()=>{};
 const getJSON=async(u)=>{const r=await fetch(u,{credentials:"include"}); return r.json();};
 localStorage.setItem("sbx-tt-place","jumbo"); const hide=document.createElement("style"); hide.textContent="#sbx-cast,#sbx-kk{display:none!important}"; document.head.appendChild(hide);
@@ -17,14 +17,15 @@ localStorage.setItem("sbx-tt-place","jumbo"); const hide=document.createElement(
     const t = String(raw || "").replace(/^\*\s*(FIRST:)?\s*/i, "").trim(); let m;
     const nm = (s) => s.replace(/\*+/g, "").trim();
     if (/^—\s*end of/i.test(t)) return { k: "end" };
-    if ((m = /^(\d+)\s+(.+?):\s*(.+?)(?:,\s*(\d+)\s+scored)?$/i.exec(t)) && !/—/.test(m[2])) {
+    if ((m = /^(?:(\d+)\s+)?([^:—]+?):\s*(.+?)(?:,\s*(\d+)\s+scored)?$/i.exec(t)) && !/—/.test(m[2])) {
       const w = m[3].toLowerCase();
       const k = /grand slam|home run|homer/.test(w) ? "hr" : /triple/.test(w) ? "3b" : /double play/.test(w) ? "dp" : /double/.test(w) ? "2b" : /base hit|single|bunt hit|infield hit/.test(w) ? "1b" : "other";
-      return { k, num: +m[1], name: nm(m[2]), what: m[3], scored: +(m[4] || 0) };
+      if (k === "other" && /^(forced at|out at|thrown out|caught stealing|steals|picked off|advances|scores)/i.test(m[3])) return { k: "raw", scored: +(m[4] || 0) };   // a runner, not a batter
+      return { k, num: +(m[1] || 0), name: nm(m[2]), what: m[3], scored: +(m[4] || 0) };
     }
-    if ((m = /^(\d+)\s+(.+?)\s+(strikes out|walks|called out|is hit by(?: a)? pitch|hit by pitch)(?:,\s*(\d+)\s+scored)?/i.exec(t))) {
+    if ((m = /^(?:(\d+)\s+)?(.+?)\s+(strikes out|walks|called out|is hit by(?: a)? pitch|hit by pitch)(?:,\s*(\d+)\s+scored)?/i.exec(t))) {
       const w = m[3].toLowerCase();
-      return { k: /strikes|called/.test(w) ? "k" : /walk/.test(w) ? "bb" : "hbp", look: /called/.test(w), num: +m[1], name: nm(m[2]), scored: +(m[4] || 0) };
+      return { k: /strikes|called/.test(w) ? "k" : /walk/.test(w) ? "bb" : "hbp", look: /called/.test(w), num: +(m[1] || 0), name: nm(m[2]), scored: +(m[4] || 0) };
     }
     if ((m = /^(1B|2B|3B|SS|LF|CF|RF|P|C)\s+—\s+(.+)$/.exec(t))) return { k: "out", pos: m[1], how: m[2], scored: +((/(\d+)\s+scored/i.exec(m[2]) || [])[1] || 0) };
     return { k: "raw", scored: +((/(\d+)\s+scored/i.exec(t) || [])[1] || 0) };
@@ -45,7 +46,7 @@ localStorage.setItem("sbx-tt-place","jumbo"); const hide=document.createElement(
     for (const k of C.order) { const h = C.half[k]; if (!h.done) h.end = score[k[0] === "T" ? 0 : 1]; }
     for (const k of C.order) { const side = k[0], n = +k.slice(1), nx = side + (n + 1); if (C.half[nx] && !C.half[k].done) { C.half[k].end = C.half[nx].start; C.half[k].done = true; } }
     // The batter up now (the player's message line), and who just batted, for the outs that don't name him.
-    const bm = /Now batting:\s*#?(\d+)\s+(?:\d+\s+)?(.+?),\s*(1B|2B|3B|SS|LF|CF|RF|P|C|DH)\b/.exec(tx(".sb-msg"));
+    const bm = /Now batting:\s*#?(\d+)\s+(?:\d+\s+)?(.+?),\s*(1B|2B|3B|SS|LF|CF|RF|DH|P|C)(?![A-Z0-9])/.exec(tx(".sb-msg b") || tx(".sb-msg"));
     if (bm) { const b = bm[2].replace(/\*+/g, "").trim(); if (b !== C.batter) { C.prevBatter = C.batter; C.batter = b; C.batNum = +bm[1]; C.batPos = bm[3]; C.batAt = Date.now(); } }
     C.pitches = +((/(\d+)\s+pitch/.exec(tx("#stats")) || [])[1] || 0);
     C.mph = +((/(\d+)\s*MPH/i.exec(tx(".sb-mph")) || [])[1] || 0); C.fast = Math.max(C.fast || 0, +((/fastest today\s*(\d+)/i.exec(tx(".sb-mph")) || [])[1] || 0), C.mph);
@@ -184,14 +185,15 @@ localStorage.setItem("sbx-tt-place","jumbo"); const hide=document.createElement(
 #sbx-cx.jumbo{position:absolute;z-index:6;margin:0;padding:0;max-width:none;display:grid;gap:0;background:transparent;border:0;box-shadow:none;pointer-events:none;font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;color:#f4f1e6}
 #sbx-cx.jumbo>div:empty{pointer-events:none}
 #sbx-cx.jumbo.jt-one .jt-l{margin-right:4px}
-#sbx-cx.jumbo .jt-l{padding-top:calc(5px + var(--pl,0px))}
-#sbx-cx.jumbo .jt-r{padding-top:calc(5px + var(--pr,0px))}
+#sbx-cx.jumbo .jt-wing.jt-l{padding-top:calc(5px + var(--pl,0px))}
+#sbx-cx.jumbo .jt-wing.jt-r{padding-top:calc(5px + var(--pr,0px))}
 #sbx-cx.jumbo .jt-wing{pointer-events:auto;overflow:hidden;background:linear-gradient(rgba(16,22,31,.78),rgba(7,10,16,.78));box-shadow:0 0 0 2px rgba(43,51,64,.9),0 4px 10px rgba(0,0,0,.4);padding:5px 9px}
 #sbx-cx.jumbo .jt-l{border-radius:5px 0 0 5px;display:flex;align-items:center;justify-content:center;text-align:center}
 #sbx-cx.jumbo .jt-r{border-radius:0 5px 5px 0}
 #sbx-cx.jumbo .jt-lbl{color:#ffc23d;font:900 10px system-ui,sans-serif;letter-spacing:.12em}
-#sbx-cx.jumbo .jt-bat b{display:block;font-size:13px;margin:2px 0}
-#sbx-cx.jumbo .jt-k{opacity:.7;font-size:10px}
+#sbx-cx.jumbo .jt-bat{min-width:0;max-width:100%}
+#sbx-cx.jumbo .jt-bat b{display:block;font-size:13px;margin:2px 0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#sbx-cx.jumbo .jt-k{opacity:.7;font-size:10px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
 #sbx-cx.jumbo .jt-top{display:flex;align-items:center;gap:6px;margin-bottom:2px}
 #sbx-cx.jumbo .jt-top .jt-lbl{flex:1}
 #sbx-cx.jumbo .cpl{background:transparent}
