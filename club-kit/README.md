@@ -10,5 +10,6 @@ Website with screenshots: **https://slipnsliders.github.io/smallball-tools/club-
 [phone script](https://github.com/slipnsliders/smallball-tools/raw/main/downloads/SmallBall-Club-Kit.user.js)
 
 `extension/radio.js` is built from the Broadcast Kit's radio booth (`broadcast-kit/tk.js`), so both kits share one radio.
+The radio's optional Enhanced voices (Kokoro) live in `extension/kokoro/` (engine frame, worker and vendored kokoro-js / ONNX Runtime Web); `extension/kokoro/README.md` has the design notes. They're Club Kit only for now.
 
 `extension/po3-interceptor.js` and `extension/po3-content.js` are **PlayerOptimizer III by Jon2s**, included with his blessing (his notes: `extension/PlayerOptimizer-III-README.txt`). 🙌
