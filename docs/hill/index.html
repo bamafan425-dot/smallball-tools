@@ -211,7 +211,7 @@ h+='<div><h2 class="bb">Charging the Hill<\/h2><div class="fights">'+(ch.length?
 h+='<h2 class="bb">Recent results<\/h2>'+(ms.length?'<div class="results">'+ms.slice(0,9).map(function(m){var tie=m.wr!==''&&m.wr===m.lr;return '<div class="res"><div class="d">'+day(m.date)+' · '+esc(m.type)+(m.game?' · game '+esc(m.game):'')+'<\/div><div class="w bb">'+esc(m.w)+(tie?' ties ':' over ')+esc(m.l)+'<\/div>'+(m.wr!==''?'<div class="s bb">'+esc(m.wr)+' – '+esc(m.lr)+'<\/div>':'')+'<div class="o">'+esc(m.outcome)+(m.pts?' · +'+m.pts+' pts':'')+'<\/div><\/div>';}).join('')+'<\/div>':'<div class="empty">No results yet. They show up here once each game has aired.<\/div>');
 h+='<h2 class="bb">Reigns<\/h2>'+(rg.length?'<div class="reigns">'+rg.map(function(r){return '<div class="rg"><div class="n bb">#'+esc(r.n)+(r.revenge?' 🔥':'')+'<\/div><div class="nm bb">'+esc(r.name)+'<\/div><div class="m">'+esc(r.club)+'<\/div><div class="m">'+day(r.start)+' – '+(r.end?day(r.end):'now')+' · '+ndays(r.start,r.end)+(ndays(r.start,r.end)===1?' day':' days')+'<\/div><div class="m">'+r.defenses+' defenses · '+r.pts+' pts'+(r.endedBy?' · ended by '+esc(r.endedBy):'')+'<\/div><\/div>';}).join('')+'<\/div>':'<div class="empty">The first reign starts when the first Ace is crowned.<\/div>');
 var F=D.farm;if(F){var FA=F.ace,FL=F.ladder||[],FC=F.charges||[],FM=F.matches||[],FB=F.bell;
-h+='<!--TAB:farm--><h2 class="bb">🌱 The Farm Hill<\/h2><div class="rnote" style="margin-bottom:14px">The ladder for clubs at <b>'+esc(F.max)+'★ and under<\/b> (Hold the Hill is for bigger clubs). Looser rules: charge anyone above you, the Farm Ace too, whenever you like, and any win counts. Same Master Form, same Brawl Bucks wallet. <b>Bring your young clubs:<\/b> put as many as you like on the Farm. Grow past '+esc(F.max)+'★ and you get <b>called up<\/b>.<\/div>';
+h+='<!--TAB:farm--><h2 class="bb">🌱 The Farm Hill<\/h2>'+(D.formLink?'<p style="margin:0 0 12px"><a href="'+esc(D.formLink)+'" target="_blank" rel="noopener" style="display:inline-block;background:#ffd166;color:#1b1300;font-weight:800;border-radius:999px;padding:8px 16px;text-decoration:none">📝 Master Form<\/a> <span style="opacity:.8">register a 6★-or-under club, charge, report a game<\/span><\/p>':'')+'<div class="rnote" style="margin-bottom:14px">The ladder for clubs at <b>'+esc(F.max)+'★ and under<\/b> (Hold the Hill is for bigger clubs). Looser rules: charge anyone above you, the Farm Ace too, whenever you like, and any win counts. Same Master Form, same Brawl Bucks wallet. <b>Bring your young clubs:<\/b> put as many as you like on the Farm. Grow past '+esc(F.max)+'★ and you get <b>called up<\/b>.<\/div>';
 if(FB&&(FB.open||FB.soon))h+='<div class="bell'+(FB.open?' on':'')+'"><b class="bb">'+(FB.open?'🔔 THE FARM BELL IS RINGING':'🔔 THE FARM BELL RINGS AT '+esc(when(FB.next)).toUpperCase())+'<\/b><span>'+(FB.open?'Anyone on the Farm can charge the Farm Ace until '+esc(when(FB.until))+'. Win by '+esc(FB.margin)+'+ for the title.':'For an hour, anyone on the Farm can charge the Farm Ace.')+'<\/span><\/div>';
 h+='<div class="cols"><div><h2 class="bb">The Farm Climb<\/h2><div class="climb">'+(FA?'<div class="step ace"><span class="tag bb">🌱 THE FARM ACE<\/span><span class="rk bb">👑<\/span><span class="who bb">'+esc(FA.name)+'<small>'+esc(FA.club)+(FA.stars!=null?' · '+esc(FA.stars)+'★':'')+(FA.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(FA.clubId)+'" target="_blank">ID '+esc(FA.clubId)+'<\/a>':'')+'<\/small><\/span><span class="wl bb"><b>'+(FA.rdef||0)+'<\/b>defenses<\/span><\/div>':'<div class="step ace open"><span class="tag bb">🌱 THE FARM ACE<\/span><span class="rk bb">🌱<\/span><span class="who bb">The Farm mound is open<small>The first club on the Farm holds it<\/small><\/span><span class="wl bb"><\/span><\/div>')
  +(FL.length?FL.map(function(p,i){return '<div class="step'+(i===0?' top':'')+(+p.rank<=(F.moundOpenTo||1)?' shot':'')+'" style="--i:'+Math.min(i+1,9)+'"><span class="rk bb">#'+esc(p.rank)+'<\/span><span class="who bb">'+esc(p.name)+'<small>'+esc(p.club)+(p.stars!=null?' · '+esc(p.stars)+'★':'')+(p.clubId?' · <a class="cid" href="https://play.smallball.com/#/team/'+esc(p.clubId)+'" target="_blank">ID '+esc(p.clubId)+'<\/a>':'')+'<\/small><\/span><span class="wl bb">'+p.w+'-'+p.l+'<\/span><\/div>';}).join(''):'<div class="empty">Nobody on the Farm climb yet. Register a 6★-or-under club on the Master Form.<\/div>')+'<\/div><\/div>';
@@ -277,4 +277,51 @@ function strip(x){try{var o=JSON.parse(x);delete o.updated;return JSON.stringify
 get(0,function(x){if(!x){document.getElementById('app').innerHTML='<div class="empty" style="padding:30px">The Hill Board is warming up. Check back in a minute.</div>';return;}last=strip(x);run(x);});
 setInterval(function(){if(document.hidden)return;get(0,function(x){if(x&&last!==null&&strip(x)!==last)location.reload();});},90000);
 })();
-</script></body></html>
+</script>
+<script>
+/* 🎓 Leaderboard tour: a click-through of the Live Hold the Hill Leaderboard. Shows once per browser (and again
+   from the 🎓 Tour tab); it switches tabs as it goes and outlines what it's talking about. */
+(function(){
+var KEY='hth-tour-v1',AT='hth-tour-at';
+function D(){return window.__D||{};}
+function steps(){var d=D(),reach=+d.reach||3,S=[
+ {t:'⛰️ Welcome to Hold the Hill',b:'A king-of-the-hill ladder for SmallBall clubs. One club holds the mound as the <b>♠ Ace</b>; everyone else climbs to take it. This tour takes a minute. Reopen it any time from the <b>🎓 Tour</b> tab.'},
+ {t:'♠ The Ace',sel:'#flag',tab:'hill',b:'Up top: who holds the hill, how long they\'ve been on the mound and how many title charges they\'ve beaten. Every defense pays the Ace more Brawl points than the last.'},
+ {t:'🧗 The Climb',sel:'#p-hill .climb',tab:'hill',b:'The ladder. Charge a club up to <b>'+reach+' spots</b> above you: one spot up, just win; further up, win by more. Win and you take their spot. <b>#1</b> gets the first shot at the Ace, and if nobody charges, the mound opens down the ladder over time.'},
+ {t:'🔔 The Bell',tab:'hill',b:'A few times a week the Bell rings for an hour, and <b>anyone</b> on the climb can charge the Ace. Win big enough and the hill is yours. A gold banner shows up here while it rings.'},
+ {t:'🌱 The Farm Hill',sel:'.tabs a[data-t=farm]',tab:'farm',farm:1,b:'Clubs at <b>6★ and under</b> play here: an open ladder. Charge anyone above you, the Farm Ace too, any time, and any win counts. Bring your young clubs; an owner can put several on the Farm. Grow past 6★ and you get called up.'},
+ {t:'💰 Brawl Bucks',sel:'.tabs a[data-t=bucks]',tab:'bucks',b:'The league\'s money. You earn it for playing Hill games every day (streaks pay more), for defenses and wins. Spend it in the shop on 🥊 Brass Knuckles, the 🧽 Margin Eraser, 🪜 Ladder Jumps and more, or bet it.'},
+ {t:'🎰 Sportsbook',sel:'.tabs a[data-t=book]',tab:'book',b:'Bet Brawl Bucks on who holds the hill at season\'s end (futures) and on open charges, or challenge another owner to a head-to-head wager. No betting on your own games.'},
+ {t:'🏆 The Season',sel:'.tabs a[data-t=season]',tab:'season',b:'The season awards and who\'s leading them, and in the last week the 🏟️ Bleacher Vote for the player who made the season the most fun.'},
+ {t:'📖 How it works',sel:'.tabs a[data-t=how]',tab:'how',b:'Every rule in one place: charges, margins, the open mound, the Bell, items, payouts. When in doubt, it\'s here.'},
+ {t:'📰 The ticker',sel:'.tick',tab:'hill',b:'Along the bottom: the latest results and charges, and the odds on the Ace with green ▲ and red ▼ moves.'},
+ {t:'📝 The Master Form',sel:'.foot',tab:'hill',b:'One form for everything: register your club, charge, report a game, bet, shop and vote. Results are picked up from SmallBall on their own once the game has aired. With the <b>🧢 Club Kit</b>, your Hill card and 🥊 Charge buttons sit right on SmallBall.'+(d.formLink?' <a href="'+d.formLink+'" target="_blank" rel="noopener" style="color:#ffd166;font-weight:800">Open the Master Form →</a>':'')}
+];return S.filter(function(s){return !s.farm||d.farm;});}
+var el=null,lit=null,i=0;
+function unlight(){if(lit){lit.style.outline='';lit.style.outlineOffset='';lit=null;}}
+function done(){unlight();if(el)el.remove();el=null;try{localStorage.setItem(KEY,'1');sessionStorage.removeItem(AT);}catch(e){}}
+function go(tab){if(tab&&(location.hash||'').slice(1)!==tab){if(tab==='hill'&&!location.hash)return;location.hash=tab;}}
+function paint(){var S=steps(),s=S[i];unlight();try{sessionStorage.setItem(AT,String(i));}catch(e){}
+ go(s.tab);
+ setTimeout(function(){var tg=s.sel&&document.querySelector(s.sel);if(tg&&tg.getBoundingClientRect().height>0){lit=tg;tg.style.outline='3px solid #ffd166';tg.style.outlineOffset='3px';var r=tg.getBoundingClientRect();if(r.top<40||r.bottom>innerHeight-230)tg.scrollIntoView({behavior:'smooth',block:'center'});}else if(s.tab)window.scrollTo({top:0,behavior:'smooth'});},120);
+ var dots=S.map(function(_,k){return '<i style="width:'+(k===i?16:7)+'px;height:7px;border-radius:999px;display:inline-block;background:'+(k===i?'#ffd166':'rgba(255,255,255,.25)')+'"></i>';}).join(' ');
+ var B='border:0;border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer;';
+ el.innerHTML='<div style="display:flex;align-items:center;gap:8px"><b style="font-size:17px;flex:1">'+s.t+'</b><span style="opacity:.6;font-size:12px">'+(i+1)+' / '+S.length+'</span><button data-x style="border:0;background:none;color:inherit;opacity:.7;cursor:pointer;font-size:18px" title="Close the tour">✕</button></div><div style="margin-top:6px">'+s.b+'</div><div style="display:flex;align-items:center;gap:6px;margin-top:12px"><div style="flex:1">'+dots+'</div>'+
+  (i?'<button data-b style="'+B+'background:rgba(255,255,255,.13);color:inherit">Back</button>':'<button data-x style="'+B+'background:rgba(255,255,255,.13);color:inherit">Skip</button>')+
+  (i<S.length-1?'<button data-n style="'+B+'background:#ffd166;color:#1b1300">Next</button>':'<button data-x style="'+B+'background:#ffd166;color:#1b1300">Done</button>')+'</div>';
+ el.querySelectorAll('[data-x]').forEach(function(b){b.onclick=done;});
+ var n=el.querySelector('[data-n]');if(n)n.onclick=function(){i++;paint();};
+ var bk=el.querySelector('[data-b]');if(bk)bk.onclick=function(){i--;paint();};
+}
+function open(at){if(el)el.remove();el=document.createElement('div');el.id='hth-tour';
+ el.style.cssText='position:fixed;left:50%;bottom:58px;transform:translateX(-50%);z-index:9999;width:min(520px,calc(100vw - 24px));background:#0f1b33;color:#f4ebd9;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 2px #ffd166;padding:16px 18px 14px;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif';
+ document.body.appendChild(el);i=Math.max(0,Math.min(at||0,steps().length-1));paint();}
+window.hthTour=open;
+function addTab(){var nav=document.querySelector('.tabs');if(!nav||nav.querySelector('[data-tour]'))return;var a=document.createElement('a');a.href='#';a.dataset.tour='1';a.textContent='🎓 Tour';a.title='A quick walk through the leaderboard';a.onclick=function(e){e.preventDefault();open(0);};nav.appendChild(a);}
+var tries=0,w=setInterval(function(){if(!document.querySelector('.tabs')){if(++tries>60)clearInterval(w);return;}clearInterval(w);addTab();
+ var at=null;try{at=sessionStorage.getItem(AT);}catch(e){}
+ var seen=false;try{seen=!!localStorage.getItem(KEY);}catch(e){}
+ if(at!==null)open(+at);else if(!seen)setTimeout(function(){open(0);},1200);},250);
+})();
+</script>
+</body></html>
