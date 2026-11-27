@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.41.1
+// @version      1.41.2
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -123,7 +123,7 @@ const SBX_MOBILE = true;
 
   // Which clubs get tabs and dashboard cards. Empty means "your first four clubs";
   // pick your own with the ⚙ button next to the tabs.
-  const KIT_VERSION = "1.41.1";   // filled in by the build
+  const KIT_VERSION = "1.41.2";   // filled in by the build
   const DEFAULT_CLUBS = []; // e.g. [3249, 1008, 8897]; empty = your first four clubs
   let PICKED = [];
   const MAX_DEFAULT = 4;
@@ -550,7 +550,9 @@ const SBX_MOBILE = true;
       :is(#sbx-dash, .sbx-tabbody) .tptxt.next { opacity: 1; color: #60a5fa; }
       :is(#sbx-dash, .sbx-tabbody) .tptxt { display: flex; justify-content: space-between; font-size: 12px; margin-top: 3px; opacity: .85; font-variant-numeric: tabular-nums; }
       #sbx-dash-wrap.collapsed #sbx-dash { display: none; }
-      :is(#sbx-dash, .sbx-tabbody) .acts { display: flex; gap: 8px; margin-top: 10px; }
+      :is(#sbx-dash, .sbx-tabbody) .acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+      :is(#sbx-dash, .sbx-tabbody) .acts > :is(.play, .trn) { white-space: nowrap; gap: 6px; text-decoration: none; line-height: 1; font-weight: 800; }
+      :is(#sbx-dash, .sbx-tabbody) .acts > .bxb { grid-column: 1 / -1; }
       :is(#sbx-dash, .sbx-tabbody) .acts .play, :is(#sbx-dash, .sbx-tabbody) .acts .trn { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; }
       :is(#sbx-dash, .sbx-tabbody) .acts .play { background: #16a34a; color: #fff; border: 0; }
       :is(#sbx-dash, .sbx-tabbody) .acts .bxb { flex: none; min-width: 44px; min-height: 36px; border-radius: 10px; background: transparent; color: inherit; border: 1px solid rgba(127,127,127,.45); cursor: pointer; font-size: 16px; }
@@ -575,6 +577,11 @@ const SBX_MOBILE = true;
       #sbx-boxtoast button { display: flex; align-items: center; gap: 10px; max-width: 360px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb; font: 600 13.5px/1.35 system-ui, sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,.45); cursor: pointer; }
       #sbx-boxtoast button b { color: #fde68a; }
       :is(#sbx-dash, .sbx-tabbody) .acts .trn { background: transparent; color: inherit; border: 1px solid rgba(127,127,127,.45); }
+      /* one color per action, everywhere in the kit: ▶ Play green, 🏋️ Training blue, 📋 Plan purple, 🧢 Lineup amber */
+      :is(#sbx-dash, .sbx-tabbody) .acts .trn.c-train { background: #2563eb; color: #fff; border: 0; }
+      :is(#sbx-dash, .sbx-tabbody) .acts .trn.c-plan { background: #7c3aed; color: #fff; border: 0; }
+      :is(#sbx-dash, .sbx-tabbody) .acts .trn.c-lineup { background: #d97706; color: #fff; border: 0; }
+      :is(#sbx-dash, .sbx-tabbody) .acts :is(.play, .trn):hover { filter: brightness(1.12); }
       html.sbx-m :is(#sbx-dash, .sbx-tabbody) .lite { display: none; }
       html.sbx-m :is(#sbx-dash, .sbx-tabbody) .acts .play, html.sbx-m :is(#sbx-dash, .sbx-tabbody) .acts .trn { min-height: 46px; font-size: 15px; }
       html.sbx-m :is(#sbx-dash, .sbx-tabbody) .card { padding: 14px; }
@@ -966,7 +973,7 @@ const SBX_MOBILE = true;
     const place = () => { if (!sb.isConnected) document.body.appendChild(sb); const tops = ["tk-launch", "tt-launch", "sbx-set-launch"].map((id) => document.getElementById(id)).filter(Boolean).map((e) => e.getBoundingClientRect().top).filter((t) => t > 0); sb.style.bottom = (tops.length ? Math.round(window.innerHeight - Math.min(...tops) + 10) : 16) + "px"; };
     place(); setInterval(place, 2000);
   }
-  // ⚙️ Club Kit: a settings chip at the very bottom of the left-hand stack; the Broadcast Kit's button
+  // ⚙️ Club Kit: a settings chip at the very bottom of the left-hand stack; Multiview's button
   // (and the old Tournament Kit's) move up one place to make room.
   if (!MOBILE) {
     const kb = document.createElement("button"); kb.id = "sbx-set-launch"; kb.type = "button"; kb.textContent = "⚙️ Club Kit Settings"; kb.title = "Every Club Kit setting on one page";
@@ -1197,10 +1204,15 @@ const SBX_MOBILE = true;
   // ───────── Club Kit tools: ✨ What's new · 🩺 Health check · 💾 Back up / restore (in the ⚙ settings) ─────────
   // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
   const CHANGELOG = [
+    { v: "1.41.2", d: "Nov 27", items: [
+      "🕐 Tournament and Hill times now show their time zone (shown in yours, like 6:00 PM MST).",
+      "📊 <b>Skill board</b> on the Asst. Trainer's board: every man's skills side by side with this session's gains, his weakest in amber.",
+      "📋 <b>Asst. Trainer on the trainer</b>: the board sits under the trainer (or above it, or floating: its ⬇ ⬆ 🪟 buttons), and clicking a man pops up a 🎯 floating card with his skills, this session\'s gains and his plan. Drag it anywhere; it stays on him until you click someone else. Click a man on the board and the kit selects him in the trainer for you, and the card\'s 📍 Send to buttons (they use the trainer\'s own moves, no dragging) send him on deck to bat, to the mound, to the 😴 rest area to sit out, or to any position.",
+    ] },
     { v: "1.41.1", d: "Nov 27", items: [
-      "📡 <b>SmallCast</b>: watch a game and the stadium scoreboard becomes a jumbotron, with who's up, the latest plays and a video board for big plays. Or move it under the board, below the player, or floating beside it for the full game cast. A line score that fills in inning by inning, who's at bat and his day so far, the count, pitch count and speed, play by play, scoring plays, each lineup's day, and how both clubs came in. It reads the game as it plays, so it never spoils anything. 📻 Radio and 📺 Broadcast are in its header; put it above or below the player, float it beside the game and drag it where you like, hang it 🏟 under the stadium scoreboard, or turn the scoreboard into a 📺 Jumbotron: wings on both sides of the official board with who's up, the last plays, and a video board that goes wild on big plays; switch it off in ⚙️ All settings → Games.",
+      "📡 <b>SmallCast</b>: watch a game and the stadium scoreboard becomes a jumbotron, with who's up, the latest plays and a video board for big plays. Or move it under the board, below the player, or floating beside it for the full game cast. A line score that fills in inning by inning, who's at bat and his day so far, the count, pitch count and speed, play by play, scoring plays, each lineup's day, and how both clubs came in. It reads the game as it plays, so it never spoils anything. 📻 Radio and 📺 Multiview are in its header; put it above or below the player, float it beside the game and drag it where you like, hang it 🏟 under the stadium scoreboard, or turn the scoreboard into a 📺 Jumbotron: wings on both sides of the official board with who's up, the last plays, and a video board that goes wild on big plays; switch it off in ⚙️ All settings → Games.",
       "🅺 <b>K Korner</b>: watching a game, a K card hangs on the stadium for every strikeout by the home pitchers (backwards for a called third strike), grouped by inning, with a gold 🔥 card when they strike out the side. Turn on <b>both teams</b> in ⚙️ All settings → Games for a navy row for the visitors.",
-      "⚙️ <b>Club Kit Settings</b> button at the bottom left (under 📺 Broadcast) opens All settings from any page.",
+      "⚙️ <b>Club Kit Settings</b> button at the bottom left (under 📺 Multiview) opens All settings from any page.",
       "📋 The Asst. Trainer no longer pops up while you watch a game.",
       "📼 <b>Synthia Small</b>, the original voice of SmallBall Radio, is back in the booth (a little off her rocker): a season report once a game and the odd remark. Switch her off in the radio's booth settings.",
       "📻 <b>Radio</b>: Mack and Dewey picked up 33 new stories about the Commish's comebacks, most from the famous 2007 chat, and they now call plays written without a jersey number (they were skipping some).",
@@ -1302,7 +1314,7 @@ const SBX_MOBILE = true;
     { t: "🧩 Lineup Builder", f: ["builder"], go: "mine", sel: ["#sbx-build"], b: "On your club page, above SmallBall's lineup editor: <b>drag and drop</b> men between spots, the bench and the batting order, or let <b>⚡ Optimize my way</b> do it with your own presets and sliders. <b>💾 Save this lineup</b> keeps lineups to reload later. It fills SmallBall's form; nothing is saved until you press Save, and then it checks the save stuck." },
     { t: "📋 Asst. Trainer Kit", f: ["tplan"], go: "mine", sel: ["main .th-btns [data-atplan]"], b: "<b>📋 Training plan</b> (on your club page and club cards) opens a full-page planner: every man's skills, his gains this week, and the TP you plan to spend on each skill. <b>⚾ Take it to the field</b> opens the trainer with a <b>live board under the game</b>: TP draining and gains landing as you train, compared to your plan." },
     { t: "📰 Box scores, countdowns, no spoilers", f: ["box", "cd"], b: "A <b>box score</b> after each game (with an alert when one is ready), a <b>⏱ countdown</b> for when each club can play again, and spoiler switches in ⚙ settings to hide scores of games still on the air." },
-    { t: "📡 SmallCast", f: ["cast"], b: "When you <b>watch a game</b>, SmallCast turns the stadium scoreboard into a <b>jumbotron</b>: who's up and his day so far, the latest plays, a video board that goes wild on big plays, and K cards for home strikeouts. Its buttons move it under the board, below or above the player, or floating beside it, where the full view adds a line score that fills in inning by inning, who's at bat and how his day is going, the count and pitch count, play by play, scoring plays and each lineup's day, plus how both clubs came in. It reads the game as it plays, so it never spoils what's coming. 📻 Radio and 📺 Broadcast are one click away in its header." },
+    { t: "📡 SmallCast", f: ["cast"], b: "When you <b>watch a game</b>, SmallCast turns the stadium scoreboard into a <b>jumbotron</b>: who's up and his day so far, the latest plays, a video board that goes wild on big plays, and K cards for home strikeouts. Its buttons move it under the board, below or above the player, or floating beside it, where the full view adds a line score that fills in inning by inning, who's at bat and how his day is going, the count and pitch count, play by play, scoring plays and each lineup's day, plus how both clubs came in. It reads the game as it plays, so it never spoils what's coming. 📻 Radio and 📺 Multiview are one click away in its header." },
     { t: "🔎 Scouting other clubs", f: ["scout", "hotcold"], go: "other", sel: ["#sbx-scout"], b: "On another club's page, the <b>🔎 Scouting report</b>: their record, a lineup card with career numbers, who's <b>🔥 hot or 🧊 cold</b>, their pitching, and your <b>⚔️ head-to-head</b> record. Just numbers; the decisions are yours." },
     { t: "⛰️ Hold the Hill & 🌱 Farm Hill", f: ["hillcard", "charge"], sel: ["#sbx-live"], b: "Bottom right: your <b>Hill cards</b> (tucked away under <b>▴ Cards</b>, with a red count). Your rank, who you can charge and <b>🥊 Charge</b> buttons that fill in the Master Form for you. Clubs at 6★ and under play on the <b>🌱 Farm Hill</b>: bring your young clubs. On another Hill club's page, a <b>⚔️ Charge</b> bar shows if you can take a shot." },
     { t: "🏆 Tournaments & 🏦 Prize Vault", f: ["live"], sel: ["#sbx-live [data-home]"], b: "The <b>🏆 Tournaments</b> button lists what's coming up; once you're signed up, a card shows your match, its deadline and a <b>Start</b> button. Winners get tickets from the <b>🏦 Prize Vault</b>, filled by the community: gift a ticket to club 1008 to add to it." },
@@ -1684,7 +1696,7 @@ const SBX_MOBILE = true;
       "#sbx-dock .dk-h b{color:#fde68a}#sbx-dock .dk-h b.t{color:inherit}",
       "#sbx-dock .dk-mode{display:inline-flex;gap:0!important;padding:0!important;overflow:hidden;background:rgba(255,255,255,.08)}",
       "#sbx-dock .dk-mode button{border:0;background:none;color:inherit;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}#sbx-dock .dk-mode button.on{background:#facc15;color:#1b1300}",
-      "#sbx-dock .dk-plan{margin-left:auto;border:0;background:#16a34a;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;cursor:pointer}",
+      "#sbx-dock .dk-plan{margin-left:auto;border:0;background:#7c3aed;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;cursor:pointer}",
       "#sbx-dock .dk-body{display:grid;grid-template-columns:1fr 250px;gap:12px;margin-top:10px}",
       "@media (max-width:900px){#sbx-dock .dk-body{grid-template-columns:1fr}}",
       "#sbx-dock .gn i.off{background:#64748b}",
@@ -1715,6 +1727,41 @@ const SBX_MOBILE = true;
       "#sbx-dock .feed{background:#13213f;border-radius:10px;padding:8px 10px;font-size:12px;margin-top:8px}",
       "#sbx-dock .feed div{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06)}",
       "#sbx-dock .feed b{color:#4ade80}",
+      "#sbx-dock .dk-pl{display:inline-flex;gap:0!important;padding:2px!important;background:rgba(255,255,255,.08);border-radius:999px}",
+      "#sbx-dock .dk-pl button{border:0;background:none;color:inherit;opacity:.7;padding:3px 7px;font-size:12px;cursor:pointer;border-radius:999px}#sbx-dock .dk-pl button.on{background:#334155;opacity:1}",
+      "#sbx-dock.fl{position:fixed;right:16px;top:90px;z-index:2147482990;margin:0;width:min(620px,calc(100vw - 32px));max-height:calc(100vh - 110px);overflow:auto;box-shadow:0 18px 50px rgba(0,0,0,.6)}",
+      "#sbx-dock.fl .dk-h{cursor:move;user-select:none}#sbx-dock.fl .dk-body{grid-template-columns:1fr}#sbx-dock.fl .dk-plan{margin-left:0}",
+      "#sbx-dock.bug{position:fixed;right:16px;top:110px;z-index:2147482990;margin:0;width:290px;padding:10px 12px;border-radius:14px;background:linear-gradient(#10182c,#0b1220);box-shadow:0 14px 40px rgba(0,0,0,.6),0 0 0 2px #16a34a}",
+      "#sbx-dock .bg-h{display:flex;align-items:center;gap:6px;cursor:move;user-select:none}#sbx-dock .bg-h b{flex:1;font:900 11px system-ui,sans-serif;letter-spacing:.12em;color:#4ade80}",
+      "#sbx-dock .bg-club{font-weight:800;margin-top:4px}#sbx-dock .bg-club span{opacity:.55;font-weight:600;font-size:11px}",
+      "#sbx-dock .bg-nums{display:flex;gap:6px;margin-top:8px}#sbx-dock .bg-nums div{flex:1;background:rgba(255,255,255,.06);border-radius:10px;padding:6px 4px;text-align:center}",
+      "#sbx-dock .bg-nums b{display:block;font:900 20px/1 system-ui,sans-serif;color:#fde68a}#sbx-dock .bg-nums b.g{color:#4ade80}#sbx-dock .bg-nums b.y{color:#facc15}#sbx-dock .bg-nums span{font-size:10px;opacity:.65}",
+      "#sbx-dock .bg-last{margin-top:8px;font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.05);transition:background .5s}#sbx-dock .bg-last b{color:#4ade80}#sbx-dock .bg-last.hot{background:#14532d}",
+      "#sbx-dock .bg-btns{display:flex;gap:6px;margin-top:8px}#sbx-dock .bg-open{flex:1;border:0;border-radius:999px;padding:6px 4px;background:rgba(255,255,255,.1);color:inherit;font-weight:800;font-size:11.5px;cursor:pointer}#sbx-dock .bg-open:hover{background:rgba(255,255,255,.18)}",
+      "#sbx-dock .dk-view{display:inline-flex;gap:0!important;padding:0!important;overflow:hidden;background:rgba(255,255,255,.08)}#sbx-dock .dk-view button{border:0;background:none;color:inherit;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}#sbx-dock .dk-view button.on{background:#38bdf8;color:#082f49}",
+      "#sbx-dock .dk-sk{overflow:auto}#sbx-dock .dk-sk table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}#sbx-dock .dk-sk th{text-align:center;font-size:11px;opacity:.75;padding:4px 5px;white-space:nowrap}#sbx-dock .dk-sk td{text-align:center;padding:4px 5px;border-top:1px solid rgba(255,255,255,.07)}",
+      "#sbx-dock .dk-sk td.nm{text-align:left;font-weight:700;white-space:nowrap}#sbx-dock .dk-sk td.lo{background:rgba(245,158,11,.25);color:#fde68a;font-weight:800;border-radius:4px}#sbx-dock .dk-sk td.na{opacity:.35}#sbx-dock .dk-sk td i{font-style:normal;color:#4ade80;font-size:10.5px;font-weight:800}#sbx-dock .dk-skn{font-size:11px;opacity:.6;margin-top:6px}",
+      "#sbx-dock .bg-weak{margin-top:8px;font-size:11.5px}#sbx-dock .bg-wt{border:0;background:none;color:inherit;font-weight:800;padding:0 0 3px;cursor:pointer;font-size:11.5px;opacity:.85}",
+      "#sbx-dock .bg-weak div{display:flex;gap:6px;align-items:baseline;padding:2px 0;border-top:1px solid rgba(255,255,255,.06)}#sbx-dock .bg-weak .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-dock .bg-weak .nm i{font-style:normal;opacity:.5;font-size:10px}",
+      "#sbx-dock .bg-weak .w1{color:#fde68a;white-space:nowrap}#sbx-dock .bg-weak .w1 b{color:#fbbf24}#sbx-dock .bg-weak .w2{opacity:.55;white-space:nowrap;font-size:10.5px}",
+      "#sbx-dock.bug{max-height:calc(100vh - 130px);overflow:auto}",
+      "#sbx-selbug{position:fixed;right:16px;top:120px;z-index:2147482990;width:260px;background:linear-gradient(#10182c,#0b1220);color:#f4ebd9;border-radius:14px;padding:10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.6),0 0 0 2px #38bdf8;font:12px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}",
+      "#sbx-selbug .bg-h{display:flex;align-items:baseline;gap:6px;cursor:move;user-select:none}#sbx-selbug .bg-h b{font:900 14px/1.2 system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-selbug .bg-h i{font-style:normal;opacity:.55;font-size:11px}#sbx-selbug .x{margin-left:auto;border:0;background:none;color:inherit;opacity:.6;cursor:pointer;font-size:14px}",
+      "#sbx-selbug .nums{display:flex;gap:8px;flex-wrap:wrap;margin:5px 0 7px;font-size:11px;opacity:.9}#sbx-selbug .nums b{color:#fde68a}#sbx-selbug .nums b.g{color:#4ade80}#sbx-selbug .nums b.r{color:#f87171}",
+      "#sbx-selbug .sr{display:grid;grid-template-columns:86px 1fr 24px 24px;gap:5px;align-items:center;padding:2px 0}#sbx-selbug .sr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-selbug .sr b{text-align:right}#sbx-selbug .sr em{font-style:normal;color:#4ade80;font-weight:800;font-size:11px}",
+      "#sbx-selbug .bar{height:7px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}#sbx-selbug .bar i{display:block;height:100%;background:#38bdf8;border-radius:999px}",
+      "#sbx-selbug .sr.lo .nm,#sbx-selbug .sr.lo b{color:#fbbf24}#sbx-selbug .sr.lo .bar i{background:#f59e0b}#sbx-selbug .sr.pl .bar i{background:#facc15}#sbx-selbug .tg{font-size:10.5px;opacity:.75;padding:0 0 2px 86px}#sbx-selbug .ft{margin-top:6px;font-size:10.5px;opacity:.5}",
+      "#sbx-selbug .send{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;align-items:center}#sbx-selbug .send span{font-size:10.5px;opacity:.6;margin-right:2px}#sbx-selbug .send button{border:0;border-radius:999px;padding:3px 8px;background:#1e3a5f;color:#e0f2fe;font:700 11px system-ui,sans-serif;cursor:pointer}#sbx-selbug .send button:hover{background:#2563eb;color:#fff}",
+      "#sbx-dock .bg-sel{margin-top:8px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:7px 8px;font-size:11.5px}#sbx-dock .bg-sel.none{opacity:.6;background:none;border-style:dashed}",
+      "#sbx-dock .bg-sel .hd{display:flex;gap:6px;align-items:baseline;font-weight:800;font-size:12.5px;margin-bottom:4px}#sbx-dock .bg-sel .hd i{font-style:normal;opacity:.55;font-size:10.5px}#sbx-dock .bg-sel .hd span{margin-left:auto;color:#fde68a}",
+      "#sbx-dock .bg-sel .sr{display:grid;grid-template-columns:82px 1fr 24px 22px;gap:5px;align-items:center;padding:1px 0}#sbx-dock .bg-sel .sr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+      "#sbx-dock .bg-sel .bar{height:6px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}#sbx-dock .bg-sel .bar i{display:block;height:100%;background:#38bdf8;border-radius:999px}",
+      "#sbx-dock .bg-sel .sr b{text-align:right}#sbx-dock .bg-sel .sr em{font-style:normal;color:#4ade80;font-weight:800;font-size:10.5px}#sbx-dock .bg-sel .sr.lo .nm,#sbx-dock .bg-sel .sr.lo b{color:#fbbf24}#sbx-dock .bg-sel .sr.lo .bar i{background:#f59e0b}",
+      "#sbx-dock [data-atman]{cursor:pointer}#sbx-dock .dk-m:hover{background:#1a2c52}#sbx-dock .dk-sk tr[data-atman]:hover td{background:rgba(255,255,255,.05)}#sbx-dock .tapped{box-shadow:0 0 0 2px #facc15!important}",
+      "#sbx-dock .dk-sk tr.sel td{background:rgba(56,189,248,.12)}#sbx-dock .dk-m.sel{box-shadow:0 0 0 2px #38bdf8}",
+      "#sbx-dock .bg-drag{font-size:10px;opacity:.5;letter-spacing:.04em}",
+      "#sbx-dock .dk-bug{border:0;background:#16a34a;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;cursor:pointer;box-shadow:0 0 0 2px rgba(74,222,128,.35)}#sbx-dock .dk-bug:hover{filter:brightness(1.1)}",
+      "#sbx-dock.bug .dk-bug{display:none}",
     ].join("");
     document.head.appendChild(st);
   };
@@ -1728,6 +1775,37 @@ const SBX_MOBILE = true;
   const AT_SIDE = "sbx-at-side", AT_MODE = "sbx-at-mode";
   const atSide = () => { try { return Object.assign({ n: true }, JSON.parse(localStorage.getItem(AT_SIDE) || "{}")); } catch (_) { return { n: true }; } };
   const atSideSet = (o) => { try { localStorage.setItem(AT_SIDE, JSON.stringify(Object.assign(atSide(), o))); } catch (_) {} atRedraw(); };
+  // Where the live board sits on the trainer: a small floating "bug" (default), the full board floating, or the
+  // full board above or below the trainer. The bug and the floating board drag by their title bar.
+  const AT_PLACE = "sbx-at-place", AT_POS = "sbx-at-pos", AT_VIEW = "sbx-at-view", AT_WEAK = "sbx-at-weak";
+  const atView = () => { try { return localStorage.getItem(AT_VIEW) === "skills" ? "skills" : "session"; } catch (_) { return "session"; } };
+  const atWeakOpen = () => { try { return localStorage.getItem(AT_WEAK) !== "0"; } catch (_) { return true; } };
+  // A man's skills that count for him: Pitching only for the man on the mound (everyone's would be "weakest" otherwise).
+  const atSkillsFor = (p) => SKL.map(([k, f, nm], i) => ({ k, i, nm, v: Math.round(+p[f] || 0) })).filter((x) => x.k !== "P" || p.position === "P");
+  function atSelName() {
+    // The trainer's scoreboard: "<b class=sb-name>Thor <small>LF</small></b>" for the man you clicked.
+    const pn = document.querySelector(".sb-practice b.sb-name, b.sb-name");
+    if (pn) { const t = (pn.childNodes[0] && pn.childNodes[0].nodeType === 3 ? pn.childNodes[0].textContent : pn.textContent.replace((pn.querySelector("small") || {}).textContent || "", "")).trim(); if (t) return t; }
+    const card = document.querySelector(".stage-wrap .sb .sb-card b, .sb .sb-card b, .sb-card b");
+    const a = card && card.textContent.trim(); if (a) return a.replace(/^\s*#?\d+\s+/, "");
+    const pc = document.getElementById("player");
+    if (pc && (pc.classList.contains("on") || pc.offsetParent)) return ((document.getElementById("p-name") || {}).textContent || "").trim();
+    return "";
+  }
+  const atShort = (n) => { const w = String(n || "").trim().split(/\s+/); return w.length > 1 ? w[0][0] + ". " + w.slice(1).join(" ") : w[0] || ""; };
+  const atPlace = () => { try { const v = localStorage.getItem(AT_PLACE); return ["float", "below", "above"].includes(v) ? v : "below"; } catch (_) { return "below"; } };
+  const atPlaceBtns = (pl, words) => '<span class="dk-pl" title="Where the Asst. Trainer sits">' + [["below", "⬇", "Below", "Under the trainer"], ["above", "⬆", "Above", "Above the trainer"], ["float", "🪟", "Float", "The whole board, floating beside the trainer"]]
+    .map(([k, l, w, t]) => '<button type="button" data-atpl="' + k + '" class="' + (pl === k ? "on" : "") + '" title="' + t + '">' + l + (words ? " " + w : "") + "</button>").join("") + "</span>";
+  function atDrag(el, posKey) {
+    if (el.dataset.drag) return; el.dataset.drag = "1"; posKey = posKey || AT_POS;
+    el.addEventListener("pointerdown", (e) => {
+      if (!/fl|bug/.test(el.dataset.pl || "") || !e.target.closest(".dk-h,.bg-h") || e.target.closest("button,a")) return;
+      const r = el.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+      const mv = (ev) => { el.style.left = Math.max(0, Math.min(innerWidth - 120, ev.clientX - dx)) + "px"; el.style.top = Math.max(0, Math.min(innerHeight - 50, ev.clientY - dy)) + "px"; el.style.right = "auto"; };
+      const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); try { localStorage.setItem(posKey, JSON.stringify({ x: parseInt(el.style.left), y: parseInt(el.style.top) })); } catch (_) {} };
+      addEventListener("pointermove", mv); addEventListener("pointerup", up); e.preventDefault();
+    });
+  }
   const atMode = () => { try { return localStorage.getItem(AT_MODE) === "gains" ? "gains" : "plan"; } catch (_) { return "plan"; } };
   const atOpen = (team) => { AT.open = true; AT.team = Number(team) || tplanTeam() || AT.team; atRedraw(); };
   // 🧢 Lineup on the club cards: open that club's page and scroll to the lineup editor (the 🧩 Lineup Builder sits on top of it).
@@ -1755,12 +1833,12 @@ const SBX_MOBILE = true;
     const onTrainer = isTrainer(), team = tplanTeam();
     document.getElementById("sbx-tplan-btn")?.remove();   // the old floating button
     if (onTrainer && team) { AT.open = false; document.getElementById("sbx-at")?.remove(); mountDock(team); mountTrainNotes(team); return; }
-    document.getElementById("sbx-dock")?.remove(); document.getElementById("sbx-atnotes")?.remove(); AT.sess = null;
+    document.getElementById("sbx-dock")?.remove(); document.getElementById("sbx-atnotes")?.remove(); document.getElementById("sbx-selbug")?.remove(); AT.sess = null;
     // 📋 Training plan in your club page's header, beside the site's Training button
     const hb = document.querySelector("main .th-btns");
     if (hb && team && !hb.querySelector("[data-atplan]")) {
       const a = document.createElement("a"); a.href = "#"; a.className = "btn"; a.dataset.atplan = String(team); a.textContent = "📋 Training plan";
-      a.style.cssText = "background:#16a34a;color:#fff"; a.title = "Plan this club's training (Asst. Trainer Kit)";
+      a.style.cssText = "background:#7c3aed;color:#fff"; a.title = "Plan this club's training (Asst. Trainer Kit)";
       hb.insertBefore(a, hb.firstChild);
     }
     if (AT.open) mountPlanner(); else document.getElementById("sbx-at")?.remove();
@@ -1833,7 +1911,7 @@ const SBX_MOBILE = true;
     if (el.dataset.sig === sig) return;
     el.dataset.sig = sig;
     const clubs = '<div class="at-clubs">' + mine.map((id) => '<button type="button" data-club="' + id + '" class="' + (id === team ? "on" : "") + '">' + esc(nameOfClub(id)) + "</button>").join("") + "</div>";
-    const head = '<div class="at-top"><h2>📋 Asst. Trainer Kit</h2><span class="at-sub">Plan what each man works on and how much TP to spend. Open the trainer and the live board under the game tracks it as you go.</span><a class="at-x" href="/training?team=' + team + '" style="background:#16a34a;color:#fff;text-decoration:none" title="Open the trainer for this club, with the live board under the game">⚾ Take it to the field</a><button type="button" class="at-x" style="margin-left:0" data-close>✕ Close</button></div>' + clubs;
+    const head = '<div class="at-top"><h2>📋 Asst. Trainer Kit</h2><span class="at-sub">Plan what each man works on and how much TP to spend. Open the trainer and the live board under the game tracks it as you go.</span><a class="at-x" href="/training?team=' + team + '" style="background:#2563eb;color:#fff;text-decoration:none" title="Open the trainer for this club, with the live board under the game">⚾ Take it to the field</a><button type="button" class="at-x" style="margin-left:0" data-close>✕ Close</button></div>' + clubs;
     if (!c || !c.data) { el.innerHTML = head + '<div class="at-help">Reading the club…</div>'; atWire(el); return; }
     const { cards, sum } = atCards(team, c.data);
     const sc = el.scrollTop;
@@ -2193,7 +2271,7 @@ const SBX_MOBILE = true;
     const kind = { big: "BigLeague", pro: "ProLeague", exhibition: "Exhibition" }[M.kind] || "";
     const head = `<div class="ch"><span class="t">${castLogo()}${C.final ? "" : "<i>LIVE</i>"}</span><span class="sub">${esc(A)} at ${esc(H)}${kind ? " · " + kind : ""}</span>` +
       (document.getElementById("sbx-radio-launch") ? '<button type="button" data-cradio title="Mack and Dewey call this game out loud">📻 Radio</button>' : "") +
-      (document.getElementById("tk-launch") ? '<button type="button" data-cbc title="Open the Broadcast Kit">📺 Broadcast</button>' : "") +
+      (document.getElementById("tk-launch") ? '<button type="button" data-cbc title="Open Multiview">📺 Multiview</button>' : "") +
       (C.final && C.gid ? `<button type="button" data-cbox="${C.gid}">📰 Box score</button>` : "") +
       `<span class="cpl" title="Where SmallCast sits">${[["above", "⬆ Above"], ["below", "⬇ Below"], ["float", "🪟 Float"], ["board", "🏟 With the board"], ["jumbo", "📺 Jumbotron"]].map(([k, l]) => `<button type="button" data-cplace="${k}" class="${place === k ? "on" : ""}">${l}</button>`).join("")}</span>` +
       `<button type="button" data-cfold title="${fold ? "Show" : "Hide"} SmallCast">${fold ? "▾ Show" : "▴ Hide"}</button></div>`;
@@ -2266,11 +2344,165 @@ const SBX_MOBILE = true;
   }
   setInterval(() => { try { castTick(); } catch (_) {} }, 1000);
 
+  // 🎯 The player bug: click a man in the trainer and a small floating card shows his skills, this session's gains
+  // and his plan, whatever the big board is doing. It stays on him until you click someone else; ✕ hides it until then.
+  const AT_SELPOS = "sbx-at-selpos";
+  // Click a man on the board and the kit taps him in the trainer for you: it runs the mouse over the field
+  // (no clicks) until SmallBall's own hover label shows his name, then taps him once, just like your own click.
+  // Run SmallBall's own hover label over part of the field (no clicks) and map every man it names to the box he covers.
+  function atScan(area, step) {
+    const cv = document.getElementById("stage"), hv = document.getElementById("hovername"); if (!cv || !hv) return {};
+    const key = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const r = cv.getBoundingClientRect(), a = area || { l: r.left, t: r.top, r: r.right, b: r.bottom }, st = step || 6, out = {};
+    const fire = (type, x, y) => cv.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerId: 1, pointerType: "mouse", isPrimary: true }));
+    for (let y = Math.max(r.top + 1, a.t); y < Math.min(r.bottom, a.b); y += st)
+      for (let x = Math.max(r.left + 1, a.l); x < Math.min(r.right, a.r); x += st) {
+        fire("pointermove", x, y);
+        if (hv.hidden) continue;
+        const nm = (hv.childNodes[0] ? hv.childNodes[0].textContent : hv.textContent).trim(), k = key(nm); if (!k) continue;
+        const b = out[k] || (out[k] = { name: nm, l: x, r: x, t: y, b: y }); b.l = Math.min(b.l, x); b.r = Math.max(b.r, x); b.t = Math.min(b.t, y); b.b = Math.max(b.b, y);
+      }
+    cv.dispatchEvent(new PointerEvent("pointerleave", { bubbles: false }));
+    return out;
+  }
+  const atKey = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  function atFindMan(name) {
+    const boxes = atScan(null, 6), want = atKey(name);
+    const k = Object.keys(boxes).find((x) => x === want) || Object.keys(boxes).find((x) => x.startsWith(want) || want.startsWith(x));
+    const b = k && boxes[k]; if (!b) return null;
+    return { x: (b.l + b.r) / 2, y: (b.t + b.b) / 2, feet: { x: (b.l + b.r) / 2, y: b.b }, box: b };   // grab him by the middle; his feet are where he stands
+  }
+  // 📍 Send a man to a spot. SmallBall snaps a dropped man to the nearest spot, measured from where each spot's man
+  // actually stands, so the kit aims for the feet of whoever is standing there now (SmallBall's spots move a bit from
+  // park to park); with nobody there it aims for the spot itself, turned into a screen point by SmallBall's own view.
+  // The batter's box can't be dropped on (the plate area counts as the catcher's spot): a man reaches it from the
+  // on-deck circle, so 🏏 sends him on deck (he bats after 10 pitches or a homer, right away if nobody's batting).
+  const AT_SPOTS = { BOX: [-46, 14, "🏏 To bat (on deck)"], DECK: [-46, 14, "On deck"], P: [0, 63.6396, "⚾ Mound"], C: [0, -12, "C"], "1B": [75, 105, "1B"], "2B": [35, 160, "2B"], SS: [-35, 160, "SS"], "3B": [-75, 105, "3B"], LF: [-150, 260, "LF"], CF: [0, 300, "CF"], RF: [150, 260, "RF"], REST: [160, 60, "😴 Rest area"] };   // REST: inside SmallBall's rest area (foul ground past 1B), where a dropped man sits out
+  function atProject(pts) {
+    return new Promise((res) => {
+      try { const v = window.smallballView; if (v && v.project) return res(pts.map((p) => { const q = v.project(p[0], p[1], 0); return [q.x, q.y]; })); } catch (_) {}
+      const id = "p" + Date.now() + Math.random(), done = (e) => { if (e.data && e.data.sbxAtR === id) { removeEventListener("message", done); res(e.data.out); } };
+      addEventListener("message", done); window.postMessage({ sbxAt: "project", id, pts }, "*");
+      setTimeout(() => { removeEventListener("message", done); res(null); }, 1500);
+    });
+  }
+  // Ask the kit's helper inside the trainer page (trainer-bridge.js). null = no helper answered (old kit, or not the trainer).
+  function atAsk(msg, ms) {
+    return new Promise((res) => {
+      const id = "a" + Date.now() + Math.random(), done = (e) => { if (e.data && e.data.sbxAtR === id) { removeEventListener("message", done); clearTimeout(tm); res(e.data.out); } };
+      addEventListener("message", done); window.postMessage(Object.assign({ id }, msg), "*");
+      const tm = setTimeout(() => { removeEventListener("message", done); res(null); }, ms || 1200);
+    });
+  }
+  const atSpotWord = (spot, out) => out && out.sat ? "the rest area" : out && out.spot === "BOX" ? "the batter's box" : out && out.spot === "DECK" ? "on deck" : (AT_SPOTS[spot] ? AT_SPOTS[spot][2].replace(/^\S+ /, "") : spot);
+  async function atSendTo(name, spot, pid) {
+    if (AT.sending) return; AT.sending = true;
+    try {
+      // First choice: the trainer's own pick-up-and-set-down, no dragging involved.
+      const out = await atAsk({ sbxAt: "send", name, pid, spot });
+      if (out) {
+        if (!out.ok) atToast(out.msg || "SmallBall wouldn't move him.");
+        else atToast("Sent " + name + " to " + (spot === "BOX" && out.spot === "DECK" ? "on deck (he bats next)" : atSpotWord(spot, out)) + (out.swap ? " (swapping with " + out.swap + ")" : "") + ".");
+        return;
+      }
+      // Fallback (helper didn't answer): drag him there with the pointer.
+      const cv = document.getElementById("stage"), S0 = AT_SPOTS[spot]; if (!cv || !S0) return;
+      const pr = await atProject([[S0[0], S0[1]]]);
+      if (!pr || !pr[0]) { atToast("Couldn't read the field's layout. Reload the trainer (and the kit in chrome://extensions) and try again."); return; }
+      // SmallBall's view works in the #overlay canvas's units (1160x730), not #stage's pixels (those scale with the
+      // screen's pixel ratio, which is why the old math landed in different places on different screens).
+      const ov = document.getElementById("overlay"), OW = (ov && ov.width) || 1160, OH = (ov && ov.height) || 730;
+      const r = cv.getBoundingClientRect(), sx = r.left + pr[0][0] / OW * r.width, sy = r.top + pr[0][1] / OH * r.height;
+      const from = atFindMan(name); if (!from) { atToast("Couldn't find " + name + " on the field right now."); return; }
+      // Who's standing on that spot now? Look around the spot for the nearest man's feet (not the man we're sending).
+      let to = { x: sx, y: sy }, onIt = null;
+      if (spot !== "BOX" && spot !== "DECK" && spot !== "REST") {
+        const rad = 70 / 1365 * r.width + 20, boxes = atScan({ l: sx - rad, t: sy - rad * 1.6, r: sx + rad, b: sy + rad * 0.6 }, 5), me = atKey(name);
+        let best = 1e9;
+        for (const [k, b] of Object.entries(boxes)) { if (k === me) continue; const fx = (b.l + b.r) / 2, fy = b.b, d = Math.hypot(fx - sx, fy - sy); if (d < best) { best = d; onIt = b; to = { x: fx, y: fy - 2 }; } }
+        if (best > rad) onIt = null;
+        to = { x: sx, y: sy };   // the spot itself: a carried man stands exactly under the pointer, and the drop snaps to the nearest spot
+      }
+      if (Math.hypot(from.feet.x - to.x, from.feet.y - to.y) < 6) { atToast(name + " is already there."); return; }
+      const ev = (type, x, y, b) => { const o = { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, buttons: b }; cv.dispatchEvent(new PointerEvent(type, o)); if (type !== "pointerdown") window.dispatchEvent(new PointerEvent(type, o)); };
+      // Avoid SmallBall's double-tap (two taps within 350 ms drop a "magnet"): wait if the last tap was just now.
+      const since = Date.now() - (AT.lastTapAt || 0); if (since < 400) await sleep(400 - since);
+      // Grab him by the middle and let go over the target: SmallBall stands a carried man on the ground under the
+      // pointer, so the pointer goes to the spot itself.
+      ev("pointerdown", from.x, from.y, 1);
+      for (let k = 1; k <= 12; k++) { const t = k / 12; ev("pointermove", from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, 1); await sleep(16); }
+      await sleep(40); ev("pointermove", to.x, to.y, 1); ev("pointerup", to.x, to.y, 0);
+      AT.lastTapAt = Date.now();
+      atToast("Sent " + name + " to " + S0[2].replace(/^\S+ /, "") + (onIt ? " (swapping with " + onIt.name + ")" : "") + ".");
+    } finally { AT.sending = false; }
+  }
+  async function atSelectInTrainer(name, from, pid) {
+    const out = await atAsk({ sbxAt: "focus", name, pid });
+    if (out && out.ok) { if (from) { from.classList.add("tapped"); setTimeout(() => from.classList.remove("tapped"), 700); } return; }
+    if (out && /Couldn't find|Let go/.test(out.msg || "")) { atToast(out.msg); return; }
+    const cv = document.getElementById("stage"), hv = document.getElementById("hovername");
+    if (!cv || !hv) return;
+    const key = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const r = cv.getBoundingClientRect(), want = key(name), step = 7;
+    const fire = (type, x, y, extra) => cv.dispatchEvent(new PointerEvent(type, Object.assign({ bubbles: true, cancelable: true, clientX: x, clientY: y, pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, buttons: type === "pointerdown" ? 1 : 0 }, extra || {})));
+    let hit = null;
+    for (let y = r.top + 4; y < r.bottom && !hit; y += step)
+      for (let x = r.left + 4; x < r.right; x += step) {
+        fire("pointermove", x, y);
+        if (!hv.hidden) { const got = key(hv.childNodes[0] ? hv.childNodes[0].textContent : hv.textContent); if (got && (got === want || got.startsWith(want) || want.startsWith(got))) { hit = { x, y }; break; } }
+      }
+    cv.dispatchEvent(new PointerEvent("pointerleave", { bubbles: false }));
+    if (!hit) { atToast("Couldn't find " + name + " on the field right now (men off the field can't be picked)."); return; }
+    // a few pixels lower: the label's box starts at his head, his middle is a surer tap
+    fire("pointerdown", hit.x, hit.y + 6); fire("pointerup", hit.x, hit.y + 6); window.dispatchEvent(new PointerEvent("pointerup", { clientX: hit.x, clientY: hit.y + 6, bubbles: true }));
+    if (from) { from.classList.add("tapped"); setTimeout(() => from.classList.remove("tapped"), 700); }
+  }
+  function atToast(msg) {
+    let t = document.getElementById("sbx-at-toast"); if (!t) { t = document.createElement("div"); t.id = "sbx-at-toast"; document.body.appendChild(t); }
+    t.textContent = msg; t.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483600;background:#0f1b33;color:#f4ebd9;padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font:13px system-ui,sans-serif";
+    clearTimeout(atToast.t); atToast.t = setTimeout(() => t.remove(), 3500);
+  }
+  function mountSelBug(team, c, roster, S, plan, selP) {
+    let el = document.getElementById("sbx-selbug");
+    if (!selP || AT.selHidden === selP.player_id) { el?.remove(); return; }
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-selbug"; el.dataset.pl = "bug"; atDrag(el, AT_SELPOS);
+      let P = null; try { P = JSON.parse(localStorage.getItem(AT_SELPOS) || "null"); } catch (_) {}
+      if (P && P.x < innerWidth - 120 && P.y < innerHeight - 50) { el.style.left = P.x + "px"; el.style.top = P.y + "px"; el.style.right = "auto"; }
+      document.body.appendChild(el);
+    }
+    const b = S.base[selP.player_id] || { tp: +selP.tp || 0, s: SKL.map(() => 0) }, Pl = plan[selP.player_id] || {}, f = Pl.focus || [], bud = Pl.budget || {};
+    const mine = atSkillsFor(selP), low = Math.min.apply(null, mine.map((x) => x.v)), tp = Math.round(+selP.tp || 0), sp = Math.max(0, Math.round(b.tp - (+selP.tp || 0)));
+    const tot = ttrkSum(team, selP.player_id, Pl.since || "");
+    let gsum = 0;
+    const rows = mine.map((x) => { const g = Math.max(0, x.v - b.s[x.i]); gsum += g; const B = +bud[x.k], used = tot.a[x.i];
+      return '<div class="sr' + (x.v === low ? " lo" : "") + (f.includes(x.k) ? " pl" : "") + '"><span class="nm">' + (f.includes(x.k) ? "🎯 " : "") + x.nm + '</span><span class="bar"><i style="width:' + Math.max(2, Math.min(100, x.v)) + '%"></i></span><b>' + x.v + "</b><em>" + (g ? "+" + g : "") + "</em></div>" +
+        (B ? '<div class="tg">' + used + " / " + B + " TP planned" + (used >= B ? " ✓" : "") + "</div>" : ""); }).join("");
+    const sig = selP.player_id + "|" + c.at + "|" + JSON.stringify(Pl) + "|" + atEv.length;
+    if (el.dataset.sig === sig) return; el.dataset.sig = sig;
+    el.innerHTML = '<div class="bg-h"><b>🎯 ' + esc(selP.name) + '</b><i>' + esc(selP.position || "bench") + '</i><button type="button" class="x" title="Hide until you click another man">✕</button></div>' +
+      '<div class="nums"><span><b>' + tp + "</b> TP left</span><span>" + (sp ? '<b class="r">−' + sp + "</b> spent" : "no TP spent yet") + "</span><span>" + (gsum ? '<b class="g">+' + gsum + "</b> gained" : "no gains yet") + "</span></div>" + rows +
+      '<div class="send"><span>Send to</span>' + ["BOX", "P", "REST", "C", "1B", "2B", "SS", "3B", "LF", "CF", "RF"].map((k) => '<button type="button" data-send="' + k + '" title="Move him to ' + AT_SPOTS[k][2].replace(/^\S+ /, "") + '">' + AT_SPOTS[k][2] + "</button>").join("") + "</div>" +
+      '<div class="ft">Session since ' + new Date(S.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (low >= 0 ? " · amber = his weakest skill" : "") + "</div>";
+    el.querySelector(".x").onclick = () => { AT.selHidden = selP.player_id; el.remove(); };
+    el.querySelectorAll("[data-send]").forEach((b) => (b.onclick = () => atSendTo(selP.name, b.dataset.send, selP.player_id)));
+  }
   function mountDock(team) {
     const wrap = document.querySelector(".wrap"), main = wrap && wrap.querySelector(".main"); if (!main) return;
     let el = document.getElementById("sbx-dock");
-    if (!el) { el = document.createElement("div"); el.id = "sbx-dock"; }
-    if (el.previousElementSibling !== main) main.insertAdjacentElement("afterend", el);
+    if (!el) {
+      el = document.createElement("div"); el.id = "sbx-dock"; atDrag(el);
+      el.addEventListener("click", (e) => { const m = e.target.closest("[data-atman]"); if (m && !e.target.closest("button,a,input")) atSelectInTrainer(m.dataset.atman, m, m.dataset.atpid); });
+    }
+    const pl = atPlace(), floating = pl === "bug" || pl === "float";
+    if (el.dataset.pl !== pl) {
+      el.dataset.pl = pl; el.dataset.sig = ""; el.className = pl === "bug" ? "bug" : pl === "float" ? "fl" : "";
+      el.style.left = el.style.top = el.style.right = "";
+      if (floating) { let P = null; try { P = JSON.parse(localStorage.getItem(AT_POS) || "null"); } catch (_) {} if (P && P.x < innerWidth - 120 && P.y < innerHeight - 50) { el.style.left = P.x + "px"; el.style.top = P.y + "px"; el.style.right = "auto"; } }
+    }
+    if (floating) { if (el.parentNode !== document.body) document.body.appendChild(el); }
+    else if (pl === "above") { if (el.nextElementSibling !== main) main.insertAdjacentElement("beforebegin", el); }
+    else if (el.previousElementSibling !== main) main.insertAdjacentElement("afterend", el);
     const c = PROF[team];
     if (!c) { if (!AT.loading) { AT.loading = true; profileOf(team, 4000).catch(() => {}).finally(() => { AT.loading = false; atRedraw(); }); } if (!el.innerHTML) el.innerHTML = '<div class="dk-h"><b class="t">📋 Asst. Trainer</b><span>Reading your club…</span></div>'; return; }
     const roster = (c.data.roster || []).slice().sort((a, b) => (b.position ? 1 : 0) - (a.position ? 1 : 0) || (+a.bats || 99) - (+b.bats || 99));
@@ -2280,7 +2512,23 @@ const SBX_MOBILE = true;
       AT.sess = { team, at: Date.now(), base };
     }
     const S = AT.sess, plan = tplanAll()[team] || {}, mode = atMode(), cmp = mode === "plan";
-    const dsig = c.at + "|" + JSON.stringify(plan) + "|" + atEv.length + "|" + mode;
+    const lastEv = atEv.filter((e) => e.team === team).slice(-1)[0], hot = lastEv && Date.now() - lastEv.at < 6000;
+    const view = atView(), weakOpen = atWeakOpen();
+    // The man you've clicked in the trainer: SmallBall's own Player card (#player) names him in #p-name.
+    // Hold the last man clicked: the board flashes reports over his name now and then, and he should stay put until you click someone else.
+    const nowSel = atSelName(); if (nowSel) { if (nowSel !== AT.selName) AT.selHidden = null; AT.selName = nowSel; AT.selTeam = team; }
+    const heldSel = AT.selTeam === team ? AT.selName || "" : "";
+    const selP = (function () {
+      // SmallBall turns the card on with its "on" class (the card can sit in a panel the trainer keeps out of view).
+      // On the trainer the man you click shows on the stadium scoreboard's player card (.sb-card); in the game
+      // player it's SmallBall's Player card (#player). Either one names him.
+      const key = (t) => String(t || "").replace(/^\s*#?\d+\s+/, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+      const nm = key(heldSel); if (!nm) return null;
+      return roster.find((p) => key(p.name) === nm) || roster.find((p) => key(p.name) && (key(p.name).startsWith(nm) || nm.startsWith(key(p.name)))) || null;
+    })();
+    const selRaw = heldSel, selOn = true;
+    const dsig = c.at + "|" + JSON.stringify(plan) + "|" + atEv.length + "|" + mode + "|" + pl + "|" + hot + "|" + view + "|" + weakOpen + "|" + (selP ? selP.player_id : "") + "|" + selRaw + selOn;
+    mountSelBug(team, c, roster, S, plan, selP);
     if (el.dataset.sig === dsig) return;
     el.dataset.sig = dsig;
     let spent = 0, gains = 0, onPlan = 0, offPlan = 0, planned = 0;
@@ -2295,16 +2543,52 @@ const SBX_MOBILE = true;
       const chips = SKL.map(([k, , nm], i) => (g[i] ? '<i class="' + (cmp && f.includes(k) ? "pl" : cmp && f.length ? "off" : "") + '" title="' + (cmp ? (f.includes(k) ? "In his plan" : f.length ? "Not in his plan" : "") : "") + '">' + nm + " +" + g[i] + "</i>" : "")).join("");
       const tg = !cmp ? "" : f.filter((k) => +bud[k]).map((k) => { const i = SKL.findIndex((x) => x[0] === k), B = +bud[k], u = tot.a[i]; return '<div class="tg">🎯 ' + SKL[i][2] + " " + u + "/" + B + " TP " + (u >= B ? "✓" : "") + '<div class="at-bar" style="height:4px;margin-top:2px"><i style="width:' + Math.min(100, Math.round((100 * u) / B)) + "%;background:" + (u >= B ? "#16a34a" : "#facc15") + '"></i></div></div>'; }).join("");
       const plain = cmp && !tg && f.length ? '<div class="tg">🎯 ' + f.map((k) => SKL.find((x) => x[0] === k)[2]).join(", ") + "</div>" : "";
-      return '<div class="dk-m' + (fl ? " fl" : "") + '"><div class="n">' + esc(p.name) + ' <span class="p">' + esc(p.position || "bench") + "</span></div>" +
+      return '<div class="dk-m' + (fl ? " fl" : "") + (selP && selP.player_id === p.player_id ? " sel" : "") + '" data-atman="' + esc(p.name) + '" data-atpid="' + esc(String(p.player_id)) + '" title="Click to select him in the trainer"><div class="n">' + esc(p.name) + ' <span class="p">' + esc(p.position || "bench") + "</span></div>" +
         '<div class="tp">' + tpBar(tp) + "<span><b>" + tp + "</b>" + (sp ? ' <span style="color:#f87171">−' + sp + "</span>" : "") + "</span></div>" +
         (chips ? '<div class="gn">' + chips + "</div>" : "") + tg + plain + "</div>";
     }).join("");
     const feed = atEv.filter((e) => e.team === team && e.at >= S.at).slice(-40).reverse().map((e) => "<div>" + fmtT(e.at) + " · " + esc(e.name) + ": " + esc(e.k) + " " + e.from + " → <b>" + e.to + "</b></div>").join("") || '<div style="opacity:.6">Gains show up here as they land.</div>';
     const modes = '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
+    if (pl === "bug") {
+      // The bug: the session in a glance, and the latest gain as it lands.
+      const left = roster.reduce((x, p) => x + Math.round(+p.tp || 0), 0);
+      el.innerHTML = '<div class="bg-h"><b>🐞 ASST. TRAINER</b><span class="bg-drag" title="Drag me anywhere">⠿ drag</span></div><div class="bg-club">' + esc(c.data.name || "") + ' <span>since ' + new Date(S.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "</span></div>" +
+        '<div class="bg-nums"><div><b>' + spent + '</b><span>TP spent</span></div><div><b class="g">+' + gains + '</b><span>gains</span></div>' + (cmp && planned ? '<div><b class="y">+' + onPlan + '</b><span>on plan</span></div>' : '<div><b>' + left + '</b><span>TP left</span></div>') + "</div>" +
+        (function () {
+          // 🎯 The man you've clicked: every skill that counts for him, this session's gains, his plan, his weakest in amber.
+          if (!selP) return '<div class="bg-sel none">' + (selRaw ? "🎯 The trainer shows <b>" + esc(selRaw) + "</b>, but he isn't on this club's list yet. Tell Slip!" : "🎯 Click a man in the trainer to see his skills here.") + "</div>";
+          const b = S.base[selP.player_id] || { s: SKL.map(() => 0) }, P = plan[selP.player_id] || {}, f = P.focus || [];
+          const mine = atSkillsFor(selP), low = Math.min.apply(null, mine.map((x) => x.v));
+          return '<div class="bg-sel"><div class="hd">🎯 ' + esc(selP.name) + ' <i>' + esc(selP.position || "bench") + "</i><span>" + Math.round(+selP.tp || 0) + " TP</span></div>" +
+            mine.map((x) => { const g = Math.max(0, x.v - b.s[x.i]); return '<div class="sr' + (x.v === low ? " lo" : "") + '"><span class="nm">' + (f.includes(x.k) ? "🎯 " : "") + x.nm + '</span><span class="bar"><i style="width:' + Math.max(2, Math.min(100, x.v)) + '%"></i></span><b>' + x.v + "</b>" + (g ? '<em>+' + g + "</em>" : "<em></em>") + "</div>"; }).join("") + "</div>";
+        })() +
+        (function () {
+          // Each starter's weakest skill (and the next one up), lowest first: what's furthest behind, so you can decide what to train.
+          const men = roster.filter((p) => p.position).map((p) => { const sk = atSkillsFor(p).sort((a, b) => a.v - b.v); return { p, a: sk[0], b: sk[1] }; }).filter((x) => x.a).sort((x, y) => x.a.v - y.a.v);
+          if (!men.length) return "";
+          return '<div class="bg-weak"><button type="button" class="bg-wt" data-atweak="' + (weakOpen ? "0" : "1") + '">' + (weakOpen ? "▾" : "▸") + " Weakest skills</button>" + (weakOpen ? men.map((x) => '<div><span class="nm">' + esc(atShort(x.p.name)) + ' <i>' + esc(x.p.position) + '</i></span><span class="w1">' + x.a.nm + " <b>" + x.a.v + "</b></span>" + (x.b ? '<span class="w2">' + x.b.nm + " " + x.b.v + "</span>" : "") + "</div>").join("") : "") + "</div>";
+        })() +
+        (lastEv && lastEv.at >= S.at ? '<div class="bg-last' + (hot ? " hot" : "") + '">' + esc(lastEv.name) + ": " + esc(lastEv.k) + " " + lastEv.from + " → <b>" + lastEv.to + "</b></div>" : '<div class="bg-last" style="opacity:.6">Gains show here as they land.</div>') +
+        '<div class="bg-btns"><button type="button" class="bg-open" data-atpl="float" title="The full board, floating">▾ Full board</button><button type="button" class="bg-open" data-atpl="below" title="The full board under the trainer, where it used to be">⬇ Under the trainer</button></div>';
+      el.querySelectorAll("[data-atpl]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_PLACE, b.dataset.atpl); } catch (_) {} atRedraw(); }));
+      el.querySelectorAll("[data-atweak]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_WEAK, b.dataset.atweak); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
+      if (hot) setTimeout(() => { el.dataset.sig = ""; atRedraw(); }, 6200);
+      return;
+    }
     el.innerHTML = '<div class="dk-h"><b class="t">📋 Asst. Trainer · ' + esc(c.data.name || "") + "</b><span>Since " + new Date(S.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "</span><span>TP spent <b>" + spent + "</b></span><span>Skill gains <b>+" + gains + "</b></span>" +
-      (cmp && planned ? '<span title="Gains in the skills you planned, and gains outside them">On plan <b>+' + onPlan + "</b> · off plan <b>+" + offPlan + "</b></span>" : cmp ? '<span style="opacity:.75">No plan yet: open 📋 Training plan</span>' : "") + modes + '<button type="button" class="dk-plan" data-atplan="' + team + '">📋 Open the plan</button></div>' +
-      '<div class="dk-body"><div class="dk-grid">' + tiles + '</div><div class="feed"><div style="font-weight:800;border:0;padding-bottom:5px">Latest gains</div>' + feed + "</div></div>";
+      (cmp && planned ? '<span title="Gains in the skills you planned, and gains outside them">On plan <b>+' + onPlan + "</b> · off plan <b>+" + offPlan + "</b></span>" : cmp ? '<span style="opacity:.75">No plan yet: open 📋 Training plan</span>' : "") + modes + '<button type="button" class="dk-plan" data-atplan="' + team + '">📋 Open the plan</button><span class="dk-view"><button type="button" data-atview="session" class="' + (view === "session" ? "on" : "") + '" title="TP and gains this session">🃏 Session</button><button type="button" data-atview="skills" class="' + (view === "skills" ? "on" : "") + '" title="Every man\'s skills side by side, his weakest in amber">📊 Skill board</button></span>' + atPlaceBtns(pl, true) + '</div>' +
+      '<div class="dk-body">' + (view === "skills" ? (function () {
+        // 📊 The skill board: every man, every SmallBall skill, this session's gains beside them, his weakest in amber.
+        const head = "<tr><th>Man</th><th>Pos</th>" + SKL.map(([, , nm]) => "<th>" + nm + "</th>").join("") + "<th>TP</th></tr>";
+        const rows = roster.map((p) => {
+          const b = S.base[p.player_id] || { s: SKL.map(() => 0) }, mine = atSkillsFor(p), low = mine.length ? Math.min.apply(null, mine.map((x) => x.v)) : -1;
+          return "<tr data-atman=\"" + esc(p.name) + "\" data-atpid=\"" + esc(String(p.player_id)) + "\" title=\"Click to select him in the trainer\"" + (selP && selP.player_id === p.player_id ? ' class="sel"' : "") + "><td class=\"nm\">" + esc(p.name) + "</td><td>" + esc(p.position || "bench") + "</td>" + SKL.map(([k, f], i) => { const v = Math.round(+p[f] || 0), g = Math.max(0, v - b.s[i]), counts = k !== "P" || p.position === "P"; return '<td class="' + (counts && v === low ? "lo" : !counts ? "na" : "") + '">' + v + (g ? ' <i>+' + g + "</i>" : "") + "</td>"; }).join("") + "<td>" + Math.round(+p.tp || 0) + "</td></tr>";
+        }).join("");
+        return '<div class="dk-sk"><table>' + head + rows + '</table><div class="dk-skn">Amber: his weakest skill that counts for his spot (Pitching counts only for the man on the mound). Green: gained this session.</div></div>';
+      })() : '<div class="dk-grid">' + tiles + '</div>') + '<div class="feed"><div style="font-weight:800;border:0;padding-bottom:5px">Latest gains</div>' + feed + "</div></div>";
     el.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_MODE, b.dataset.mode); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
+    el.querySelectorAll("[data-atpl]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_PLACE, b.dataset.atpl); } catch (_) {} atRedraw(); }));
+    el.querySelectorAll("[data-atview]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_VIEW, b.dataset.atview); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
   }
 
   // 🔭 The site's Team explorer only has a footer link: add a quiet one at the end of the top menu.
@@ -2659,7 +2943,7 @@ const SBX_MOBILE = true;
       if (until > srvNow()) { ov.querySelector(".sub").textContent = `Still on the air. The box score is ready at ${new Date(until - SKEW).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`; return; }
       const d = await bs_boxData(gid);
       bs_boxWin(`<div class="hd"><b>📰 ${esc(d.A.name)} ${d.A.runs}, ${esc(d.H.name)} ${d.H.runs}</b>${back ? `<button type="button" class="mini" data-boxback="${back}">← List</button>` : ""}<button type="button" class="mini" data-boxcopy="${gid}">Copy for Discord</button><button type="button" class="x" aria-label="Close">✕</button></div>
-        <p class="sub">Final · ${esc(bs_KINDN[d.kind] || d.kind || "")}${d.park ? ` · ${esc(d.park)}` : ""} · ${new Date(d.g.finished_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · game ${gid}</p>${bs_boxHTML(d)}`);
+        <p class="sub">Final · ${esc(bs_KINDN[d.kind] || d.kind || "")}${d.park ? ` · ${esc(d.park)}` : ""} · ${new Date(d.g.finished_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" })} · game ${gid}</p>${bs_boxHTML(d)}`);
     } catch (e) { const s = document.querySelector("#sbx-box .sub"); if (s) s.textContent = "Couldn't load that box score (" + e.message + ")."; }
   }
   async function bs_boxList(team) {
@@ -2673,7 +2957,7 @@ const SBX_MOBILE = true;
         let until = CD_UNTIL[r.game_id];
         if (until == null) { if (now - Date.parse(r.finished_at) > 3600e3) until = 0; else { try { until = Date.parse((await bs_boxGame(r.game_id)).live_until || "") || 0; } catch (_) { until = 0; } } CD_UNTIL[r.game_id] = until; }
         const vs = r.home_team_id === team ? `vs ${bs_bname(r.away_name)}` : `at ${bs_bname(r.home_name)}`;
-        const when = new Date(r.finished_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+        const when = new Date(r.finished_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
         items.push(until > now
           ? `<div class="row wait"><span class="t">${esc(vs)}</span><span class="m">${esc(bs_KINDN[r.kind] || r.kind)} · on the air · box score at ${new Date(until - SKEW).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span></div>`
           : `<div class="row"><span class="t">${st.unread[r.game_id] ? "🆕 " : ""}${esc(vs)}</span><span class="m">${esc(bs_KINDN[r.kind] || r.kind)} · ${esc(when)}</span><button type="button" class="mini" data-boxg="${r.game_id}" data-from="${team}">Box score</button></div>`);
@@ -3072,7 +3356,7 @@ const SBX_MOBILE = true;
       ${row("Streak", streak || "—")}
       <div class="chips" title="Last 10 games, newest first">${last10.map((g) => `<i class="${res(g)}">${res(g).toUpperCase()}</i>`).join("")}</div>
       <div class="sbx-cdc" title="Timed games: a club can start its next official game once its last one has aired"></div>
-      <div class="acts"><button type="button" class="play" data-play="${team}" title="Pick this club and open the site's Games page">▶ Play</button><a class="trn" href="/training?team=${team}" title="Open the site's training page for this club">Training</a><button type="button" class="trn" data-atplan="${team}" title="Plan this club's training (Asst. Trainer Kit)">📋 Plan</button><button type="button" class="trn" data-lineup="${team}" title="Jump to this club's lineup editor">🧢 Lineup</button></div>
+      <div class="acts"><button type="button" class="play" data-play="${team}" title="Pick this club and open the site's Games page">▶ Play</button><a class="trn c-train" href="/training?team=${team}" title="Open the site's training page for this club">🏋️ Training</a><button type="button" class="trn c-plan" data-atplan="${team}" title="Plan this club's training (Asst. Trainer Kit)">📋 Plan</button><button type="button" class="trn c-lineup" data-lineup="${team}" title="Jump to this club's lineup editor">🧢 Lineup</button></div>
     </div>`;
     noteTab(team, prof, html);
     return html;
@@ -3190,7 +3474,7 @@ const SBX_MOBILE = true;
     if (left <= 0) txt = `${esc(s.name || "Season")} closing`;
     else {
       const d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 3600e3), m = Math.floor(left % 3600e3 / 60e3);
-      const end = new Date(Date.parse(s.closes_at)).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      const end = new Date(Date.parse(s.closes_at)).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
       txt = `${esc(s.name || "Season")} ends in <b>${d ? d + "d " : ""}${h}h${d ? "" : " " + m + "m"}</b> <span class="end">· ${end}</span>`;
     }
     if (el.innerHTML !== txt) el.innerHTML = txt;
@@ -3545,7 +3829,7 @@ const SBX_MOBILE = true;
       html += `<div class="cmp-sum"><span><b>${esc(lbl(a))}</b>: ${A.T.g} games, ${rec(A.T)}</span><span><b>${esc(lbl(b))}</b>: ${B.T.g} games, ${rec(B.T)}</span></div>`;
       if (mine && CMP.events.length) {
         const ev = CMP.events.slice(-3).reverse().map((e) => {
-          const t = (x) => new Date(x).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+          const t = (x) => new Date(x).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
           const when = `between ${t(e.from)} and ${t(e.to)}`;
           const g = Object.entries(e.gains).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${SK_NAME[k]} +${v}`).join(", ");
           return `<li><b>Trained</b> ${when}: ${esc(g)} <span class="sbx-muted">(${e.men} ${e.men === 1 ? "man" : "men"})</span></li>`;
@@ -3761,7 +4045,7 @@ const SBX_MOBILE = true;
     let base = null, since = "";
     for (const k of K) if (k.at <= cut) base = k.sk;
     if (!base && CMP.team === team && CMP.list) base = cardAt(team, CMP.list.slice().reverse(), (g) => g.f <= cut);
-    if (!base && K.length && now - K[0].at > 36e5) { base = K[0].sk; since = new Date(K[0].at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }); }
+    if (!base && K.length && now - K[0].at > 36e5) { base = K[0].sk; since = new Date(K[0].at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit", timeZoneName: "short" }); }
     const chg = (id, i, v) => { const b = base && base[id]; if (!b || b[i] == null) return ""; const dl = Math.round(v - b[i]); return dl ? `<sup class="${dl > 0 ? "up" : "dn"}">${dl > 0 ? "+" : "−"}${Math.abs(dl)}</sup>` : ""; };
     const men = d.roster.slice().sort((a, b) => (a.position ? POS_ORDER.indexOf(a.position) : 99) - (b.position ? POS_ORDER.indexOf(b.position) : 99) || a.slot - b.slot);
     // Colors run from 0 to the club's best number (at least 50), so a young club's spread still shows.
@@ -3796,7 +4080,7 @@ const SBX_MOBILE = true;
     const W = 640, rowH = 22, x0 = 150, bw = W - x0 - 130, X = (v) => x0 + Math.max(0, Math.min(100, v)) / 100 * bw;
     const bars = men.map((x, i) => { const y = 8 + i * rowH, tpm = tp && tp.spent && tp.spent[x.id] != null ? ` · ${tp.spent[x.id]} TP` : "";
       return `<g><text x="${x0 - 10}" y="${y + 13}" text-anchor="end" class="lb">${esc(x.name)}</text><rect x="${x0}" y="${y + 3}" width="${bw}" height="12" rx="6" class="track"/><rect x="${x0}" y="${y + 3}" width="${Math.max(2, X(x.v) - x0)}" height="12" rx="6" class="gain"/><text x="${X(100) + 8}" y="${y + 13}" class="vl">now <tspan class="g">${x.v}</tspan>${tpm}</text></g>`; }).join("");
-    const when = at ? new Date(at).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+    const when = at ? new Date(at).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" }) : "";
     const kind = names.length === 1 ? `${names[0]} training` : `Training: ${names.join(" and ")}`;
     return `<section class="rc-card"><header><span class="tag">${esc(kind)}</span><span class="when">${when ? "≈ " + when : ""}</span></header>
       <div class="rc-head"><span>${tp && tp.total ? `≈ ${tp.total.toLocaleString()} TP across ${men.length} men` : `${men.length} men`}</span><span class="pay early">From the site · gains not measured</span></div>
@@ -3833,7 +4117,7 @@ const SBX_MOBILE = true;
     else {
       const L = CMP.list.filter((g) => !goodOnly() || g.gm), all = CMP.list;
       const asc = all, desc = all.slice().reverse();
-      const t = (x) => new Date(x).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      const t = (x) => new Date(x).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
       const f = (v, d) => Number.isFinite(v) ? (d === 3 ? v.toFixed(3).replace(/^(-?)0\./, "$1.") : v.toFixed(d)) : "–";
       const nm = (id) => (CMP.names[id] || { name: "Player " + id }).name.replace(/\*+$/, "");
       const EV = recapEvents(team);
@@ -4741,7 +5025,7 @@ const SBX_MOBILE = true;
     }
     return null;
   }
-  const liveWhen = (ms) => (ms ? new Date(ms).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "");
+  const liveWhen = (ms) => (ms ? new Date(ms).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit", timeZoneName: "short" }) : "");
   const liveStart = (me, opp) => "https://play.smallball.com/?sbx_as=" + me + "#/team/" + opp;
   function liveItems(D, t, mine) {
     const out = [], url = t.url || "", scr = D.fmt === "scramble", has = (id) => mine.has(String(id));
