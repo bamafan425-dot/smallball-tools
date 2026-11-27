@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -445,6 +445,7 @@ function settle_(T) {
     let changed = false;
     for (const m of T.matches) {
       if (m.winner || m.void) continue;
+      if (T.lbHold && m.bracket === 'L' && m.round === 1) continue;   // waits for the star re-pairing (lbReseed_)
       if (m.resetOf) { const gf = T.matches.find((x) => x.id === m.resetOf); if (gf && gf.winner && gf.winner === sideClub_(T, gf.a)) { m.void = true; changed = true; continue; } }
       // A losers-bracket slot fed by a bye's "loser" is empty: the other side walks through.
       const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
@@ -534,6 +535,7 @@ function createTournament_(entrants, C, fresh) {
     T.seeds = clubs.map((c, i) => ({ club: c, seed: i + 1 }));
   }
   Object.assign(T, built);
+  if (fmt === 'double') T.lbHold = true;   // losers round 1 gets re-paired by stars after the first round
   settle_(T);
   return T;
 }
@@ -714,6 +716,7 @@ function waves_(T, C) {
   const win = waveMs_(C), E = entrantMap_(), opened = [], first = !(T.wave > 0);
   for (const m of T.matches) {
     if (m.winner || m.void || m.openAt) continue;
+    if (T.lbHold && m.bracket === 'L' && m.round === 1) continue;
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     if (!(a > 0 && b > 0)) continue;
     m.openAt = first && t - start < 10 * 60000 ? start : t;
@@ -791,11 +794,29 @@ function postDue_(T, C) {
   }
   return changed;
 }
+// Losers-bracket round 1 is re-paired by stars once every first-round (play-in) game is done: the clubs who
+// dropped meet the nearest-star club that dropped with them, instead of whoever the bracket lines up.
+function lbReseed_(T) {
+  if (!T.lbHold || T.fmt !== 'double') return false;
+  const w1 = T.matches.filter((m) => m.bracket === 'W' && m.round === 1);
+  if (w1.some((m) => !m.winner && !m.void)) return false;
+  const E = entrantMap_(), st = (c) => (E[c] && norm_(E[c].Stars) !== '' ? Number(E[c].Stars) : 0);
+  const drop = w1.filter((m) => !m.bye && m.loser > 0).map((m) => m.loser).sort((a, b) => st(a) - st(b) || Math.random() - 0.5);
+  const L1 = T.matches.filter((m) => m.bracket === 'L' && m.round === 1).sort((a, b) => a.slot - b.slot);
+  const pairs = []; for (let i = 0; i < drop.length; i += 2) pairs.push([drop[i], drop[i + 1] != null ? drop[i + 1] : BYE]);
+  const spots = pairs.map((_, i) => Math.floor(i * L1.length / Math.max(1, pairs.length)));
+  L1.forEach((m, i) => { const k = spots.indexOf(i), pr = k >= 0 ? pairs[k] : [BYE, BYE];
+    m.a = { club: pr[0] }; m.b = { club: pr[1] }; delete m.winner; delete m.loser; delete m.bye; });
+  delete T.lbHold;
+  log_('system', 'Losers bracket round 1 re-paired by stars', pairs.map((p) => p.join(' v ')).join(', '));
+  return true;
+}
 function finish_(T, m, winner, p, how) {
   const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
   m.winner = winner; m.loser = winner === a ? b : a; m.how = how || '';
   if (p) { m.gid = p.gid; m.score = winner === a ? [p.ra, p.rb] : [p.rb, p.ra]; }
   m.pend = null; m.doneAt = Date.now();
+  lbReseed_(T);
   settle_(T);
   log_('system', 'Result', m.id + ': ' + winner + ' over ' + m.loser + (m.score ? ' ' + m.score.join('-') : '') + (how ? ' (' + how + ')' : ''));
 }
