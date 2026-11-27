@@ -102,6 +102,17 @@ body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-
 .m .s.l .n{opacity:.62}.m .s.l .n small{opacity:.9}
 .m .tbd{color:#9fb0cf;font-weight:500}
 .m .ft{font:600 12.5px system-ui,sans-serif}
+.cols.big{gap:22px}.cols.big .col{min-width:205px}.cols.big .ms{gap:8px}
+.cols.big .m .lab{padding:3px 8px;font-size:10px}
+.cols.big .m .s{padding:4px 8px;grid-template-columns:22px 1fr 30px}
+.cols.big .m .s .n{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cols.big .m .s .n small{display:inline;margin-left:6px;font-size:11px}
+.cols.big .m .s .sd{width:20px;height:20px;font-size:10px}.cols.big .m .s .sc{height:22px;min-width:26px;font-size:15px}
+.cols.big .m .ft{font-size:11px;padding:4px 8px 6px}
+.cols.big .col:not(:last-child) .m::after{right:-23px;width:22px}.cols.big .col:not(:first-child) .m::before{left:-23px;width:11px}
+.col.fold+.col .m::before{display:none}
+.byes{font:500 12px system-ui,sans-serif;color:var(--muted);background:rgba(255,255,255,.03);border:1px dashed #31497a;border-radius:10px;padding:7px 9px;margin:0 0 8px;max-width:260px}.byes b{color:var(--gold)}
+.byes span{display:inline-block;background:#0b1730;border:1px solid #31497a;border-radius:999px;padding:1px 8px;margin:4px 4px 0 0;color:#dbe4f5;font-weight:600}
 .col h3{font:800 11.5px system-ui,sans-serif;letter-spacing:.07em}
 .ids a span{font:600 15px system-ui,sans-serif}.ids i{font-size:12.5px}.ids em{font:700 12.5px system-ui,sans-serif}
 .meta{font-size:14.5px}
@@ -130,7 +141,16 @@ function box(m){
 }
 function cols(list,name){
   var rs={};list.forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});
-  return '<div class="cols">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){var ms=rs[r].filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))});if(!ms.length)return'';return '<div class="col"><h3>'+esc(name(r,ms))+'</h3><div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
+  var big=list.length>=15;
+  return '<div class="cols'+(big?' big':'')+'">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){
+    var byes=[],ms=rs[r].filter(function(m){
+      if(m.v||(m.bye&&m.byeA&&m.byeZ)||(m.b==='L'&&(m.byeA||m.byeZ)))return false;
+      var oa=m.byeA||(m.a&&m.a.open),oz=m.byeZ||(m.z&&m.z.open);
+      if(m.b==='W'&&+r===1&&(oa||oz)){var c=oa?m.z:m.a;if(c&&!c.open)byes.push(c);return false}
+      return true});
+    if(!ms.length&&!byes.length)return'';
+    var bl=byes.length?'<div class="byes"><b>'+byes.length+' bye'+(byes.length===1?'':'s')+'</b> straight to the next round'+(D.matches?'':' (until more clubs sign up)')+'<br>'+byes.sort(function(a,b){return (a.s||99)-(b.s||99)}).map(function(c){return '<span>'+(c.s?'#'+esc(c.s)+' ':'')+esc(c.n)+'</span>'}).join('')+'</div>':'';
+    return '<div class="col'+(byes.length?' fold':'')+'"><h3>'+esc(name(r,ms.length?ms:rs[r]))+'</h3>'+bl+'<div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
 }
 function rules(){
   var w=D.waveMin||60,open=!D.matches;
@@ -139,7 +159,7 @@ function rules(){
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
   h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
-  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.',(D.seeding==='random'?'Seeded by a <b>random draw</b>, reshuffled with every sign-up: similar stars meet first, and one owner’s clubs are kept apart.':D.seeding==='stars'?'Seeded by <b>stars</b>, most first.':'Seeded by <b>sign-up order</b>: first in is the #1 seed.'),'Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
   h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed starts the game</b>: tap the Start-the-game link in the ping, check YOUR CLUB at the top of SmallBall, then hit Play (not Exhibition). Nothing for the higher seed to accept.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
@@ -157,12 +177,12 @@ function render(){
   var IDL=D.matches?(D.seeds||[]):(D.entrants||[]);
   h+='<div class="sec"><h2 class="bb">'+(D.matches?'🆔 Club IDs':'Signed up · '+IDL.length)+'</h2><div style="color:var(--muted);font-size:13px;margin:-4px 0 8px">The club ID is what you play in SmallBall. Tap one to open that club, with the Play button.</div>'+(IDL.length?'<div class="ids">'+IDL.map(function(e){return '<a href="https://play.smallball.com/#/team/'+esc(e.id)+'" target="_blank">'+(e.s?'<em>#'+esc(e.s)+'</em>':'')+'<span>'+esc(e.n)+' <i>'+esc(e.o||'')+(e.st!==''&&e.st!=null?' · '+esc(e.st)+'★':'')+'</i></span><b>'+esc(e.id)+'</b></a>'}).join('')+'</div>':'<div class="empty">Nobody yet. Be the first!</div>')+'</div>';
   if(!D.matches&&D.preview){
-    var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw when sign-ups close'}[P.seeding]||'sign-up order';
+    var P=D.preview,sd={signup:'sign-up order (the sooner you sign up, the higher your seed)',stars:'stars, most first',random:'a random draw, reshuffled with every new sign-up (similar stars meet first, one owner’s clubs kept apart)'}[P.seeding]||'sign-up order';
     h+='<div class="sec"><div class="pv"><b>Bracket preview</b> · '+P.filled+' of '+P.size+' spots filled · seeded by '+esc(sd)+'.<br><span>This is the bracket we’re building toward. The real one is drawn when sign-ups close'+(D.signupClose?' ('+t(D.signupClose)+')':'')+', sized to who’s in.</span>'+(D.form?' <a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Grab a spot</a>':'')+'</div></div>';
     h+=rules();
     var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
     h+='<div class="sec wb"><h2 class="bb">'+(P.fmt==='double'?'🏆 Winners bracket':'🏆 Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2><div class="byes" style="max-width:none;font-size:13px">One loss drops you here (two and you’re out), so it fills in as the winners bracket plays and feeds the grand final. It shows up in full once the bracket is drawn.</div></div>';
     if(PF.length)h+='<div class="sec gf"><h2 class="bb">👑 Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
   if(!D.matches){
