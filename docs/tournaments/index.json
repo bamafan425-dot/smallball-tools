@@ -1,5 +1,5 @@
 {
- "updated": 1795813631163,
+ "updated": 1795813962010,
  "list": [
   {
    "slug": "sunday-sandlot-scramble",
@@ -31,7 +31,7 @@
    "wave": 60,
    "signupClose": 1795827300000,
    "start": 1795827600000,
-   "clubs": 16,
+   "clubs": 17,
    "status": "signups",
    "finished": 0,
    "champ": null,
