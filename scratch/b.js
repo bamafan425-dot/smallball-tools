@@ -1460,7 +1460,7 @@ const SBX_TABLET = true;
   const atSideSet = (o) => { try { localStorage.setItem(AT_SIDE, JSON.stringify(Object.assign(atSide(), o))); } catch (_) {} atRedraw(); };
   const atMode = () => { try { return localStorage.getItem(AT_MODE) === "gains" ? "gains" : "plan"; } catch (_) { return "plan"; } };
   const atOpen = (team) => { AT.open = true; AT.team = Number(team) || tplanTeam() || AT.team; atRedraw(); };
-  document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-atplanT]"); if (b) { e.preventDefault(); atOpen(b.dataset.atplanT); } }, true);
+  document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-atplant]"); if (b) { e.preventDefault(); atOpen(b.dataset.atplant); } }, true);
   function mountAsst() {
     atStyle();
     const onTrainer = true, team = tplanTeam();
@@ -1469,8 +1469,8 @@ const SBX_TABLET = true;
     document.getElementById("sbx-dockT")?.remove(); document.getElementById("sbx-atnotesT")?.remove(); AT.sess = null;
     // 📋 Training plan in your club page's header, beside the site's Training button
     const hb = document.querySelector("main .th-btns");
-    if (hb && team && !hb.querySelector("[data-atplanT]")) {
-      const a = document.createElement("a"); a.href = "#"; a.className = "btn"; a.dataset.atplanT = String(team); a.textContent = "📋 Training plan";
+    if (hb && team && !hb.querySelector("[data-atplant]")) {
+      const a = document.createElement("a"); a.href = "#"; a.className = "btn"; a.dataset.atplant = String(team); a.textContent = "📋 Training plan";
       a.style.cssText = "background:#16a34a;color:#fff"; a.title = "Plan this club's training (Asst. Trainer Kit)";
       hb.insertBefore(a, hb.firstChild);
     }
@@ -1605,7 +1605,7 @@ const SBX_TABLET = true;
     const feed = atEv.filter((e) => e.team === team && e.at >= S.at).slice(-40).reverse().map((e) => "<div>" + fmtT(e.at) + " · " + esc(e.name) + ": " + esc(e.k) + " " + e.from + " → <b>" + e.to + "</b></div>").join("") || '<div style="opacity:.6">Gains show up here as they land.</div>';
     const modes = '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
     el.innerHTML = '<div class="dk-h"><b class="t">📋 Asst. Trainer · ' + esc(c.data.name || "") + "</b><span>Since " + new Date(S.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + "</span><span>TP spent <b>" + spent + "</b></span><span>Skill gains <b>+" + gains + "</b></span>" +
-      (cmp && planned ? '<span title="Gains in the skills you planned, and gains outside them">On plan <b>+' + onPlan + "</b> · off plan <b>+" + offPlan + "</b></span>" : cmp ? '<span style="opacity:.75">No plan yet: open 📋 Training plan</span>' : "") + modes + '<button type="button" class="dk-plan" data-atplanT="' + team + '">📋 Open the plan</button></div>' +
+      (cmp && planned ? '<span title="Gains in the skills you planned, and gains outside them">On plan <b>+' + onPlan + "</b> · off plan <b>+" + offPlan + "</b></span>" : cmp ? '<span style="opacity:.75">No plan yet: open 📋 Training plan</span>' : "") + modes + '<button type="button" class="dk-plan" data-atplant="' + team + '">📋 Open the plan</button></div>' +
       '<div class="dk-body"><div class="dk-grid">' + tiles + '</div><div class="feed"><div style="font-weight:800;border:0;padding-bottom:5px">Latest gains</div>' + feed + "</div></div>";
     el.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_MODE, b.dataset.mode); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
   }
@@ -2361,7 +2361,7 @@ const SBX_TABLET = true;
       ${row("Streak", streak || "—")}
       <div class="chips" title="Last 10 games, newest first">${last10.map((g) => `<i class="${res(g)}">${res(g).toUpperCase()}</i>`).join("")}</div>
       <div class="sbx-cdc" title="Timed games: a club can start its next official game once its last one has aired"></div>
-      <div class="acts"><button type="button" class="play" data-play="${team}" title="Pick this club and open the site's Games page">▶ Play</button><a class="trn" href="/training?team=${team}" title="Open the site's training page for this club">Training</a><button type="button" class="trn" data-atplanT="${team}" title="Plan this club's training (Asst. Trainer Kit)">📋 Plan</button></div>
+      <div class="acts"><button type="button" class="play" data-play="${team}" title="Pick this club and open the site's Games page">▶ Play</button><a class="trn" href="/training?team=${team}" title="Open the site's training page for this club">Training</a><button type="button" class="trn" data-atplant="${team}" title="Plan this club's training (Asst. Trainer Kit)">📋 Plan</button></div>
     </div>`;
     noteTab(team, prof, html);
     return html;
