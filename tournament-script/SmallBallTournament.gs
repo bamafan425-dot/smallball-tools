@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -281,6 +281,23 @@ function submitOne_(e) {
     else rejectPost_(sub, 'Something went wrong on our end. The organizer has been flagged.');
   } finally { lock.releaseLock(); }
 }
+// 🔁 Re-run chosen sign-ups from the form (after a fix, or for a rejected entry): the same steps as a new answer.
+function adminRetrySignups() {
+  withUi_((ui) => {
+    const C = cfg_(); if (!norm_(C.FORM_ID)) return 'No form linked to the ' + norm_(C.TOURNEY_NAME) + '.';
+    const r = ui.prompt('🔁 Retry sign-ups: ' + norm_(C.TOURNEY_NAME), 'Club IDs to re-run from the form (their latest answers), separated by spaces:', ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    const ids = (norm_(r.getResponseText()).match(/\d+/g) || []); if (!ids.length) return 'No club IDs given.';
+    const all = FormApp.openById(norm_(C.FORM_ID)).getResponses(), done = [], missing = [];
+    ids.forEach((id) => {
+      const resp = all.slice().reverse().find((x) => { try { return readSubmission_({ response: x }).clubId === id; } catch (e) { return false; } });
+      if (!resp) { missing.push(id); return; }
+      submitOne_({ response: resp }); done.push(id);
+    });
+    const et = entrants_().rows.filter((x) => x.Status !== 'Withdrawn').map((x) => norm_(x.ClubID));
+    return '🔁 Re-ran ' + done.length + ': ' + done.map((id) => id + (et.indexOf(id) >= 0 ? ' ✅ in' : ' ❌ still rejected (see the Log)')).join(', ') + (missing.length ? '\nNo form answer for: ' + missing.join(', ') : '');
+  });
+}
 function readSubmission_(e) {
   const r = e && e.response; if (!r) fail_('No form response found.');
   const out = { email: lc_(r.getRespondentEmail()), a: {} };
@@ -325,8 +342,9 @@ function register_(sub) {
   if (when_(C.SIGNUP_CLOSE, C) && t >= when_(C.SIGNUP_CLOSE, C)) fail_('Sign-ups closed ' + fmtT_(when_(C.SIGNUP_CLOSE, C), C) + '.');
   if (!sub.email) fail_('The form needs your Google sign-in (email) so you can update your entry.');
   if (!sub.discord || !sub.club || !sub.clubId) fail_('We need your ' + [!sub.discord && 'Discord username', !sub.club && 'club name', !sub.clubId && 'club ID'].filter(Boolean).join(', ') + '. We didn\'t have ' + (!sub.discord && !sub.club && !sub.clubId ? 'you' : 'that') + ' on record yet, so fill it in once and next time a blank form is enough.');
-  const stars = sub.stars === '' ? '' : Number(sub.stars);
-  if (stars !== '' && (isNaN(stars) || stars < 0 || stars > 10)) fail_('Club stars must be a number from 0 to 10.');
+  // "8", "8*", "8★", "8 stars" all mean 8.
+  const stars = sub.stars === '' ? '' : (() => { const m = /\d+(?:\.\d+)?/.exec(String(sub.stars)); return m ? Number(m[0]) : NaN; })();
+  if (stars !== '' && (isNaN(stars) || stars < 0 || stars > 10)) fail_('Club stars must be a number from 0 to 10 (just the number, like 8).');
   if (stars !== '' && (stars < Number(C.MIN_STARS || 0) || stars > Number(C.MAX_STARS || 10))) fail_('This tournament is for ' + C.MIN_STARS + '–' + C.MAX_STARS + '★ clubs.');
   // A mistyped Discord ID doesn't cost anyone their spot: we skip it (or use the one on record) and say so.
   if (sub.discordId && !/^\d{15,21}$/.test(sub.discordId)) {
@@ -1027,6 +1045,7 @@ function onOpen() {
     .addItem('🎲 Draw the bracket now (close sign-ups early)', 'adminDrawNow')
     .addItem('🧪 Test the Discord webhook', 'adminTestWebhook')
     .addItem('⏰ Post the prizes + sign-up reminder', 'adminSignupReminder')
+    .addItem('🔁 Retry sign-ups (re-run form answers by club ID)', 'adminRetrySignups')
     .addItem('🎙️ Post an MVC poll (Most Valuable Chatter)', 'adminMvcPoll')
     .addItem('🧪 Mock tournament (test posts in Discord)', 'adminMockTournament')
     .addItem('🗑️ Delete the mock test posts', 'adminDeleteMockPosts')
