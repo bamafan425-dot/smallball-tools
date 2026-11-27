@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -903,7 +903,7 @@ function snapshot_(T) {
     if (e && e.team) return { id, n: 'Team ' + norm_(e.Discord), s: seedOf_(T, id), how: e.team.how, clubs: e.team.clubs.map((c) => ({ id: c, n: E[c] ? norm_(E[c].Club) : 'Club ' + c, o: E[c] ? norm_(E[c].Discord) : '' })) };
     return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: T ? seedOf_(T, id) : 0, st: norm_(e.Stars) } : { id, n: 'Club ' + id }; };
   const snap = {
-    name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), form: norm_(C.FORM_LINK), perOwner: Math.max(1, Number(C.MAX_PER_OWNER) || 1),
+    name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), seeding: lc_(C.SEEDING) || 'signup', form: norm_(C.FORM_LINK), perOwner: Math.max(1, Number(C.MAX_PER_OWNER) || 1),
     signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), tz: tz_(C),
     entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars), p: norm_(r.Partner) })),
   };
@@ -914,12 +914,16 @@ function snapshot_(T) {
     const ids = ord.map((r) => Number(r.ClubID)); for (let k = ids.length; k < size; k++) ids.push(-1000 - k);
     const P = lc_(C.FORMAT) === 'single' ? buildSingle_(ids, {}) : buildDouble_(ids, lc_(C.GRAND_FINAL_RESET) !== 'no');
     const Tp = { seeds: ids.map((c, i) => ({ club: c, seed: i + 1 })), matches: P.matches };
+    // A club facing an open spot would get a bye if nobody else signs up: the preview moves it to the next round.
+    P.matches.forEach((m) => { if (m.bracket !== 'W' || m.round !== 1) return; const a = sideClub_(Tp, m.a), b = sideClub_(Tp, m.b);
+      if ((a <= -1000) !== (b <= -1000)) { m.winner = a <= -1000 ? b : a; m.loser = a <= -1000 ? a : b; m.bye = true; } });
     const pc = (id) => id == null ? null : id <= -1000 ? { id, n: 'Open spot', s: -999 - id, open: true } : (() => { const e = E[id]; return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: seedOf_(Tp, id), st: norm_(e.Stars) } : null; })();
     // Put the live bracket's link on the sign-up form once the web app is deployed.
     try { const url = boardUrl_(C), pr = props_();
       if (url && norm_(C.FORM_ID) && pr.getProperty('FORM_LINKED') !== url) { FormApp.openById(norm_(C.FORM_ID)).setDescription(FORM_DESC + '\n\n📋 The bracket preview and who\'s in: ' + url); pr.setProperty('FORM_LINKED', url); } } catch (e) { }
     snap.preview = { size, filled: ord.length, fmt: lc_(C.FORMAT) === 'single' ? 'single' : 'double', seeding: lc_(C.SEEDING) || 'signup',
-      matches: P.matches.map((m) => ({ id: m.id, b: m.bracket, r: m.round, l: m.label, a: pc(sideClub_(Tp, m.a)), z: pc(sideClub_(Tp, m.b)), v: false })) };
+      matches: P.matches.map((m) => { const a = sideClub_(Tp, m.a), z = sideClub_(Tp, m.b), lb = m.bracket !== 'W';
+        return { id: m.id, b: m.bracket, r: m.round, l: m.label, a: lb && a <= -1000 ? null : pc(a), z: lb && z <= -1000 ? null : pc(z), byeA: lb && a <= -1000, byeZ: lb && z <= -1000, v: false }; }) };
   }
   if (T) {
     snap.fmt = T.fmt; snap.wave = T.wave || 0; snap.done = !!T.done; snap.champ = T.done ? club(champion_(T)) : null; snap.runner = T.done && T.runner ? club(T.runner) : null;
@@ -953,6 +957,7 @@ function snapshot_(T) {
 // file in the repo; the page next to it reads that file. Nothing is sent when the bracket hasn't changed.
 function ghPush_(snap, force) {
   const C = cfg_(), key = JSON.stringify(Object.assign({}, snap, { updated: 0 }));
+  if (norm_(C.GITHUB_PATH)) try { ghPut_(pageDir_(C) + 'index.html', pageHtml_(C), 'Bracket page: ' + (snap.name || 'tournament')); } catch (e) { }   // only uploads when the page itself changed
   return ghPut_(norm_(C.GITHUB_PATH) || 'docs/brawl/bracket.json', JSON.stringify(snap), 'Bracket update: ' + (snap.name || 'tournament'), key, force);
 }
 // One file in the repo, saved only when it changed. hashSrc = what counts as "changed" (default: the text itself).
@@ -2440,6 +2445,17 @@ body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-
 .m .s.l .n{opacity:.62}.m .s.l .n small{opacity:.9}
 .m .tbd{color:#9fb0cf;font-weight:500}
 .m .ft{font:600 12.5px system-ui,sans-serif}
+.cols.big{gap:22px}.cols.big .col{min-width:205px}.cols.big .ms{gap:8px}
+.cols.big .m .lab{padding:3px 8px;font-size:10px}
+.cols.big .m .s{padding:4px 8px;grid-template-columns:22px 1fr 30px}
+.cols.big .m .s .n{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cols.big .m .s .n small{display:inline;margin-left:6px;font-size:11px}
+.cols.big .m .s .sd{width:20px;height:20px;font-size:10px}.cols.big .m .s .sc{height:22px;min-width:26px;font-size:15px}
+.cols.big .m .ft{font-size:11px;padding:4px 8px 6px}
+.cols.big .col:not(:last-child) .m::after{right:-23px;width:22px}.cols.big .col:not(:first-child) .m::before{left:-23px;width:11px}
+.col.fold+.col .m::before{display:none}
+.byes{font:500 12px system-ui,sans-serif;color:var(--muted);background:rgba(255,255,255,.03);border:1px dashed #31497a;border-radius:10px;padding:7px 9px;margin:0 0 8px;max-width:260px}.byes b{color:var(--gold)}
+.byes span{display:inline-block;background:#0b1730;border:1px solid #31497a;border-radius:999px;padding:1px 8px;margin:4px 4px 0 0;color:#dbe4f5;font-weight:600}
 .col h3{font:800 11.5px system-ui,sans-serif;letter-spacing:.07em}
 .ids a span{font:600 15px system-ui,sans-serif}.ids i{font-size:12.5px}.ids em{font:700 12.5px system-ui,sans-serif}
 .meta{font-size:14.5px}
@@ -2468,7 +2484,16 @@ function box(m){
 }
 function cols(list,name){
   var rs={};list.forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});
-  return '<div class="cols">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){var ms=rs[r].filter(function(m){return !m.v&&!(m.bye&&m.byeA&&m.byeZ)&&!(m.b==='L'&&(m.byeA||m.byeZ))});if(!ms.length)return'';return '<div class="col"><h3>'+esc(name(r,ms))+'</h3><div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
+  var big=list.length>=15;
+  return '<div class="cols'+(big?' big':'')+'">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){
+    var byes=[],ms=rs[r].filter(function(m){
+      if(m.v||(m.bye&&m.byeA&&m.byeZ)||(m.b==='L'&&(m.byeA||m.byeZ)))return false;
+      var oa=m.byeA||(m.a&&m.a.open),oz=m.byeZ||(m.z&&m.z.open);
+      if(m.b==='W'&&+r===1&&(oa||oz)){var c=oa?m.z:m.a;if(c&&!c.open)byes.push(c);return false}
+      return true});
+    if(!ms.length&&!byes.length)return'';
+    var bl=byes.length?'<div class="byes"><b>'+byes.length+' bye'+(byes.length===1?'':'s')+'</b> straight to the next round'+(D.matches?'':' (until more clubs sign up)')+'<br>'+byes.sort(function(a,b){return (a.s||99)-(b.s||99)}).map(function(c){return '<span>'+(c.s?'#'+esc(c.s)+' ':'')+esc(c.n)+'</span>'}).join('')+'</div>':'';
+    return '<div class="col'+(byes.length?' fold':'')+'"><h3>'+esc(name(r,ms.length?ms:rs[r]))+'</h3>'+bl+'<div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
 }
 function rules(){
   var w=D.waveMin||60,open=!D.matches;
@@ -2477,7 +2502,7 @@ function rules(){
   var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
   h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
-  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.','Seeded by <b>sign-up order</b>: first in is the #1 seed.','Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.',(D.seeding==='random'?'Seeded by a <b>random draw</b>, reshuffled with every sign-up: similar stars meet first, and one owner\u2019s clubs are kept apart.':D.seeding==='stars'?'Seeded by <b>stars</b>, most first.':'Seeded by <b>sign-up order</b>: first in is the #1 seed.'),'Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
   h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed starts the game</b>: tap the Start-the-game link in the ping, check YOUR CLUB at the top of SmallBall, then hit Play (not Exhibition). Nothing for the higher seed to accept.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
@@ -2500,7 +2525,7 @@ function render(){
     h+=rules();
     var PW=P.matches.filter(function(m){return m.b==='W'}),PL=P.matches.filter(function(m){return m.b==='L'}),PF=P.matches.filter(function(m){return m.b==='F'});
     h+='<div class="sec wb"><h2 class="bb">'+(P.fmt==='double'?'🏆 Winners bracket':'🏆 Bracket')+'</h2>'+cols(PW,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
-    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2>'+cols(PL,function(r,ms){return ms[0].l.split(' · ')[0]})+'</div>';
+    if(PL.length)h+='<div class="sec lb"><h2 class="bb">🥊 Losers bracket</h2><div class="byes" style="max-width:none;font-size:13px">One loss drops you here, so it fills in as the winners bracket plays: '+PL.filter(function(m){return !m.byeA&&!m.byeZ}).length+' matches over '+(function(){var r={};PL.forEach(function(m){r[m.r]=1});return Object.keys(r).length})()+' rounds, then the grand final. It shows up in full once the bracket is drawn.</div></div>';
     if(PF.length)h+='<div class="sec gf"><h2 class="bb">👑 Grand final</h2><div class="cols">'+PF.map(function(m){return '<div class="col">'+box(m)+'</div>'}).join('')+'</div></div>';
   }
   if(!D.matches){
