@@ -227,7 +227,7 @@ const addEv=(h,t)=>{const d=document.createElement("div");d.className="ev";d.inn
     el.classList.toggle("float", place === "float"); el.classList.toggle("onboard", place === "board"); el.classList.toggle("jumbo", place === "jumbo");
     if (place === "jumbo") {
       const sw = sw0; if (el.parentNode !== sw) sw.appendChild(el);
-      const st = `left:6px;right:6px;top:${board.offsetTop}px;height:${board.offsetHeight}px;grid-template-columns:minmax(0,1fr) ${board.offsetWidth + 12}px minmax(0,1fr)`;
+      const st = `left:6px;right:6px;top:${board.offsetTop}px;height:${board.offsetHeight}px;grid-template-columns:${Math.max(0, board.offsetLeft - 12)}px ${board.offsetWidth + 12}px minmax(0,1fr)`;
       if (el.dataset.bst !== st) { el.dataset.bst = st; el.style.cssText = st; }
     }
     else if (place === "board") {
