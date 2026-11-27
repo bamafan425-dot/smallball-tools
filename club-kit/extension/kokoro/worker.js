@@ -1,7 +1,7 @@
-// SmallBall Radio · Kokoro voices: the speech model, in a worker so it never blocks the page.
+// SmallBall Radio · Enhanced voices (Kokoro): the speech model, in a worker so it never blocks the page.
 // Runs inside the kit's own engine frame (engine.html), at the extension's origin. Everything it runs ships
 // with the kit (kokoro-js, ONNX Runtime Web); only the model's data files are downloaded, from Hugging Face,
-// and only after the person turns Kokoro on. Nothing about the game or the person is sent anywhere.
+// and only after the person sets up Enhanced voices. Nothing about the game or the person is sent anywhere.
 const MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
 const VENDOR = new URL("./vendor/", import.meta.url).href;
 const FILES_DB = "sbx-radio-kokoro-files";
@@ -40,16 +40,31 @@ async function lib() {
 let tts = null, device = "", dtype = "", busy = false, warmRtf = 0;
 const post = (m, t) => self.postMessage(m, t || []);
 
-async function gpuOk() {
+// Is there a graphics card this browser can really compute on? Checked before anything is downloaded: an adapter
+// that isn't a software stand-in, a device, and a tiny compute job whose answer is read back and checked.
+async function probe() {
   try {
-    if (!self.navigator || !navigator.gpu) return false;
+    if (!self.navigator || !navigator.gpu) return { ok: false, why: "this browser doesn't offer WebGPU here" };
     const a = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
-    if (!a) return false;
+    if (!a) return { ok: false, why: "the browser found no graphics card it can use (WebGPU is turned off or blocked for this one)" };
     const info = a.info || {};
-    // A software (fallback) adapter is slower than WASM; skip it.
-    if (a.isFallbackAdapter || info.isFallbackAdapter) return false;
-    return true;
-  } catch (_) { return false; }
+    if (a.isFallbackAdapter || info.isFallbackAdapter) return { ok: false, why: "only a software stand-in for a graphics card is available, which is far too slow" };
+    const name = [info.vendor, info.architecture, info.description].filter(Boolean).join(" ").trim();
+    const dev = await a.requestDevice();
+    try {
+      const N = 256, mod = dev.createShaderModule({ code: "@group(0) @binding(0) var<storage, read_write> d: array<f32>; @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) i: vec3<u32>) { d[i.x] = d[i.x] * 2.0 + 1.0; }" });
+      const pipe = dev.createComputePipeline({ layout: "auto", compute: { module: mod, entryPoint: "main" } });
+      const buf = dev.createBuffer({ size: N * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+      const rd = dev.createBuffer({ size: N * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+      const src = new Float32Array(N).map((_, i) => i); dev.queue.writeBuffer(buf, 0, src);
+      const bg = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: buf } }] });
+      const enc = dev.createCommandEncoder(), pass = enc.beginComputePass(); pass.setPipeline(pipe); pass.setBindGroup(0, bg); pass.dispatchWorkgroups(N / 64); pass.end();
+      enc.copyBufferToBuffer(buf, 0, rd, 0, N * 4); dev.queue.submit([enc.finish()]);
+      await rd.mapAsync(GPUMapMode.READ); const out = new Float32Array(rd.getMappedRange().slice(0)); rd.unmap();
+      for (let i = 0; i < N; i++) if (out[i] !== i * 2 + 1) return { ok: false, why: "the graphics card gave wrong answers in a quick test" };
+    } finally { try { dev.destroy(); } catch (_) {} }
+    return { ok: true, gpu: name };
+  } catch (e) { return { ok: false, why: "the graphics card couldn't be started (" + String((e && e.message) || e).slice(0, 120) + ")" }; }
 }
 
 async function load(dev) {
@@ -64,25 +79,27 @@ async function load(dev) {
       post({ t: "progress", phase: "download", loaded, total, file: p.file });
     } else if (p.status === "initiate") { files[p.file] = files[p.file] || { loaded: 0, total: 0 }; }
   };
-  dtype = dev === "webgpu" ? "fp32" : "q8";   // q8 is the CPU model (~92 MB); WebGPU wants fp32 (~326 MB)
+  dtype = dev === "webgpu" ? "fp32" : "q8";   // the graphics card runs the full fp32 model (~326 MB)
   device = dev;
   tts = await KokoroTTS.from_pretrained(MODEL, { dtype, device: dev, progress_callback: progress });
 }
 
-async function init(want, voices) {
+// Enhanced voices run on the graphics card only: on the processor Kokoro is several times slower than speech on
+// most computers, far too slow for a live game.
+const DEVICE = "webgpu";
+async function init(voices) {
   const t0 = performance.now();
+  const p = await probe();
+  if (!p.ok) throw Object.assign(new Error(p.why), { gpu: true });
   await lib();
-  // Kokoro keeps up with a ballgame on a graphics card. On the processor it's several times slower than
-  // speech on most computers, so the processor is only used when the person picks it.
-  const dev = want === "wasm" ? "wasm" : "webgpu";
-  if (dev === "webgpu" && !(await gpuOk())) throw new Error("no graphics card this browser can use for it (WebGPU)");
   try {
-    await load(dev);
+    await load(DEVICE);
     post({ t: "progress", phase: "warmup" });
     await warm(voices);
   } catch (e) {
     tts = null;
-    throw dev === "webgpu" ? new Error("the graphics card couldn't run it: " + String((e && e.message) || e).slice(0, 140)) : e;
+    // garbled voices mean this graphics card can't do it; anything else (a download cut off) is worth another try
+    throw Object.assign(new Error((e && e.garbled ? "" : "the voices couldn't start on the graphics card: ") + String((e && e.message) || e).slice(0, 140)), { gpu: !!(e && e.garbled) });
   }
   post({ t: "ready", device, dtype, ms: Math.round(performance.now() - t0), rtf: +warmRtf.toFixed(3) });
 }
@@ -108,8 +125,8 @@ async function warm(voices) {
   }
   if (!vs.length) return;
   await tts.generate("Play ball.", { voice: vs[0], speed: 1 });            // compiles; slow the first time
-  // On a graphics card, check every voice in the cast once: a card that garbles them goes back to the CPU.
-  if (device === "webgpu") for (const v of vs) { const a = await tts.generate("Ball one.", { voice: v, speed: 1 }); if (garbled(a.audio)) throw new Error("the graphics card garbled the " + v + " voice"); }
+  // On a graphics card, check every voice in the cast once: a card that garbles them can't run Enhanced voices.
+  if (device === "webgpu") for (const v of vs) { const a = await tts.generate("Ball one.", { voice: v, speed: 1 }); if (garbled(a.audio)) throw Object.assign(new Error("the graphics card garbled the " + v + " voice in testing"), { garbled: true }); }
   const t0 = performance.now(), a = await tts.generate("Ball one.", { voice: vs[0], speed: 1 });
   warmRtf = (performance.now() - t0) / Math.max(1, (a.audio.length / (a.sampling_rate || 24000)) * 1000);   // how long making a line takes, per second of speech
 }
@@ -127,13 +144,14 @@ async function speak(m) {
 self.onmessage = async (e) => {
   const m = e.data || {};
   try {
-    if (m.t === "init") { if (!tts) await init(m.device, m.voices); else post({ t: "ready", device, dtype, ms: 0 }); }
+    if (m.t === "probe") post(Object.assign({ t: "probe" }, await probe()));
+    else if (m.t === "init") { if (!tts) await init(m.voices); else post({ t: "ready", device, dtype, ms: 0 }); }
     else if (m.t === "say") {
       if (!tts) throw new Error("not ready");
       if (busy) throw new Error("busy");
       busy = true; try { await speak(m); } finally { busy = false; }
     }
   } catch (err) {
-    post({ t: m.t === "say" ? "fail" : "error", id: m.id, key: m.key, error: String((err && err.message) || err).slice(0, 300) });
+    post({ t: m.t === "say" ? "fail" : "error", id: m.id, key: m.key, gpu: !!(err && err.gpu), error: String((err && err.message) || err).slice(0, 300) });
   }
 };
