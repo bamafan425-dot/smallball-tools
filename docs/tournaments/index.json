@@ -1,5 +1,5 @@
 {
- "updated": 1795812414327,
+ "updated": 1795813321592,
  "list": [
   {
    "slug": "sunday-sandlot-scramble",
@@ -29,7 +29,7 @@
    "kinds": "BigLeague",
    "stars": "Any club",
    "wave": 60,
-   "signupClose": 1795826700000,
+   "signupClose": 1795827300000,
    "start": 1795827600000,
    "clubs": 13,
    "status": "signups",
