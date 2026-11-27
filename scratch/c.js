@@ -4356,7 +4356,7 @@ const SBX_TABLET = true;
     if (!b) {
       b = document.createElement("button"); b.id = "sbx-topT"; b.type = "button"; b.textContent = "⬆"; b.title = "Back up to your club cards";
       b.style.cssText = "position:fixed;right:16px;z-index:2147482980;width:44px;height:44px;border-radius:999px;border:1px solid #475569;background:#0b1220;color:#fde68a;font:800 20px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.45);transition:opacity .2s,transform .2s;opacity:0;transform:translateY(8px);pointer-events:none";
-      b.onclick = () => { const t = document.getElementById("sbx-dash-wrap") || document.getElementById("sbx-tabs"); if (t) { const y = t.getBoundingClientRect().top + window.scrollY - 80; window.scrollTo({ top: Math.max(0, y), behavior: "smooth" }); } else window.scrollTo({ top: 0, behavior: "smooth" }); };
+      b.onclick = () => { const t = ["sbx-dash-wrap", "sbx-tabs"].map((id) => document.getElementById(id)).find((e) => e && e.getBoundingClientRect().height > 0); if (t) { const y = t.getBoundingClientRect().top + window.scrollY - 80; window.scrollTo({ top: Math.max(0, y), behavior: "smooth" }); } else window.scrollTo({ top: 0, behavior: "smooth" }); };
       document.body.appendChild(b);
       const show = () => { const on2 = window.scrollY > 700; b.style.opacity = on2 ? "1" : "0"; b.style.transform = on2 ? "none" : "translateY(8px)"; b.style.pointerEvents = on2 ? "auto" : "none"; b.style.bottom = "calc(var(--sbx-live-h, 0px) + 18px)"; };
       window.addEventListener("scroll", show, { passive: true }); show();
@@ -4366,7 +4366,7 @@ const SBX_TABLET = true;
   // The 🏆 Tournaments button (always there: it opens the Tournaments page) with a card above it for each
   // tournament you're in. ▾ on the button folds the cards away; the button then shows how many are waiting.
   const TOURNEY_HOME = "https://slipnsliders.github.io/smallball-tools/tournaments/";
-  const LIVE_MIN_KEY = "sbx-live-minT";
+  const LIVE_MIN_KEY = "sbx-live-min";
   const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) !== "0"; } catch (_) { return true; } };   // folded until you open them
   function mountLive() {
     if (!on("live")) return;
@@ -4414,7 +4414,7 @@ const SBX_TABLET = true;
     // Each part runs on its own: one failing never stops the others.
     const safe = (fn) => { try { fn(); } catch (e) { if (!safe.seen) { safe.seen = 1; console.warn("[Club Kit]", e); } } };
     try {
-      safe(mountTopBtn); safe(mountLive);
+      safe(mountTopBtn);
     } finally { busy = false; try { OBS.takeRecords(); } catch (_) {} }   // drop the changes the kit just made itself
   };
   const OBS = new MutationObserver(tick);
