@@ -2812,4 +2812,12 @@ function countGame_(mid, gid) {
   } finally { lock.releaseLock(); }
 }
 // Editor shortcut: one custom post to this tournament's channel (edit the text, then Run).
-function postOne() { withSlot_(null, () => post_('## 📣 Rule change: no more match clock\nSmallBall now makes a club finish its open challenges before it can start another game, so a match clock was punishing people for something out of their hands. Starting now:\n> ⏱ **No time limit.** Your match stays open until it\'s played. Just play it as soon as you can.\n> 🤝 **Either club can start the game.** Sort out in chat who starts it, then hit **Play** (not Exhibition). Match posts now have a Start link for each side.\n> 🙏 **Grace.** Stepped away for a bit? Nobody gets knocked out by the clock. If a match really stalls, the organizer decides.\n> 🆔 Club IDs now sit right next to each club name, and both link to the club\'s team page.\nLet\'s keep it moving! ⚾')); }
+function postOne() { withSlot_(null, () => {
+  // One-off: a sample of the new match post, built from Losers round 7 (already underway).
+  const T = stateGet_(), E = entrantMap_(), m = T.matches.find((x) => x.id === 'LR7M1'), a = sideClub_(T, m.a), b = sideClub_(T, m.b);
+  const st = (me, op) => '[' + esc_(E[me] ? E[me].Club : me).replace(/[\[\]]/g, '') + '](<https://play.smallball.com/?sbx_as=' + me + '#/team/' + op + '>)';
+  post_('-# 📋 Sample: this is how match posts look from now on (Losers round 7 is already being played)\n## 🔔 Next match is ready\n' +
+    '**' + esc_(m.label) + '** · play as soon as you can\n> ⚾ ' + nameOf_(E, T, a) + '\n> ⚾ ' + nameOf_(E, T, b) +
+    '\n> 👉 Start it from either side: ' + st(a, b) + ' · ' + st(b, a) + ', then **Play** (not Exhibition)' +
+    '\n-# 🤝 Either club can start the BigLeague game: sort out in chat who starts it and play as soon as you can. No clock. The script finds the game on SmallBall.' + linksLine_(cfg_()));
+}); }
