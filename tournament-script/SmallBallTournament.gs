@@ -2822,11 +2822,19 @@ function countGame_(mid, gid) {
 }
 // Editor shortcut: one custom post to this tournament's channel (edit the text, then Run).
 function postOne() { withSlot_(null, () => {
-  // One-off: a sample of the new match post, built from Losers round 7 (already underway).
-  const T = stateGet_(), E = entrantMap_(), m = T.matches.find((x) => x.id === 'LR7M1'), a = sideClub_(T, m.a), b = sideClub_(T, m.b);
+  // One-off: samples of each post type, built from a finished real match (WR4M1). Nobody is tagged.
+  const T = stateGet_(), E = entrantMap_(), C = cfg_(), m = T.matches.find((x) => x.id === 'WR4M1');
+  const w = m.winner, l = m.loser, a = sideClub_(T, m.a), b = sideClub_(T, m.b), sc = m.score || [0, 0];
   const st = (me, op) => '[' + esc_(E[me] ? E[me].Club : me).replace(/[\[\]]/g, '') + '](<https://play.smallball.com/?sbx_as=' + me + '#/team/' + op + '>)';
-  post_('-# 📋 Sample: this is how match posts look from now on (Losers round 7 is already being played)\n## 🔔 Next match is ready\n' +
-    '**' + esc_(m.label) + '** · play as soon as you can\n> ⚾ ' + nameOf_(E, T, a) + '\n> ⚾ ' + nameOf_(E, T, b) +
+  const head = (n, what) => '-# 📋 Sample ' + n + ' of 5: ' + what + ' (a replay of ' + esc_(m.label) + ', no pings)\n';
+  post_(head(1, 'a match opens') + '## 🔔 Next match is ready\n**' + esc_(m.label) + '** · play as soon as you can\n> ⚾ ' + who_(E, a, false) + '\n> ⚾ ' + who_(E, b, false) +
     '\n> 👉 Start it from either side: ' + st(a, b) + ' · ' + st(b, a) + ', then **Play** (not Exhibition)' +
-    '\n-# 🤝 Either club can start the BigLeague game: sort out in chat who starts it and play as soon as you can. No clock. The script finds the game on SmallBall.' + linksLine_(cfg_()));
+    '\n-# 🤝 Either club can start the BigLeague game: sort out in chat who starts it and play as soon as you can. No clock. The script finds the game on SmallBall.');
+  post_(head(2, 'the game is found') + '📡 **Game found** · ' + esc_(m.label) + ' · game `' + m.gid + '`\n> ⚾ ' + who_(E, a, false) + '\n> ⚾ ' + who_(E, b, false) +
+    '\n📺 [Watch it live](<' + watchUrl_(m.gid) + '>) · the result posts once it has aired (no spoilers).');
+  post_(head(3, 'the result') + '🏆 **' + esc_(m.label) + '** · final **' + Math.max(sc[0], sc[1]) + '–' + Math.min(sc[0], sc[1]) + '** · game `' + m.gid + '`\n> ✅ ' + who_(E, w, false) + '\n> ❌ ' + who_(E, l, false) +
+    '\n⬇️ ' + nm_(E, l) + ' drops to the losers bracket.\n➡️ ' + nm_(E, w) + ' plays next in the **Winners final**: it opens as soon as the other club is known.');
+  post_(head(4, 'a tie (pretend score)') + '🤝 **' + esc_(m.label) + '** · a **4–4 tie** (game `0000`), so play it again as soon as you can\n> ⚾ ' + who_(E, a, false) + '\n> ⚾ ' + who_(E, b, false));
+  const r = E[w];
+  post_(head(5, 'a sign-up') + '🆕 New sign-up: ' + (norm_(r.Discord) ? '**@' + esc_(r.Discord) + '**' : '') + ' · ' + clubTxt_(r) + '\n**23** clubs in for the **' + esc_(C.TOURNEY_NAME) + '**.');
 }); }
