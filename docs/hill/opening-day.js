@@ -100,8 +100,11 @@
     '#hill-news{margin:18px 0 4px;padding:10px 12px 8px;background:linear-gradient(90deg,rgba(244,235,217,.10),rgba(244,235,217,.03));border-left:4px solid #C8102E}',
     '#hill-news .nh{display:flex;align-items:center;gap:10px;margin-bottom:4px}',
     '#hill-news .nh .bb{font-size:22px;color:#ffd166;letter-spacing:.12em}',
+    '#hill-news.min{padding:6px 12px}',
+    '#hill-news.min .nh{margin:0}',
     '#hill-news .nh button,#hill-news .more{margin-left:auto;background:transparent;color:#F4EBD9;border:1px solid rgba(244,235,217,.3);padding:2px 10px;font:500 13px Oswald,sans-serif;cursor:pointer}',
     '#hill-news .more{margin:4px 0 0 34px}',
+    '#hill-news .nh button+button{margin-left:6px}',
     '#hill-news .nh button:hover,#hill-news .more:hover{background:#C8102E;border-color:#C8102E}',
     '#hill-news .ni{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-top:1px dashed rgba(244,235,217,.14);font-size:15px;line-height:1.4}',
     '#hill-news .ni:first-of-type{border-top:0}',
@@ -225,8 +228,17 @@
     var it = newsItems(), el = document.getElementById('hill-news');
     if (!it.length) { if (el) el.remove(); return; }
     if (!el) { el = document.createElement('section'); el.id = 'hill-news'; app.insertBefore(el, app.firstChild); }
+    // ▾ Tuck the news away (this browser remembers). Tucked, it's one slim line with a count of anything newer.
+    var tuck = 0; try { tuck = Number(localStorage.getItem('hth-news-min') || 0); } catch (e) { }
+    if (tuck) {
+      var fresh = it.filter(function (x) { return (Date.parse(x.at || '') || 0) > tuck; }).length;
+      var hm = '<div class="nh"><span class="bb">📣 HILL NEWS</span>' + (fresh ? '<span class="new">' + fresh + ' NEW</span>' : '') + '<button type="button" data-nmin>▸ Show</button></div>';
+      if (el.dataset.h !== hm) { el.innerHTML = hm; el.dataset.h = hm; el.classList.add('min'); el.querySelector('[data-nmin]').onclick = function () { try { localStorage.removeItem('hth-news-min'); } catch (e) { } el.dataset.h = ''; news(w); }; }
+      return;
+    }
+    el.classList.remove('min');
     var show = NEWS_OPEN ? it : it.slice(0, 3);
-    var html = '<div class="nh"><span class="bb">📣 HILL NEWS</span>' + (w.on ? '<button type="button" data-odreplay>▶ Opening Day intro</button>' : '') + '</div>' +
+    var html = '<div class="nh"><span class="bb">📣 HILL NEWS</span>' + (w.on ? '<button type="button" data-odreplay>▶ Opening Day intro</button>' : '') + '<button type="button" data-nmin title="Tuck the news away">▾ Hide</button></div>' +
       show.map(function (x) {
         var at = Date.parse(x.at || ''), fresh = at && Date.now() - at < 24 * 3600e3;
         return '<div class="ni"><span class="ic">' + esc(x.icon || '⚾') + '</span><div><b>' + esc(x.title || '') + (fresh ? '<span class="new">NEW</span>' : '') + '</b> ' + (x.html ? String(x.html) : esc(x.body || '')) + (at ? ' <small>' + t(at) + '</small>' : '') + '</div></div>';
@@ -236,6 +248,7 @@
       el.innerHTML = html; el.dataset.h = html;
       var r = el.querySelector('[data-odreplay]'); if (r) r.onclick = function () { intro(w, true); };
       var m = el.querySelector('[data-more]'); if (m) m.onclick = function () { NEWS_OPEN = !NEWS_OPEN; el.dataset.h = ''; news(w); };
+      var mn = el.querySelector('[data-nmin]'); if (mn) mn.onclick = function () { try { localStorage.setItem('hth-news-min', String(Date.now())); } catch (e) { } el.dataset.h = ''; news(w); };
     }
   }
 
