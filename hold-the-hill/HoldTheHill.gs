@@ -3375,7 +3375,7 @@ function bigOk_() { try { return JSON.parse(PropertiesService.getScriptPropertie
 function hasBigOk_(email) { const o = bigOk_(), t = o[lc_(email)]; return !!t && t > now_().getTime(); }
 function useBigOk_(email) { const o = bigOk_(); delete o[lc_(email)]; PropertiesService.getScriptProperties().setProperty('BIG_WAGER_OK', JSON.stringify(o)); }
 function wagerNormalCap_(C, email) { return Math.min(flat_(C), stakeCap_(C, email, pctOf_(C.WAGER_MAX_PCT, 4.2))); }
-function wagerCap_(C, email) { return hasBigOk_(email) ? stakeCap_(C, email, pctOf_(C.WAGER_BIG_PCT, 10)) : wagerNormalCap_(C, email); }
+function wagerCap_(C, email) { const n = wagerNormalCap_(C, email); return hasBigOk_(email) ? Math.max(n, stakeCap_(C, email, pctOf_(C.WAGER_BIG_PCT, 10))) : n; }   // a big-wager OK never lowers the limit
 function wagerMax_(C) { return pctOf_(C.WAGER_MAX_PCT, 4.2) + '% of your Brawl Bucks'; }
 function adminBigWager() {
   withUi_(function (ui) {
