@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.22: while the losers bracket's first round waits for the play-ins, the page lists who has dropped so far; v2.21: every tournament post carries the live bracket link (the sign-up link drops off once the bracket is drawn); v2.20: the rules box starts closed; v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.23: ⏩ Post a found result now (skips the airing wait for one match); v2.22: while the losers bracket's first round waits for the play-ins, the page lists who has dropped so far; v2.21: every tournament post carries the live bracket link (the sign-up link drops off once the bracket is drawn); v2.20: the rules box starts closed; v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -1082,6 +1082,7 @@ function onOpen() {
     .addItem('Set up / repair (form, tabs, triggers)', 'setup')
     .addItem('🔄 Check SmallBall now', 'adminCheckNow')
     .addItem('✅ Settle a match by hand', 'adminSettle')
+    .addItem('⏩ Post a found result now (skip the airing wait)', 'adminAirNow')
     .addItem('↩️ Undo a match result', 'adminUndo')
     .addItem('📣 Post the sign-up announcement', 'adminAnnounce')
     .addItem('🗂️ Post the bracket to Discord', 'adminPostBracket')
@@ -2671,3 +2672,31 @@ function lbSendNow() {
     } finally { lock.releaseLock(); }
   });
 }
+
+// ⏩ A game's been found but its result is waiting to air: post it now and move the bracket on.
+function adminAirNow() {
+  withUi_((ui) => {
+    const T = stateGet_(); if (!T) return 'No bracket yet.';
+    const waiting = T.matches.filter((m) => m.pend && !m.winner), E = entrantMap_();
+    if (!waiting.length) return 'No found games are waiting to air right now.';
+    const list = waiting.map((m) => m.id + ': ' + plainName_(E, sideClub_(T, m.a)) + ' vs ' + plainName_(E, sideClub_(T, m.b)) + ' (game ' + m.pend.gid + ')').join('\n');
+    const r = ui.prompt('⏩ Post a found result now', 'Waiting to air:\n' + list + '\n\nType a match ID (or ALL):', ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK) return '';
+    return airNow_(norm_(r.getResponseText()).toUpperCase());
+  });
+}
+function airNow_(which) {
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    const T = stateGet_(), C = cfg_(); if (!T) return 'No bracket yet.';
+    const pick = T.matches.filter((m) => m.pend && !m.winner && (which === 'ALL' || m.id === which));
+    if (!pick.length) return 'No found game waiting for ' + which + '.';
+    pick.forEach((m) => { m.pend.airs = Date.now() - 1000; });
+    postDue_(T, C); waves_(T, C);
+    if (!T.done && champion_(T)) crown_(T, C);
+    stateSet_(T); snapshot_(T); wake_();
+    log_('organizer', 'Posted early', pick.map((m) => m.id).join(', '));
+    return '⏩ Posted: ' + pick.map((m) => m.id).join(', ') + '. Next matches opened where both clubs are known.';
+  } finally { lock.releaseLock(); }
+}
+function airNowWR3M1() { withSlot_(null, () => Logger.log(airNow_('WR3M1'))); }
