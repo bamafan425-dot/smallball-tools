@@ -3294,6 +3294,26 @@ function adminResetForLaunch() {
 // streaks, votes and the Log are erased; every club goes back to 0-0, ranked by sign-up order (first in = #1).
 // Then the tournament champion's owner is crowned the Ace: their club on the Hill (the champion club itself if
 // it's there, else that owner's first-signed-up Hill club); if they're only on the Farm Hill, they're the Farm Ace.
+// 🎉 One-off: the Opening Day post for the Hill feed (run from the editor after 🏁 Fresh start). Names in bold, no pings.
+function postOpeningDay() {
+  const C = cfg_(), pt = players_(), A = ace_(pt), lad = ladder_(pt);
+  const line = (p) => '**@' + esc_(p.Discord) + '** · **' + esc_(p.Club) + '** · ' + norm_(p.ClubID);
+  let farm = [];
+  try { if (farmReady_()) farm = withLad_('farm', function () { const fp = players_(); const fa = ace_(fp); return (fa ? [fa] : []).concat(ladder_(fp)); }); } catch (e) { }
+  const board = norm_(C.BOARD_LINK) || 'https://slipnsliders.github.io/smallball-tools/hill/', form = norm_(C.FORM_LINK);
+  const msg = '# 🎉 OPENING DAY · Hold the Hill Season ' + norm_(C.SEASON) + ' is LIVE!\n' +
+    'Fresh season, clean slate: every record is **0-0**, every wallet holds **' + (Number(C.BOOK_BANKROLL) || 1000).toLocaleString() + ' Brawl Bucks**, and the hill is up for grabs.\n\n' +
+    '**♠ On the mound**\n> ' + (A ? line(A) : 'Nobody yet: the hill is open!') + '\n\n' +
+    '**⛰️ The Climb**\n' + lad.map(function (p) { return '> #' + p.Rank + ' ' + line(p); }).join('\n') + '\n\n' +
+    (farm.length ? '**🌱 The Farm**\n' + farm.map(function (p) { return '> ' + (Number(p.Rank) === 0 ? '♠ ' : '#' + p.Rank + ' ') + line(p); }).join('\n') + '\n\n' : '') +
+    '## ⚾ Come charge the mound!\n' +
+    '> Charge up to **' + (Number(C.CHALLENGE_REACH) || 3) + ' spots** above you. Win and you take their spot; beat the Ace and the hill is yours.\n' +
+    '> Every Hill game pays Brawl Bucks, and a 🔥 daily streak pays more. Bet the 🎰 Sportsbook and 🤝 wager head-to-head (up to ' + pctOf_(C.BET_MAX_PCT, 4.2) + '% of your Brawl Bucks).\n' +
+    (form ? '📝 [Charge on the Master Form](<' + form + '>)\n' : '') +
+    '📊 [Live HtH Leaderboard](<' + board + '>): the Opening Day party runs all day 🎆';
+  post_(msg);
+}
+
 function adminFreshStart() {
   const ui = SpreadsheetApp.getUi();
   const ans = ui.prompt('🏁 Fresh start',
