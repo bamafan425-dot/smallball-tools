@@ -100,6 +100,10 @@
     '#hill-news{margin:18px 0 4px;padding:10px 12px 8px;background:linear-gradient(90deg,rgba(244,235,217,.10),rgba(244,235,217,.03));border-left:4px solid #C8102E}',
     '#hill-news .nh{display:flex;align-items:center;gap:10px;margin-bottom:4px}',
     '#hill-news .nh .bb{font-size:22px;color:#ffd166;letter-spacing:.12em}',
+    '#mound-clock{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:6px 0 10px;padding:8px 12px;background:rgba(244,235,217,.06);border-left:4px solid #ffd166;font-size:14.5px}',
+    '#mound-clock .mc-next{color:#ffd166}',
+    '#mound-clock .mc-t{font:400 22px/1 "Bebas Neue",sans-serif;letter-spacing:.06em;margin-left:2px}',
+    '#mound-clock .mc-n{margin-left:auto;opacity:.55;font-size:12px}',
     '#hill-news.min{padding:6px 12px}',
     '#hill-news.min .nh{margin:0}',
     '#hill-news .nh button,#hill-news .more{margin-left:auto;background:transparent;color:#F4EBD9;border:1px solid rgba(244,235,217,.3);padding:2px 10px;font:500 13px Oswald,sans-serif;cursor:pointer}',
@@ -252,6 +256,23 @@
     }
   }
 
+  // ⏳ The title-shot clock: who can charge the Ace right now, and a live countdown to the next spot opening.
+  function moundClock() {
+    var d = D(), climb = document.querySelector('.climb'), ace = climb && climb.querySelector('.step.ace');
+    var el = document.getElementById('mound-clock');
+    if (!ace || !d.ace || !d.moundOpenTo) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'mound-clock'; }
+    if (el.previousElementSibling !== ace) ace.insertAdjacentElement('afterend', el);
+    var to = +d.moundOpenTo || 1, max = +d.moundMax || to, at = Date.parse(d.moundNextAt || '') || 0, left = at - Date.now();
+    var who = to <= 1 ? '<b>#1</b> can charge the Ace' : '<b>#1–#' + to + '</b> can charge the Ace';
+    var nxt = '';
+    if (to < max && at) {
+      if (left > 0) { var hh = Math.floor(left / 36e5), mm = Math.floor(left % 36e5 / 6e4), ss = Math.floor(left % 6e4 / 1e3); nxt = '<span class="mc-next">⏳ <b>#' + (to + 1) + '</b> gets a title shot in <b class="mc-t">' + hh + ':' + (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss + '</b></span>'; }
+      else nxt = '<span class="mc-next">⏳ <b>#' + (to + 1) + '</b> is up next: opening now…</span>';
+    } else if (to >= max) nxt = '<span class="mc-next">The mound is as open as it gets.</span>';
+    var html = '<span>🎯 ' + who + '</span>' + nxt + '<span class="mc-n">A charge at the Ace resets the clock.</span>';
+    if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
+  }
   function tick() {
     var w = windowNow(), old = document.getElementById('od-banner'); if (old) old.remove();
     news(w);
@@ -261,7 +282,7 @@
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
     loadCfg(function (c) {
       CFG = c || {};
-      (function wait(n) { if (window.__D && document.getElementById('app') && document.getElementById('app').children.length) { tick(); setInterval(tick, 30000); } else if (n < 120) setTimeout(function () { wait(n + 1); }, 250); })(0);
+      (function wait(n) { if (window.__D && document.getElementById('app') && document.getElementById('app').children.length) { tick(); setInterval(tick, 30000); try { moundClock(); } catch (e) { } setInterval(function () { try { moundClock(); } catch (e) { } }, 1000); } else if (n < 120) setTimeout(function () { wait(n + 1); }, 250); })(0);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

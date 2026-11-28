@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.28: every Discord post ends with a ━━━ break line; three title-charge items: 💥 Brass Knuckles as a Knockout Punch, 🔁 Mulligan, 💰 Bounty Hunter; v3.27: clean Discord posts (Game found: the two clubs, watch link, when it's over): one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.29: ⏳ the open mound counts down to the next title-shot spot (4h 20m a spot by default); v3.28: every Discord post ends with a ━━━ break line; three title-charge items: 💥 Brass Knuckles as a Knockout Punch, 🔁 Mulligan, 💰 Bounty Hunter; v3.27: clean Discord posts (Game found: the two clubs, watch link, when it's over): one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -137,8 +137,8 @@ const DEFAULTS = {
   ACE_LOSS_REST_HOURS: [2, '🩹 After losing a charge at the Ace: hours of recovery before you can charge anyone'],
   ACE_LOSS_REST_KNUCKLES_HOURS: [3, '🩹 The same, when the Ace was wearing Brass Knuckles'],
   MOUND_OPEN_MAX: [5, 'Open mound: only #1 can charge the Ace at first; with no title charge it opens one more spot at a time, down to this spot'],
-  MOUND_FIRST_HOURS: [8, 'Open mound: hours with no title charge before #2 can charge the Ace too'],
-  MOUND_STEP_HOURS: [24, 'Open mound: after that, hours for each further spot (#3, #4...)'],
+  MOUND_FIRST_HOURS: ['4:20', 'Open mound: time with no title charge before #2 can charge the Ace too (hours, or H:MM like 4:20)'],
+  MOUND_STEP_HOURS: ['4:20', 'Open mound: after that, time for each further spot (#3, #4...) (hours, or H:MM like 4:20)'],
   BELL_PER_WEEK: [3, '🔔 The Bell: open-mound windows a week (0 = off). While it rings, anyone on the climb can charge the Ace'],
   BELL_MINUTES: [60, '🔔 The Bell: how long each window lasts'],
   BELL_WEEKDAY: ['06:30-08:00, 11:30-13:00, 21:00-22:30', '🔔 The Bell: Mountain-time windows it can ring in, Mon–Fri'],
@@ -428,8 +428,27 @@ function moundQuiet_(C) {
   const t = Number(hm[0]) * 60 + Number(hm[1]), a = Number(m[1]) * 60 + Number(m[2]), b = Number(m[3]) * 60 + Number(m[4]);
   return a <= b ? (t >= a && t < b) : (t >= a || t < b);
 }
+// Hours from a setting: 4.5, or H:MM like 4:20.
+function hrsOf_(v, dflt) { const t = norm_(v), m = t.match(/^(\d+):(\d{2})$/); const h = m ? Number(m[1]) + Number(m[2]) / 60 : Number(t); return h > 0 ? h : dflt; }
+const fmtHrs_ = (h) => { const m = Math.round(h * 60); return Math.floor(m / 60) + 'h' + (m % 60 ? ' ' + (m % 60) + 'm' : ''); };
+// When the next spot opens (null once it's as wide as it gets). Overnight (MOUND_QUIET) it waits for morning.
+function moundNextAt_(C) {
+  if (isFarm_()) return null;
+  const to = moundOpenTo_(C), max = Number(C.MOUND_OPEN_MAX) || 1; if (to >= max) return null;
+  const first = hrsOf_(C.MOUND_FIRST_HOURS, 4 + 1 / 3), step = hrsOf_(C.MOUND_STEP_HOURS, 4 + 1 / 3);
+  let at = new Date(lastTitle_(C).getTime() + 3600000 * (first + step * (to - 1)));
+  if (at < now_()) at = now_();   // due now: it's waiting out the night
+  const q = norm_(C.MOUND_QUIET).match(/^(\d{1,2}):?(\d{2})\s*-\s*(\d{1,2}):?(\d{2})$/);
+  if (q) {
+    const hm = Utilities.formatDate(at, 'America/Denver', 'HH:mm').split(':'), t = Number(hm[0]) * 60 + Number(hm[1]);
+    const a = Number(q[1]) * 60 + Number(q[2]), b = Number(q[3]) * 60 + Number(q[4]);
+    const inQ = a <= b ? (t >= a && t < b) : (t >= a || t < b);
+    if (inQ) { let wait = b - t; if (wait <= 0) wait += 1440; at = new Date(Math.ceil((at.getTime() + wait * 60000) / 60000) * 60000); }
+  }
+  return at;
+}
 function moundRaw_(C) {
-  const h = (now_() - lastTitle_(C)) / 3600000, first = Number(C.MOUND_FIRST_HOURS) || 24, step = Number(C.MOUND_STEP_HOURS) || 24;
+  const h = (now_() - lastTitle_(C)) / 3600000, first = hrsOf_(C.MOUND_FIRST_HOURS, 4 + 1 / 3), step = hrsOf_(C.MOUND_STEP_HOURS, 4 + 1 / 3);
   const to = h < first ? 1 : 2 + Math.floor((h - first) / step);
   return Math.max(1, Math.min(Number(C.MOUND_OPEN_MAX) || 1, to));
 }
@@ -509,9 +528,8 @@ function bellTick_(C) {
 function moundNext_(C) {   // words for when the next spot opens, e.g. "#2 joins in about 5 hours"
   const to = moundOpenTo_(C), max = Number(C.MOUND_OPEN_MAX) || 1;
   if (to >= max) return '';
-  const first = Number(C.MOUND_FIRST_HOURS) || 24, step = Number(C.MOUND_STEP_HOURS) || 24;
-  const at = lastTitle_(C).getTime() + 3600000 * (first + step * (to - 1)), hrs = Math.max(0, (at - now_()) / 3600000);
-  return '#' + (to + 1) + ' joins ' + (hrs < 1 ? 'within the hour' : 'in about ' + Math.round(hrs) + ' hours') + ' if nobody charges (never overnight).';
+  const at = moundNextAt_(C); if (!at) return '';
+  return '#' + (to + 1) + ' gets a title shot ' + ts_(at) + ' (' + rel_(at) + ') if nobody charges the Ace first.';
 }
 
 // ── Daily Brawl points: paid once a day (just after midnight Mountain) for the day before, by spot.
@@ -4235,7 +4253,8 @@ function farmSnap_() {
     charges: challenges_().rows.filter(function (c) { return OPEN.indexOf(c.Status) >= 0; }).map(function (c) { return { type: c.Type, ch: norm_(c.ChallengerName), df: norm_(c.DefenderName), created: iso(c.Created), deadline: iso(c.Deadline), status: c.Status === 'Started' ? 'Game reported' : c.Status === 'Review' ? 'With the commish' : 'Waiting on the game' }; }),
     matches: readTable_(SHEETS.MATCHES).rows.slice(-10).reverse().map(function (m) { return { date: iso(m.Date), type: m.Type, w: norm_(m.Winner), l: norm_(m.Loser), wr: m.WinnerRuns, lr: m.LoserRuns, outcome: norm_(m.Outcome), game: norm_(m.GameID) }; }),
     calledUp: pt.rows.filter(function (p) { return p.Status === 'Called up'; }).map(function (p) { return { name: norm_(p.Discord), club: norm_(p.Club), clubId: norm_(p.ClubID) }; }),
-    moundOpenTo: moundOpenTo_(C),
+    moundOpenTo: moundOpenTo_(C), moundNextAt: (function () { try { const a = moundNextAt_(C); return a ? a.toISOString() : ''; } catch (e) { return ''; } })(), moundMax: Number(C.MOUND_OPEN_MAX) || 1,
+    moundFirst: fmtHrs_(hrsOf_(C.MOUND_FIRST_HOURS, 4 + 1 / 3)), moundStep: fmtHrs_(hrsOf_(C.MOUND_STEP_HOURS, 4 + 1 / 3)),
     bell: B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null,
   };
 }
@@ -4328,8 +4347,8 @@ const DASH_GROUPS_ = [
     { k: 'BELL_ROLE_ID', label: 'Discord role to ping', t: 'text', help: 'The role ID of an opt-in "Mound Alerts" role. Blank = no ping.' },
   ] },
   { id: 'mound', title: '⏰ Open mound', blurb: 'Who can charge the Ace when nobody has for a while.', items: [
-    { k: 'MOUND_FIRST_HOURS', label: '#2 can charge the Ace after', t: 'range', min: 1, max: 48, step: 1, unit: 'hrs' },
-    { k: 'MOUND_STEP_HOURS', label: 'Then one more spot every', t: 'range', min: 4, max: 72, step: 4, unit: 'hrs' },
+    { k: 'MOUND_FIRST_HOURS', label: '#2 can charge the Ace after (hours; 4.33 = 4h 20m)', t: 'range', min: 0.5, max: 48, step: 0.0833, unit: 'hrs' },
+    { k: 'MOUND_STEP_HOURS', label: 'Then one more spot every (hours; 4.33 = 4h 20m)', t: 'range', min: 0.5, max: 72, step: 0.0833, unit: 'hrs' },
     { k: 'MOUND_OPEN_MAX', label: 'Opens down to spot', t: 'range', min: 1, max: 10, step: 1, unit: '#' },
     { k: 'MOUND_QUIET', label: 'Never opens wider during', t: 'windows', help: 'Mountain time, like 22:30-06:30. Blank = any time.' },
   ] },
