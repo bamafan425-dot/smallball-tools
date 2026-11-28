@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.41.2
+// @version      1.42.0
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -123,7 +123,7 @@ const SBX_MOBILE = true;
 
   // Which clubs get tabs and dashboard cards. Empty means "your first four clubs";
   // pick your own with the ⚙ button next to the tabs.
-  const KIT_VERSION = "1.41.2";   // filled in by the build
+  const KIT_VERSION = "1.42.0";   // filled in by the build
   const DEFAULT_CLUBS = []; // e.g. [3249, 1008, 8897]; empty = your first four clubs
   let PICKED = [];
   const MAX_DEFAULT = 4;
@@ -152,6 +152,7 @@ const SBX_MOBILE = true;
   let PRIVATE_PASSIVE = null; // set only in the private build
   // Features you can switch on and off from the ⚙ menu. Everything starts on.
   const FEATURES = [
+    ["srank", "⭐ Star list rank on your club cards and club pages (click it for the full star list)"],
     ["tabs", "Quick tabs"], ["selector", "Club selector: readable, recent first"], ["logos", "Club logos"],
     ["dash", "Club dashboard"], ["season", "Season clock"], ["tier", "Tier watch"], ["train", "Train times"], ["totop", "⬆ Back-to-top button (bottom right) that takes you back up to your club cards"], ["explorer", "🔭 Explorer link in the top menu (the site's Team explorer, normally only in the footer)"], ["scout", "🔎 Scouting report (record, lineup card, hot and cold, pitching) and ⚔️ rivalry on other clubs' pages"], ["alerts", "🔔 Alerts and inbox: charges, the Bell, wagers and tournament matches (top right)"], ["tplan", "📋 Asst. Trainer Kit: a full-page training planner on your club page, and a live board under the trainer"], ["hotcold", "🔥🧊 Hot and cold tags in the squad (last 10 games vs the 15 before)"],
     ["alert", "Tab title alert when ready to train"], ["parks", "Stadium records"], ["hillcard", "⛰️ Hold the Hill card (bottom right): your ladder spot, who you can charge, your Brawl Bucks"], ["achtidy", "Tidy the Achievements section: medals on your stadium cards, Country tour shows where you've played, Earned badges first"], ["games", "Season games views"],
@@ -164,7 +165,7 @@ const SBX_MOBILE = true;
   // Phone edition: the big picture only. Club cards, quick tabs and a Play button; none of the box-score
   // tools, so it stays light on a phone and on the site.
   const MOBILE = typeof SBX_MOBILE !== "undefined" && !!SBX_MOBILE;
-  const MOBILE_KEEP = ["totop", "explorer", "scout", "alerts", "tplan", "hotcold", "hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
+  const MOBILE_KEEP = ["srank", "totop", "explorer", "scout", "alerts", "tplan", "hotcold", "hillcard", "achtidy", "charge", "live", "tabs", "selector", "logos", "dash", "season", "tier", "train", "alert", "livebar", "cd", "cdding", "cdhide", "freeze", "box", "boxding", "hill"];
   const OFF_TO_START = ["cdding", "freeze", "boxding", "boxnote", "kboth"];   // the few features that start off
   // iPad edition (a Safari userscript): the full kit, minus what a userscript can't do there.
   const TABLET = typeof SBX_TABLET !== "undefined" && !!SBX_TABLET;
@@ -480,6 +481,12 @@ const SBX_MOBILE = true;
       :is(#sbx-dash, .sbx-tabbody) .card { border-color: color-mix(in srgb, var(--tier, #7f7f7f) 45%, rgba(127,127,127,.35)); }
       :is(#sbx-dash, .sbx-tabbody) .stars .num small { font-size: 14px; margin-left: 1px; }
       :is(#sbx-dash, .sbx-tabbody) .stars .avg { font-size: 11px; opacity: .65; }
+      a.sbx-srank { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; padding: 1px 8px; border-radius: 999px; font: 800 11.5px system-ui, sans-serif; text-decoration: none; white-space: nowrap; background: rgba(245,179,1,.14); color: #f5b301; border: 1px solid rgba(245,179,1,.45); cursor: pointer; }
+      a.sbx-srank.nr { background: rgba(127,127,127,.12); color: inherit; opacity: .7; border-color: rgba(127,127,127,.4); }
+      a.sbx-srank:hover { filter: brightness(1.2); opacity: 1; }
+      .teamhead .facts .fact a.sbx-srank { margin-left: 0; font-size: 13px; }
+      #s-starlist tr.sbx-starme td { background: rgba(245,179,1,.22) !important; }
+      #s-starlist tr.sbx-starme { outline: 2px solid #f5b301; outline-offset: -2px; }
       h2 .sbx-seg { display: inline-flex; margin-left: 10px; vertical-align: middle; border: 1px solid rgba(127,127,127,.45); border-radius: 999px; overflow: hidden; }
       h2 .sbx-seg button { font: inherit; font-size: 12px; font-weight: 700; padding: 3px 11px; border: 0; background: transparent; color: inherit; cursor: pointer;
         text-transform: none; letter-spacing: 0; opacity: .7; }
@@ -1204,6 +1211,11 @@ const SBX_MOBILE = true;
   // ───────── Club Kit tools: ✨ What's new · 🩺 Health check · 💾 Back up / restore (in the ⚙ settings) ─────────
   // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
   const CHANGELOG = [
+    { v: "1.42.0", d: "Nov 27", items: [
+      "⭐ <b>Star list rank</b> on your club cards and on every club's page: its place on SmallBall's star list for its star level (NR when it isn't in the top 100). Click it to open the full list with the club picked out.",
+      "📋 <b>Asst. Trainer</b>: a TP bar under \"TP left\" on the player card, in the same gold and green as the club page's TP column, and <b>↕ Sort by TP</b> on the board (most left, least left, or the club's order).",
+      "🏆 Your Hill and tournament cards (bottom right) now start open. ▾ still tucks them away.",
+    ] },
     { v: "1.41.2", d: "Nov 27", items: [
       "🕐 Tournament and Hill times now show their time zone (shown in yours, like 6:00 PM MST).",
       "📊 <b>Skill board</b> on the Asst. Trainer's board: every man's skills side by side with this session's gains, his weakest in amber.",
@@ -1677,7 +1689,7 @@ const SBX_MOBILE = true;
       ".at-nm{font-weight:900;font-size:15px}",
       ".at-sub{opacity:.65;font-size:12px}",
       ".at-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}",
-      ".at-bar i{display:block;height:100%}",
+      ".at-bar i{display:block;height:100%;transition:width .6s ease,background .6s}",
       ".at-sk{display:grid;grid-template-columns:92px 1fr 34px 40px;gap:8px;align-items:center;padding:4px 6px;border-radius:8px;cursor:pointer}",
       ".at-sk:hover{background:rgba(255,255,255,.06)}",
       ".at-sk.f{background:rgba(250,204,21,.13);outline:1px solid rgba(250,204,21,.5)}",
@@ -1747,6 +1759,7 @@ const SBX_MOBILE = true;
       "#sbx-dock.bug{max-height:calc(100vh - 130px);overflow:auto}",
       "#sbx-selbug{position:fixed;right:16px;top:120px;z-index:2147482990;width:260px;background:linear-gradient(#10182c,#0b1220);color:#f4ebd9;border-radius:14px;padding:10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.6),0 0 0 2px #38bdf8;font:12px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}",
       "#sbx-selbug .bg-h{display:flex;align-items:baseline;gap:6px;cursor:move;user-select:none}#sbx-selbug .bg-h b{font:900 14px/1.2 system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-selbug .bg-h i{font-style:normal;opacity:.55;font-size:11px}#sbx-selbug .x{margin-left:auto;border:0;background:none;color:inherit;opacity:.6;cursor:pointer;font-size:14px}",
+      "#sbx-selbug .tpl{margin:-3px 0 8px}#sbx-selbug .tpl .at-bar{height:6px}",
       "#sbx-selbug .nums{display:flex;gap:8px;flex-wrap:wrap;margin:5px 0 7px;font-size:11px;opacity:.9}#sbx-selbug .nums b{color:#fde68a}#sbx-selbug .nums b.g{color:#4ade80}#sbx-selbug .nums b.r{color:#f87171}",
       "#sbx-selbug .sr{display:grid;grid-template-columns:86px 1fr 24px 24px;gap:5px;align-items:center;padding:2px 0}#sbx-selbug .sr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-selbug .sr b{text-align:right}#sbx-selbug .sr em{font-style:normal;color:#4ade80;font-weight:800;font-size:11px}",
       "#sbx-selbug .bar{height:7px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}#sbx-selbug .bar i{display:block;height:100%;background:#38bdf8;border-radius:999px}",
@@ -1765,7 +1778,8 @@ const SBX_MOBILE = true;
     ].join("");
     document.head.appendChild(st);
   };
-  const tpBar = (tp) => '<div class="at-bar"><i style="width:' + Math.min(100, Math.max(0, tp)) + "%;background:" + (tp >= 95 ? "#16a34a" : tp < 15 ? "#f87171" : "#60a5fa") + '"></i></div>';
+  // Same colors as the TP column on the club page: gold while it fills or drains, green when full.
+  const tpBar = (tp) => '<div class="at-bar"><i style="width:' + Math.min(100, Math.max(0, tp)) + "%;background:" + (tp >= 99.5 ? "#16a34a" : "#ca8a04") + '"></i></div>';
   const fmtT = (t) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
   const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toLocaleDateString("en-CA"); };
   function atRedraw() { AT.sig = ""; AT.dsig = ""; setTimeout(mountAsst, 0); }
@@ -1779,6 +1793,8 @@ const SBX_MOBILE = true;
   // full board above or below the trainer. The bug and the floating board drag by their title bar.
   const AT_PLACE = "sbx-at-place", AT_POS = "sbx-at-pos", AT_VIEW = "sbx-at-view", AT_WEAK = "sbx-at-weak";
   const atView = () => { try { return localStorage.getItem(AT_VIEW) === "skills" ? "skills" : "session"; } catch (_) { return "session"; } };
+  const AT_SORT = "sbx-at-sort";   // the board's order: "" = the club's own order, "tpd" = most TP left first, "tpa" = least first
+  const atSort = () => { try { const v = localStorage.getItem(AT_SORT) || ""; return v === "tpd" || v === "tpa" ? v : ""; } catch (_) { return ""; } };
   const atWeakOpen = () => { try { return localStorage.getItem(AT_WEAK) !== "0"; } catch (_) { return true; } };
   // A man's skills that count for him: Pitching only for the man on the mound (everyone's would be "weakest" otherwise).
   const atSkillsFor = (p) => SKL.map(([k, f, nm], i) => ({ k, i, nm, v: Math.round(+p[f] || 0) })).filter((x) => x.k !== "P" || p.position === "P");
@@ -2481,7 +2497,7 @@ const SBX_MOBILE = true;
     const sig = selP.player_id + "|" + c.at + "|" + JSON.stringify(Pl) + "|" + atEv.length;
     if (el.dataset.sig === sig) return; el.dataset.sig = sig;
     el.innerHTML = '<div class="bg-h"><b>🎯 ' + esc(selP.name) + '</b><i>' + esc(selP.position || "bench") + '</i><button type="button" class="x" title="Hide until you click another man">✕</button></div>' +
-      '<div class="nums"><span><b>' + tp + "</b> TP left</span><span>" + (sp ? '<b class="r">−' + sp + "</b> spent" : "no TP spent yet") + "</span><span>" + (gsum ? '<b class="g">+' + gsum + "</b> gained" : "no gains yet") + "</span></div>" + rows +
+      '<div class="nums"><span><b>' + tp + "</b> TP left</span><span>" + (sp ? '<b class="r">−' + sp + "</b> spent" : "no TP spent yet") + "</span><span>" + (gsum ? '<b class="g">+' + gsum + "</b> gained" : "no gains yet") + "</span></div>" + '<div class="tpl">' + tpBar(tp) + "</div>" + rows +
       '<div class="send"><span>Send to</span>' + ["BOX", "P", "REST", "C", "1B", "2B", "SS", "3B", "LF", "CF", "RF"].map((k) => '<button type="button" data-send="' + k + '" title="Move him to ' + AT_SPOTS[k][2].replace(/^\S+ /, "") + '">' + AT_SPOTS[k][2] + "</button>").join("") + "</div>" +
       '<div class="ft">Session since ' + new Date(S.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (low >= 0 ? " · amber = his weakest skill" : "") + "</div>";
     el.querySelector(".x").onclick = () => { AT.selHidden = selP.player_id; el.remove(); };
@@ -2527,12 +2543,14 @@ const SBX_MOBILE = true;
       return roster.find((p) => key(p.name) === nm) || roster.find((p) => key(p.name) && (key(p.name).startsWith(nm) || nm.startsWith(key(p.name)))) || null;
     })();
     const selRaw = heldSel, selOn = true;
-    const dsig = c.at + "|" + JSON.stringify(plan) + "|" + atEv.length + "|" + mode + "|" + pl + "|" + hot + "|" + view + "|" + weakOpen + "|" + (selP ? selP.player_id : "") + "|" + selRaw + selOn;
+    const srt = atSort(), tpOf = (p) => +p.tp || 0;
+    const order = srt ? roster.slice().sort((a, b) => (srt === "tpa" ? tpOf(a) - tpOf(b) : tpOf(b) - tpOf(a))) : roster;
+    const dsig = srt + "|" + c.at + "|" + JSON.stringify(plan) + "|" + atEv.length + "|" + mode + "|" + pl + "|" + hot + "|" + view + "|" + weakOpen + "|" + (selP ? selP.player_id : "") + "|" + selRaw + selOn;
     mountSelBug(team, c, roster, S, plan, selP);
     if (el.dataset.sig === dsig) return;
     el.dataset.sig = dsig;
     let spent = 0, gains = 0, onPlan = 0, offPlan = 0, planned = 0;
-    const tiles = roster.map((p) => {
+    const tiles = order.map((p) => {
       const b = S.base[p.player_id] || { tp: +p.tp || 0, s: SKL.map(() => 0) };
       const tp = Math.round(+p.tp || 0), sp = Math.max(0, Math.round(b.tp - (+p.tp || 0)));
       const g = SKL.map(([, k], i) => Math.max(0, Math.round(+p[k] || 0) - b.s[i])); spent += sp; gains += g.reduce((x, y) => x + y, 0);
@@ -2548,7 +2566,8 @@ const SBX_MOBILE = true;
         (chips ? '<div class="gn">' + chips + "</div>" : "") + tg + plain + "</div>";
     }).join("");
     const feed = atEv.filter((e) => e.team === team && e.at >= S.at).slice(-40).reverse().map((e) => "<div>" + fmtT(e.at) + " · " + esc(e.name) + ": " + esc(e.k) + " " + e.from + " → <b>" + e.to + "</b></div>").join("") || '<div style="opacity:.6">Gains show up here as they land.</div>';
-    const modes = '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
+    const sortBtn = '<span class="dk-mode"><button type="button" data-atsort="' + (srt === "" ? "tpd" : srt === "tpd" ? "tpa" : "") + '" class="' + (srt ? "on" : "") + '" title="Click to change the order: the club\'s own order, most TP left first, least TP left first">' + (srt === "tpd" ? "↓ Most TP left" : srt === "tpa" ? "↑ Least TP left" : "↕ Sort by TP") + "</button></span>";
+    const modes = sortBtn + '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
     if (pl === "bug") {
       // The bug: the session in a glance, and the latest gain as it lands.
       const left = roster.reduce((x, p) => x + Math.round(+p.tp || 0), 0);
@@ -2580,7 +2599,7 @@ const SBX_MOBILE = true;
       '<div class="dk-body">' + (view === "skills" ? (function () {
         // 📊 The skill board: every man, every SmallBall skill, this session's gains beside them, his weakest in amber.
         const head = "<tr><th>Man</th><th>Pos</th>" + SKL.map(([, , nm]) => "<th>" + nm + "</th>").join("") + "<th>TP</th></tr>";
-        const rows = roster.map((p) => {
+        const rows = order.map((p) => {
           const b = S.base[p.player_id] || { s: SKL.map(() => 0) }, mine = atSkillsFor(p), low = mine.length ? Math.min.apply(null, mine.map((x) => x.v)) : -1;
           return "<tr data-atman=\"" + esc(p.name) + "\" data-atpid=\"" + esc(String(p.player_id)) + "\" title=\"Click to select him in the trainer\"" + (selP && selP.player_id === p.player_id ? ' class="sel"' : "") + "><td class=\"nm\">" + esc(p.name) + "</td><td>" + esc(p.position || "bench") + "</td>" + SKL.map(([k, f], i) => { const v = Math.round(+p[f] || 0), g = Math.max(0, v - b.s[i]), counts = k !== "P" || p.position === "P"; return '<td class="' + (counts && v === low ? "lo" : !counts ? "na" : "") + '">' + v + (g ? ' <i>+' + g + "</i>" : "") + "</td>"; }).join("") + "<td>" + Math.round(+p.tp || 0) + "</td></tr>";
         }).join("");
@@ -2589,6 +2608,7 @@ const SBX_MOBILE = true;
     el.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_MODE, b.dataset.mode); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
     el.querySelectorAll("[data-atpl]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_PLACE, b.dataset.atpl); } catch (_) {} atRedraw(); }));
     el.querySelectorAll("[data-atview]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_VIEW, b.dataset.atview); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
+    el.querySelectorAll("[data-atsort]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_SORT, b.dataset.atsort); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
   }
 
   // 🔭 The site's Team explorer only has a footer link: add a quiet one at the end of the top menu.
@@ -3338,7 +3358,7 @@ const SBX_MOBILE = true;
     const tc = tierColor(rating);
     const html = `<div class="card on" data-club="${team}" title="Open ${esc(name)}" style="--tier:${tc}">
       <h3><span class="nm">${logoImg(team, "sbx-logo-card")}${esc(name)}</span><span class="id">${team}</span></h3>
-      <div class="stars" title="${rating}-star club${avg ? ` (men average ${avg} stars)` : ""}"><span class="srow">${starRow}</span><span class="num">${rating}<small>★</small></span>${avg ? `<span class="avg">avg ${avg}</span>` : ""}</div>
+      <div class="stars" title="${rating}-star club${avg ? ` (men average ${avg} stars)` : ""}"><span class="srow">${starRow}</span><span class="num">${rating}<small>★</small></span>${avg ? `<span class="avg">avg ${avg}</span>` : ""}${on("srank") ? starChip(team, rating) : ""}</div>
       ${on("tier") ? tierTxt : ""}${pitchWarn(prof)}
       <div class="sub lite">home ${esc(PARKS[prof.home_park_id] || "—")}</div>
       ${badge}${passiveChip(prof, team)}
@@ -3431,6 +3451,81 @@ const SBX_MOBILE = true;
     if (c && c.html && Date.now() - c.at < DASH_TTL) { dashState.html = c.html; dashState.cards = c.cards || null; dashState.at = c.at; dashState.key = c.key; }
   } catch (_) {}
   window.addEventListener("hashchange", () => { if (expCtx() !== EXP_CTX) { EXP = null; applyExp(); } });
+  // ⭐ Star lists: SmallBall's Season page ranks the clubs of each star league (the top 100 of each) by exact
+  // rating. The kit reads all ten lists every 10 minutes and shows a club's place in its own league ("NR" when
+  // it isn't on it). Clicking the chip opens the Season page on that league's list with the club picked out.
+  const STARL = { at: 0, map: null, busy: false };
+  function starRanks() {
+    if ((!STARL.map || Date.now() - STARL.at > 600e3) && !STARL.busy) {
+      STARL.busy = true;
+      Promise.all(Array.from({ length: 10 }, (_, i) => fetch("/season/stars?star=" + (i + 1), { headers: { Accept: "application/json" }, credentials: "include" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)))
+        .then((all) => {
+          if (all.every((j) => !j || !Array.isArray(j.rows))) return;
+          const m = {};
+          all.forEach((j, i) => { if (j && Array.isArray(j.rows)) j.rows.forEach((x, k) => { m[x.team_id] = { t: Number(j.star) || i + 1, r: k + 1, n: j.rows.length }; }); });
+          STARL.map = m; STARL.at = Date.now();
+        })
+        .finally(() => { STARL.busy = false; try { fillStarRanks(); } catch (_) {} });
+    }
+    return STARL.map;
+  }
+  function starTxt(team, tier) {
+    const m = starRanks(), x = m && m[team];
+    if (!m) return { t: "⭐ …", cls: "nr", tier, tip: "Reading the star lists…" };
+    if (x) return { t: "⭐ #" + x.r, cls: "", tier: x.t, tip: "#" + x.r + " of " + x.n + " on the " + x.t + "★ star list. Click for the full list." };
+    return { t: "⭐ NR", cls: "nr", tier, tip: "Not ranked on the " + (tier ? tier + "★ " : "") + "star list (it shows the top 100). Click for the full list." };
+  }
+  function starChip(team, tier) {
+    const x = starTxt(Number(team), tier);
+    return '<a class="sbx-srank ' + x.cls + '" data-srank="' + esc(String(team)) + '" data-tier="' + esc(String(x.tier || "")) + '" href="#/season" title="' + esc(x.tip) + '">' + esc(x.t) + "</a>";
+  }
+  function fillStarRanks() {
+    for (const a of document.querySelectorAll("a.sbx-srank[data-srank]")) {
+      const x = starTxt(Number(a.dataset.srank), Number(a.dataset.tier) || 0);
+      if (a.textContent !== x.t) a.textContent = x.t;
+      if (a.className !== ("sbx-srank " + x.cls).trim() && a.className !== "sbx-srank " + x.cls) a.className = "sbx-srank " + x.cls;
+      if (a.title !== x.tip) a.title = x.tip;
+      if (x.tier && a.dataset.tier !== String(x.tier)) a.dataset.tier = String(x.tier);
+    }
+  }
+  // Click: open the Season page on the club's star league and pick the club out of the list.
+  document.addEventListener("click", (e) => {
+    const a = e.target && e.target.closest && e.target.closest("a.sbx-srank[data-srank]");
+    if (!a) return;
+    e.preventDefault(); e.stopPropagation();
+    try { sessionStorage.setItem("sbx-starjump", JSON.stringify({ id: Number(a.dataset.srank), t: Number(a.dataset.tier) || 0, at: Date.now() })); } catch (_) {}
+    if (location.hash === "#/season") starJump(); else location.hash = "#/season";
+  }, true);
+  function starJump(n) {
+    let J = null; try { J = JSON.parse(sessionStorage.getItem("sbx-starjump") || "null"); } catch (_) {}
+    if (!J || Date.now() - J.at > 30000 || location.hash !== "#/season") return;
+    n = n || 0;
+    const tabs = document.getElementById("s-stars");
+    if (!tabs) { if (n < 40) setTimeout(() => starJump(n + 1), 250); return; }
+    if (J.t) { const b = tabs.querySelector('button[data-star="' + J.t + '"]'); if (b && !b.classList.contains("on")) { b.click(); setTimeout(() => starJump(n + 1), 300); return; } }
+    const list = document.getElementById("s-starlist");
+    const row = list && [...list.querySelectorAll("tr")].find((tr) => new RegExp("#" + J.id + "\\b").test(tr.textContent));
+    if (!row && n < 12) { setTimeout(() => starJump(n + 1), 300); return; }
+    try { sessionStorage.removeItem("sbx-starjump"); } catch (_) {}
+    (tabs.closest(".card") || tabs).scrollIntoView({ block: "start", behavior: "smooth" });
+    if (row) { row.classList.add("sbx-starme"); setTimeout(() => row.scrollIntoView({ block: "center", behavior: "smooth" }), 450); }
+  }
+  // ⭐ On any club's page: its star list place beside its stars.
+  function mountStarFact() {
+    const m = location.hash.match(/^#\/team\/(\d+)/);
+    const facts = document.querySelector("main .teamhead .facts");
+    const old = document.querySelector("main .teamhead .facts .sbx-srankf");
+    if (!m || !facts) { old?.remove(); return; }
+    if (old && old.dataset.team === m[1]) { fillStarRanks(); return; }
+    old?.remove();
+    const st = [...facts.querySelectorAll(".fact .stars")][0];
+    const tier = st ? Number((st.getAttribute("title") || "").match(/\d+/)?.[0] || 0) : 0;
+    const f = document.createElement("span"); f.className = "fact sbx-srankf"; f.dataset.team = m[1];
+    f.innerHTML = starChip(Number(m[1]), tier);
+    const after = st ? st.closest(".fact") : null;
+    if (after && after.parentNode === facts) after.after(f); else facts.appendChild(f);
+  }
+
   function mountDash() {
     const existing = document.getElementById("sbx-dash-wrap");
     if (/^#\/(login|new)\b/.test(location.hash)) { existing?.remove(); return; }
@@ -5190,7 +5285,7 @@ const SBX_MOBILE = true;
   // tournament you're in. ▾ on the button folds the cards away; the button then shows how many are waiting.
   const TOURNEY_HOME = "https://slipnsliders.github.io/smallball-tools/tournaments/";
   const LIVE_MIN_KEY = "sbx-live-min";
-  const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) !== "0"; } catch (_) { return true; } };   // folded until you open them
+  const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) === "1"; } catch (_) { return false; } };   // open until you tuck them away (this tab remembers)
   function mountLive() {
     if (!on("live")) return;
     let el = document.getElementById("sbx-live");
@@ -5239,6 +5334,7 @@ const SBX_MOBILE = true;
     try {
       safe(mountTabs);
       if (on("dash")) safe(mountDash);
+      if (on("srank")) { safe(mountStarFact); safe(fillStarRanks); if (location.hash === "#/season") safe(starJump); }
       if (on("logos")) safe(decorate);
       if (on("parks")) safe(mountParkRecords);
       if (on("achtidy")) safe(mountAchTidy);
