@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.27: clean Discord posts (Game found: the two clubs, watch link, when it's over): one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.28: three title-charge items: 💥 Brass Knuckles as a Knockout Punch, 🔁 Mulligan, 💰 Bounty Hunter; v3.27: clean Discord posts (Game found: the two clubs, watch link, when it's over): one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -766,6 +766,12 @@ function setRest_(email, hours) {
 }
 // A charge at the Ace that failed: down to ACE_LOSS_RANK (or one spot if already lower), then recovery.
 function aceLoss_(lad, ch, c, C, extra) {
+  if (/🔁/.test(String(c.Notes || ''))) {   // 🔁 Mulligan: no slide, no recovery, and no rematch wait with the Ace
+    const P = PropertiesService.getScriptProperties(); let m = {}; try { m = JSON.parse(P.getProperty('MULLIGAN_FREE' + (isFarm_() ? '_FARM' : '')) || '{}'); } catch (e) { }
+    m[lc_(ch.Email)] = Date.now() + 72 * 3600e3; P.setProperty('MULLIGAN_FREE' + (isFarm_() ? '_FARM' : ''), JSON.stringify(m));
+    extra.push('🔁 **Mulligan!** ' + esc_(ch.Discord) + ' keeps their spot, needs no recovery, and can charge the Ace again as soon as the mound lets them.');
+    return;
+  }
   if (isFarm_()) { extra.push('🌱 ' + esc_(ch.Discord) + ' keeps their spot on the Farm. Charge again whenever you like.'); return; }   // the Farm has no slide and no recovery
   const cur = lad.indexOf(ch) + 1, to = Math.max(Number(C.ACE_LOSS_RANK) || 5, cur + 1);
   if (cur > 0) insertAt_(lad, ch, to);
@@ -1405,7 +1411,9 @@ function doChallenge_(sub, C) {
   }
   const theirs = openFor_(ct, opp.Email);
   if (theirs) fail_(opp.Discord + ' is already in an open challenge. Try again once it is settled.');
-  const cool = inCooldown_(me.Email, opp.Email, C);
+  let mullFree = false;
+  if (type === 'Title') { try { const m = JSON.parse(PropertiesService.getScriptProperties().getProperty('MULLIGAN_FREE' + (isFarm_() ? '_FARM' : '')) || '{}'); mullFree = (m[lc_(me.Email)] || 0) > Date.now(); } catch (e) { } }
+  const cool = mullFree ? null : inCooldown_(me.Email, opp.Email, C);
   if (cool) fail_('You and ' + opp.Discord + ' played recently. Rematch allowed after ' + cool.toUTCString() + '.');
 
   let ms = null, os = null;
@@ -1611,13 +1619,17 @@ function finalize_(ct, c, cr, dr, source) {
       writeRow_(rt, reign);
       removeFrom_(lad, ch);
       ch.Rank = 0;
-      insertAt_(lad, df, C.EX_ACE_RANK);
+      const ko = !forfeit && /💥/.test(String(c.Notes || '')) && margin >= 4;   // 💥 Knockout Punch: the old Ace goes to the bottom
+      insertAt_(lad, df, ko ? lad.length + 1 : C.EX_ACE_RANK);
       setLadder_(lad);
       startReign_(ch, false, C);
+      if (ko) extra.push('💥 **KNOCKOUT!** ' + esc_(ch.Discord) + "'s Knockout Punch lands by " + margin + ': ' + esc_(df.Discord) + ' drops to the bottom of the ladder, with no Ace\'s Revenge.');
+      else if (/💥/.test(String(c.Notes || '')) && !forfeit) extra.push('💥 The Knockout Punch needed a 4+ run win. ' + esc_(df.Discord) + ' stays on their feet.');
+      if (/💰/.test(String(c.Notes || ''))) { const bb = Math.max(25, Math.round(num_(reign.ReignPts) * 0.25)); ledger_(C, ch, bb, '💰 Bounty Hunter (' + c.ID + ')'); extra.push('💰 **Bounty collected:** ' + esc_(ch.Discord) + ' pockets **' + bb + ' BB** from the old reign.'); }
       outcome = forfeit ? 'Takes the hill by forfeit' : 'Takes the hill';
       headline = '👑 **NEW ACE!** ' + nm_(ch) + ' takes the hill from ' + nm_(df) + ' ' + scoreTxt + '. ' +
         esc_(df.Discord) + "'s reign ends at " + num_(reign.Defenses) + ' defense(s), ' + oldPts + ' pts.';
-      if (!forfeit && oldPts >= C.REVENGE_THRESHOLD) {
+      if (!forfeit && !ko && oldPts >= C.REVENGE_THRESHOLD) {
         const dl = hoursFrom_(now_(), C.REVENGE_DECLARE_HOURS);
         setCfg_('STATE_REVENGE_EX_ACE', df.Email);
         setCfg_('STATE_REVENGE_MARGIN', String(margin));
@@ -1834,22 +1846,24 @@ function voidChallenge_(ct, c, why) {
 // gets voided come back. Purchases and items in play are public: they post in Discord and show on the HtH Leaderboard.
 // Every Hill game also pays Brawl Bucks (PLAY_BUCKS), so you don't have to bet to afford items.
 const ITEMS = {
-  knuckles: { icon: '🥊', name: 'Brass Knuckles', kind: 'defense', what: 'On the next charge against you, the challenger needs 1 more run (a title charge needs a 2-run win)' },
+  knuckles: { icon: '🥊', name: 'Brass Knuckles', kind: 'defense or title charge', what: 'On the next charge against you, the challenger needs 1 more run (a title charge needs a 2-run win). Or throw them on your own charge at the Ace as a 💥 Knockout Punch: take the hill by 4+ and the old Ace drops to the bottom of the ladder with no Ace\'s Revenge' },
   eraser: { icon: '🧽', name: 'Margin Eraser', kind: 'offense', what: 'Win your charge by any amount. Cancels Brass Knuckles' },
   jump: { icon: '🪜', name: 'Ladder Jump', kind: 'offense', what: 'Charge one spot further than the normal reach' },
   jumpplus: { icon: '🪜', name: 'Ladder Jump+', kind: 'offense', what: 'Charge one spot further than the normal reach, and any win will do' },
+  mulligan: { icon: '🔁', name: 'Mulligan', kind: 'title charge', what: 'Charge the Ace with it and a loss doesn\'t count against you: no slide down the ladder, no recovery, and no wait to charge the Ace again once the mound lets you' },
+  bounty: { icon: '💰', name: 'Bounty Hunter', kind: 'title charge', what: 'Charge the Ace with it and take the hill: you collect 25% of the old Ace\'s reign points as Brawl Bucks (25 BB at least)' },
   rain: { icon: '🌧️', name: 'Rain Delay', kind: 'streak', what: 'Saves your 🔥 Hill streak once, on a day you don\'t play' },
 };
 const itemLabel_ = (k) => ITEMS[k].icon + ' ' + ITEMS[k].name;
 function itemsOn_(C) { return /^true$/i.test(norm_(C.ITEMS_ON)) && lc_(C.BOOK_ON) !== 'false'; }   // Farm games pay and use items too, even without a Farm sportsbook
 function itemPrices_(C) {
-  const out = { knuckles: 250, eraser: 200, jump: 150, jumpplus: 300, rain: 100 };
+  const out = { knuckles: 250, eraser: 200, jump: 150, jumpplus: 300, rain: 100, mulligan: 200, bounty: 150 };
   norm_(C.ITEM_PRICES).split(/[\s,]+/).forEach(function (kv) { const m = /^(\w+):(\d+)$/.exec(kv); if (m && out[m[1]] != null) out[m[1]] = Number(m[2]); });
   return out;
 }
 const aceX_ = (C) => Math.max(1, Number(C.ITEM_ACE_X) || 2);
 function priceFor_(C, key, isAce) { return Math.round(itemPrices_(C)[key] * (isAce ? aceX_(C) : 1)); }
-function itemKeyOf_(txt) { const l = lc_(txt); return /knuckle/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump\s*(\+|plus)/.test(l) ? 'jumpplus' : /jump/.test(l) ? 'jump' : /rain|delay/.test(l) ? 'rain' : ''; }
+function itemKeyOf_(txt) { const l = lc_(txt); return /mulligan/.test(l) ? 'mulligan' : /bounty/.test(l) ? 'bounty' : /knuckle|knockout/.test(l) ? 'knuckles' : /eraser/.test(l) ? 'eraser' : /jump\s*(\+|plus)/.test(l) ? 'jumpplus' : /jump/.test(l) ? 'jump' : /rain|delay/.test(l) ? 'rain' : ''; }
 // What each player holds this season: bought - used + refunded.
 function inventory_(C) {
   const season = String(C.SEASON), inv = {};
@@ -1907,7 +1921,8 @@ function chargeItems_(C, me, opp, type, gap, need, pick) {
   const out = { need: need, notes: [], used: [], post: [] };
   if (!itemsOn_(C)) { if (pick) fail_('Items are switched off right now: charge without one.'); return out; }
   const inv = inventory_(C);
-  if (pick === 'knuckles') fail_('Brass Knuckles are for defense: they go on by themselves when someone charges you.');
+  if (pick === 'knuckles' && type !== 'Title') fail_('Brass Knuckles go on by themselves when someone charges you. On a charge of your own they only work at the Ace, as a 💥 Knockout Punch.');
+  if ((pick === 'mulligan' || pick === 'bounty') && type !== 'Title') fail_('The ' + ITEMS[pick].name + ' is for a charge at the Ace.');
   if (pick === 'rain') fail_('The Rain Delay saves your streak by itself on a day you miss. Buy it in the 🛒 shop; nothing to pick here.');
   const isJump = pick === 'jump' || pick === 'jumpplus';
   if (isJump && type !== 'Ladder') fail_('The ' + ITEMS[pick].name + ' is for ladder charges, not the mound.');
@@ -1926,6 +1941,9 @@ function chargeItems_(C, me, opp, type, gap, need, pick) {
   if (knuckles) { out.used.push([opp, 'knuckles', false]); out.need += 1; out.notes.push('🥊 ' + opp.Discord); out.post.push('🥊 ' + tag_(opp) + ' is wearing **Brass Knuckles**: +1 run.'); }
   if (pick === 'eraser') { out.need = 1; out.notes.push('🧽 ' + me.Discord); out.post.push('🧽 ' + esc_(me.Discord) + ' swings the **Margin Eraser**: ' + (knuckles ? 'the Brass Knuckles are knocked off, and ' : '') + 'any win will do.'); }
   if (pick === 'jumpplus') { out.need = knuckles ? 2 : 1; out.notes.push('🪜+ ' + me.Discord); out.post.push('🪜 ' + esc_(me.Discord) + ' uses a **Ladder Jump+** to reach ' + gap + ' spots up: ' + (knuckles ? 'the Brass Knuckles still count, so 2+ runs.' : 'any win will do.')); }
+  if (pick === 'knuckles') { out.notes.push('💥 ' + me.Discord); out.post.push('💥 ' + esc_(me.Discord) + ' slips on the **Brass Knuckles** for a **Knockout Punch**: take the hill by **4+** and the old Ace drops to the bottom, with no Ace\'s Revenge.'); }
+  if (pick === 'mulligan') { out.notes.push('🔁 ' + me.Discord); out.post.push('🔁 ' + esc_(me.Discord) + ' has a **Mulligan**: lose this one and it doesn\'t count against them.'); }
+  if (pick === 'bounty') { out.notes.push('💰 ' + me.Discord); out.post.push('💰 ' + esc_(me.Discord) + ' is a **Bounty Hunter**: take the hill and 25% of the reign goes in their pocket.'); }
   if (pick === 'jump') { out.notes.push('🪜 ' + me.Discord); out.post.push('🪜 ' + esc_(me.Discord) + ' uses a **Ladder Jump** to reach ' + gap + ' spots up.'); }
   return out;
 }
@@ -1988,10 +2006,11 @@ const SHOP_HELP_ = function (C) {
   const p = itemPrices_(C);
   return 'Spend Brawl Bucks on an item and hold it until you need it. The Ace pays ' + aceX_(C) + '× the price, so stock up on the way up.\n\n' +
     Object.keys(ITEMS).map(function (k) { return itemLabel_(k) + ' · ' + p[k] + ' BB: ' + ITEMS[k].what + '.'; }).join('\n') +
-    '\n\nOffense items: pick them on the charge form when you charge (you can buy on the spot there too). Brass Knuckles go on by themselves when someone charges you.\n' +
+    '\n\nCharge items (Margin Eraser, Ladder Jumps, and at the Ace: Knockout Punch, Mulligan, Bounty Hunter): pick them on the charge form when you charge (you can buy on the spot there too). Brass Knuckles you hold also go on by themselves when someone charges you.\n' +
     'One item per side per charge, and one item per player every ' + (Number(C.ITEM_COOLDOWN_HOURS) || 24) + ' hours. Items used on a charge that gets voided come back.';
 };
-const USE_ITEM_CHOICES_ = ['No item', '🧽 Margin Eraser (win by any amount)', '🪜 Ladder Jump (charge one spot further)', '🪜 Ladder Jump+ (charge one spot further, any win)'];
+const USE_ITEM_CHOICES_ = ['No item', '🧽 Margin Eraser (win by any amount)', '🪜 Ladder Jump (charge one spot further)', '🪜 Ladder Jump+ (charge one spot further, any win)',
+  '💥 Brass Knuckles: Knockout Punch (at the Ace: win by 4+ and they drop to the bottom)', '🔁 Mulligan (at the Ace: a loss doesn\'t count)', '💰 Bounty Hunter (at the Ace: take the hill, take 25% of the reign)'];
 function shopChoices_(C) { const p = itemPrices_(C); return Object.keys(ITEMS).map(function (k) { return itemLabel_(k) + ' · ' + p[k] + ' BB (' + ITEMS[k].kind + ')'; }); }
 // Adds the 🛒 shop section and the "use an item" question on the charge section. Safe to run again (it updates prices).
 function ensureItemsForm_(form) {
