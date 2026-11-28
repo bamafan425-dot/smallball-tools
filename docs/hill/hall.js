@@ -54,6 +54,11 @@
     + '.s2new{position:absolute;top:-9px;right:-8px;font:700 10px/1 Oswald,sans-serif;font-style:normal;letter-spacing:.08em;background:#ffd166;color:#1b1300;padding:3px 6px;border-radius:999px;transform:rotate(8deg);box-shadow:0 2px 0 #000}'
     + '#s2tab.seen .s2new{display:none}'
     + '@media(prefers-reduced-motion:reduce){.tabs a#s2tab{animation:none}}'
+    + '.tz.xmas .hype{display:inline-block;margin-bottom:10px;background:#e23b3b;color:#fff;font:700 12px Oswald,sans-serif;letter-spacing:.14em;padding:5px 12px;border-radius:999px;box-shadow:0 0 18px rgba(226,59,59,.6);animation:s2glow 2.2s ease-in-out infinite}'
+    + '.tz.xmas .clk{font-size:clamp(34px,7vw,58px);text-shadow:0 0 22px rgba(255,209,102,.55)}'
+    + '.perks{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}.perks span{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.45);padding:5px 10px;font-size:14px}.perks b{color:#ffd166}'
+    + '.tz.xmas{box-shadow:0 0 40px rgba(226,59,59,.25)}'
+    + '@media(prefers-reduced-motion:reduce){.tz.xmas .hype{animation:none}}'
     + '.soon .lede{opacity:.85;max-width:720px}'
     + '.tz{position:relative;margin:20px 0 6px;padding:22px 20px;overflow:hidden;border:2px solid rgba(255,255,255,.15)}'
     + '.tz h3{margin:0;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:clamp(32px,6vw,52px);line-height:1}.tz .kick{letter-spacing:.25em;font-size:12px;opacity:.85}.tz .clk{font-family:Anton,sans-serif;font-size:clamp(24px,4vw,34px);font-variant-numeric:tabular-nums}'
@@ -180,16 +185,17 @@
   function cards(a, nowIdx) { return '<div class="wk">' + a.map(function (x, i) { return '<div' + (i === nowIdx ? ' class="now"' : '') + '>' + (x.length > 2 ? '<small>' + esc(x[0]) + '</small><b>' + esc(x[1]) + '</b>' + esc(x[2]) : '<b>' + esc(x[0]) + '</b>' + esc(x[1])) + '</div>'; }).join('') + '</div>'; }
   function soonHTML() {
     var now = Date.now(), on = now >= TREE_ON && now < TREE_OFF ? Math.floor((now - TREE_ON) / 864e5) : -1;
-    return '<div class="soon"><h2 class="bb">🐶 Season 2 sneak peek</h2><p class="lede">Season 1 is just the warm-up. Season 2 trades the mound for a pile of helmets, and the shop for a doghouse. Here\'s the first look, plus the holiday ladder that bridges the gap.</p>'
-      + '<div class="tz dog"><div class="row2"><div><div class="kick">SEASON 2 · KICKS OFF EARLY JANUARY · FOOTBALL</div><h3>The Dog Pile</h3>'
-      + '<p>The mound becomes a pile and the Ace becomes the <b>🐶 Top Dog</b>. Every charge is a blitz, every title shot is a goal-line stand, and Brawl Bucks become <b>🦴 Bone Bucks</b>.</p></div><div>' + pileSVG() + '</div></div>'
-      + '<h4>🏈 New rules</h4>' + cards(DRULES) + '<h4>🦴 The doghouse shop</h4>' + cards(DITEMS) + '</div>'
-      + '<h2 class="bb">🎄 Before kickoff: the holiday ladder</h2>'
-      + '<div class="tz xmas" id="tz-xmas"><div class="row2"><div><div class="kick">DEC 24 – JAN 1 · 9 NIGHTS · HOLIDAY LADDER</div><h3>Top of the Tree</h3>'
-      + '<p>The ladder becomes a tree. The Ace is the <b>⭐ Star</b>, everyone else hangs as an ornament, and whoever is on top when the ball drops takes the <b>Holiday Crown</b> and a spot in the Hall of Fame.</p>'
+    return '<div class="soon"><h2 class="bb">🎄 Up next: the Hill goes holiday</h2><p class="lede">Season 1 is just the warm-up. First the holiday ladder lights up on <b>Christmas Eve</b>, then Season 2 kicks off in January. Here\'s the sneak peek.</p>'
+      + '<div class="tz xmas" id="tz-xmas"><div class="row2"><div><div class="hype">🔥 COMING SOONEST · THE FIRST HOLIDAY LADDER IN HILL HISTORY</div><div class="kick">DEC 24 – JAN 1 · 9 NIGHTS OF CHAOS</div><h3>Top of the Tree</h3>'
+      + '<p>Season 1\'s final buzzer sounds the night of Dec 23. A few minutes later the lights come on and the whole ladder turns into a tree. The Ace becomes the <b>⭐ Star</b>, everyone else hangs as an ornament, and every night brings a brand-new twist.</p>'
+      + '<div class="perks"><span>👑 The first-ever <b>Holiday Crown</b></span><span>🏛️ A <b>Hall of Fame</b> plaque</span><span>🎁 Secret Santa <b>+100 BB</b></span><span>🪩 Winner decided at the <b>ball drop</b></span></div>'
       + '<div class="kick" id="xk">' + (now < TREE_ON ? 'THE TREE LIGHTS UP IN' : now < BALL ? 'BALL DROP IN' : 'HAPPY NEW YEAR') + '</div><div class="clk" id="xc"></div></div><div>' + treeSVG() + '</div></div>'
       + '<h4>Nine nights, nine twists</h4>' + cards(NIGHTS, on) + '<h4>🎅 Holiday shop</h4>' + cards(XITEMS)
       + '<h4>🎁 Secret Santa</h4><p style="margin:4px 0 0">Every club draws a secret target on Christmas Eve. Beat yours any night of the tree for a 100 BB gift.</p></div>'
+      + '<h2 class="bb">🐶 Then: Season 2 kicks off</h2>'
+      + '<div class="tz dog"><div class="row2"><div><div class="kick">SEASON 2 · KICKS OFF EARLY JANUARY · FOOTBALL</div><h3>The Dog Pile</h3>'
+      + '<p>The mound becomes a pile and the Ace becomes the <b>🐶 Top Dog</b>. Every charge is a blitz, every title shot is a goal-line stand, and Brawl Bucks become <b>🦴 Bone Bucks</b>.</p></div><div>' + pileSVG() + '</div></div>'
+      + '<h4>🏈 New rules</h4>' + cards(DRULES) + '<h4>🦴 The doghouse shop</h4>' + cards(DITEMS) + '</div>'
       + '<h2 class="bb">👀 And after that…</h2><div class="later">' + LATER.map(function (x) { return '<div style="--c:' + x[0] + '"><small>' + esc(x[2]) + '</small><b>' + esc(x[1]) + '</b>' + esc(x[3]) + '</div>'; }).join('') + '</div>'
       + '<div class="fine">Previews. Every rule and item here is subject to change, and to the commish\'s sense of humor. Got a wacky idea? Pitch it in the Hill Discord.</div></div>';
   }
@@ -214,7 +220,7 @@
     var fl = document.createElement('link'); fl.rel = 'stylesheet'; fl.href = 'https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap'; document.head.appendChild(fl);
     var after = nav.querySelector('a[data-t=farm]') || nav.querySelector('a[data-t=hill]');
     var a1 = document.createElement('a'); a1.href = '#hof'; a1.dataset.t = 'hof'; a1.textContent = '🏛️ Hall of Fame';
-    var a2 = document.createElement('a'); a2.href = '#soon'; a2.dataset.t = 'soon'; a2.id = 's2tab'; a2.innerHTML = '🐶 Season 2 Sneak Peek<i class="s2new">NEW</i>';
+    var a2 = document.createElement('a'); a2.href = '#soon'; a2.dataset.t = 'soon'; a2.id = 's2tab'; a2.innerHTML = '🎄 Season 2 Sneak Peek<i class="s2new">NEW</i>';
     after.after(a1); a1.after(a2);
     var p1 = document.createElement('section'); p1.className = 'pane'; p1.id = 'p-hof'; p1.innerHTML = hallHTML();
     var p2 = document.createElement('section'); p2.className = 'pane'; p2.id = 'p-soon'; p2.innerHTML = soonHTML();
