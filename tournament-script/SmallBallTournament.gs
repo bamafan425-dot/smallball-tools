@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.32: Discord posts put each club's ID right after its name, and match posts drop the "check YOUR CLUB" note; v2.31: as soon as one grand finalist is known, the grand final jumps to the top of the bracket page and shines; finished rounds shrink to slim columns on the bracket page, so the rounds still being played get the room and sit in view without scrolling sideways; v2.30: every club named in a Discord post links to its team page in SmallBall; v2.29: knocked-out clubs are crossed off the club ID list with a 🥊 and their finish (#16 of 23), still-alive clubs first; v2.28: finished games and finished rounds fade back on the bracket page (hover to bring one up); v2.27: 🏁 knocked-out leaderboard: places by how far each club got, total runs breaking ties between clubs out in the same round; v2.26: once the bracket is live, the club ID list moves below the bracket; v2.25: the page's results timing follows POST_DELAY_MINUTES; v2.24: 🎯 Count a game for a match (a game played a little before the match opened, or one the search missed); v2.23: ⏩ Post a found result now (skips the airing wait for one match); v2.22: while the losers bracket's first round waits for the play-ins, the page lists who has dropped so far; v2.21: every tournament post carries the live bracket link (the sign-up link drops off once the bracket is drawn); v2.20: the rules box starts closed; v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.33: no match clock: a match stays open until it's played, either club can start the game (the two decide in chat), and slow matches are the organizer's call; v2.32: Discord posts put each club's ID right after its name, and match posts drop the "check YOUR CLUB" note; v2.31: as soon as one grand finalist is known, the grand final jumps to the top of the bracket page and shines; finished rounds shrink to slim columns on the bracket page, so the rounds still being played get the room and sit in view without scrolling sideways; v2.30: every club named in a Discord post links to its team page in SmallBall; v2.29: knocked-out clubs are crossed off the club ID list with a 🥊 and their finish (#16 of 23), still-alive clubs first; v2.28: finished games and finished rounds fade back on the bracket page (hover to bring one up); v2.27: 🏁 knocked-out leaderboard: places by how far each club got, total runs breaking ties between clubs out in the same round; v2.26: once the bracket is live, the club ID list moves below the bracket; v2.25: the page's results timing follows POST_DELAY_MINUTES; v2.24: 🎯 Count a game for a match (a game played a little before the match opened, or one the search missed); v2.23: ⏩ Post a found result now (skips the airing wait for one match); v2.22: while the losers bracket's first round waits for the play-ins, the page lists who has dropped so far; v2.21: every tournament post carries the live bracket link (the sign-up link drops off once the bracket is drawn); v2.20: the rules box starts closed; v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -647,6 +647,8 @@ function tickOne_() {
     let changed = false;
     try { changed = detect_(T, C) || changed; } catch (e) { log_('system', 'ERROR (detect)', String(e && e.stack || e)); }
     changed = postDue_(T, C) || changed;
+    // v2.33: no match clock. A bracket already running drops the deadlines of its open matches once.
+    if (T.fmt !== 'scramble' && !T.noClock) { T.noClock = true; T.matches.forEach((m) => { if (m.openAt && !m.winner && !m.void) m.deadline = 0; }); changed = true; log_('system', 'No clock', 'open matches have no deadline now'); }
     changed = deadlines_(T, C) || changed;
     changed = waves_(T, C) || changed;
     if (!T.done && champion_(T)) { crown_(T, C); changed = true; }
@@ -665,7 +667,7 @@ function nextWork_(T, C) {
   for (const m of T.matches) {
     if (m.winner || m.void) continue;
     if (m.pend) soon.push(m.pend.airs);
-    else if (m.openAt && !m.flag) { soon.push(t + 2 * 60000); soon.push(m.deadline); }
+    else if (m.openAt && !m.flag) { soon.push(t + 2 * 60000); if (m.deadline) soon.push(m.deadline); }
   }
   return Math.max(t + 50000, Math.min.apply(null, soon.filter((x) => x > t - 1)));
 }
@@ -707,10 +709,10 @@ function drawnText_(T, C, Em) {
   return ('# 🏆 The ' + esc_(C.TOURNEY_NAME) + ' bracket is set!\n' +
     '**' + T.seeds.length + ' clubs · ' + (T.fmt === 'double' ? 'double elimination (two losses and you\'re out)' : 'single elimination') + ' · BigLeague games only**\n\n' +
     '**Seeds**\n' + T.seeds.map((s) => s.seed + '. ' + tag_(Em[s.club]) + ' · ' + clubTxt_(Em[s.club])).join('\n') + '\n\n' +
-    '**How it works**\n> Wave 1 starts ' + ts_(start) + ' (' + tsR_(start) + '). After that, **your next match opens the moment both clubs are known**, and you have ' + Math.round(waveMs_(C) / 60000) + ' minutes to play it.\n' +
-    '> When your match opens you\'ll be tagged here. The **lower seed starts a BigLeague game** against the other club (the ping has a one-click link). Nothing for the higher seed to accept. Play early in your window: the sooner your result airs, the sooner your next match opens.\n' +
+    '**How it works**\n> Wave 1 starts ' + ts_(start) + ' (' + tsR_(start) + '). After that, **your next match opens the moment both clubs are known**. No clock: play it as soon as you can.\n' +
+    '> When your match opens you\'ll be tagged here. **Either club can start the BigLeague game** (the ping has a one-click link for each side): sort out in chat who starts it. The sooner your result airs, the sooner your next match opens.\n' +
     '> The script finds the game on SmallBall by itself. Results post once the game has aired: **no spoilers**.\n' +
-    '> No game in time: ' + (lc_(C.NO_SHOW) === 'commish' ? 'the organizer decides.' : 'the higher seed moves on.') + ' A tie: ' + (lc_(C.TIE_RULE) === 'higher seed' ? 'the higher seed moves on.' : 'play it again.') + '\n\n' +
+    '> Someone missing for a while? We give grace; if a match really stalls, the organizer decides. A tie: ' + (lc_(C.TIE_RULE) === 'higher seed' ? 'the higher seed moves on.' : 'play it again.') + '\n\n' +
     '**Wave 1** (' + firsts.length + ' match' + (firsts.length === 1 ? '' : 'es') + '):\n' + firsts.map((m) => '• ' + nameOf_(Em, T, sideClub_(T, m.a)) + ' vs ' + nameOf_(Em, T, sideClub_(T, m.b))).join('\n') +
     (T.matches.some((m) => m.bye && m.bracket === 'W' && m.round === 1) ? '\n-# Top seeds with a bye wait for the next wave.' : '') + linksLine_(C));
 }
@@ -728,24 +730,26 @@ function waves_(T, C) {
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     if (!(a > 0 && b > 0)) continue;
     m.openAt = first && t - start < 10 * 60000 ? start : t;
-    m.deadline = Math.max(m.openAt + win, t + win * 0.75);   // opened late (a slow trigger)? still a fair window
+    // No clock (SmallBall's own challenge rules can hold a club up): a match stays open until it's played.
+    // Scramble matches keep their window for the four games.
+    m.deadline = T.fmt === 'scramble' ? Math.max(m.openAt + win, t + win * 0.75) : 0;
     opened.push(m);
   }
   if (!opened.length) return false;
   T.wave = (T.wave || 0) + 1; opened.forEach((m) => { m.wave = T.wave; });
   const line = (m) => {
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
-    // The lower seed needs the game (a no-show sends the higher seed on), so the lower seed starts it.
-    const ch = seedOf_(T, a) > seedOf_(T, b) ? a : b, df = ch === a ? b : a;
-    return '**' + esc_(m.label) + '** · play by ' + ts_(m.deadline) + ' (' + tsR_(m.deadline) + ')\n> 🥊 ' + nameOf_(E, T, ch) + ' **starts the game**\n> 🛡️ ' + nameOf_(E, T, df) + ' **defends**' +
-      '\n> 👉 [Start the game in SmallBall](<https://play.smallball.com/?sbx_as=' + ch + '#/team/' + df + '>), then **Play** (not Exhibition)';
+    // Either club can start the game: whoever's free first. Each gets a one-click link.
+    const st = (me, op) => '[' + esc_(E[me] ? E[me].Club : me).replace(/[\[\]]/g, '') + '](<https://play.smallball.com/?sbx_as=' + me + '#/team/' + op + '>)';
+    return '**' + esc_(m.label) + '** · play as soon as you can\n> ⚾ ' + nameOf_(E, T, a) + '\n> ⚾ ' + nameOf_(E, T, b) +
+      '\n> 👉 Start it from either side: ' + st(a, b) + ' · ' + st(b, a) + ', then **Play** (not Exhibition)';
   };
   const head = first ? '## 🔔 Wave 1 is on! First pitch for the ' + esc_(C.TOURNEY_NAME) + '\n'
     : '## 🔔 ' + (opened.length === 1 ? 'Next match is ready' : opened.length + ' matches are ready') + '\n';
   if (T.fmt === 'scramble') post_((first ? '## ⛳ First tee time! The ' + esc_(C.TOURNEY_NAME) + ' is on\n' : '## ⛳ ' + (opened.length === 1 ? 'Next match is on the tee' : opened.length + ' matches are on the tee') + '\n') +
     opened.map((m) => scrLine_(T, m, E)).join('\n\n') + '\n-# Each link opens the other club with your club picked: hit **Play** (not Exhibition). All four games inside ' + Math.round(win / 60000) + ' minutes. The script finds them on SmallBall.' + linksLine_(C));
   else post_(head + opened.map(line).join('\n') +
-    '\n-# 🥊 The lower seed starts a BigLeague game with the link. You have ' + Math.round(win / 60000) + ' minutes. The script finds the game on SmallBall.' + linksLine_(C));
+    '\n-# 🤝 Either club can start the BigLeague game: sort out in chat who starts it and play as soon as you can. No clock. The script finds the game on SmallBall.' + linksLine_(C));
   log_('system', first ? 'Wave 1' : 'Opened', opened.map((m) => m.id).join(', '));
   return true;
 }
@@ -764,7 +768,7 @@ function detect_(T, C) {
     const hits = rows.filter((g) => {
       const ft = Date.parse(g.finished_at), ids = [String(g.away_team_id), String(g.home_team_id)];
       return ids.indexOf(String(a)) >= 0 && ids.indexOf(String(b)) >= 0 && kinds.indexOf(lc_(g.kind)) >= 0 &&
-        ft >= m.openAt - 120000 && ft <= m.deadline && used.indexOf(String(g.game_id)) < 0 && g.away_runs != null && g.home_runs != null;
+        ft >= m.openAt - 120000 && (!m.deadline || ft <= m.deadline) && used.indexOf(String(g.game_id)) < 0 && g.away_runs != null && g.home_runs != null;
     }).sort((x, y) => Date.parse(x.finished_at) - Date.parse(y.finished_at));
     if (!hits.length) continue;
     const g = hits[0], aAway = String(g.away_team_id) === String(a);
@@ -791,8 +795,8 @@ function postDue_(T, C) {
       m.pend = null;
       if (lc_(C.TIE_RULE) === 'higher seed') { finish_(T, m, seedOf_(T, a) < seedOf_(T, b) ? a : b, p, 'tie'); post_(resultText_(T, m, E, C, '🤝 A ' + p.ra + '–' + p.rb + ' tie, so the higher seed moves on.')); }
       else {
-        m.deadline = Math.max(m.deadline, t + 30 * 60000);
-        post_('🤝 **' + esc_(m.label) + '** ended in a **' + p.ra + '–' + p.rb + ' tie** (game `' + p.gid + '`). Play it again: ' + nameOf_(E, T, a) + ' vs ' + nameOf_(E, T, b) + '. New deadline ' + ts_(m.deadline) + '.' + linksLine_(C));
+        if (m.deadline) m.deadline = Math.max(m.deadline, t + 30 * 60000);
+        post_('🤝 **' + esc_(m.label) + '** ended in a **' + p.ra + '–' + p.rb + ' tie** (game `' + p.gid + '`). Play it again: ' + nameOf_(E, T, a) + ' vs ' + nameOf_(E, T, b) + (m.deadline ? '. New deadline ' + ts_(m.deadline) + '.' : ', as soon as you can.') + linksLine_(C));
       }
       changed = true; continue;
     }
@@ -848,7 +852,7 @@ function deadlines_(T, C) {
   const t = Date.now(), E = entrantMap_();
   let changed = false;
   for (const m of T.matches) {
-    if (!m.openAt || m.winner || m.void || m.pend || m.flag || t < m.deadline) continue;
+    if (!m.openAt || m.winner || m.void || m.pend || m.flag || !m.deadline || t < m.deadline) continue;
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     if (lc_(C.NO_SHOW) === 'commish') {
       m.flag = true; changed = true;
@@ -967,7 +971,7 @@ function snapshot_(T) {
     return e ? { id, n: norm_(e.Club), o: norm_(e.Discord), s: T ? seedOf_(T, id) : 0, st: norm_(e.Stars) } : { id, n: 'Club ' + id }; };
   const snap = {
     name: norm_(C.TOURNEY_NAME), updated: Date.now(), prizes: norm_(C.PRIZES), seeding: lc_(C.SEEDING) || 'signup', delay: Math.max(0, Number(C.POST_DELAY_MINUTES) || 0), form: norm_(C.FORM_LINK), perOwner: Math.max(1, Number(C.MAX_PER_OWNER) || 1),
-    signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), tz: tz_(C),
+    signupClose: when_(C.SIGNUP_CLOSE, C), start: when_(C.START, C), waveMin: Math.round(waveMs_(C) / 60000), noClock: !isScr_(C), tz: tz_(C),
     entrants: et.map((r) => ({ n: norm_(r.Club), o: norm_(r.Discord), id: Number(r.ClubID), st: norm_(r.Stars), p: norm_(r.Partner) })),
   };
   if (!T && isScr_(C)) { /* a scramble's teams aren't known until sign-ups close: the page shows the tee sheet */ }
@@ -1228,7 +1232,7 @@ function adminUndo() {
     // Clear this match and everything that depends on it.
     const clear = (id) => { T.matches.forEach((x) => { if ((x.a.from === id || x.b.from === id || x.resetOf === id) && (x.winner || x.openAt || x.void || x.pend)) { clear(x.id); } if (x.a.from === id || x.b.from === id || x.resetOf === id) { delete x.winner; delete x.loser; delete x.score; delete x.gid; delete x.how; delete x.bye; delete x.void; delete x.pend; delete x.openAt; delete x.deadline; delete x.flag; delete x.games; delete x.nassau; delete x.mp; } }); };
     clear(m.id); delete m.games; delete m.nassau; delete m.mp; delete m.winner; delete m.loser; delete m.score; delete m.gid; delete m.how; m.pend = null; m.flag = false; delete T.done;
-    m.deadline = Math.max(m.deadline || 0, Date.now() + waveMs_(cfg_()));
+    if (T.fmt === 'scramble') m.deadline = Math.max(m.deadline || 0, Date.now() + waveMs_(cfg_())); else m.deadline = 0;
     settle_(T); stateSet_(T); snapshot_(T); wake_();
     post_('↩️ The organizer reopened **' + esc_(m.label) + '**.' + linksLine_(cfg_()));
     return 'Reopened ' + m.id + '.';
@@ -1663,8 +1667,8 @@ function announceText_(C) {
     ''];
   if (f) lines.push('📝 **[Sign up here](<' + f + '>)**: played here or on Hold the Hill before? Just submit the blank form.');
   if (close) lines.push('🗓️ Sign-ups close ' + '<t:' + Math.floor(close / 1000) + ':F> (' + tsR_(close) + ').');
-  if (start) lines.push('🔔 Wave 1 starts <t:' + Math.floor(start / 1000) + ':F>. Every match gets **' + Math.round(waveMs_(C) / 60000) + ' minutes**, and your next match opens the moment both clubs are known.');
-  lines.push('🥊 The lower seed starts the game, the higher seed defends. No reporting: the script finds the game and posts the result once it airs.');
+  if (start) lines.push('🔔 Wave 1 starts <t:' + Math.floor(start / 1000) + ':F>. Your next match opens the moment both clubs are known.' + (isScr_(C) ? ' Every match gets **' + Math.round(waveMs_(C) / 60000) + ' minutes**.' : ' No clock: play it as soon as you can.'));
+  lines.push(isScr_(C) ? '🥊 The script finds the games and posts the result once they air.' : '🤝 Either club can start the game: decide in chat who starts it. No reporting: the script finds the game and posts the result once it airs.');
   if (norm_(C.PRIZES)) lines.push('🎁 Prizes: ' + esc_(C.PRIZES));
   if (nIn) lines.push('🔥 **' + nIn + ' club' + (nIn === 1 ? '' : 's') + '** already in.');
   if (b) lines.push('🗂️ [Live bracket](<' + b + '>) · fills in as people sign up');
@@ -2566,8 +2570,8 @@ function side(c,bye,m,isA){
   return '<div class="s'+cls+'"><span class="sd">'+(c.s||'')+'</span><span class="n">'+esc(c.n)+'<small>'+(c.id>0?'<a class="cid" href="https://play.smallball.com/#/team/'+esc(c.id)+'" target="_blank" title="Open on SmallBall">ID '+esc(c.id)+'</a> · ':'')+esc(c.o||'')+(c.st!==''&&c.st!=null?' · '+esc(c.st)+'★':'')+'</small></span><span class="sc">'+sc+'</span></div>';
 }
 function box(m){
-  var st=m.v?'':m.bye?'':m.w?(m.how==='no-show'?'No-show: higher seed on':m.how==='organizer'?'Settled by the organizer':m.how==='tie'?'Tie: higher seed on':''):m.live?'📡 Game found · result once it airs':m.flag?'Waiting on the organizer':m.open?'🔴 Open · play by '+t(m.dl):'';
-  if(m.open&&!m.live&&!m.w&&m.a&&m.z&&m.a.s&&m.z.s){var cc=m.a.s>m.z.s?m.a:m.z,dd=cc===m.a?m.z:m.a;st+='<br>🥊 '+esc(cc.n)+' starts it: <a class="cid" href="https://play.smallball.com/?sbx_as='+esc(cc.id)+'#/team/'+esc(dd.id)+'" target="_blank">▶ Play vs ID '+esc(dd.id)+'</a>';}
+  var st=m.v?'':m.bye?'':m.w?(m.how==='no-show'?'No-show: higher seed on':m.how==='organizer'?'Settled by the organizer':m.how==='tie'?'Tie: higher seed on':''):m.live?'📡 Game found · result once it airs':m.flag?'Waiting on the organizer':m.open?(m.dl?'🔴 Open · play by '+t(m.dl):'🔴 Open · play when you can'):'';
+  if(m.open&&!m.live&&!m.w&&m.a&&m.z&&m.a.id>0&&m.z.id>0){var sl=function(x,y){return '<a class="cid" href="https://play.smallball.com/?sbx_as='+esc(x.id)+'#/team/'+esc(y.id)+'" target="_blank">'+esc(x.n)+'</a>'};st+='<br>▶ Start it from either side: '+sl(m.a,m.z)+' · '+sl(m.z,m.a);}
   var ft=m.g?(st?st+' · ':'')+'<a href="https://play.smallball.com/training?watch='+esc(m.g)+'" target="_blank">📺 game '+esc(m.g)+'</a>':st;
   return '<div class="m'+(m.w&&!m.bye?' done':'')+(m.live?' live':m.open?' open':'')+(m.byeA||m.byeZ?' bye':'')+'"><div class="lab"><span>'+esc(((m.l||m.id).split(' · ')[1])||m.l||m.id)+'</span></div>'+side(m.a,m.byeA,m,true)+side(m.z,m.byeZ,m,false)+(ft?'<div class="ft">'+ft+'</div>':'')+'</div>';
 }
@@ -2598,13 +2602,20 @@ function rules(){
   function li(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}
   function card(t,a){return '<div class="rcard"><h3>'+t+'</h3>'+li(a)+'</div>'}
   var h='<div class="sec"><details class="rules"><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
-  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>'+(D.delay!=null?'~'+D.delay+' min':'soon')+' after the game</b></span></div>';
+  h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+(D.noClock?'<span>⏱ <b>No clock</b>: play each match as soon as you can</span>':'<span>⏱ Each match: <b>'+w+' minutes to play</b></span>')+'<span>📺 Results: <b>'+(D.delay!=null?'~'+D.delay+' min':'soon')+' after the game</b></span></div>';
   h+='<div class="rgrid">';
   h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.',(D.seeding==='random'?'Seeded by a <b>random draw</b>, reshuffled with every sign-up: similar stars meet first, and one owner\u2019s clubs are kept apart.':D.seeding==='stars'?'Seeded by <b>stars</b>, most first.':'Seeded by <b>sign-up order</b>: first in is the #1 seed.'),'Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
+  if(D.noClock){
+  h+=card('⏱ When you play',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b>. You get tagged in the Brawl channel.','<b>No clock.</b> SmallBall can make a club wait out its open challenges before it starts a game, so there\u2019s no time limit: play as soon as you can.','Someone missing for a bit? We give grace. If a match really stalls, the organizer decides.']);
+  h+=card('🥊 Playing your game',['<b>Either club can start the game</b>: sort out in chat who starts it. The ping has a Start link for each side; tap yours, then hit Play (not Exhibition).','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don\u2019t count.','<b>The first game you two finish after the match opens is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
+  h+=card('⚖️ When things go sideways',['<b>A tie:</b> play it again.','<b>A stalled match:</b> the organizer decides.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you\u2019re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
+  h+=card('🤝 Expectations',['Stick around while you\u2019re still alive. Your next match can open any time.','Be quick to answer your opponent in chat so the bracket keeps moving.','Results post once each game has aired, so watch live without spoilers, and don\u2019t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
+  } else {
   h+=card('⏱ Your match window',['<b>Wave 1</b> opens every first-round match at once'+(D.start?' ('+t(D.start)+')':'')+'.','After that, <b>your next match opens the moment both clubs are known</b> (once the earlier results have aired). You get tagged in the Brawl channel.','You have <b>'+w+' minutes</b> from the ping to play.','<b>Play early in your window:</b> the sooner your result airs, the sooner your next match opens. Stick around while you’re still alive.']);
   h+=card('🥊 Playing your game',['<b>The lower seed starts the game</b>: tap the Start-the-game link in the ping, check YOUR CLUB at the top of SmallBall, then hit Play (not Exhibition). Nothing for the higher seed to accept.','Play <b>one BigLeague game</b> against your opponent. Exhibitions and pro games don’t count.','<b>The first game you two finish inside the window is the one that counts.</b> No warm-up games against your opponent.','No reporting: the bracket finds the game on SmallBall by itself.']);
   h+=card('⚖️ When things go sideways',['<b>No game in time:</b> the higher seed moves on. Lower seeds, it’s on you to make it happen.','<b>A tie:</b> play it again. The match gets 30 more minutes.','<b>Double elimination:</b> one loss drops you to the losers bracket; two and you’re out.','<b>Grand final:</b> if the losers-bracket champ wins, one more game decides it.']);
   h+=card('🤝 Expectations',['Be around Friday from Wave 1 until you’re out. Your next match can open any time, not just on the hour.','Higher seeds: keep your lineup ready; the game can start any time in your window. Lower seeds: don’t wait for the clock to run out.','Results post once each game has aired, so watch live without spoilers, and don’t post scores early.','Problem with a result? Ping the organizer in the Brawl channel; results can be fixed by hand.']);
+  }
   h+='</div>'+(D.prizes?'<p style="margin:12px 2px 0">🎁 <b>Prizes:</b> '+esc(D.prizes)+'</p>':'')+'</details></div>';
   return h;
 }
@@ -2612,7 +2623,7 @@ function render(){
   var HOME=/github\.io$/.test(location.host)?location.pathname.split('/').slice(0,2).join('/')+'/tournaments/':'https://slipnsliders.github.io/smallball-tools/tournaments/';
   var h='<header><div><a class="home" href="'+HOME+'" target="_top">← 🏆 All tournaments</a><h1 class="bb"><small>SMALLBALL TOURNAMENT</small>'+esc(D.name||'Tournament')+'</h1></div><div class="meta">';
   if(!D.matches){h+=(D.signupClose?'Sign-ups close <b>'+t(D.signupClose)+'</b><br>':'')+(D.start?'Wave 1 <b>'+t(D.start)+'</b>':'');}
-  else h+=(D.done?'<b>Finished</b>':'<b>Live</b> · '+(D.waveMin||60)+'-minute match windows')+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
+  else h+=(D.done?'<b>Finished</b>':'<b>Live</b> · '+(D.noClock?'no clock, play when you can':(D.waveMin||60)+'-minute match windows'))+'<br>'+(D.fmt==='double'?'Double elimination':'Single elimination')+' · '+(D.seeds||[]).length+' clubs';
   h+='<div class="btns">'+(D.form&&!D.matches?'<a class="btn go" href="'+esc(D.form)+'" target="_blank">📝 Sign up</a>':'')+(D.matches?'<button class="btn" onclick="png()">📷 Save as image</button>':'')+'</div></div></header>';
   if(D.champ)h+='<div class="champ bb">👑 '+esc(D.champ.n)+' wins the '+esc(D.name)+'!'+(D.prizes?' <span style="font-size:15px;font-family:Oswald">🎁 '+esc(D.prizes)+'</span>':'')+'</div>';
   var IDL=D.matches?(D.seeds||[]):(D.entrants||[]);
@@ -2792,7 +2803,7 @@ function countGame_(mid, gid) {
     const aAway = String(g.away_team_id) === String(a);
     m.pend = { gid: String(gid), ra: Number(aAway ? g.away_runs : g.home_runs), rb: Number(aAway ? g.home_runs : g.away_runs), airs: Date.now() - 1000 };
     m.used = (m.used || []).concat(String(gid));
-    if (!m.openAt) { m.openAt = Date.now(); m.deadline = Date.now() + waveMs_(C); }
+    if (!m.openAt) { m.openAt = Date.now(); m.deadline = T.fmt === 'scramble' ? Date.now() + waveMs_(C) : 0; }
     postDue_(T, C); waves_(T, C);
     if (!T.done && champion_(T)) crown_(T, C);
     stateSet_(T); snapshot_(T); wake_();
