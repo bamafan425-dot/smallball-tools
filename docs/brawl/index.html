@@ -143,11 +143,13 @@ function cols(list,name){
   var rs={};list.forEach(function(m){(rs[m.r]=rs[m.r]||[]).push(m)});
   var big=list.length>=15;
   return '<div class="cols'+(big?' big':'')+'">'+Object.keys(rs).sort(function(a,b){return a-b}).map(function(r){
-    var byes=[],ms=rs[r].filter(function(m){
+    var byes=[],wait=[],ms=rs[r].filter(function(m){
+      if(D.lbHold&&m.b==='L'&&+r===1){[m.a,m.z].forEach(function(c){if(c&&c.id>0)wait.push(c)});return false}
       if(m.v||(m.bye&&m.byeA&&m.byeZ)||(m.b==='L'&&(m.byeA||m.byeZ)))return false;
       var oa=m.byeA||(m.a&&m.a.open),oz=m.byeZ||(m.z&&m.z.open);
       if(m.b==='W'&&+r===1&&(oa||oz)){var c=oa?m.z:m.a;if(c&&!c.open)byes.push(c);return false}
       return true});
+    if(wait.length)return '<div class="col fold"><h3>'+esc(name(r,rs[r]))+'</h3><div class="byes"><b>'+wait.length+' dropped so far</b>: paired up by stars (low with low) once the last play-in game is done<br>'+wait.map(function(c){return '<span>'+esc(c.n)+(c.st!==''&&c.st!=null?' · '+esc(c.st)+'★':'')+'</span>'}).join('')+'</div></div>';
     if(!ms.length&&!byes.length)return'';
     var bl=byes.length?'<div class="byes"><b>'+byes.length+' bye'+(byes.length===1?'':'s')+'</b> straight to the next round'+(D.matches?'':' (until more clubs sign up)')+(ms.length?'; the lowest-star clubs play in':'')+'<br>'+byes.sort(function(a,b){return (a.s||99)-(b.s||99)}).map(function(c){return '<span>'+(c.s?'#'+esc(c.s)+' ':'')+esc(c.n)+'</span>'}).join('')+'</div>':'';
     return '<div class="col'+(byes.length?' fold':'')+'"><h3>'+(byes.length&&ms.length?'Play-in games':esc(name(r,ms.length?ms:rs[r])))+'</h3>'+bl+'<div class="ms">'+ms.map(box).join('')+'</div></div>'}).join('')+'</div>';
