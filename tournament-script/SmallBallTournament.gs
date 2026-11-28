@@ -2699,4 +2699,4 @@ function airNow_(which) {
     return '⏩ Posted: ' + pick.map((m) => m.id).join(', ') + '. Next matches opened where both clubs are known.';
   } finally { lock.releaseLock(); }
 }
-function airNowWR3M1() { withSlot_(null, () => Logger.log(airNow_('WR3M1'))); }
+function airNowOne() { withSlot_(null, () => Logger.log(airNow_('WR3M2'))); }   // editor shortcut: set the match ID, Run
