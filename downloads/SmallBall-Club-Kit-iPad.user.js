@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (iPad)
 // @namespace    slipnsliders.smallball.ipad
-// @version      1.43.0
+// @version      1.44.0
 // @description  The full SmallBall Club Kit for iPad Safari: dashboard, stadium records, season games, squad views, box scores, your Hold the Hill card, tournament cards and Rotate Bench. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -124,7 +124,7 @@ const SBX_TABLET = true;
 
   // Which clubs get tabs and dashboard cards. Empty means "your first four clubs";
   // pick your own with the ⚙ button next to the tabs.
-  const KIT_VERSION = "1.43.0";   // filled in by the build
+  const KIT_VERSION = "1.44.0";   // filled in by the build
   const DEFAULT_CLUBS = []; // e.g. [3249, 1008, 8897]; empty = your first four clubs
   let PICKED = [];
   const MAX_DEFAULT = 4;
@@ -1212,6 +1212,10 @@ const SBX_TABLET = true;
   // ───────── Club Kit tools: ✨ What's new · 🩺 Health check · 💾 Back up / restore (in the ⚙ settings) ─────────
   // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
   const CHANGELOG = [
+    { v: "1.44.0", d: "Nov 28", items: [
+      "✅ <b>Finish training</b>: a big green button on the trainer. Tap it when you're done and it walks you through a <b>training wrap-up</b> (TP spent, skill gained, your best jump, who grew, who has TP left, 📋 copy the report), then <b>your lineup</b>.",
+      "↩️ <b>Put your lineup back</b>: moving men around in the trainer changes your real lineup. The kit notes your lineup when you open the trainer, and Finish training can put it back and save it in one tap. Or ⚡ optimize it, or edit it yourself in the 🧩 Lineup Builder.",
+    ] },
     { v: "1.43.0", d: "Nov 27", items: [
       "🥊 <b>Hide your cards, peek when you want</b>: every Hill, 🌱 Farm and 🏆 tournament card (bottom right) has a Hide button. Hidden cards stay away until you bring them back; the 🥊, 🌱 and 🏆 buttons below peek at them, and 📌 Keep puts one back for good. A red dot means something changed on a card you hid.",
       "🏆 The Tournaments button shows how many tournaments you're in.",
@@ -1764,6 +1768,7 @@ const SBX_TABLET = true;
       "#sbx-dock.bug{max-height:calc(100vh - 130px);overflow:auto}",
       "#sbx-selbug{position:fixed;right:16px;top:120px;z-index:2147482990;width:260px;background:linear-gradient(#10182c,#0b1220);color:#f4ebd9;border-radius:14px;padding:10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.6),0 0 0 2px #38bdf8;font:12px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}",
       "#sbx-selbug .bg-h{display:flex;align-items:baseline;gap:6px;cursor:move;user-select:none}#sbx-selbug .bg-h b{font:900 14px/1.2 system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-selbug .bg-h i{font-style:normal;opacity:.55;font-size:11px}#sbx-selbug .x{margin-left:auto;border:0;background:none;color:inherit;opacity:.6;cursor:pointer;font-size:14px}",
+      "#sbx-dock .dk-finish{background:linear-gradient(180deg,#22c55e,#15803d);color:#fff;border:2px solid #bbf7d0;border-radius:999px;padding:7px 18px;font:900 15px/1 system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,.45);white-space:nowrap}#sbx-dock .dk-finish:hover{filter:brightness(1.1)}",
       "#sbx-selbug .tpl{margin:-3px 0 8px}#sbx-selbug .tpl .at-bar{height:6px}",
       "#sbx-selbug .nums{display:flex;gap:8px;flex-wrap:wrap;margin:5px 0 7px;font-size:11px;opacity:.9}#sbx-selbug .nums b{color:#fde68a}#sbx-selbug .nums b.g{color:#4ade80}#sbx-selbug .nums b.r{color:#f87171}",
       "#sbx-selbug .sr{display:grid;grid-template-columns:86px 1fr 24px 24px;gap:5px;align-items:center;padding:2px 0}#sbx-selbug .sr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#sbx-selbug .sr b{text-align:right}#sbx-selbug .sr em{font-style:normal;color:#4ade80;font-weight:800;font-size:11px}",
@@ -1849,12 +1854,113 @@ const SBX_TABLET = true;
     setTimeout(go, 150);
   }, true);
   document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-atplan]"); if (b) { e.preventDefault(); atOpen(b.dataset.atplan); } }, true);
+  // 🧩 Moving men around in the trainer changes the club's real lineup. When you open the trainer, the kit notes
+  // the lineup and batting order you had (once, until you've dealt with it on the club page), so the 🧩 Lineup
+  // Builder can put it back, or ⚡ optimize, when you're done.
+  const PRETRAIN_KEY = "sbx-pretrain", PRETRAIN = {};
+  function preTrainSnap(team) {
+    if (PRETRAIN[team]) return; PRETRAIN[team] = 1;
+    let all = {}; try { all = JSON.parse(localStorage.getItem(PRETRAIN_KEY) || "{}"); } catch (_) {}
+    const have = all[team]; if (have && have.open && Date.now() - have.at < 24 * 3600e3) return;
+    fetch("/teams/" + team + "/profile", { credentials: "include", cache: "no-store" }).then((r) => r.json()).then((prof) => {
+      if (!prof || !prof.mine || !Array.isArray(prof.roster) || !Array.isArray(prof.field_pos)) return;
+      const SP = ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"], bySlot = new Map(prof.roster.map((p) => [Number(p.slot), p]));
+      const field = {}; prof.field_pos.forEach((slot, k) => { const p = bySlot.get(Number(slot)); if (p && SP[k]) field[SP[k]] = String(p.player_id); });
+      const order = (prof.batting_order || []).map((k) => { const p = bySlot.get(Number(prof.field_pos[k])); return p ? String(p.player_id) : null; }).filter(Boolean);
+      const on = new Set(Object.values(field)), bench = prof.roster.filter((p) => !on.has(String(p.player_id))).sort((a, b) => Number(a.slot) - Number(b.slot)).map((p) => String(p.player_id));
+      if (Object.keys(field).length < 9) return;
+      let a2 = {}; try { a2 = JSON.parse(localStorage.getItem(PRETRAIN_KEY) || "{}"); } catch (_) {}
+      a2[team] = { at: Date.now(), open: true, field, order, bench }; try { localStorage.setItem(PRETRAIN_KEY, JSON.stringify(a2)); } catch (_) {}
+    }).catch(() => {});
+  }
+  // ✅ Finish training: a wrap-up of the session (what you spent, what grew, who's next), then your lineup.
+  async function atWrapUp(team) {
+    const ov = sbxModal("✅ Training wrap-up", '<div class="muted">Reading your club…</div>', true);
+    let d; try { d = await profileOf(team, 0); } catch (_) { d = PROF[team] && PROF[team].data; }
+    const S = AT.sess; if (!d || !S || S.team !== team) { ov.querySelector(".box").innerHTML += '<div class="msg">Couldn\'t read this session. Close and try again.</div>'; return; }
+    const plan = tplanAll()[team] || {}, roster = d.roster || [];
+    let spent = 0, gained = 0, onP = 0, offP = 0, best = null;
+    const men = roster.map((p) => {
+      const b = S.base[p.player_id] || { tp: +p.tp || 0, s: SKL.map(() => 0) };
+      const g = SKL.map(([, k], i) => Math.max(0, Math.round(+p[k] || 0) - b.s[i])), sum = g.reduce((x, y) => x + y, 0);
+      const sp = Math.max(0, Math.round(b.tp - (+p.tp || 0))), f = (plan[p.player_id] || {}).focus || [];
+      g.forEach((x, i) => { if (f.includes(SKL[i][0])) onP += x; else if (f.length) offP += x; if (x && (!best || x > best.x)) best = { x, who: p.name, sk: SKL[i][2] }; });
+      spent += sp; gained += sum;
+      return { p, g, sum, sp, left: Math.round(+p.tp || 0) };
+    });
+    const mins = Math.max(1, Math.round((Date.now() - S.at) / 60000));
+    const worked = men.filter((m) => m.sum || m.sp).sort((a, b) => b.sum - a.sum || b.sp - a.sp);
+    const next = men.filter((m) => m.left >= 10).sort((a, b) => b.left - a.left).slice(0, 4);
+    const row = (m) => '<div class="row"><b>' + esc(m.p.name) + '</b><span style="flex:1">' + (m.sum ? SKL.map(([, , nm], i) => (m.g[i] ? nm + " <b>+" + m.g[i] + "</b>" : "")).filter(Boolean).join(" · ") : '<span class="muted">no gains yet</span>') + '</span><span class="muted" style="white-space:nowrap">' + m.sp + " TP spent · " + m.left + " left</span></div>";
+    const stat = (n, l) => '<div style="flex:1;min-width:110px;background:rgba(255,255,255,.07);border-radius:12px;padding:10px 12px;text-align:center"><div style="font:900 24px/1 system-ui,sans-serif;color:#fde68a">' + n + '</div><div class="muted" style="margin-top:4px">' + l + "</div></div>";
+    // How the lineup stands next to the one from when you opened the trainer.
+    let pre = null; try { pre = (JSON.parse(localStorage.getItem(PRETRAIN_KEY) || "{}") || {})[team] || null; } catch (_) {}
+    if (pre && (!pre.open || Date.now() - pre.at > 24 * 3600e3)) pre = null;
+    let moved = 0;
+    if (pre && Array.isArray(d.field_pos)) {
+      const SP = ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"], bySlot = new Map(roster.map((p) => [Number(p.slot), p]));
+      d.field_pos.forEach((slot, k) => { const p = bySlot.get(Number(slot)); if (p && pre.field[SP[k]] && pre.field[SP[k]] !== String(p.player_id)) moved++; });
+    }
+    const go = (mode) => { try { sessionStorage.setItem("sbx-lu-fix", JSON.stringify({ team: String(team), restore: mode === "restore", mode, at: Date.now() })); } catch (_) {} location.href = "/#/team/" + team; };
+    const report = "📋 Training wrap-up · " + (d.name || "") + "\n" + mins + " min · " + spent + " TP spent · +" + gained + " skill" + (best ? "\n⭐ Best jump: " + best.who + " " + best.sk + " +" + best.x : "") + "\n" +
+      worked.slice(0, 6).map((m) => "• " + m.p.name + ": " + SKL.map(([, , nm], i) => (m.g[i] ? nm + " +" + m.g[i] : "")).filter(Boolean).join(", ")).filter((x) => !/: $/.test(x)).join("\n");
+    const html =
+      '<div class="muted" style="margin:-4px 0 10px">Step 1 of 2 · ' + esc(d.name || "") + "</div>" +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' + stat(spent, "TP spent") + stat("+" + gained, "skill gained") + stat(spent ? (gained / spent * 10).toFixed(1) : "–", "skill per 10 TP") + stat(mins + "m", "in the trainer") + "</div>" +
+      (best ? '<div style="margin-top:10px">⭐ <b>Best jump:</b> ' + esc(best.who) + " · " + best.sk + " <b>+" + best.x + "</b></div>" : "") +
+      (onP + offP ? '<div class="muted" style="margin-top:4px">🎯 On plan +' + onP + " · off plan +" + offP + "</div>" : "") +
+      '<h4 style="margin:14px 0 4px">Who grew</h4>' + (worked.length ? worked.map(row).join("") : '<div class="muted">Nobody trained this session.</div>') +
+      (next.length ? '<h4 style="margin:14px 0 4px">Next time</h4><div class="muted">Most TP still to spend: ' + next.map((m) => esc(m.p.name) + " (" + m.left + ")").join(", ") + "</div>" : "") +
+      '<div class="acts"><button class="b" type="button" data-wcopy>📋 Copy report</button><button class="b go" type="button" data-wnext>Next: my lineup →</button></div><div class="msg"></div>';
+    const box = ov.querySelector(".box"); box.innerHTML = '<button class="x" type="button" title="Close">✕</button><h3>✅ Training wrap-up</h3>' + html;
+    box.querySelector("[data-wcopy]").onclick = () => { try { navigator.clipboard.writeText(report); box.querySelector(".msg").textContent = "Copied. Paste it anywhere."; } catch (_) {} };
+    box.querySelector("[data-wnext]").onclick = () => {
+      box.innerHTML = '<button class="x" type="button" title="Close">✕</button><h3>🧩 Your lineup</h3><div class="muted" style="margin:-4px 0 10px">Step 2 of 2</div>' +
+        (pre ? (moved ? "<p>Training moved <b>" + moved + "</b> of your starters off the spots they had when you opened the trainer.</p>" : "<p>Your starters are where they were when you opened the trainer" + (Array.isArray(d.field_pos) ? "" : " (as far as the kit can tell)") + ".</p>")
+          : "<p>The kit didn't note a lineup when you opened the trainer, so there's nothing to put back. You can still optimize or edit it.</p>") +
+        '<div style="display:grid;gap:8px">' +
+        (pre ? '<button class="b go" type="button" data-wl="restore" style="padding:12px">↩️ Put back my lineup from before training <span style="font-weight:500">(and save it)</span></button>' : "") +
+        '<button class="b" type="button" data-wl="opt" style="padding:12px">⚡ Optimize my lineup <span style="font-weight:500;opacity:.8">(you check it, then Save)</span></button>' +
+        '<button class="b" type="button" data-wl="edit" style="padding:12px">🧩 Edit it myself in the Lineup Builder</button>' +
+        '<button class="b" type="button" data-wl="keep" style="padding:12px">👍 Keep it as it is</button></div>';
+      box.querySelectorAll("[data-wl]").forEach((b) => (b.onclick = () => {
+        const m = b.dataset.wl;
+        if (m === "keep") { try { const all = JSON.parse(localStorage.getItem(PRETRAIN_KEY) || "{}"); if (all[team]) { all[team].open = false; localStorage.setItem(PRETRAIN_KEY, JSON.stringify(all)); } } catch (_) {} ov.remove(); return; }
+        go(m);
+      }));
+    };
+  }
+  // ✅ The easy button: a big floating "Finish training" chip on the trainer, always in reach. It shows what the
+  // session has done so far and opens the wrap-up (report, then lineup).
+  function mountFinishChip(team) {
+    let b = document.getElementById("sbx-finish");
+    if (!on("tplan")) { b?.remove(); return; }
+    if (!b) {
+      b = document.createElement("button"); b.id = "sbx-finish"; b.type = "button";
+      b.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147482995;border:2px solid #bbf7d0;border-radius:999px;padding:12px 24px;background:linear-gradient(180deg,#22c55e,#15803d);color:#fff;font:900 17px/1 system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;box-shadow:0 8px 26px rgba(0,0,0,.45),0 0 0 4px rgba(34,197,94,.25);display:flex;align-items:center;gap:10px;white-space:nowrap";
+      b.title = "Alright, time to finish: see what this session did, then sort out your lineup";
+      b.onmouseenter = () => (b.style.filter = "brightness(1.1)"); b.onmouseleave = () => (b.style.filter = "");
+      document.body.appendChild(b);
+    }
+    b.onclick = () => atWrapUp(team);
+    let txt = "";
+    try {
+      const S = AT.sess, c = PROF[team];
+      if (S && S.team === team && c) {
+        let sp = 0, g = 0;
+        (c.data.roster || []).forEach((p) => { const x = S.base[p.player_id]; if (!x) return; sp += Math.max(0, Math.round(x.tp - (+p.tp || 0))); SKL.forEach(([, k], i) => { g += Math.max(0, Math.round(+p[k] || 0) - x.s[i]); }); });
+        if (sp || g) txt = '<span style="font:700 13px/1 system-ui,sans-serif;background:rgba(0,0,0,.22);border-radius:999px;padding:5px 9px">' + sp + " TP · +" + g + " skill</span>";
+      }
+    } catch (_) {}
+    const html = "✅ Finish training" + txt;
+    if (b.dataset.h !== html) { b.innerHTML = html; b.dataset.h = html; }
+  }
   function mountAsst() {
     atStyle();
     const onTrainer = isTrainer(), team = tplanTeam();
     document.getElementById("sbx-tplan-btn")?.remove();   // the old floating button
-    if (onTrainer && team) { AT.open = false; document.getElementById("sbx-at")?.remove(); mountDock(team); mountTrainNotes(team); return; }
-    document.getElementById("sbx-dock")?.remove(); document.getElementById("sbx-atnotes")?.remove(); document.getElementById("sbx-selbug")?.remove(); AT.sess = null;
+    if (onTrainer && team) { AT.open = false; document.getElementById("sbx-at")?.remove(); if (on("builder")) preTrainSnap(team); mountDock(team); mountFinishChip(team); mountTrainNotes(team); return; }
+    document.getElementById("sbx-dock")?.remove(); document.getElementById("sbx-finish")?.remove(); document.getElementById("sbx-atnotes")?.remove(); document.getElementById("sbx-selbug")?.remove(); AT.sess = null;
     // 📋 Training plan in your club page's header, beside the site's Training button
     const hb = document.querySelector("main .th-btns");
     if (hb && team && !hb.querySelector("[data-atplan]")) {
@@ -2572,7 +2678,8 @@ const SBX_TABLET = true;
     }).join("");
     const feed = atEv.filter((e) => e.team === team && e.at >= S.at).slice(-40).reverse().map((e) => "<div>" + fmtT(e.at) + " · " + esc(e.name) + ": " + esc(e.k) + " " + e.from + " → <b>" + e.to + "</b></div>").join("") || '<div style="opacity:.6">Gains show up here as they land.</div>';
     const sortBtn = '<span class="dk-mode"><button type="button" data-atsort="' + (srt === "" ? "tpd" : srt === "tpd" ? "tpa" : "") + '" class="' + (srt ? "on" : "") + '" title="Click to change the order: the club\'s own order, most TP left first, least TP left first">' + (srt === "tpd" ? "↓ Most TP left" : srt === "tpa" ? "↑ Least TP left" : "↕ Sort by TP") + "</button></span>";
-    const modes = sortBtn + '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
+    const doneBtn = on("builder") ? '<button type="button" data-atdone class="dk-finish" title="Done training: see what this session did, then sort out your lineup">✅ Finish training</button>' : "";
+    const modes = doneBtn + sortBtn + '<span class="dk-mode"><button type="button" data-mode="plan" class="' + (cmp ? "on" : "") + '" title="Gold = gains in his plan, grey = gains outside it, with his TP targets">🎯 Compare to plan</button><button type="button" data-mode="gains" class="' + (cmp ? "" : "on") + '" title="Just TP and gains, no plan">📈 Just track gains</button></span>';
     if (pl === "bug") {
       // The bug: the session in a glance, and the latest gain as it lands.
       const left = roster.reduce((x, p) => x + Math.round(+p.tp || 0), 0);
@@ -2614,6 +2721,7 @@ const SBX_TABLET = true;
     el.querySelectorAll("[data-atpl]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_PLACE, b.dataset.atpl); } catch (_) {} atRedraw(); }));
     el.querySelectorAll("[data-atview]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_VIEW, b.dataset.atview); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
     el.querySelectorAll("[data-atsort]").forEach((b) => (b.onclick = () => { try { localStorage.setItem(AT_SORT, b.dataset.atsort); } catch (_) {} el.dataset.sig = ""; atRedraw(); }));
+    el.querySelectorAll("[data-atdone]").forEach((b) => (b.onclick = () => atWrapUp(team)));
   }
 
   // 🔭 The site's Team explorer only has a footer link: add a quiet one at the end of the top menu.
@@ -5723,6 +5831,9 @@ const SBX_TABLET = true;
 
   // ---------- UI ----------
   const CSS = `
+#sbx-build .pretrain{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(124,58,237,.16);border:1px solid rgba(167,139,250,.6);font:600 13.5px/1.4 system-ui,sans-serif}
+#sbx-build .pretrain span{display:flex;flex-wrap:wrap;gap:6px}
+
   #sbx-build { margin: 0 0 16px; padding: 14px 16px 16px; border-radius: 14px; background: linear-gradient(180deg, rgba(30,41,82,.92), rgba(14,22,44,.95)); color: #eef2ff; box-shadow: 0 8px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08); font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
   #sbx-build * { box-sizing: border-box; }
   #sbx-build .bh { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -5808,11 +5919,29 @@ const SBX_TABLET = true;
       (ST.naming ? `<input type="text" maxlength="30" placeholder="Name it, e.g. Hill defense" data-name><button type="button" class="bb go" data-sv="ok">Save</button><button type="button" class="bb" data-sv="no">Cancel</button>`
         : `<button type="button" class="bb" data-sv="new" title="Save the lineup and batting order that are in the form right now">＋ Save this lineup</button>`) + "</div>";
   }
+  // 🏋️ The lineup you had before training (noted by the Asst. Trainer when you opened the trainer).
+  const PRE_KEY = "sbx-pretrain";
+  function preGet(team) {
+    let all = {}; try { all = JSON.parse(localStorage.getItem(PRE_KEY) || "{}"); } catch (_) {}
+    const x = all[team]; if (!x || !x.open || Date.now() - x.at > 24 * 3600e3) return null;
+    const pos = POS.map((k, i) => (i < 9 ? x.field[k] : (x.bench || [])[i - 9]) || "");
+    if (pos.some((id) => !id || !ST.byId || !ST.byId.has(String(id)))) return null;   // someone left the club: can't rebuild it
+    return { at: x.at, pos: pos.map(String), order: (x.order || []).map(String) };
+  }
+  function preClose(team) { let all = {}; try { all = JSON.parse(localStorage.getItem(PRE_KEY) || "{}"); } catch (_) {} if (all[team]) { all[team].open = false; try { localStorage.setItem(PRE_KEY, JSON.stringify(all)); } catch (_) {} } }
+  const sameForm = (a, b) => a && b && a.pos.every((id, i) => id === b.pos[i]) && a.order.length === b.order.length && a.order.every((id, i) => id === b.order[i]);
   function render() {
     const el = ST.el, team = ST.team, c = cfg(team);
     const form = readForm(ST.byName);
     if (!form) return;
     ST.form = form; ST.sig = JSON.stringify(form);
+    const ptl = preGet(team);
+    if (ptl && sameForm(ptl, form) && !ST.preShown) preClose(team);   // the lineup is already back: nothing to do
+    const preBar = ptl && !sameForm(ptl, form) ? `<div class="pretrain">🏋️ <b>Training moved your men around.</b> Want the lineup you had before training (${new Date(ptl.at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })})?` +
+      `<span><button class="bb go" data-act="pre" title="Fill the form with the lineup and batting order from before training">↩️ Put back my lineup</button>` +
+      `<button class="bb" data-act="opt" title="Build a fresh lineup with your settings instead">⚡ Optimize instead</button>` +
+      `<button class="bb" data-act="prekeep" title="Keep the lineup as it is now">Keep it as is</button></span></div>` : "";
+    if (preBar) ST.preShown = true;
     const posOf = (id) => { const i = form.pos.indexOf(id); return i >= 0 ? POS[i] : ""; };
     const field = FIELD.map((i) => `<div class="slot" data-slot="${i}" style="grid-column:${AREA[i][0]};grid-row:${AREA[i][1]}"><b>${POS[i]}</b>${chip(form.pos[i], POS[i], c)}</div>`).join("") +
       `<div class="bench">${[9, 10, 11].map((i) => `<div class="slot" data-slot="${i}"><b>BENCH</b>${chip(form.pos[i], null, c)}</div>`).join("")}</div>`;
@@ -5822,7 +5951,7 @@ const SBX_TABLET = true;
     el.innerHTML = `<div class="bh"><div class="xb-t"><h3>🧩 Lineup Builder</h3><div class="xb-sub">Drag men between spots, the bench and the batting order (or tap one, then another). It fills SmallBall's form below; nothing is saved until you press <b>Save</b>.</div></div>` +
       `<button class="bb go" data-act="opt" title="Build the lineup and batting order with your settings">⚡ Optimize my way</button>` +
       `<button class="bb" data-act="cust">⚙️ ${ST.open ? "Hide settings" : "My settings"}</button>` +
-      (ST.snapshot ? `<button class="bb" data-act="undo" title="Put the form back the way it was before your changes">↺ Undo my changes</button>` : "") + "</div>" +
+      (ST.snapshot ? `<button class="bb" data-act="undo" title="Put the form back the way it was before your changes">↺ Undo my changes</button>` : "") + "</div>" + preBar +
       savedRow(c, form) +
       (ST.open ? `<div class="cust"><div class="presets">${pre}</div><div class="sl">${sl}</div><div class="rules">` +
         `<label>Batting order: <select data-order>${Object.entries(ORDERS).map(([k, v]) => `<option value="${k}"${c.order === k ? " selected" : ""}>${v}</option>`).join("")}</select></label>` +
@@ -5885,6 +6014,8 @@ const SBX_TABLET = true;
     el.querySelectorAll("[data-act]").forEach((b) => (b.onclick = async () => {
       const a = b.dataset.act;
       if (a === "cust") { ST.open = !ST.open; render(); }
+      else if (a === "pre") { const p = preGet(team); if (p) await change(p, "Back to your lineup from before training."); }
+      else if (a === "prekeep") { preClose(team); render(); msg("👍 Keeping the lineup as it is."); }
       else if (a === "undo" && ST.snapshot) { const s = ST.snapshot; await change(s, "Back to how it was."); ST.snapshot = null; ST.why = ""; render(); msg("↺ Back to how it was before your changes."); }
       else if (a === "opt") {
         const conf = c(), t = optimize({ ...ST.form, byId: ST.byId }, conf);
@@ -6013,6 +6144,7 @@ const SBX_TABLET = true;
   document.addEventListener("click", (e) => {
     if (!e.target || !e.target.closest || !e.target.closest("#lu-save") || !ST.prof || !ST.prof.mine) return;
     const expect = readForm(ST.byName); if (!expect) return;
+    preClose(ST.team);
     const old = document.getElementById("sbx-build-check"); if (old) old.remove();
     setTimeout(() => verifySave(expect), 2000);
   }, true);
@@ -6046,6 +6178,23 @@ const SBX_TABLET = true;
     const f = readForm(ST.byName); if (!f) return;
     const sig = JSON.stringify(f);
     if (sig !== ST.sig) { ST.sig = sig; render(); }
+    // ✅ Finish training (from the Asst. Trainer): put the lineup from before training back and press Save for you.
+    let fx = null; try { fx = JSON.parse(sessionStorage.getItem("sbx-lu-fix") || "null"); } catch (_) {}
+    if (fx && String(fx.team) === String(team) && ST.el && Date.now() - (fx.at || 0) < 120000) {
+      try { sessionStorage.removeItem("sbx-lu-fix"); } catch (_) {}
+      setTimeout(() => ST.el.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+      const p = preGet(team), now = readForm(ST.byName);
+      if (fx.mode === "opt") { const conf = cfg(team), t = optimize({ ...now, byId: ST.byId }, conf); ST.why = explain(t, conf); await change(t, "Optimized with " + (PRESETS[conf.preset] ? PRESETS[conf.preset].label : "your settings") + "."); preClose(team); }
+      else if (fx.mode === "edit") { msg("🧩 Drag men around, or use ↩️ / ⚡ above. Press <b>Save</b> below when it looks right."); }
+      else if (!p) msg("✅ Training done. There's no lineup from before training to put back (it's older than a day, or a man has left the club).");
+      else if (sameForm(p, now)) { preClose(team); msg("✅ Training done. Your lineup is already the way it was before training."); }
+      else {
+        await change(p, "Back to your lineup from before training.");
+        const got = readForm(ST.byName), save = document.getElementById("lu-save");
+        if (save && sameForm(p, got)) { msg("✅ Putting your lineup back and saving…"); save.click(); }
+        else msg("⚠️ Couldn't fill the whole lineup back in. Check the form, then press <b>Save</b>.");
+      }
+    }
   }
   let t = 0;
   new MutationObserver((muts) => {
