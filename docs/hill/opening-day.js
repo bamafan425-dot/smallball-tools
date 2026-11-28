@@ -46,12 +46,10 @@
     '#od-intro .card .l{font:400 18px "Bebas Neue",sans-serif;letter-spacing:.3em;color:#ffd166}',
     '#od-intro .card .n{font:400 clamp(40px,7vw,72px)/1 Anton,Impact,sans-serif;margin:6px 0}',
     '#od-intro .card .c{font-size:18px;opacity:.85}',
-    '#od-intro .roll{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,90vw);opacity:0;transition:opacity .4s}',
-    '#od-intro .roll h3{margin:0 0 10px;font:400 22px "Bebas Neue",sans-serif;letter-spacing:.3em;color:#ffd166;text-align:center}',
-    '#od-intro .roll div{display:flex;gap:12px;align-items:center;background:rgba(244,235,217,.06);border-left:4px solid #C8102E;margin:6px 0;padding:6px 12px;font-size:17px;opacity:0;transform:translateX(-60px);transition:all .45s}',
-    '#od-intro .roll div.show{opacity:1;transform:none}',
-    '#od-intro .roll b{font:400 26px "Bebas Neue",sans-serif;color:#ffd166;min-width:42px}',
-    '#od-intro .roll span{opacity:.7;font-size:14px;margin-left:auto}',
+    '#od-intro .roll{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(600px,92vw);max-height:80vh;overflow:hidden;opacity:0;transition:opacity .4s}',
+    '#od-intro .roll h3{margin:0 0 4px;font:400 26px "Bebas Neue",sans-serif;letter-spacing:.3em;color:#ffd166;text-align:center}',
+    '#od-intro .roll .step{animation:none;opacity:0;translate:-60px 0;transition:opacity .45s,translate .45s;position:relative}',
+    '#od-intro .roll .step.show{opacity:1;translate:0 0}',
     '#od-intro .go{pointer-events:auto;margin-top:26px;font:400 34px "Bebas Neue",Impact,sans-serif;letter-spacing:.12em;background:#C8102E;color:#fff;border:3px solid #ffd166;border-radius:999px;padding:8px 38px;cursor:pointer;opacity:0;transform:scale(.6);transition:all .5s cubic-bezier(.2,1.6,.4,1);box-shadow:0 0 30px rgba(200,16,46,.6)}',
     '#od-intro .go:hover{background:#e11d48}',
     '#od-intro .skip{position:absolute;right:14px;top:12px;z-index:3;background:rgba(0,0,0,.35);color:#F4EBD9;border:1px solid rgba(244,235,217,.35);border-radius:999px;padding:5px 14px;font:500 14px Oswald,sans-serif;cursor:pointer}',
@@ -60,11 +58,11 @@
     '#od-banner::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.035) 0 14px,transparent 14px 28px);pointer-events:none}',
     '#od-banner .bunting{position:absolute;left:0;right:0;top:0;height:16px;background:repeating-linear-gradient(90deg,#C8102E 0 26px,#F4EBD9 26px 52px,#1d4ed8 52px 78px);clip-path:polygon(0 0,100% 0,100% 40%,98% 100%,96% 40%,94% 100%,92% 40%,90% 100%,88% 40%,86% 100%,84% 40%,82% 100%,80% 40%,78% 100%,76% 40%,74% 100%,72% 40%,70% 100%,68% 40%,66% 100%,64% 40%,62% 100%,60% 40%,58% 100%,56% 40%,54% 100%,52% 40%,50% 100%,48% 40%,46% 100%,44% 40%,42% 100%,40% 40%,38% 100%,36% 40%,34% 100%,32% 40%,30% 100%,28% 40%,26% 100%,24% 40%,22% 100%,20% 40%,18% 100%,16% 40%,14% 100%,12% 40%,10% 100%,8% 40%,6% 100%,4% 40%,2% 100%,0 40%);opacity:.9}',
     '#od-banner .hd{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-top:8px}',
-    '#od-banner h2{margin:0;font:400 clamp(34px,6vw,54px)/1 Anton,Impact,sans-serif;color:#F4EBD9;text-shadow:0 0 18px rgba(255,209,102,.5),0 4px 0 #C8102E;letter-spacing:.02em}',
+    '#od-banner h2{margin:0;font:400 clamp(30px,5vw,44px)/1 Anton,Impact,sans-serif;color:#F4EBD9;text-shadow:0 0 18px rgba(255,209,102,.5),0 4px 0 #C8102E;letter-spacing:.02em}',
     '#od-banner .cd{font:400 20px "Bebas Neue",sans-serif;letter-spacing:.12em;color:#ffd166}',
     '#od-banner .rp{margin-left:auto;background:rgba(0,0,0,.3);color:#F4EBD9;border:1px solid rgba(255,209,102,.6);border-radius:999px;padding:4px 14px;font:500 14px Oswald,sans-serif;cursor:pointer}',
     '#od-banner .rp:hover{background:#C8102E}',
-    '#od-banner .grid{position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}',
+    '#od-banner .grid{position:relative;display:grid;grid-template-columns:minmax(200px,1fr) minmax(200px,1fr) minmax(260px,1.6fr);gap:12px;margin-top:12px}',
     '#od-banner .box{background:rgba(5,11,24,.55);border:1px solid rgba(244,235,217,.18);border-radius:12px;padding:10px 12px}',
     '#od-banner .box h4{margin:0 0 6px;font:400 19px "Bebas Neue",sans-serif;letter-spacing:.14em;color:#ffd166}',
     '#od-banner .box p{margin:0;font-size:14.5px;line-height:1.4}',
@@ -80,9 +78,17 @@
     '#od-banner .new{display:inline-block;background:#C8102E;color:#fff;font:700 10px system-ui;letter-spacing:.08em;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px;animation:odp 1.2s ease-in-out infinite alternate}',
     '@keyframes odp{to{box-shadow:0 0 10px #C8102E}}',
     '#od-banner .ball{position:absolute;right:-30px;bottom:-30px;font-size:120px;opacity:.12;transform:rotate(-20deg);pointer-events:none}',
+    '@media (max-width:760px){#od-banner .grid{grid-template-columns:1fr}}',
+    '#od-banner .drops{max-height:190px;overflow:auto}',
     '@media (prefers-reduced-motion:reduce){#od-intro *{transition:none!important}#od-banner .new{animation:none}}'
   ].join('\n');
 
+  // The ladder drawn exactly like the board's own "The Climb" (same classes, so the same look all season).
+  function climb(A, lad) {
+    var id = function (p) { return p.clubId ? ' · ID ' + esc(p.clubId) : ''; };
+    return (A ? '<div class="step ace"><span class="tag bb">♠ THE ACE · ON THE MOUND</span><span class="rk bb">👑</span><span class="who bb">' + esc(A.name) + '<small>' + esc(A.club) + id(A) + '</small></span><span class="wl bb"><b>' + (A.rdef || 0) + '</b>' + ((A.rdef || 0) === 1 ? 'defense' : 'defenses') + '</span></div>' : '') +
+      lad.map(function (p, i) { return '<div class="step' + (i === 0 ? ' top' : '') + '" style="--i:' + Math.min(i + 1, 9) + '"><span class="rk bb">#' + esc(p.rank) + '</span><span class="who bb">' + esc(p.name) + '<small>' + esc(p.club) + id(p) + '</small></span><span class="wl bb">' + (p.w || 0) + '-' + (p.l || 0) + '</span></div>'; }).join('');
+  }
   // ───────────── the intro ─────────────
   function intro(w, force) {
     var key = 'hth-od-seen-' + w.s;
@@ -93,7 +99,7 @@
     el.innerHTML = '<canvas></canvas><button class="skip" type="button">Skip ⏭</button>' +
       '<div class="stage"><div class="kick">⚾ SMALLBALL PRESENTS ⚾</div><div class="big">OPENING DAY</div><div class="sub">HOLD THE HILL · A FRESH SEASON</div></div>' +
       '<div class="card"><div class="l">♠ TAKING THE MOUND</div><div class="n">' + esc(A ? A.name : 'THE HILL IS OPEN') + '</div><div class="c">' + (A ? esc(A.club) + (A.clubId ? ' · #' + esc(A.clubId) : '') + (D().openingDay ? '<br>🏆 Black Friday Brawl champion' : '') : 'First club to claim it plants the flag') + '</div></div>' +
-      '<div class="roll"><h3>TODAY\'S STARTING LADDER</h3>' + lad.map(function (p) { return '<div><b>#' + esc(p.rank) + '</b>' + esc(p.name) + '<span>' + esc(p.club) + '</span></div>'; }).join('') + '</div>' +
+      '<div class="roll"><h3>THE CLIMB · OPENING DAY</h3><div class="climb">' + climb(A, lad) + '</div></div>' +
       '<div class="stage" style="justify-content:flex-end;padding-bottom:12vh"><button class="go" type="button">PLAY BALL! ⚾</button></div>';
     document.body.appendChild(el);
     var cv = el.querySelector('canvas'), cx = cv.getContext('2d'), W = 0, H = 0, parts = [], timers = [], alive = true, lights = 0, t0 = performance.now();
@@ -142,7 +148,7 @@
     later(4600, function () { ['.kick', '.big', '.sub'].forEach(hide); show('.card'); burst(W * .5, H * .25, 140, 50); });
     later(7400, function () {
       hide('.card'); var R = $('.roll'); R.style.opacity = '1';
-      [].forEach.call(R.querySelectorAll('div'), function (row, i) { later(i * 260, function () { row.classList.add('show'); }); });
+      [].forEach.call(R.querySelectorAll('.step'), function (row, i) { later(i * 260, function () { row.classList.add('show'); }); });
     });
     later(7400 + Math.max(1, lad.length) * 260 + 1200, function () { show('.go'); confetti(160); burst(W * .3, H * .3, 100, 0); burst(W * .7, H * .3, 100, 210); });
     var fw = setInterval(function () { if (lights > 3 && !RM) burst(W * (.15 + Math.random() * .7), H * (.12 + Math.random() * .25), 60, Math.random() * 360); }, 1100); timers.push(fw);
@@ -176,11 +182,10 @@
     html += '<div class="box"><h4>♠ On the mound</h4><p>' + (A ? '<b>' + esc(A.name) + '</b> · ' + esc(A.club) + (d.openingDay ? '<br>The Black Friday Brawl champ opens the season as the Ace. ' : '<br>') + 'First club to knock them off writes history.' : 'The hill is open: the first club to claim it plants the flag.') + '</p></div>';
     html += '<div class="box"><h4>⚾ First pitch</h4><p>' + (f.c ? '<b>' + esc(f.c.ch) + '</b> threw the first charge of the season at <b>' + esc(f.c.df) + '</b> (' + t(Date.parse(f.c.created)) + ').' : 'No charges yet. Who throws the first pitch of the season?') +
       (f.m ? '<br>🏁 First result: <b>' + esc(f.m.w) + '</b> beat <b>' + esc(f.m.l) + '</b> ' + esc(f.m.wr) + '–' + esc(f.m.lr) + '.' : '') + (f.games > 1 ? '<br>' + f.games + ' games played so far today.' : '') + '</p></div>';
-    html += '<div class="box"><h4>📋 Today\'s lineup card</h4><ul class="lu">' + lad.slice(0, 10).map(function (p) { return '<li><b>#' + esc(p.rank) + '</b>' + esc(p.name) + '<i>' + esc(p.club) + '</i></li>'; }).join('') + '</ul></div>';
-    if (dr.length) html += '<div class="box" style="grid-column:1/-1"><h4>🎁 Opening Day extras</h4>' + dr.map(function (x) {
+    if (dr.length) html += '<div class="box"><h4>🎁 Opening Day extras</h4><div class="drops">' + dr.map(function (x) {
       var at = Date.parse(x.at || '') || w.s, fresh = Date.now() - at < 2 * 3600e3 && x.at;
       return '<div class="drop"><span class="ic">' + esc(x.icon || '⚾') + '</span><div><b>' + esc(x.title || '') + (fresh ? '<span class="new">NEW</span>' : '') + '</b>' + (x.html ? String(x.html) : esc(x.body || '')) + (x.at ? '<br><small>' + t(at) + '</small>' : '') + '</div></div>';
-    }).join('') + '</div>';
+    }).join('') + '</div></div>';
     html += '</div>';
     if (b.dataset.h !== html) { b.innerHTML = html; b.dataset.h = html; b.querySelector('[data-odreplay]').onclick = function () { intro(w, true); }; }
   }
