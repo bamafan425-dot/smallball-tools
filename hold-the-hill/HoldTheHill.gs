@@ -4485,7 +4485,7 @@ function snapshotMain_() {
         snap.wagers = wagerOn_(C) ? wagerBoard_(C) : null;
         try { snap.items = itemsOn_(C) ? itemBoard_(C) : null; } catch (e) { snap.items = null; }
         try { snap.streaks = itemsOn_(C) ? streakBoard_(C) : null; } catch (e) { snap.streaks = null; }
-        if (bookOn_(C)) { try { const DB = dayBook_(); snap.day = DB ? Object.assign({}, DB, { done: dayDecided_(DB), live: titleLive_() }) : null; } catch (e) { snap.day = null; } snap.book = null; const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
+        if (bookOn_(C)) { try { const DB = dayBook_(); snap.day = DB ? { day: DB.day, at: DB.at, ends: DB.ends, props: DB.props, done: dayDecided_(DB), live: titleLive_(), ace: DB.ace.map(function (r) { return { name: r.name, club: r.club, rank: r.rank, hold: !!r.hold, field: r.email === 'field', pct: r.pct, odds: r.odds }; }) } : null;   /* no emails on the public board */ } catch (e) { snap.day = null; } snap.book = null; const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
     try { snap.farm = farmReady_() ? withLad_('farm', farmSnap_) : null; } catch (e) { log_('system', 'Farm board error', String(e)); }
