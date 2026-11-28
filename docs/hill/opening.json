@@ -1,22 +1,37 @@
 {
-  "note": "Opening Day for the Hold the Hill board. It runs for 24 hours from the board's openingDay stamp (set by 🏁 Fresh start); start/end here are a fallback. Add drops any time: icon, title, body (or html), and at (ISO time; leave it out to show from the start). Newer drops show first, with a NEW tag for 2 hours.",
+  "note": "📣 Hill News for the HtH Leaderboard: the strip on top of the board, all season. Each item: icon, title, body (or html), optional at (ISO time: shows from then, with a NEW tag for 24 hours), optional until (ISO time: gone after). Newest first; the latest three show, the rest are one tap away. The Opening Day intro runs for 24 hours from the board's openingDay stamp; start/end here are only a fallback.",
   "start": "",
   "end": "",
   "drops": [
     {
-      "icon": "🎙️",
-      "title": "From the booth",
-      "body": "Fresh season, clean slate: every record is 0-0, every Brawl Bucks wallet starts over, and the ladder is set in sign-up order. Charge early, charge often."
+      "icon": "♠",
+      "title": "N*S takes the mound.",
+      "body": "Ajax Assassins were the last Hold the Hill club standing in the Black Friday Brawl, so N*S opens Season 1 as the Ace. The other grand finalist showed up in a club that isn't on the Hill, which is a lot like bringing a tennis racket to batting practice.",
+      "at": "2026-11-28T06:31:03Z"
     },
     {
-      "icon": "🏆",
-      "title": "Ajax Assassins get the ball",
-      "body": "N*S and Ajax Assassins open the season on the mound as the Ace, fresh off the Black Friday Brawl grand final. Every defense pays more than the last, so the first club to knock them off ends a reign before it gets going."
+      "icon": "🥊",
+      "title": "The commish starts in the basement.",
+      "body": "Terrapin Station opens the season at #5. Officially it's for ethical reasons. Unofficially, he lost.",
+      "at": "2026-11-28T06:31:02Z"
     },
     {
-      "icon": "🌭",
-      "title": "Opening Day concession stand",
-      "body": "Free hot dogs (imaginary), free peanuts (also imaginary), and very real bragging rights for the first club to climb three spots today."
+      "icon": "💰",
+      "title": "1,000 Brawl Bucks for everybody.",
+      "body": "Bets and head-to-head wagers go up to 42% of your stack (250 tops). The sportsbook is not a licensed financial advisor, and neither is anyone in the chat.",
+      "at": "2026-11-28T06:31:01Z"
+    },
+    {
+      "icon": "🌱",
+      "title": "The Farm is open for business.",
+      "body": "Young clubs, big dreams, no reach limit. Kingdom Keys leads the Farm into the new season.",
+      "at": "2026-11-28T06:31:00Z"
+    },
+    {
+      "icon": "🧹",
+      "title": "Fresh season, clean slate.",
+      "body": "Every record is 0-0 and the ladder is set in sign-up order. Fresh chalk on the base lines, fresh grudges in the dugout. Charge early, charge often.",
+      "at": "2026-11-28T06:30:00Z"
     }
   ]
 }

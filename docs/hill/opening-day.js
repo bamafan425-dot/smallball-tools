@@ -97,6 +97,18 @@
     '#od-banner .ball{position:absolute;right:-30px;bottom:-30px;font-size:120px;opacity:.12;transform:rotate(-20deg);pointer-events:none}',
     '@media (max-width:760px){#od-banner .grid{grid-template-columns:1fr}}',
     '#od-banner .drops{max-height:190px;overflow:auto}',
+    '#hill-news{margin:18px 0 4px;padding:10px 12px 8px;background:linear-gradient(90deg,rgba(244,235,217,.10),rgba(244,235,217,.03));border-left:4px solid #C8102E}',
+    '#hill-news .nh{display:flex;align-items:center;gap:10px;margin-bottom:4px}',
+    '#hill-news .nh .bb{font-size:22px;color:#ffd166;letter-spacing:.12em}',
+    '#hill-news .nh button,#hill-news .more{margin-left:auto;background:transparent;color:#F4EBD9;border:1px solid rgba(244,235,217,.3);padding:2px 10px;font:500 13px Oswald,sans-serif;cursor:pointer}',
+    '#hill-news .more{margin:4px 0 0 34px}',
+    '#hill-news .nh button:hover,#hill-news .more:hover{background:#C8102E;border-color:#C8102E}',
+    '#hill-news .ni{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-top:1px dashed rgba(244,235,217,.14);font-size:15px;line-height:1.4}',
+    '#hill-news .ni:first-of-type{border-top:0}',
+    '#hill-news .ni .ic{font-size:20px;line-height:1.2;width:24px;text-align:center;flex:none}',
+    '#hill-news .ni b{color:#ffd166;font-weight:600}',
+    '#hill-news .ni small{opacity:.5;font-size:12px;white-space:nowrap}',
+    '#hill-news .new{display:inline-block;background:#C8102E;color:#fff;font:700 10px system-ui;letter-spacing:.08em;padding:1px 6px;margin-left:6px;vertical-align:2px}',
     '@media (prefers-reduced-motion:reduce){#od-intro *{transition:none!important}#od-banner .new{animation:none}}'
   ].join('\n');
 
@@ -129,7 +141,7 @@
         '<g class="pow"><path d="M560 40 l22 34 38 -20 -6 40 42 6 -34 24 26 32 -40 -6 -6 40 -26 -30 -30 28 2 -40 -40 4 30 -28 -30 -26 40 -4z" fill="#ffd166" stroke="#C8102E" stroke-width="5"/>' +
           '<text x="586" y="128" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="40" fill="#C8102E">POW!</text></g>' +
       '</svg><div class="cap">CHARGE THE MOUND</div></div>' +
-      '<div class="card"><div class="l">♠ TAKING THE MOUND</div><div class="n">' + esc(A ? A.name : 'THE HILL IS OPEN') + '</div><div class="c">' + (A ? esc(A.club) + (A.clubId ? ' · #' + esc(A.clubId) : '') + (D().openingDay ? '<br>🏆 Starts the season on the mound' : '') : 'First club to claim it plants the flag') + '</div></div>' +
+      '<div class="card"><div class="l">♠ TAKING THE MOUND</div><div class="n">' + esc(A ? A.name : 'THE HILL IS OPEN') + '</div><div class="c">' + (A ? esc(A.club) + (A.clubId ? ' · #' + esc(A.clubId) : '') + (D().openingDay ? '<br>🏆 Last Hill club standing in the Black Friday Brawl' : '') : 'First club to claim it plants the flag') + '</div></div>' +
       '<div class="roll"><h3>THE CLIMB · OPENING DAY</h3><div class="climb">' + climb(A, lad) + '</div></div>' +
       '<div class="stage" style="justify-content:flex-end;padding-bottom:12vh"><button class="go" type="button">PLAY BALL! ⚾</button></div>';
     document.body.appendChild(el);
@@ -200,35 +212,37 @@
     var ch = (d.charges || []).filter(function (c) { return Date.parse(c.created) >= w.s; }).sort(function (a, b) { return Date.parse(a.created) - Date.parse(b.created); });
     return { m: ms[0], c: ch[0], games: ms.length };
   }
-  function drops(w) {
+  // 📣 Hill News: a slim strip on top of the board, in the board's own look, all season long. Items come from
+  // opening.json ("drops"): newest first, the latest three showing, the rest one tap away.
+  function newsItems() {
     var c = CFG || {}, now = Date.now();
-    return (c.drops || []).filter(function (x) { var at = Date.parse(x.at || '') || w.s; return at <= now; })
-      .sort(function (a, b) { return (Date.parse(b.at || '') || w.s) - (Date.parse(a.at || '') || w.s); });
+    return (c.drops || []).filter(function (x) { return !x.at || Date.parse(x.at) <= now; }).filter(function (x) { return !x.until || Date.parse(x.until) > now; })
+      .sort(function (a, b) { return (Date.parse(b.at || '') || 0) - (Date.parse(a.at || '') || 0) || (+!!b.pin) - (+!!a.pin); });
   }
-  function banner(w) {
+  var NEWS_OPEN = false;
+  function news(w) {
     var app = document.getElementById('app'); if (!app) return;
-    var b = document.getElementById('od-banner');
-    if (!b) { b = document.createElement('section'); b.id = 'od-banner'; app.insertBefore(b, app.firstChild); }
-    var d = D(), A = d.ace, f = seasonFirsts(w), lad = d.ladder || [], left = Math.max(0, w.e - Date.now());
-    var h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4);
-    var dr = drops(w);
-    var html = '<div class="bunting"></div><div class="ball">⚾</div><div class="hd"><h2>🎉 OPENING DAY</h2><span class="cd">Hold the Hill · a fresh season · the party runs ' + h + 'h ' + m + 'm more</span><button class="rp" type="button" data-odreplay>▶ Replay the intro</button></div><div class="grid">';
-    html += '<div class="box"><h4>♠ On the mound</h4><p>' + (A ? '<b>' + esc(A.name) + '</b> · ' + esc(A.club) + (d.openingDay ? '<br>Opens the new season as the Ace, straight from the Black Friday Brawl\'s final day. ' : '<br>') + 'First club to knock them off writes history.' : 'The hill is open: the first club to claim it plants the flag.') + '</p></div>';
-    html += '<div class="box"><h4>⚾ First pitch</h4><p>' + (f.c ? '<b>' + esc(f.c.ch) + '</b> threw the first charge of the season at <b>' + esc(f.c.df) + '</b> (' + t(Date.parse(f.c.created)) + ').' : 'No charges yet. Who throws the first pitch of the season?') +
-      (f.m ? '<br>🏁 First result: <b>' + esc(f.m.w) + '</b> beat <b>' + esc(f.m.l) + '</b> ' + esc(f.m.wr) + '–' + esc(f.m.lr) + '.' : '') + (f.games > 1 ? '<br>' + f.games + ' games played so far today.' : '') + '</p></div>';
-    if (dr.length) html += '<div class="box"><h4>🎁 Opening Day extras</h4><div class="drops">' + dr.map(function (x) {
-      var at = Date.parse(x.at || '') || w.s, fresh = Date.now() - at < 2 * 3600e3 && x.at;
-      return '<div class="drop"><span class="ic">' + esc(x.icon || '⚾') + '</span><div><b>' + esc(x.title || '') + (fresh ? '<span class="new">NEW</span>' : '') + '</b>' + (x.html ? String(x.html) : esc(x.body || '')) + (x.at ? '<br><small>' + t(at) + '</small>' : '') + '</div></div>';
-    }).join('') + '</div></div>';
-    html += '</div>';
-    if (b.dataset.h !== html) { b.innerHTML = html; b.dataset.h = html; b.querySelector('[data-odreplay]').onclick = function () { intro(w, true); }; }
+    var it = newsItems(), el = document.getElementById('hill-news');
+    if (!it.length) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('section'); el.id = 'hill-news'; app.insertBefore(el, app.firstChild); }
+    var show = NEWS_OPEN ? it : it.slice(0, 3);
+    var html = '<div class="nh"><span class="bb">📣 HILL NEWS</span>' + (w.on ? '<button type="button" data-odreplay>▶ Opening Day intro</button>' : '') + '</div>' +
+      show.map(function (x) {
+        var at = Date.parse(x.at || ''), fresh = at && Date.now() - at < 24 * 3600e3;
+        return '<div class="ni"><span class="ic">' + esc(x.icon || '⚾') + '</span><div><b>' + esc(x.title || '') + (fresh ? '<span class="new">NEW</span>' : '') + '</b> ' + (x.html ? String(x.html) : esc(x.body || '')) + (at ? ' <small>' + t(at) + '</small>' : '') + '</div></div>';
+      }).join('') +
+      (it.length > 3 ? '<button type="button" class="more" data-more>' + (NEWS_OPEN ? '▴ Less' : '▾ ' + (it.length - 3) + ' more') + '</button>' : '');
+    if (el.dataset.h !== html) {
+      el.innerHTML = html; el.dataset.h = html;
+      var r = el.querySelector('[data-odreplay]'); if (r) r.onclick = function () { intro(w, true); };
+      var m = el.querySelector('[data-more]'); if (m) m.onclick = function () { NEWS_OPEN = !NEWS_OPEN; el.dataset.h = ''; news(w); };
+    }
   }
 
   function tick() {
-    var w = windowNow(), b = document.getElementById('od-banner');
-    if (!w.on) { if (b) b.remove(); return; }
-    banner(w);
-    if (!STARTED) { STARTED = true; intro(w, false); }
+    var w = windowNow(), old = document.getElementById('od-banner'); if (old) old.remove();
+    news(w);
+    if (w.on && !STARTED) { STARTED = true; intro(w, false); }
   }
   function boot() {
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
