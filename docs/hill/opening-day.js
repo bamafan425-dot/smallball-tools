@@ -1,6 +1,6 @@
 /* 🎉 OPENING DAY for the Live Hold the Hill Leaderboard.
    Runs for 24 hours after the commish presses 🏁 Fresh start (the board's openingDay stamp), or between the
-   start/end in opening.json. First visit in that window: a short animated intro (lights, fireworks, the Ace
+   start/end in opening.json. Every visit in that window: an animated intro (lights, fireworks, the Ace
    taking the mound, the starting ladder, PLAY BALL). After that, an Opening Day banner sits on top of the board
    with a countdown, the first charge and first result of the season, and the "drops" listed in opening.json.
    Add a drop to opening.json any time; it shows up on the next refresh once its "at" time has passed.
@@ -37,23 +37,40 @@
     '#od-intro{position:fixed;inset:0;z-index:2147483000;background:#050b18;overflow:hidden;font-family:Oswald,system-ui,sans-serif;color:#F4EBD9}',
     '#od-intro canvas{position:absolute;inset:0;width:100%;height:100%}',
     '#od-intro .stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;pointer-events:none}',
-    '#od-intro .kick{font:400 clamp(16px,2.6vw,26px) "Bebas Neue",Impact,sans-serif;letter-spacing:.35em;color:#ffd166;opacity:0;transform:translateY(10px);transition:all .7s}',
-    '#od-intro .big{font:400 clamp(64px,15vw,190px)/.9 Anton,Impact,sans-serif;letter-spacing:.02em;color:#F4EBD9;text-shadow:0 0 30px rgba(255,209,102,.55),0 8px 0 #C8102E;opacity:0;transform:scale(2.4);transition:transform .55s cubic-bezier(.2,1.6,.4,1),opacity .3s}',
-    '#od-intro .sub{font:400 clamp(18px,3.2vw,34px) "Bebas Neue",Impact,sans-serif;letter-spacing:.18em;margin-top:10px;opacity:0;transition:opacity .8s}',
+    '#od-intro .kick{font:400 clamp(16px,2.6vw,26px) "Bebas Neue",Impact,sans-serif;letter-spacing:.35em;color:#ffd166;opacity:0;transform:translateY(10px);transition:all 1.3s}',
+    '#od-intro .big{font:400 clamp(64px,15vw,190px)/.9 Anton,Impact,sans-serif;letter-spacing:.02em;color:#F4EBD9;text-shadow:0 0 30px rgba(255,209,102,.55),0 8px 0 #C8102E;opacity:0;transform:scale(2.4);transition:transform 1s cubic-bezier(.2,1.6,.4,1),opacity .6s}',
+    '#od-intro .sub{font:400 clamp(18px,3.2vw,34px) "Bebas Neue",Impact,sans-serif;letter-spacing:.18em;margin-top:10px;opacity:0;transition:opacity 1.4s}',
     '#od-intro .show{opacity:1!important;transform:none!important}',
-    '#od-intro .card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6) rotate(-6deg);opacity:0;transition:all .6s cubic-bezier(.2,1.4,.4,1);background:linear-gradient(160deg,#16305e,#0b1a35);border:4px solid #ffd166;border-radius:18px;padding:22px 34px;min-width:min(520px,86vw);box-shadow:0 0 60px rgba(255,209,102,.35)}',
+    '#od-intro .card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6) rotate(-6deg);opacity:0;transition:all 1.1s cubic-bezier(.2,1.4,.4,1);background:linear-gradient(160deg,#16305e,#0b1a35);border:4px solid #ffd166;border-radius:18px;padding:22px 34px;min-width:min(520px,86vw);box-shadow:0 0 60px rgba(255,209,102,.35)}',
     '#od-intro .card.show{transform:translate(-50%,-50%) scale(1) rotate(0)!important}',
     '#od-intro .card .l{font:400 18px "Bebas Neue",sans-serif;letter-spacing:.3em;color:#ffd166}',
     '#od-intro .card .n{font:400 clamp(40px,7vw,72px)/1 Anton,Impact,sans-serif;margin:6px 0}',
     '#od-intro .card .c{font-size:18px;opacity:.85}',
-    '#od-intro .roll{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(600px,92vw);max-height:80vh;overflow:hidden;opacity:0;transition:opacity .4s}',
+    '#od-intro .roll{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(600px,92vw);max-height:80vh;overflow:hidden;opacity:0;transition:opacity .9s}',
     '#od-intro .roll h3{margin:0 0 4px;font:400 26px "Bebas Neue",sans-serif;letter-spacing:.3em;color:#ffd166;text-align:center}',
-    '#od-intro .roll .step{animation:none;opacity:0;translate:-60px 0;transition:opacity .45s,translate .45s;position:relative}',
+    '#od-intro .roll .step{animation:none;opacity:0;translate:-60px 0;transition:opacity .8s,translate .8s;position:relative}',
     '#od-intro .roll .step.show{opacity:1;translate:0 0}',
-    '#od-intro .go{pointer-events:auto;margin-top:26px;font:400 34px "Bebas Neue",Impact,sans-serif;letter-spacing:.12em;background:#C8102E;color:#fff;border:3px solid #ffd166;border-radius:999px;padding:8px 38px;cursor:pointer;opacity:0;transform:scale(.6);transition:all .5s cubic-bezier(.2,1.6,.4,1);box-shadow:0 0 30px rgba(200,16,46,.6)}',
+    '#od-intro .go{pointer-events:auto;margin-top:26px;font:400 34px "Bebas Neue",Impact,sans-serif;letter-spacing:.12em;background:#C8102E;color:#fff;border:3px solid #ffd166;border-radius:999px;padding:8px 38px;cursor:pointer;opacity:0;transform:scale(.6);transition:all .9s cubic-bezier(.2,1.6,.4,1);box-shadow:0 0 30px rgba(200,16,46,.6)}',
     '#od-intro .go:hover{background:#e11d48}',
     '#od-intro .skip{position:absolute;right:14px;top:12px;z-index:3;background:rgba(0,0,0,.35);color:#F4EBD9;border:1px solid rgba(244,235,217,.35);border-radius:999px;padding:5px 14px;font:500 14px Oswald,sans-serif;cursor:pointer}',
-    '#od-intro.out{opacity:0;transition:opacity .6s}',
+    '#od-intro.out{opacity:0;transition:opacity 1s}',
+    '#od-intro .punch{position:absolute;left:50%;top:46%;width:min(720px,94vw);transform:translate(-50%,-50%);opacity:0;transition:opacity .8s}',
+    '#od-intro .punch.on{opacity:1}',
+    '#od-intro .punch svg{width:100%;height:auto;overflow:visible}',
+    '#od-intro .punch .glove{transform:translateX(-520px);}',
+    '#od-intro .punch.hit .glove{animation:odGlove 2.6s cubic-bezier(.5,0,.2,1) forwards}',
+    '@keyframes odGlove{0%{transform:translateX(-520px)}35%{transform:translateX(-420px) rotate(-6deg)}52%{transform:translateX(0) rotate(4deg)}60%{transform:translateX(-30px)}100%{transform:translateX(-1100px)}}',
+    '#od-intro .punch .ball{transform-box:fill-box;transform-origin:center}',
+    '#od-intro .punch.hit .ball{animation:odBall 3.4s cubic-bezier(.3,0,.3,1) forwards}',
+    '@keyframes odBall{0%,38%{transform:translate(0,0) scale(1,1) rotate(0)}41%{transform:translate(16px,0) scale(.6,1.25) rotate(0)}47%{transform:translate(34px,-4px) scale(1.08,.94) rotate(14deg)}55%{transform:translate(30px,0) rotate(-8deg)}63%{transform:translate(32px,0) rotate(6deg)}72%{transform:translate(30px,0) rotate(-3deg)}100%{transform:translate(900px,-520px) scale(.5) rotate(1080deg)}}',
+    '#od-intro .punch .bruise{opacity:0}',
+    '#od-intro .punch.hit .bruise{animation:odBruise 3.4s forwards}',
+    '@keyframes odBruise{0%,40%{opacity:0}45%,100%{opacity:1}}',
+    '#od-intro .punch .pow{opacity:0;transform-box:fill-box;transform-origin:center}',
+    '#od-intro .punch.hit .pow{animation:odPow 3.4s forwards}',
+    '@keyframes odPow{0%,39%{opacity:0;transform:scale(.2) rotate(-12deg)}43%{opacity:1;transform:scale(1.3) rotate(-8deg)}50%{transform:scale(1) rotate(-8deg)}78%{opacity:1}92%,100%{opacity:0;transform:scale(1.1) rotate(-8deg)}}',
+    '#od-intro .punch .cap{font:400 clamp(20px,3vw,32px) "Bebas Neue",Impact,sans-serif;letter-spacing:.28em;color:#ffd166;text-align:center;margin-top:6px;opacity:0;transition:opacity 1s}',
+    '#od-intro .punch.hit .cap{opacity:1;transition-delay:1.5s}',
     '#od-banner{position:relative;overflow:hidden;margin:18px 0 6px;border:3px solid #ffd166;border-radius:18px;background:linear-gradient(135deg,#1b0f2e 0%,#16305e 45%,#3a0d18 100%);padding:16px 18px 14px;box-shadow:0 0 34px rgba(255,209,102,.25)}',
     '#od-banner::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.035) 0 14px,transparent 14px 28px);pointer-events:none}',
     '#od-banner .bunting{position:absolute;left:0;right:0;top:0;height:16px;background:repeating-linear-gradient(90deg,#C8102E 0 26px,#F4EBD9 26px 52px,#1d4ed8 52px 78px);clip-path:polygon(0 0,100% 0,100% 40%,98% 100%,96% 40%,94% 100%,92% 40%,90% 100%,88% 40%,86% 100%,84% 40%,82% 100%,80% 40%,78% 100%,76% 40%,74% 100%,72% 40%,70% 100%,68% 40%,66% 100%,64% 40%,62% 100%,60% 40%,58% 100%,56% 40%,54% 100%,52% 40%,50% 100%,48% 40%,46% 100%,44% 40%,42% 100%,40% 40%,38% 100%,36% 40%,34% 100%,32% 40%,30% 100%,28% 40%,26% 100%,24% 40%,22% 100%,20% 40%,18% 100%,16% 40%,14% 100%,12% 40%,10% 100%,8% 40%,6% 100%,4% 40%,2% 100%,0 40%);opacity:.9}',
@@ -91,13 +108,27 @@
   }
   // ───────────── the intro ─────────────
   function intro(w, force) {
-    var key = 'hth-od-seen-' + w.s;
-    if (!force) { try { if (localStorage.getItem(key)) return; } catch (e) { } }
-    try { localStorage.setItem(key, '1'); } catch (e) { }
+    // Plays on every visit during Opening Day, but not when the board reloads itself for new data mid-visit.
+    if (!force) { var auto = false; try { auto = sessionStorage.getItem('hth-autoreload') === '1'; sessionStorage.removeItem('hth-autoreload'); } catch (e) { } if (auto) return; }
     var d = D(), A = d.ace, lad = (d.ladder || []).slice(0, 8);
     var el = document.createElement('div'); el.id = 'od-intro';
     el.innerHTML = '<canvas></canvas><button class="skip" type="button">Skip ⏭</button>' +
-      '<div class="stage"><div class="kick">⚾ SMALLBALL PRESENTS ⚾</div><div class="big">OPENING DAY</div><div class="sub">HOLD THE HILL · A FRESH SEASON</div></div>' +
+      '<div class="stage"><div class="kick">⚾ SMALLBALL TOOLKITS PRESENTS ⚾</div><div class="big">OPENING DAY</div><div class="sub">HOLD THE HILL · A FRESH SEASON</div></div>' +
+      '<div class="punch"><svg viewBox="0 0 720 300" aria-hidden="true">' +
+        '<g class="ball"><circle cx="470" cy="150" r="70" fill="#F4EBD9" stroke="#0E1B33" stroke-width="5"/>' +
+          '<path d="M425 98 C 450 130, 450 170, 425 202" fill="none" stroke="#C8102E" stroke-width="5" stroke-dasharray="7 7"/>' +
+          '<path d="M515 98 C 490 130, 490 170, 515 202" fill="none" stroke="#C8102E" stroke-width="5" stroke-dasharray="7 7"/>' +
+          '<g class="bruise"><ellipse cx="435" cy="150" rx="26" ry="20" fill="#7c3aed" opacity=".55"/><ellipse cx="432" cy="150" rx="15" ry="11" fill="#4c1d95" opacity=".6"/>' +
+          '<path d="M455 118 l10 -14 M462 128 l16 -8 M452 180 l12 12" stroke="#0E1B33" stroke-width="3" stroke-linecap="round"/>' +
+          '<circle cx="452" cy="138" r="4" fill="#0E1B33"/><circle cx="488" cy="138" r="4" fill="#0E1B33"/><path d="M455 172 q15 -12 30 0" fill="none" stroke="#0E1B33" stroke-width="4" stroke-linecap="round"/>' +
+          '<path d="M446 128 l12 4 M494 128 l-12 4" stroke="#0E1B33" stroke-width="3" stroke-linecap="round"/></g></g>' +
+        '<g class="glove"><path d="M250 120 C 250 82, 300 70, 345 86 C 378 98, 386 150, 372 182 C 358 214, 300 222, 266 204 C 248 194, 244 160, 250 120Z" fill="#C8102E" stroke="#0E1B33" stroke-width="6"/>' +
+          '<path d="M268 102 C 290 92, 318 92, 334 104" fill="none" stroke="#ff8a9a" stroke-width="6" stroke-linecap="round" opacity=".8"/>' +
+          '<path d="M262 160 C 282 146, 306 148, 318 166" fill="none" stroke="#0E1B33" stroke-width="5" stroke-linecap="round"/>' +
+          '<rect x="140" y="118" width="116" height="66" rx="10" fill="#F4EBD9" stroke="#0E1B33" stroke-width="6"/><rect x="236" y="112" width="20" height="78" rx="5" fill="#0E1B33"/></g>' +
+        '<g class="pow"><path d="M560 40 l22 34 38 -20 -6 40 42 6 -34 24 26 32 -40 -6 -6 40 -26 -30 -30 28 2 -40 -40 4 30 -28 -30 -26 40 -4z" fill="#ffd166" stroke="#C8102E" stroke-width="5"/>' +
+          '<text x="586" y="128" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="40" fill="#C8102E">POW!</text></g>' +
+      '</svg><div class="cap">CHARGE THE MOUND</div></div>' +
       '<div class="card"><div class="l">♠ TAKING THE MOUND</div><div class="n">' + esc(A ? A.name : 'THE HILL IS OPEN') + '</div><div class="c">' + (A ? esc(A.club) + (A.clubId ? ' · #' + esc(A.clubId) : '') + (D().openingDay ? '<br>🏆 Starts the season on the mound' : '') : 'First club to claim it plants the flag') + '</div></div>' +
       '<div class="roll"><h3>THE CLIMB · OPENING DAY</h3><div class="climb">' + climb(A, lad) + '</div></div>' +
       '<div class="stage" style="justify-content:flex-end;padding-bottom:12vh"><button class="go" type="button">PLAY BALL! ⚾</button></div>';
@@ -141,16 +172,19 @@
     var $ = function (s) { return el.querySelector(s); };
     var show = function (s) { var n = $(s); if (n) n.classList.add('show'); };
     var hide = function (s) { var n = $(s); if (n) { n.classList.remove('show'); n.style.opacity = '0'; } };
-    for (var i = 0; i < 4; i++) (function (i) { later(300 + i * 350, function () { lights = i + 1; }); })(i);
-    later(1700, function () { show('.kick'); });
-    later(2300, function () { show('.big'); burst(W * .25, H * .3, 90, 45); burst(W * .75, H * .28, 90, 350); });
-    later(2900, function () { show('.sub'); burst(W * .5, H * .2, 120, 210); });
-    later(4600, function () { ['.kick', '.big', '.sub'].forEach(hide); show('.card'); burst(W * .5, H * .25, 140, 50); });
-    later(7400, function () {
+    // The show, slowed down so each moment lands: lights, title, the punch, the Ace, the Climb, PLAY BALL.
+    for (var i = 0; i < 4; i++) (function (i) { later(600 + i * 650, function () { lights = i + 1; }); })(i);
+    later(3300, function () { show('.kick'); });
+    later(4600, function () { show('.big'); burst(W * .25, H * .3, 90, 45); burst(W * .75, H * .28, 90, 350); });
+    later(5900, function () { show('.sub'); burst(W * .5, H * .2, 120, 210); });
+    later(9200, function () { ['.kick', '.big', '.sub'].forEach(hide); var P = $('.punch'); P.classList.add('on'); later(500, function () { P.classList.add('hit'); }); later(500 + 1360, function () { burst(W * .62, H * .45, 160, 45); burst(W * .66, H * .42, 80, 0); }); });
+    later(13600, function () { $('.punch').classList.remove('on'); });
+    later(14300, function () { show('.card'); burst(W * .5, H * .25, 140, 50); });
+    later(19300, function () {
       hide('.card'); var R = $('.roll'); R.style.opacity = '1';
-      [].forEach.call(R.querySelectorAll('.step'), function (row, i) { later(i * 260, function () { row.classList.add('show'); }); });
+      [].forEach.call(R.querySelectorAll('.step'), function (row, i) { later(500 + i * 550, function () { row.classList.add('show'); }); });
     });
-    later(7400 + Math.max(1, lad.length) * 260 + 1200, function () { show('.go'); confetti(160); burst(W * .3, H * .3, 100, 0); burst(W * .7, H * .3, 100, 210); });
+    later(19300 + 500 + Math.max(1, lad.length + 1) * 550 + 1800, function () { show('.go'); confetti(160); burst(W * .3, H * .3, 100, 0); burst(W * .7, H * .3, 100, 210); });
     var fw = setInterval(function () { if (lights > 3 && !RM) burst(W * (.15 + Math.random() * .7), H * (.12 + Math.random() * .25), 60, Math.random() * 360); }, 1100); timers.push(fw);
     function close() {
       if (!alive) return; el.classList.add('out');

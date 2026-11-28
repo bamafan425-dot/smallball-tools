@@ -276,7 +276,7 @@ function get(i,cb){if(i>=SRC.length)return cb(null);var u=SRC[i]+(i?(SRC[i].inde
  fetch(u,{cache:'no-store',headers:i===0?{Accept:'application/vnd.github.raw+json'}:{}}).then(function(r){if(!r.ok)throw r.status;return r.text()}).then(function(x){JSON.parse(x);cb(x)}).catch(function(){get(i+1,cb)});}
 function strip(x){try{var o=JSON.parse(x);delete o.updated;return JSON.stringify(o)}catch(e){return x}}
 get(0,function(x){if(!x){document.getElementById('app').innerHTML='<div class="empty" style="padding:30px">The Hill Board is warming up. Check back in a minute.</div>';return;}last=strip(x);run(x);});
-setInterval(function(){if(document.hidden)return;get(0,function(x){if(x&&last!==null&&strip(x)!==last)location.reload();});},90000);
+setInterval(function(){if(document.hidden)return;get(0,function(x){if(x&&last!==null&&strip(x)!==last){try{sessionStorage.setItem('hth-autoreload','1')}catch(e){}location.reload();}});},90000);
 })();
 </script>
 <script>
