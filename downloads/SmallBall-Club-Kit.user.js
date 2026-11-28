@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (phone)
 // @namespace    slipnsliders.smallball
-// @version      1.44.0
+// @version      1.44.1
 // @description  The big picture on your phone: club cards with stars, tier, TP and train times, records and streaks, quick tabs, a one-tap Play button, your Hold the Hill card and tournament matches. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -123,7 +123,7 @@ const SBX_MOBILE = true;
 
   // Which clubs get tabs and dashboard cards. Empty means "your first four clubs";
   // pick your own with the ⚙ button next to the tabs.
-  const KIT_VERSION = "1.44.0";   // filled in by the build
+  const KIT_VERSION = "1.44.1";   // filled in by the build
   const DEFAULT_CLUBS = []; // e.g. [3249, 1008, 8897]; empty = your first four clubs
   let PICKED = [];
   const MAX_DEFAULT = 4;
@@ -1211,6 +1211,9 @@ const SBX_MOBILE = true;
   // ───────── Club Kit tools: ✨ What's new · 🩺 Health check · 💾 Back up / restore (in the ⚙ settings) ─────────
   // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
   const CHANGELOG = [
+    { v: "1.44.1", d: "Nov 28", items: [
+      "✅ <b>Always know what SmallBall has</b>: the 🧩 Lineup Builder shows <b>✅ Saved in SmallBall</b> when the form is your club's real lineup, or <b>⚠️ Not saved in SmallBall yet</b> with a one-tap 💾 Save to SmallBall. Saving a lineup in the kit now saves it to SmallBall too, and the kit checks that SmallBall kept it.",
+    ] },
     { v: "1.44.0", d: "Nov 28", items: [
       "✅ <b>Finish training</b>: a big green button on the trainer. Tap it when you're done and it walks you through a <b>training wrap-up</b> (TP spent, skill gained, your best jump, who grew, who has TP left, 📋 copy the report), then <b>your lineup</b>.",
       "↩️ <b>Put your lineup back</b>: moving men around in the trainer changes your real lineup. The kit notes your lineup when you open the trainer, and Finish training can put it back and save it in one tap. Or ⚡ optimize it, or edit it yourself in the 🧩 Lineup Builder.",
@@ -5719,6 +5722,11 @@ const SBX_MOBILE = true;
 
   // ---------- UI ----------
   const CSS = `
+#sbx-build .live{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0 4px;padding:9px 12px;border-radius:12px;font:600 13.5px/1.4 system-ui,sans-serif}
+#sbx-build .live.ok{background:rgba(22,163,74,.15);border:1px solid rgba(34,197,94,.6)}
+#sbx-build .live.no{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.7)}
+#sbx-build .live .bb{margin-left:auto}
+
 #sbx-build .pretrain{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(124,58,237,.16);border:1px solid rgba(167,139,250,.6);font:600 13.5px/1.4 system-ui,sans-serif}
 #sbx-build .pretrain span{display:flex;flex-wrap:wrap;gap:6px}
 
@@ -5817,6 +5825,15 @@ const SBX_MOBILE = true;
     return { at: x.at, pos: pos.map(String), order: (x.order || []).map(String) };
   }
   function preClose(team) { let all = {}; try { all = JSON.parse(localStorage.getItem(PRE_KEY) || "{}"); } catch (_) {} if (all[team]) { all[team].open = false; try { localStorage.setItem(PRE_KEY, JSON.stringify(all)); } catch (_) {} } }
+  // ✅ What SmallBall actually has saved (from the club's profile), in the form's shape: the nine positions and the order.
+  function serverForm(prof) {
+    if (!prof || !Array.isArray(prof.field_pos)) return null;
+    const SP = ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"], bySlot = new Map((prof.roster || []).map((p) => [Number(p.slot), p]));
+    const pos = POS.slice(0, 9).map((k) => { const i = SP.indexOf(k), p = i >= 0 ? bySlot.get(Number(prof.field_pos[i])) : null; return p ? String(p.player_id) : ""; });
+    const order = (prof.batting_order || []).map((k) => { const p = bySlot.get(Number(prof.field_pos[k])); return p ? String(p.player_id) : ""; });
+    return { pos, order };
+  }
+  const sameLive = (f, sv) => !!(f && sv) && sv.pos.every((id, i) => id === f.pos[i]) && sv.order.length === f.order.length && sv.order.every((id, i) => id === f.order[i]);
   const sameForm = (a, b) => a && b && a.pos.every((id, i) => id === b.pos[i]) && a.order.length === b.order.length && a.order.every((id, i) => id === b.order[i]);
   function render() {
     const el = ST.el, team = ST.team, c = cfg(team);
@@ -5830,6 +5847,10 @@ const SBX_MOBILE = true;
       `<button class="bb" data-act="opt" title="Build a fresh lineup with your settings instead">⚡ Optimize instead</button>` +
       `<button class="bb" data-act="prekeep" title="Keep the lineup as it is now">Keep it as is</button></span></div>` : "";
     if (preBar) ST.preShown = true;
+    const live = sameLive(form, ST.server);
+    const liveBar = ST.server ? (live
+      ? `<div class="live ok">✅ <b>Saved in SmallBall.</b> This is your club's real lineup and batting order.</div>`
+      : `<div class="live no">⚠️ <b>Not saved in SmallBall yet.</b> The form below has changes your club isn't using. <button class="bb go" data-act="ssave" title="Press SmallBall's own Save for you">💾 Save to SmallBall</button></div>`) : "";
     const posOf = (id) => { const i = form.pos.indexOf(id); return i >= 0 ? POS[i] : ""; };
     const field = FIELD.map((i) => `<div class="slot" data-slot="${i}" style="grid-column:${AREA[i][0]};grid-row:${AREA[i][1]}"><b>${POS[i]}</b>${chip(form.pos[i], POS[i], c)}</div>`).join("") +
       `<div class="bench">${[9, 10, 11].map((i) => `<div class="slot" data-slot="${i}"><b>BENCH</b>${chip(form.pos[i], null, c)}</div>`).join("")}</div>`;
@@ -5839,7 +5860,7 @@ const SBX_MOBILE = true;
     el.innerHTML = `<div class="bh"><div class="xb-t"><h3>🧩 Lineup Builder</h3><div class="xb-sub">Drag men between spots, the bench and the batting order (or tap one, then another). It fills SmallBall's form below; nothing is saved until you press <b>Save</b>.</div></div>` +
       `<button class="bb go" data-act="opt" title="Build the lineup and batting order with your settings">⚡ Optimize my way</button>` +
       `<button class="bb" data-act="cust">⚙️ ${ST.open ? "Hide settings" : "My settings"}</button>` +
-      (ST.snapshot ? `<button class="bb" data-act="undo" title="Put the form back the way it was before your changes">↺ Undo my changes</button>` : "") + "</div>" + preBar +
+      (ST.snapshot ? `<button class="bb" data-act="undo" title="Put the form back the way it was before your changes">↺ Undo my changes</button>` : "") + "</div>" + liveBar + preBar +
       savedRow(c, form) +
       (ST.open ? `<div class="cust"><div class="presets">${pre}</div><div class="sl">${sl}</div><div class="rules">` +
         `<label>Batting order: <select data-order>${Object.entries(ORDERS).map(([k, v]) => `<option value="${k}"${c.order === k ? " selected" : ""}>${v}</option>`).join("")}</select></label>` +
@@ -5903,6 +5924,7 @@ const SBX_MOBILE = true;
       const a = b.dataset.act;
       if (a === "cust") { ST.open = !ST.open; render(); }
       else if (a === "pre") { const p = preGet(team); if (p) await change(p, "Back to your lineup from before training."); }
+      else if (a === "ssave") { const sb = document.getElementById("lu-save"); if (sb) { msg("💾 Saving to SmallBall…"); sb.click(); } else msg("Couldn't find SmallBall's Save button. Scroll down and press it."); }
       else if (a === "prekeep") { preClose(team); render(); msg("👍 Keeping the lineup as it is."); }
       else if (a === "undo" && ST.snapshot) { const s = ST.snapshot; await change(s, "Back to how it was."); ST.snapshot = null; ST.why = ""; render(); msg("↺ Back to how it was before your changes."); }
       else if (a === "opt") {
@@ -5932,7 +5954,10 @@ const SBX_MOBILE = true;
       const cc = c(), list = (cc.saved || []).filter((x) => x.name.toLowerCase() !== name.toLowerCase());
       if (list.length >= 12) { msg("You can keep up to 12 saved lineups per club. Delete one first."); return; }
       list.push({ name, pos: ST.form.pos.slice(), order: ST.form.order.slice(), at: Date.now() });
-      saveCfg(team, { ...cc, saved: list }); ST.naming = false; render(); msg("💾 Saved \"" + esc(name) + "\". Tap it any time to put it back in the form.");
+      saveCfg(team, { ...cc, saved: list }); ST.naming = false; render();
+      const sb = document.getElementById("lu-save");
+      if (sb && !sameLive(ST.form, ST.server)) { msg("💾 Saved \"" + esc(name) + "\" in your kit, and saving it to SmallBall now…"); sb.click(); }
+      else msg("💾 Saved \"" + esc(name) + "\" in your kit." + (sameLive(ST.form, ST.server) ? " It's already your lineup in SmallBall ✅." : " Press SmallBall's <b>Save</b> below to make it your real lineup."));
     };
     if (sv("ok")) sv("ok").onclick = doSave;
     const nm = el.querySelector("[data-name]"); if (nm) nm.onkeydown = (e) => { if (e.key === "Enter") doSave(); if (e.key === "Escape") { ST.naming = false; render(); } };
@@ -6024,10 +6049,12 @@ const SBX_MOBILE = true;
       });
       const order = (prof.batting_order || []).map((k) => String((bySlot.get(Number(prof.field_pos[k])) || {}).player_id));
       const badOrder = order.length === expect.order.length && order.some((id, i) => id !== expect.order[i]);
-      if (!diffs.length && !badOrder) say("🧩 ✓ Checked with SmallBall: it has this exact lineup and batting order.", true);
-      else say("🧩 ⚠️ SmallBall didn't keep everything:<br>" + diffs.concat(badOrder ? ["Batting order: SmallBall has " + order.map((id) => esc(nm(id))).join(", ")] : []).join("<br>") +
+      ST.server = serverForm(prof); ST.prof = Object.assign(ST.prof || {}, { field_pos: prof.field_pos, batting_order: prof.batting_order });
+      if (!diffs.length && !badOrder) { say("✅ <b>Saved in SmallBall.</b> Checked: your club now plays this exact lineup and batting order.", true); msg("✅ Saved in SmallBall."); }
+      if (diffs.length || badOrder) say("🧩 ⚠️ SmallBall didn't keep everything:<br>" + diffs.concat(badOrder ? ["Batting order: SmallBall has " + order.map((id) => esc(nm(id))).join(", ")] : []).join("<br>") +
         "<br><span style=\"font-weight:400;opacity:.85\">Reload the page and try again, or set it with the dropdowns. Please screenshot this for slipnsliders.</span>", false);
     } catch (e) { say("🧩 Couldn't check with SmallBall (" + esc(e.message || e) + ").", false); }
+    ST.sig = ""; try { render(); } catch (_) {}
   }
   document.addEventListener("click", (e) => {
     if (!e.target || !e.target.closest || !e.target.closest("#lu-save") || !ST.prof || !ST.prof.mine) return;
@@ -6043,13 +6070,13 @@ const SBX_MOBILE = true;
     const lu = document.getElementById("t-lineup"), save = document.getElementById("lu-save"), team = teamId();
     const have = document.getElementById("sbx-build");
     if (!lu || !save || !team || !posSelect(0)) { if (have) have.remove(); return; }
-    if (ST.team !== team) { ST.team = team; ST.prof = null; ST.snapshot = null; ST.why = ""; ST.sel = null; }
+    if (ST.team !== team) { ST.team = team; ST.prof = null; ST.server = null; ST.snapshot = null; ST.why = ""; ST.sel = null; }
     if (!ST.prof) {
       if (loading) return; loading = true;
       try {
         const prof = await (await fetch(`/teams/${team}/profile`, { credentials: "include" })).json();
         if (!prof || !prof.mine || !Array.isArray(prof.roster)) { loading = false; ST.prof = { mine: false }; return; }
-        ST.prof = prof;
+        ST.prof = prof; ST.server = serverForm(prof);
         ST.byId = new Map(prof.roster.map((p) => [String(p.player_id), p]));
         ST.byName = new Map(prof.roster.map((p) => [String(p.name).trim(), { id: String(p.player_id) }]));
       } catch (_) { loading = false; return; }
