@@ -214,7 +214,7 @@
     var fl = document.createElement('link'); fl.rel = 'stylesheet'; fl.href = 'https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap'; document.head.appendChild(fl);
     var after = nav.querySelector('a[data-t=farm]') || nav.querySelector('a[data-t=hill]');
     var a1 = document.createElement('a'); a1.href = '#hof'; a1.dataset.t = 'hof'; a1.textContent = '🏛️ Hall of Fame';
-    var a2 = document.createElement('a'); a2.href = '#soon'; a2.dataset.t = 'soon'; a2.id = 's2tab'; a2.innerHTML = '🐶 Season 2 Preview<i class="s2new">NEW</i>';
+    var a2 = document.createElement('a'); a2.href = '#soon'; a2.dataset.t = 'soon'; a2.id = 's2tab'; a2.innerHTML = '🐶 Season 2 Sneak Peek<i class="s2new">NEW</i>';
     after.after(a1); a1.after(a2);
     var p1 = document.createElement('section'); p1.className = 'pane'; p1.id = 'p-hof'; p1.innerHTML = hallHTML();
     var p2 = document.createElement('section'); p2.className = 'pane'; p2.id = 'p-soon'; p2.innerHTML = soonHTML();
