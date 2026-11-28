@@ -19,6 +19,14 @@ Everything here is **read-only on SmallBall**: no tool ever plays, trains, chang
 2. Open `chrome://extensions` and turn on **Developer mode** (top right).
 3. Click **Load unpacked** and pick the unzipped folder, then refresh play.smallball.com.
 
+## Installing the Browser Extension (Firefox)
+1. Download the kit's `.zip` file (from the links above or the [`downloads/`](downloads/) folder) and extract it to a permanent folder on your computer.
+2. Open a new tab, go to `about:debugging#/runtime/this-firefox`, and click **Load Temporary Add-on...** near the top right.
+3. Navigate to your extracted folder and select the `manifest.json` file.
+4. Refresh `play.smallball.com` for the extension to take effect.
+> **Note:** Because this extension is still in active development and unsigned, Firefox will remove it when you close the browser. You will need to repeat steps 2–4 each time you restart Firefox.
+
+
 To update: unzip the new version over the old folder and click ↻ reload on the kit in `chrome://extensions`.
 
 ## Questions, bugs, ideas

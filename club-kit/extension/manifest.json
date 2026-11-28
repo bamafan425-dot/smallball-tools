@@ -10,6 +10,8 @@
     }
   },
   "permissions": ["storage"],
+  "content_security_policy": { "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'" },
+  "web_accessible_resources": [{ "resources": ["kokoro/engine.html"], "matches": ["https://play.smallball.com/*"] }],
   "content_scripts": [
     { "matches": ["https://play.smallball.com/*"], "js": ["freeze.js", "po3-interceptor.js"], "run_at": "document_start", "world": "MAIN" },
     { "matches": ["https://play.smallball.com/*"], "js": ["po3-content.js", "freeze.js", "kit.js", "rotate.js"], "run_at": "document_idle" },

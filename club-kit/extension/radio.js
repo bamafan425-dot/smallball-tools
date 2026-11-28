@@ -28,22 +28,41 @@
     #sbx-radio-launch.on::after { content: "ON AIR"; font-size: 10px; background: #fff; color: #b91c1c; border-radius: 999px; padding: 2px 6px; }
     #sbx-radio { position: fixed; left: 16px; z-index: 2147483001; width: 380px; max-height: calc(100vh - 90px); overflow: auto; background: #0b1220; color: #e5e7eb; border: 1px solid #334155; border-radius: 14px; padding: 12px 14px 14px; font: 13px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; box-shadow: 0 16px 44px rgba(0,0,0,.55); }
     #sbx-radio:not(.open) { display: none; }
+    #sbx-radio { color-scheme: dark; }   /* native parts (the open list of a select, scrollbars) drawn for a dark panel */
     #sbx-radio .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; } #sbx-radio .hd b { font-size: 15px; } #sbx-radio .hd .x { margin-left: auto; background: none; border: 0; color: #94a3b8; font-size: 16px; cursor: pointer; }
     #sbx-radio .big { width: 100%; padding: 9px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #fff; font: 800 14px system-ui, sans-serif; cursor: pointer; }
     #sbx-radio .big.on { background: #b91c1c; border-color: #ef4444; }
+    #sbx-radio .big:disabled { cursor: default; opacity: 1; background: #172033; }
+    #sbx-radio .spin { display: inline-block; animation: sbx-radio-spin 1.6s linear infinite; }
+    @keyframes sbx-radio-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { #sbx-radio .spin { animation-duration: 4s; } }
     #sbx-radio .rcap { min-height: 2.9em; margin: 8px 0 10px; padding: 7px 9px; border-radius: 8px; background: #111a2e; font-size: 13px; } #sbx-radio .rcap b { color: #fca5a5; }
     #sbx-radio .rrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 9px; }
     #sbx-radio .lbl { width: 84px; font-size: 12px; opacity: .7; }
     #sbx-radio select { flex: 1; min-width: 0; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 8px; padding: 5px 6px; font: inherit; font-size: 12.5px; }
+    #sbx-radio select:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
+    /* Every state of an option keeps light text on a dark fill, so the picked or highlighted voice stays readable */
+    #sbx-radio select option, #sbx-radio select optgroup { background-color: #0f172a; color: #e5e7eb; }
+    #sbx-radio select option:checked { background-color: #1d4ed8; color: #fff; }
+    #sbx-radio select option:hover, #sbx-radio select option:focus { background-color: #1e40af; color: #fff; }
+    #sbx-radio select option:disabled { color: #64748b; }
     #sbx-radio input[type=range] { flex: 1; }
     #sbx-radio .seg { display: inline-flex; border: 1px solid #334155; border-radius: 999px; overflow: hidden; }
     #sbx-radio .seg button { background: transparent; color: #cbd5e1; border: 0; padding: 5px 10px; font-weight: 700; font-size: 12px; cursor: pointer; }
     #sbx-radio .seg button.on { background: #1d4ed8; color: #fff; }
+    #sbx-radio .seg button:disabled { opacity: .45; cursor: not-allowed; }
     #sbx-radio .mini { background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 8px; padding: 5px 10px; font-weight: 700; font-size: 12.5px; cursor: pointer; }
     #sbx-radio .sw { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; }
     #sbx-radio .note { font-size: 12px; opacity: .6; margin: 6px 0 0; }
     #sbx-radio .rhow ol { padding-left: 18px; margin: 4px 0 8px; opacity: .85; } #sbx-radio .rhow li { margin: 0 0 4px; }
-    #sbx-radio details summary { cursor: pointer; font-weight: 700; margin: 2px 0 8px; opacity: .85; }`;
+    #sbx-radio details summary { cursor: pointer; font-weight: 700; margin: 2px 0 8px; opacity: .85; }
+    #sbx-radio .kbox { margin: -2px 0 10px; padding: 8px 9px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; }
+    #sbx-radio .kbox .kstat { margin: 0 0 8px; }
+    #sbx-radio .kbox > b { display: block; margin: 0 0 6px; font-size: 12.5px; }
+    #sbx-radio details.kbox > summary { margin: 0; font-size: 12.5px; }
+    #sbx-radio details.kbox[open] > summary { margin-bottom: 8px; }
+    #sbx-radio .kbox .rrow:last-child { margin-bottom: 0; }
+    #sbx-radio .kbar { height: 6px; margin-top: 6px; border-radius: 999px; background: #1e293b; overflow: hidden; } #sbx-radio .kbar i { display: block; height: 100%; background: #22c55e; }`;
   document.documentElement.appendChild(css);
   const ov = document.createElement("div"); ov.id = "sbx-radio"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "SmallBall Radio");
   ov.innerHTML = `<div class="hd"><b>📻 SmallBall Radio</b><span class="note" data-k="game" style="margin:0"></span><button type="button" class="x" aria-label="Close">✕</button></div>
@@ -55,7 +74,13 @@
   launch.title = "SmallBall Radio: Mack and Dewey call the game you're watching, out loud. No spoilers.";
   function paintStage() {
     launch.classList.toggle("on", !!R.on);
-    const b = ov.querySelector('[data-act="radio"]'); if (b) { b.classList.toggle("on", !!R.on); b.textContent = R.on ? "📻 On the air · click to turn off" : "📻 Turn the radio on"; }
+    const b = ov.querySelector('[data-act="radio"]');
+    if (b) {   // while the Enhanced voices get ready, the button is a status, not a control
+      b.classList.toggle("on", !!R.on); b.disabled = prep === "radio";
+      if (prep === "radio") { if (!b.querySelector(".spin")) b.innerHTML = `<span class="spin" aria-hidden="true">⏳</span> Tuning in the station…`; }
+      else b.textContent = R.on ? "📻 On the air · click to turn off" : "📻 Turn the radio on";
+    }
+    if (!prep && !R.on) { const cap = ov.querySelector(".rcap"); if (cap && cap.querySelector('[data-act="prepskip"]')) cap.textContent = ""; }
     const id = S.air[0], g = ov.querySelector('[data-k="game"]'); if (g) g.innerHTML = id ? label(S.meta[id]) : "";
   }
 
@@ -107,9 +132,29 @@
   // Every line has a shelf life. A stale line is skipped, and a big play cuts a joke off, so the booth stays
   // with the pitch instead of drifting behind it. Speech is the browser's own; nothing is sent anywhere.
   const RKEY = "tk-radio-v1";
-  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true } };
+  // Voices: "standard" (the browser's own speech) or "enhanced" (Kokoro, below). Standard voices: pbp, color (both
+  // shared with the Broadcast Kit, which reads the same settings) and gv, one per guest. Enhanced voices: ev, a Kokoro
+  // voice per character, "" for none (that character uses his Standard voice).
+  const RDEF = { on: false, style: "pbp", quips: "some", updates: "half", air: "nonstop", sit: "some", lean: "fair", pbp: "", color: "", guestVoice: "", vol: 1, organ: true, game: 0, pitches: "all", guests: { quiz: true, qb: true, obvious: true }, engine: "standard", ksetup: null, kgpu: null };
   let R; try { R = Object.assign({}, RDEF, JSON.parse(localStorage.getItem(RKEY) || "{}")); } catch (_) { R = Object.assign({}, RDEF); }
   R.guests = Object.assign({}, RDEF.guests, R.guests || {});
+  // The Enhanced cast: one Kokoro voice per character by default. (Kokoro has no pitch control; the voices differ instead.)
+  const KV = { p: "am_michael", c: "bm_george", quiz: "am_puck", qb: "am_fenrir", obvious: "bm_fable" };
+  const KSP = { p: 1.1, c: 0.95, quiz: 1.05, qb: 1.0, obvious: 0.92 };
+  // Settings saved by the first Kokoro version: Voices was "browser" or "kokoro", and the Mack/Dewey/Guest pickers could hold a Kokoro
+  // voice ("kokoro:am_michael") or, in Kokoro mode, a browser voice to mix the two. Carry each choice over.
+  if (!R.ev || typeof R.ev !== "object") {
+    const ev = Object.assign({}, KV), was = R.engine === "kokoro";
+    const from = (val, chs) => { if (typeof val !== "string" || !val) return; if (val.startsWith("kokoro:")) chs.forEach((c) => { ev[c] = val.slice(7); }); else if (was) chs.forEach((c) => { ev[c] = ""; }); };
+    from(R.pbp, ["p"]); from(R.color, ["c"]); from(R.guestVoice, ["quiz", "qb", "obvious"]);
+    R.ev = ev;
+  }
+  R.ev = Object.assign({}, KV, R.ev);
+  for (const k of ["pbp", "color", "guestVoice"]) if (typeof R[k] === "string" && R[k].startsWith("kokoro:")) R[k] = "";
+  if (!R.gv || typeof R.gv !== "object") R.gv = { quiz: R.guestVoice || "", qb: R.guestVoice || "", obvious: R.guestVoice || "" };
+  R.gv = Object.assign({ quiz: "", qb: "", obvious: "" }, R.gv);
+  R.engine = R.engine === "kokoro" || R.engine === "enhanced" ? "enhanced" : "standard";
+  delete R.kdev;
   if (R.pitches === "auto") R.pitches = "some";            // 0.8: the booth is a show now; the old Auto becomes Some
   const SHOW = () => R.style !== "pbp";
   R.on = false;                                   // speech needs a click to start, so it always starts off
@@ -572,6 +617,16 @@
     ["How long is a SmallBall season?", "Two weeks."],
     ["How many bullpen pitchers does a SmallBall club carry?", "None. One man, one game."],
   ];
+  // Fixed lines from the break segments and elsewhere, kept here so Enhanced voices can pre-record them.
+  const TRIV_OPEN = ["It's time for SmallBall Trivia!", "SmallBall Trivia time, folks. Play along at home.", "Trivia break! Brought to you by nobody. We have no sponsors."];
+  const STRETCH_OPEN = "It's the seventh inning stretch! Everybody up.";
+  const STRETCH_C = ["I'm up. I'm stretching. Something popped.", "The organist is giving it everything she's got. She's got about four notes.", "Stretch it out, folks. The pitcher sure can't. No bullpen."];
+  const BIGQ = ["Those clubs play more games than I eat hot dogs, and Mack, I eat a lot of hot dogs.", "The BigLeague: anybody can play anybody. It's democracy with bats.", "I'm told the standings are updated live. Unlike me."];
+  const FIRST_NOTE = "And that's a first, by the way. Write it down.";
+  const BACK_ON_AIR = "SmallBall Radio, back on the air. First time since the frog. Somebody check on Johnny Bosco.";
+  // The booth test: one line from each of the five.
+  const TEST_LINES = [["p", "Testing, one two. Mack Ramsey here. Two and one... swung on, and that ball is outta here!"], ["c", "And I'm Dewey Seeds. They've asked me to stop eating the microphone foam."],
+    ["quiz", "Chet Lambert here. What is... a microphone check?"], ["qb", "Brock Callahan. I've been hydrating for this mic check since Tuesday."], ["obvious", "Gary Plainfield. If you can hear this, the microphone is working. I've studied this."]];
   const WRONG = ["Is it... Herbert Hoover?", "I'm going to say forty-two.", "Pass. I panicked.", "Whatever the Commish says, I'm saying that.", "Can I phone a friend? Johnny Bosco?", "Is the answer pie? It's usually pie."];
   function storySeg() {
     const st = pickFresh("story", STORIES);
@@ -579,7 +634,7 @@
   }
   function triviaSeg(g) {
     const [qq, a] = pickFresh("trivia", TRIVIA), host = g.guestIn && g.guest === "quiz" ? "g" : "p";
-    say("p", pickFresh("trivh", ["It's time for SmallBall Trivia!", "SmallBall Trivia time, folks. Play along at home.", "Trivia break! Brought to you by nobody. We have no sponsors."]), 2, { maxAge: 90000, seg: true, on: () => tvCard({ k: "SmallBall Trivia", h: qq, p: "Answer in chat before the booth does." }, 60000) });
+    say("p", pickFresh("trivh", TRIV_OPEN), 2, { maxAge: 90000, seg: true, on: () => tvCard({ k: "SmallBall Trivia", h: qq, p: "Answer in chat before the booth does." }, 60000) });
     say(host, qq, 2, { maxAge: 90000, seg: true });
     say("pause", "🤔 Think about it…", 2, { maxAge: 90000, seg: true, ms: 6000, on: () => tvCard({ k: "SmallBall Trivia", h: qq, p: "Answer in chat before the booth does.", clock: 6 }, 60000) });
     if (Math.random() < 0.6) say("c", pick(WRONG), 2, { maxAge: 90000, seg: true });
@@ -600,14 +655,14 @@
       else if (days > 0) say("p", `${capF(say1(days))} day${days === 1 ? "" : "s"} left in ${s.season.name || "the season"}.`, 2, { maxAge: 90000, seg: true });
       const ours = (s.big || []).find((x) => S.meta[id] && (x.team_id === S.meta[id].hid || x.team_id === S.meta[id].aid));
       if (ours) say("c", `And hey, the ${spk(ours.name)} are on that board too. Number ${ours.rank}. Somebody's been playing.`, 2, { maxAge: 90000, seg: true });
-      else say("c", pickFresh("bigq", ["Those clubs play more games than I eat hot dogs, and Mack, I eat a lot of hot dogs.", "The BigLeague: anybody can play anybody. It's democracy with bats.", "I'm told the standings are updated live. Unlike me."]), 2, { maxAge: 90000, seg: true });
+      else say("c", pickFresh("bigq", BIGQ), 2, { maxAge: 90000, seg: true });
     } catch (_) { storySeg(); }
   }
   function stretchSeg() {
-    say("p", "It's the seventh inning stretch! Everybody up.", 2, { maxAge: 90000, seg: true, on: () => tvCard({ k: "Seventh inning stretch", h: "Everybody up!", p: "♪ Take Me Out to the Ball Game ♪" }, 16000) });
+    say("p", STRETCH_OPEN, 2, { maxAge: 90000, seg: true, on: () => tvCard({ k: "Seventh inning stretch", h: "Everybody up!", p: "♪ Take Me Out to the Ball Game ♪" }, 16000) });
     setTimeout(() => melody(), 2500);
     say("pause", "🎵 …", 2, { maxAge: 90000, seg: true, ms: 7000 });
-    say("c", pickFresh("stretch", ["I'm up. I'm stretching. Something popped.", "The organist is giving it everything she's got. She's got about four notes.", "Stretch it out, folks. The pitcher sure can't. No bullpen."]), 2, { maxAge: 90000, seg: true });
+    say("c", pickFresh("stretch", STRETCH_C), 2, { maxAge: 90000, seg: true });
   }
   // The opening of "Take Me Out to the Ball Game" (1908, public domain) on the booth organ.
   function melody() {
@@ -648,7 +703,7 @@
     if (Math.random() < 0.55) { const [w, s] = pick(G.roast); say(w, s, 1, { maxAge: 6000 }); }
   }
   function radioFeed(id, events) {
-    if (!R.on || !TTS || id !== radioGame()) return;
+    if (!R.on || (!TTS && !kEff()) || id !== radioGame()) return;
     const g = gstate(id), b = BS[id] || {};
     for (const e of events) {
       g.last = Date.now();
@@ -721,7 +776,7 @@
         say("p", p.name && p.what ? `Mark it down, folks: that ${p.what.toLowerCase()} is a first for ${shortName(g, p.name)}!` : fill(L_PBP.milestone[0], { t: p.t.replace(/^\d+\s+/, "").replace(/\*+/g, "") }), 2, { maxAge: 9000, ev: e });
         col("milestone", {}, 0.4);
       }
-      if (p.first && !["milestone", "bigfirst"].includes(p.k) && q && Math.random() < 0.5) say("c", "And that's a first, by the way. Write it down.", 1, { maxAge: 6000, ev: e });
+      if (p.first && !["milestone", "bigfirst"].includes(p.k) && q && Math.random() < 0.5) say("c", FIRST_NOTE, 1, { maxAge: 6000, ev: e });
     }
   }
 
@@ -735,38 +790,46 @@
   // engine and retry it once on a voice that lives on this computer.
   const KEEP = [], BADV = new Set(); let lastErr = "", heard = 0, fails = 0, speechDown = false;
   function say(who, text, pri, o = {}) {
-    const it = { who, text, pri, at: Date.now(), maxAge: o.maxAge || 6000, ev: o.ev, seg: !!o.seg, ms: o.ms || 0, on: o.on };
+    // Enhanced voices: a stock pitch call with more after it ("Ball one. 92 on the gun.") goes out as the stock call,
+    // which is already recorded, plus the rest as its own line, so the call itself never waits.
+    const st = who === "p" && kLive({ who }) ? kStockText(text) : "";
+    if (st) { say(who, st, pri, Object.assign({}, o, { cap: text })); return say(who, text.slice(st.length).trim(), pri, { maxAge: o.maxAge, cont: true, test: o.test }); }
+    // a guest's line remembers which guest says it (each has his own voice)
+    const g = who === "g" ? o.g || (GS[radioGame()] || {}).guest || Object.keys(GUESTS).find((x) => R.guests[x]) || "quiz" : "";
+    const it = { who, g, text, pri, at: Date.now(), maxAge: o.maxAge || 6000, ev: o.ev, seg: !!o.seg, ms: o.ms || 0, on: o.on, cap: o.cap, cont: !!o.cont, test: !!o.test };
     if (o.front) { let i = 0; while (i < RQ.length && RQ[i].pri >= pri && !RQ[i].seg) i++; RQ.splice(i, 0, it); } else RQ.push(it);
     while (RQ.length > 12 || RQ.filter((x) => !x.seg).length > 5) { let i = RQ.findIndex((x) => x.pri === 0 && !x.seg); if (i < 0) i = RQ.findIndex((x) => x.pri === 1 && !x.seg); if (i < 0) i = RQ.findIndex((x) => !x.seg); if (i < 0) i = RQ.length - 1; RQ.splice(i, 1); }
     if (o.cut) for (let i = RQ.length - 1; i >= 0; i--) if (RQ[i] !== it && RQ[i].pri < 2 && !RQ[i].seg) RQ.splice(i, 1);   // a big play clears the jokes waiting in line (no mid-sentence cancel: it can crash ChromeOS speech)
     pump();
+    kTick();   // Enhanced voices: fetch or start making the next line while this one plays
   }
   let VO = [];
   function loadVoices() { VO = TTS ? speechSynthesis.getVoices() : []; if (isOpen()) paintRadio(); }
   if (TTS) { loadVoices(); speechSynthesis.addEventListener?.("voiceschanged", loadVoices); }
-  function voiceFor(who, localOnly) {
-    const en = VO.filter((v) => /^en/i.test(v.lang) && !BADV.has(v.name) && (!localOnly || v.localService)); const want = who === "c" ? R.color : who === "g" ? R.guestVoice : R.pbp;
+  function voiceFor(who, localOnly, gk) {   // the Standard voice for Mack ("p"), Dewey ("c") or a guest ("g", gk = which one)
+    const en = VO.filter((v) => /^en/i.test(v.lang) && !BADV.has(v.name) && (!localOnly || v.localService)); const want = who === "c" ? R.color : who === "g" ? R.gv[gk] || "" : R.pbp;
     const byName = en.find((v) => v.name === want); if (byName) return byName;
     const taken = who === "p" ? [] : who === "c" ? [(voiceFor("p", localOnly) || {}).name] : [(voiceFor("p", localOnly) || {}).name, (voiceFor("c", localOnly) || {}).name];
     const pref = who === "c" ? [/UK English Male/i, /Daniel/i, /Fred/i, /Guy|Ryan|George/i, /Male/i] : who === "g" ? [/UK English Female/i, /Australia|Karen|Moira|Tessa/i, /Samantha|Victoria/i, /Female/i] : [/US English/i, /Alex/i, /Samantha/i, /Aria|Jenny|Mark/i];
     for (const re of pref) { const v = en.find((x) => re.test(x.name) && !taken.includes(x.name)); if (v) return v; }
     return en.find((x) => !taken.includes(x.name)) || en[0] || null;
   }
-  const who2name = (w, id) => (w === "p" ? "Mack" : w === "c" ? "Dewey" : (GUESTS[(GS[id] || {}).guest] || {}).name || "Guest");
+  const who2name = (w, gk) => (w === "p" ? "Mack" : w === "c" ? "Dewey" : (GUESTS[gk] || {}).name || "Guest");
   function pump() {
     if (speaking || !RQ.length || !talking()) return;
     if (Date.now() - cutAt < 120) { setTimeout(pump, 130); return; }
     const it = RQ.shift();
     if (Date.now() - it.at > it.maxAge) return pump();
-    if (it.on) { try { it.on(); } catch (_) {} }   // Stream Mode cards go up the moment their line is spoken
+    if (it.on && !(kLive(it) && !it.kbad)) { try { it.on(); } catch (_) {} }   // Stream Mode cards go up the moment their line is spoken
     if (it.who === "pause") {           // a beat of silence (trivia thinking time)
       speaking = it; const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = it.text ? esc(it.text) : "🤔 …"; tvCap("", "");
       setTimeout(() => { if (speaking === it) { speaking = null; pump(); } }, it.ms || 5000); return;
     }
-    if (speechDown) { const nm0 = who2name(it.who, radioGame()); const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `🔇 <b>${esc(nm0)}:</b> ${esc(it.text)}`; tvCap(nm0, it.text); if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nm0}: ${it.text}`); speaking = it; setTimeout(() => { if (speaking === it) { speaking = null; pump(); } }, 900 + it.text.length * 45); return; }
+    if (kLive(it) && !it.kbad) return kSpeak(it);    // Enhanced voices (it fires it.on when the line actually starts)
+    if (speechDown || !TTS) { const nm0 = who2name(it.who, it.g); const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `🔇 <b>${esc(nm0)}:</b> ${esc(it.text)}`; tvCap(nm0, it.text); if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nm0}: ${it.text}`); speaking = it; setTimeout(() => { if (speaking === it) { speaking = null; pump(); } }, 900 + it.text.length * 45); return; }
     const synth = speechSynthesis;
-    const id = radioGame(), G = it.who === "g" ? GUESTS[(GS[id] || {}).guest] : null;
-    const u = new SpeechSynthesisUtterance(it.text), v = voiceFor(it.who, it.retry);
+    const G = it.who === "g" ? GUESTS[it.g] : null;
+    const u = new SpeechSynthesisUtterance(it.text), v = voiceFor(it.who, it.retry, it.g);
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-US";
     u.rate = it.who === "c" ? 1.0 : it.who === "g" ? (G ? G.rate : 1) : RQ.length > 2 ? 1.2 : 1.1;   // Mack talks faster when he's behind
     u.pitch = it.who === "c" ? 0.8 : it.who === "g" ? (G ? G.pitch : 1) : 1.05; u.volume = Math.max(0.05, R.vol);
@@ -790,7 +853,7 @@
     }, 2000);
     try { if (synth.paused) synth.resume(); } catch (_) {}
     synth.speak(u);
-    const nmw = who2name(it.who, id);
+    const nmw = who2name(it.who, it.g);
     if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nmw}: ${it.text}`);   // transcripts keep what was actually said
     const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `<b>${esc(nmw)}:</b> ${esc(it.text)}`;
     tvCap(nmw, it.text);
@@ -800,7 +863,11 @@
     if (speechDown) { el.innerHTML = `<b>This computer's text-to-speech isn't working</b> (${esc(lastErr || "no sound")}), so the booth is showing captions only. Every voice failed, so it's not the kit. Fix: restart Chrome (on a Chromebook, restart the Chromebook), then check the voice speaks in your system's text-to-speech settings. Then press Test the booth.`; return; }
     el.textContent = lastErr ? `Speech trouble: ${lastErr}. ${BADV.size ? `Skipping ${[...BADV].join(", ")}; using voices on this computer.` : ""}` : heard ? `Speech OK (${heard} lines heard).` : "";
   }
-  function hush() { RQ.length = 0; speaking = null; clearTimeout(rT); cutAt = Date.now(); try { speechSynthesis.cancel(); } catch (_) {} }
+  function hush() {
+    if (speaking && speaking.kT) clearTimeout(speaking.kT);
+    RQ.length = 0; speaking = null; clearTimeout(rT); cutAt = Date.now(); try { speechSynthesis.cancel(); } catch (_) {}
+    if (K.src) { try { K.src.onended = null; K.src.stop(); } catch (_) {} K.src = null; }   // Enhanced voices: stop the line mid-word
+  }
 
   // A short original organ sting for the big moments.
   let AC = null;
@@ -821,6 +888,393 @@
     } catch (_) {}
   }
 
+  // ---------- 🧠 Enhanced voices (Kokoro; optional, Standard is the browser's own speech) ----------
+  // A neural voice for each member of the booth, made on this computer by Kokoro-82M (Apache-2.0). The kit ships
+  // the code (kokoro/); the model and voice files download once, from Hugging Face, during the one-time setup, and
+  // stay in the browser. Nothing about the game ever leaves the computer.
+  // Enhanced voices need a graphics card the browser can compute on (WebGPU; built-in graphics count). That's
+  // checked before anything is downloaded, and Enhanced can't be picked without it. On the processor Kokoro is
+  // several times slower than speech, far too slow for a live game, so there's no processor option.
+  // The engine (kokoro/engine.html, a hidden frame at the extension's own origin, with the model in a worker) is
+  // only loaded while it's needed: setup, the radio on the air, or the booth test. Setup pre-records the fixed
+  // commentary (pitch calls, fielding calls, color, banter, lore, stories, trivia, the guests) in each character's
+  // voice, so most of a broadcast plays from saved clips; lines with live game details are made on the spot.
+  // Each line keeps its shelf life: a line is only made if it can be ready in time, and a late line is skipped.
+  // A character with no Enhanced voice, or any line while the engine isn't ready, uses the Standard voices.
+  const XAPI = (() => { try { const b = globalThis.browser; if (b && b.runtime && b.runtime.getURL) return b; const c = globalThis.chrome; if (c && c.runtime && c.runtime.getURL && c.runtime.id) return c; } catch (_) {} return null; })();
+  const K_OK = !!XAPI && typeof MessageChannel !== "undefined" && typeof WebAssembly !== "undefined" && !!(window.AudioContext || window.webkitAudioContext);
+  // Kokoro v1.0's English voices (US "a", UK "b"), best-rated first.
+  const KALL = [["am_michael", "Michael (US man)"], ["am_fenrir", "Fenrir (US man)"], ["am_puck", "Puck (US man)"], ["am_echo", "Echo (US man)"], ["am_eric", "Eric (US man)"], ["am_liam", "Liam (US man)"], ["am_onyx", "Onyx (US man)"], ["am_adam", "Adam (US man)"], ["am_santa", "Santa (US man)"],
+    ["bm_george", "George (UK man)"], ["bm_fable", "Fable (UK man)"], ["bm_lewis", "Lewis (UK man)"], ["bm_daniel", "Daniel (UK man)"],
+    ["af_heart", "Heart (US woman)"], ["af_bella", "Bella (US woman)"], ["af_nicole", "Nicole (US woman)"], ["af_aoede", "Aoede (US woman)"], ["af_kore", "Kore (US woman)"], ["af_sarah", "Sarah (US woman)"], ["af_nova", "Nova (US woman)"], ["af_sky", "Sky (US woman)"], ["af_alloy", "Alloy (US woman)"], ["af_jessica", "Jessica (US woman)"], ["af_river", "River (US woman)"],
+    ["bf_emma", "Emma (UK woman)"], ["bf_isabella", "Isabella (UK woman)"], ["bf_alice", "Alice (UK woman)"], ["bf_lily", "Lily (UK woman)"]];
+  const KCHAR = [["p", "Mack Ramsey"], ["c", "Dewey Seeds"], ["quiz", "Chet Lambert"], ["qb", "Brock Callahan"], ["obvious", "Gary Plainfield"]];
+  const K = { st: "off", want: false, op: "", frame: null, port: null, dev: "", dtype: "", phase: "", loaded: 0, total: 0, err: "", note: "", busy: null, seq: 0, mem: new Map(), memBytes: 0, gens: [], fails: 0, rtf: 1, slow: false, late: 0, made: 0, hits: 0, disk: new Set(), getting: new Set(), fixed: new Set(), pre: null, src: null, usage: null, helloT: 0, after: null, vT: 0 };
+  const UA = navigator.userAgent;
+  const kGpu = () => (R.kgpu && R.kgpu.ua === UA ? R.kgpu : null);              // the last graphics-card check, in this browser version
+  const kAvail = () => K_OK && !(kGpu() && !kGpu().ok);                          // Enhanced can be picked (not known to be unable)
+  const kEff = () => kAvail() && R.engine === "enhanced";                        // Enhanced is picked and can run here
+  const kSetUp = () => !!(R.ksetup && R.ksetup.done);
+  const kChar = (it) => (it.who === "p" || it.who === "c" ? it.who : it.who === "g" ? it.g || "quiz" : "");
+  let stdOnly = false;   // "Start with Standard voices": this broadcast (or test) skips Enhanced; the setting stays
+  const kVoice = (it) => { const ch = kChar(it); return ch && kEff() && !stdOnly ? R.ev[ch] || "" : ""; };   // "" = this character uses Standard
+  const kLive = (it) => K.st === "ready" && !(K.slow && TTS) && !!kVoice(it);
+  const kKey = (v, sp, text) => `fp32|${v}|${sp}|${text}`;   // model, voice, speed, words: a clip is only reused for exactly that
+  function kJob(it) {
+    const v = kVoice(it), sp = KSP[kChar(it)] || 1;
+    if (it.kkey && it.kv === v) return it;
+    it.kv = v; it.ksp = sp; it.kkey = kKey(v, sp, it.text); return it;
+  }
+  const kEst = (text) => K.rtf * (800 + 68 * text.length);              // how long a line takes to make here: speed (learned as it goes) × how long it runs
+  function kAC() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume().catch(() => {}); return AC; } catch (_) { return null; } }
+  function kMemGet(k) { const c = K.mem.get(k); if (c) { K.mem.delete(k); K.mem.set(k, c); } return c; }
+  function kMemPut(k, c) {
+    if (K.mem.has(k)) return; K.mem.set(k, c); K.memBytes += c.pcm.byteLength;
+    while (K.memBytes > 24e6 && K.mem.size > 1) { const [k0, c0] = K.mem.entries().next().value; K.mem.delete(k0); K.memBytes -= c0.pcm.byteLength; }   // ~4 minutes of speech in memory
+  }
+
+  // ---- The fixed commentary: every line the booth can say that has no live game details in it ----
+  // These mirror the ball/strike/contact calls in watchBoard().
+  function kStockTexts() {
+    if (K.stockTx) return K.stockTx;
+    const a = [...L_PBP.contact], add = (s) => { if (!a.includes(s)) a.push(s); };
+    [1, 2].forEach((n) => { add(`Strike ${say1(1)}.`); add(`Ball ${say1(n)}.`); add(`Strike ${say1(1)}, on the corner.`); add(`Outside, ball ${say1(n)}.`); add(`Low. Ball ${say1(n)}.`); });
+    add("Ball three. Full count!"); add("Strike two. Full count!");
+    for (let b1 = 0; b1 <= 3; b1++) for (let s1 = 0; s1 <= 2; s1++) {
+      if (b1 === 3 && s1 === 2) continue;
+      const cw = capF(countWords(b1, s1));
+      if (b1 >= 1 && !(s1 === 0 && b1 < 3)) { add(`Ball. ${cw}.`); add(`Misses. ${cw}.`); }
+      if (s1 >= 1 && !(b1 === 0 && s1 < 2)) { add(`Strike. ${cw}.`); add(`Gets him. ${cw}.`); }
+    }
+    K.stockLong = a.slice().sort((x, y) => y.length - x.length);
+    return (K.stockTx = a);
+  }
+  function kStockText(text) {   // the stock call a line starts with ("Ball one." in "Ball one. 92 on the gun."), if it's saved
+    if (!R.ev.p) return "";
+    kStockTexts();
+    const s = K.stockLong.find((x) => text.length > x.length && text.startsWith(x + " "));
+    if (!s) return "";
+    const k = kKey(R.ev.p, KSP.p, s);
+    return K.mem.has(k) || K.disk.has(k) ? s : "";
+  }
+  // [character, words], most useful first: the time-critical calls, the booth test, the play-by-play, then color,
+  // banter, the guests who are on, the break segments, and the long stories and lore last.
+  function kLines() {
+    const out = [], add = (ch, t) => { if (t && !/[{}]/.test(t)) out.push([ch, t]); };
+    kStockTexts().forEach((t) => add("p", t));
+    TEST_LINES.forEach(([ch, t]) => add(ch, t));
+    for (const arr of Object.values(L_PBP)) for (const t of arr) {
+      const ph = [...t.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+      if (ph.length && ph.every((x) => x === "p" || x === "pn")) for (const pos of Object.keys(POS)) add("p", fill(t, { p: POS[pos], pn: POSN[pos] }));   // fielding calls, every position
+      else add("p", t);
+    }
+    for (const arr of Object.values(NEEDLE)) arr.forEach((t) => add("p", t));
+    for (const [k, v] of Object.entries(L_COL)) {
+      if (k === "lore" || k === "banter") continue;
+      if (k === "park") Object.values(v).forEach((a) => a.forEach((t) => add("c", t)));
+      else if (k === "pitches100") v.forEach((t) => { add("c", t); add("c", t.replace("one hundred", "one fifty").replace("a hundred", "a hundred and fifty")); });
+      else if (Array.isArray(v)) v.forEach((t) => add(k === "pro" ? "p" : "c", t));
+    }
+    add("c", FIRST_NOTE); add("c", BACK_ON_AIR);
+    L_COL.banter.forEach((bit) => bit.forEach(([w, t]) => add(w, t)));
+    for (const [gk, G] of Object.entries(GUESTS)) {
+      if (!R.guests[gk]) continue;
+      add(G.intro[0], G.intro[1]); add(gk, G.hello);
+      Object.values(G.lines).forEach((a) => a.forEach((t) => add(gk, t)));
+      G.roast.forEach(([w, t]) => add(w, t));
+    }
+    TRIV_OPEN.forEach((t) => add("p", t)); WRONG.forEach((t) => add("c", t));
+    add("p", STRETCH_OPEN); STRETCH_C.forEach((t) => add("c", t)); BIGQ.forEach((t) => add("c", t));
+    TRIVIA.forEach(([q, a]) => { add("p", q); add("p", "The answer: " + a); if (R.guests.quiz) { add("quiz", q); add("quiz", "The correct question was... " + a); } });
+    STORIES.forEach((st) => st.forEach(([w, t]) => add(w, t)));
+    L_COL.lore.forEach((t) => { add("c", t); add("p", t); });   // lore comes from either of them
+    return out;
+  }
+  // The lines to pre-record for the current Enhanced voices (characters without one are skipped), one per clip.
+  function kFixedJobs() {
+    const seen = new Set(), jobs = [];
+    for (const [ch, text] of kLines()) {
+      const v = R.ev[ch]; if (!v) continue;
+      const sp = KSP[ch] || 1, key = kKey(v, sp, text);
+      if (seen.has(key)) continue; seen.add(key);
+      jobs.push({ key, text, v, sp });
+    }
+    K.fixed = seen;
+    return jobs;
+  }
+
+  // ---- The engine frame ----
+  function kSend(m, tr) { try { K.port && K.port.postMessage(m, tr || []); } catch (_) {} }
+  const kCastVoices = () => [...new Set(KCHAR.map(([ch]) => R.ev[ch]).filter(Boolean))].concat(Object.values(R.ev).some(Boolean) ? [] : [KV.p]);
+  function kFrame() {   // open the engine frame (no model yet: that's "init")
+    if (K.frame) return;
+    let url; try { url = XAPI.runtime.getURL("kokoro/engine.html"); } catch (_) { kFail("the extension was reloaded; refresh the page"); return; }
+    const f = document.createElement("iframe");
+    f.src = url; f.setAttribute("aria-hidden", "true"); f.tabIndex = -1; f.title = "SmallBall Radio voice engine";
+    f.style.cssText = "display:none!important";
+    K.frame = f;
+    f.addEventListener("load", () => {
+      if (K.frame !== f) return;
+      const ch = new MessageChannel(); K.port = ch.port1;
+      ch.port1.onmessage = (e) => kMsg(e.data || {});
+      try { f.contentWindow.postMessage({ t: "sbx-kokoro-hello" }, new URL(url).origin, [ch.port2]); } catch (e) { kFail("couldn't reach the voice engine (" + e.message + ")"); }
+    });
+    K.helloT = setTimeout(() => { if (K.frame === f && !K.port) kFail("the voice engine didn't open"); }, 20000);
+    (document.body || document.documentElement).appendChild(f);
+  }
+  // Load the model (after checking the graphics card, if this browser hasn't been checked yet).
+  function kStart() {
+    if (!kEff()) return;
+    if (K.st === "ready" || (K.st === "loading" && K.want)) return;
+    K.want = true; K.st = "loading"; K.phase = "start"; K.err = ""; K.act = Date.now();
+    if (K.port) kBoot(); else kFrame();
+    kPaint(); paintStage();
+  }
+  function kBoot() {
+    if (!(kGpu() && kGpu().ok)) { K.phase = "probe"; kSend({ t: "probe" }); }
+    else kSend({ t: "init", voices: kCastVoices() });
+    kPaint();
+  }
+  function kProbe() { if (!K_OK || K.op) return; K.op = "probe"; if (K.port) kSend({ t: "probe" }); else kFrame(); }
+  function kStop() {   // unload the engine and free its memory (the downloads and saved clips stay)
+    clearTimeout(K.helloT);
+    if (K.src) { try { K.src.onended = null; K.src.stop(); } catch (_) {} K.src = null; }
+    if (speaking && speaking.kw) { clearTimeout(speaking.kT); speaking = null; setTimeout(pump, 50); }   // free the line it was on, so the booth carries on
+    try { K.port && K.port.close(); } catch (_) {}
+    if (K.frame) K.frame.remove();
+    Object.assign(K, { frame: null, port: null, st: K.st === "failed" ? "failed" : "off", want: false, op: "", busy: null, phase: "", after: null, pre: null, mem: new Map(), memBytes: 0 });
+    K.getting.clear();
+    kPaint(); paintStage();
+  }
+  function kFail(why, gpu) {
+    if (gpu) { R.kgpu = { ok: false, why, ua: UA, at: Date.now() }; rsave(); }
+    K.st = "failed"; K.err = why; K.busy = null; K.want = false; K.pre = null; K.op = "";
+    if (speaking && speaking.kw) { clearTimeout(speaking.kT); speaking = null; setTimeout(pump, 50); }
+    if (prep) prepDone();   // go on the air (or run the test) with the Standard voices
+    paintRadio(); paintDiag();
+  }
+  // Is the engine needed right now? If not, the housekeeping below unloads it.
+  const testActive = () => Date.now() - testing < 120000 && (RQ.some((x) => x.test) || !!(speaking && speaking.test));
+  const kNeed = () => kEff() && K.st !== "failed" && ((!stdOnly && (R.on || !!prep || testActive())) || !!(K.pre && K.pre.explicit));
+  function kHouse() {
+    // never leave the radio stuck getting ready: if the engine stopped loading, or went quiet for two minutes, go on with Standard
+    if (prep && K.st !== "loading") prepDone();
+    else if (prep && Date.now() - (K.act || 0) > 120000) kFail("the voices took too long to start");
+    if (K.frame && !K.op && !K.after && !kNeed()) kStop();
+  }
+  setInterval(kHouse, 1000);
+
+  // ---- Pre-recording: during setup, and whenever the voices change ----
+  function kPreStart(kind) {
+    if (!kEff()) return;
+    K.pre = { kind, explicit: true, jobs: null, i: 0, made: 0, total: 0, have: 0, genMs: 0, n: 0 };
+    if (K.st === "ready") kPreCheck(); else kStart();
+    kPaint();
+  }
+  function kPreCheck() {   // which pre-recorded lines are missing for the current voices? (asks the engine's clip store)
+    const jobs = kFixedJobs();
+    K.preWant = jobs;
+    kSend({ t: "has", id: "pre", keys: jobs.map((j) => j.key) });
+  }
+  function kPreHave(have) {
+    const jobs = K.preWant || []; K.preWant = null;
+    have.forEach((k) => K.disk.add(k));
+    kSend({ t: "pin", keys: jobs.map((j) => j.key) });   // these stay; live lines can't push them out
+    const miss = jobs.filter((j) => !K.disk.has(j.key));
+    if (!miss.length) { if (K.pre || !kSetUp()) kPreDone(); return; }
+    // missing lines: during setup or after a voice change, make them now; otherwise (the radio found a gap, say the
+    // browser cleared some storage) fill them in quietly while the booth is idle
+    if (!K.pre) K.pre = { kind: kSetUp() ? "update" : "setup", explicit: false, i: 0, made: 0, genMs: 0, n: 0 };
+    Object.assign(K.pre, { jobs: miss, i: 0, total: miss.length, have: jobs.length - miss.length });
+    kPaint(); kTick();
+  }
+  function kPreDone() {
+    const p = K.pre; K.pre = null;
+    const first = !kSetUp();
+    R.ksetup = { done: true, at: Date.now() }; rsave();
+    if (p && p.total) K.note = first ? `Setup is done: ${p.total + p.have} lines are prepared. Enhanced voices start by themselves when the radio goes on or you test the booth.` : `The new voice is ready: ${p.total} lines prepared${p.have ? `, ${p.have} reused` : ""}.`;
+    else if (first) K.note = "Setup is done. Enhanced voices start by themselves when the radio goes on or you test the booth.";
+    else if (p && p.explicit) K.note = "The new voice is ready: its commentary was already prepared, so it was reused.";
+    kSend({ t: "usage" });
+    paintRadio();
+  }
+  // A voice or guest changed: pre-record what's missing for the new voices, a moment after the last change.
+  function kVoicesChanged() {
+    clearTimeout(K.vT);
+    K.vPend = kEff() && (kSetUp() || !!K.pre); kPaint();
+    K.vT = setTimeout(() => {
+      K.vPend = false;
+      if (!kEff() || (!kSetUp() && !K.pre)) return kPaint();
+      if (K.st === "ready") { K.pre = K.pre || { kind: kSetUp() ? "update" : "setup", explicit: true, i: 0, made: 0, genMs: 0, n: 0 }; K.pre.explicit = true; K.pre.jobs = null; kPreCheck(); }
+      else kPreStart(kSetUp() ? "update" : "setup");
+    }, 2500);
+  }
+
+  function kMsg(m) {
+    K.act = Date.now();   // the engine is alive
+    if (m.t === "hello") {
+      clearTimeout(K.helloT);
+      kSend({ t: "keys" }); kSend({ t: "usage" });   // every clip this browser has saved, so saved lines are never remade or skipped
+      if (K.want) kBoot(); else if (K.op === "probe") kSend({ t: "probe" });
+      if (K.after) { const a = K.after; K.after = null; a(); }
+    }
+    else if (m.t === "probe") {
+      R.kgpu = { ok: !!m.ok, why: m.why || "", gpu: m.gpu || "", ua: UA, at: Date.now() }; rsave();
+      if (K.op === "probe") K.op = "";
+      if (K.want && K.st === "loading" && K.phase === "probe") { if (m.ok) { K.phase = "start"; kSend({ t: "init", voices: kCastVoices() }); } else return kFail(m.why, true); }
+      paintRadio();
+    }
+    else if (m.t === "progress") { K.phase = m.phase; if (m.phase === "download") { K.loaded = m.loaded; K.total = m.total; } kPaint(); }
+    else if (m.t === "note") { K.note = m.text; kPaint(); }
+    else if (m.t === "keys") { (m.keys || []).forEach((k) => K.disk.add(k)); kTick(); }
+    else if (m.t === "ready") {
+      K.st = "ready"; K.dev = m.device; K.dtype = m.dtype; K.phase = ""; K.err = "";
+      if (m.rtf > 0) K.rtf = m.rtf;   // the warm-up line is the first measure of speed
+      kPreCheck(); kSend({ t: "usage" });
+      if (prep) prepDone();
+      kPaint(); paintDiag(); kTick();
+    }
+    else if (m.t === "error") { if (K.st === "loading" || K.want) kFail(m.error || "the voices couldn't start", m.gpu); else { K.err = m.error || ""; kPaint(); } }
+    else if (m.t === "has") { if (m.id === "pre") kPreHave(m.keys || []); else (m.keys || []).forEach((k) => K.disk.add(k)); }
+    else if (m.t === "usage" || m.t === "cleared") {
+      K.usage = m;
+      if (m.t === "cleared") { K.disk.clear(); K.op = ""; K.note = "Enhanced voice downloads and saved clips are cleared."; kStop(); paintRadio(); }
+      kPaint();
+    }
+    else if (m.t === "made") {   // a pre-recorded line, saved
+      if (K.busy && K.busy.id === m.id) K.busy = null;
+      K.disk.add(m.key);
+      if (K.pre && !m.cached) { K.pre.made++; K.pre.genMs += m.gen; if (m.dur > 0) { const r = m.gen / m.dur; K.rtf = K.rtf * 0.8 + r * 0.2; } }
+      kPaint(); kTick();
+    }
+    else if (m.t === "audio" || m.t === "fail") {
+      const job = K.busy && K.busy.id === m.id ? K.busy : null; if (job) K.busy = null;
+      const got = K.getting.delete(m.key);
+      if (m.t === "audio") {
+        let pcm; try { pcm = new Float32Array(m.pcm); } catch (_) { pcm = Float32Array.from(m.pcm || []); }
+        const clip = { sr: m.sr || 24000, pcm };
+        kMemPut(m.key, clip);
+        K.fails = 0;
+        if (m.cached) { K.hits++; K.disk.add(m.key); }
+        else if (m.gen > 0) {
+          K.made++; if (job && job.keep) K.disk.add(m.key);
+          const dur = (pcm.length / clip.sr) * 1000, r = m.gen / Math.max(1, dur);
+          K.rtf = K.rtf * 0.6 + r * 0.4;
+          K.gens.push(r); if (K.gens.length > 8) K.gens.shift();
+          // Can this computer keep up? If making a line takes longer than saying it, the booth falls behind the game.
+          if (K.gens.length >= 6 && TTS) { const s = K.gens.slice().sort((a, b) => a - b), med = s[Math.floor(s.length / 2)]; if (med > 1) { K.slow = true; K.note = `Enhanced voices are too slow on this computer (making a line takes ${med.toFixed(1)}× as long as saying it), so the booth is back on the Standard voices.`; paintDiag(); } }
+        }
+        if (speaking && speaking.kw && speaking.kkey === m.key && !speaking.kSrc) kPlay(speaking, clip);
+      } else if (m.error === "miss") { if (got) K.disk.delete(m.key); }   // no longer saved (the browser cleared it): make it instead
+      else {
+        // Kokoro couldn't make this line: say it with the Standard voice instead, and stop using Enhanced after a few
+        K.err = m.error; if (++K.fails >= 3) return kFail(m.error || "it kept failing");
+        if (speaking && speaking.kw && speaking.kkey === m.key) { clearTimeout(speaking.kT); const it = speaking; speaking = null; it.kw = false; it.kbad = true; RQ.unshift(it); setTimeout(pump, 0); }
+      }
+      kPaint(); kTick();
+    }
+  }
+  // What to do next. Saved lines in the queue are read from the clip store at once (no model needed). Then make the
+  // line on deck, then the queue in order, skipping any line that can't be ready before it goes stale. With the
+  // booth quiet, carry on pre-recording.
+  function kGet(key) { K.getting.add(key); kSend({ t: "get", id: "g" + ++K.seq, key }); }
+  function kTick() {
+    if (!K.port) return;
+    const on = talking(), live = on ? (speaking && speaking.kw ? [speaking] : []).concat(RQ.filter((x) => x.who !== "pause" && !x.kbad && kVoice(x))) : [];
+    for (const it of live) { kJob(it); if (!K.mem.has(it.kkey) && K.disk.has(it.kkey) && !K.getting.has(it.kkey)) kGet(it.kkey); }
+    if (K.st !== "ready" || K.busy) return;
+    const now = Date.now();
+    for (const it of live) {
+      if (K.mem.has(it.kkey) || K.disk.has(it.kkey) || K.getting.has(it.kkey)) continue;
+      if (now + kEst(it.text) > it.at + it.maxAge) continue;
+      return kReq(it.kkey, it.text, it.kv, it.ksp, it.text.length <= 240 ? (K.fixed.has(it.kkey) ? "fixed" : "dyn") : false);
+    }
+    if (on && (speaking || RQ.length)) return;   // pre-recording waits for a quiet booth
+    const p = K.pre; if (!p || !p.jobs) return;
+    if (!p.explicit && !on) return;
+    while (p.i < p.jobs.length && K.disk.has(p.jobs[p.i].key)) { p.i++; p.n++; }
+    const j = p.jobs[p.i];
+    if (j) { p.i++; p.n++; return kReq(j.key, j.text, j.v, j.sp, "fixed", true); }
+    kPreDone();
+  }
+  function kReq(key, text, voice, speed, keep, quiet) { K.busy = { id: "j" + ++K.seq, key, text, keep }; kSend({ t: "say", id: K.busy.id, key, text, voice, speed, keep, quiet: !!quiet }); }
+  // Speak a line with Enhanced voices: right away if it's made or saved, otherwise wait for it, but never past its shelf life.
+  function kSpeak(it) {
+    kJob(it); speaking = it; it.kw = true;
+    const hit = kMemGet(it.kkey); if (hit) return kPlay(it, hit);
+    const left = it.at + it.maxAge - Date.now();
+    const coming = K.disk.has(it.kkey) || K.getting.has(it.kkey) || (K.busy && K.busy.key === it.kkey);
+    if (!coming && kEst(it.text) > left) { speaking = null; it.kw = false; K.late++; return pump(); }
+    it.kT = setTimeout(() => { if (speaking === it && !it.kSrc) { speaking = null; it.kw = false; K.late++; pump(); } }, Math.max(0, left));
+    kTick();
+  }
+  function kPlay(it, clip) {
+    clearTimeout(it.kT);
+    if (Date.now() - it.at > it.maxAge) { speaking = null; it.kw = false; K.late++; return pump(); }   // made, but too late: the moment's gone
+    const ac = kAC(); if (!ac) { speaking = null; it.kw = false; it.kbad = true; RQ.unshift(it); return pump(); }
+    try {
+      const buf = ac.createBuffer(1, clip.pcm.length, clip.sr); buf.getChannelData(0).set(clip.pcm);
+      const src = ac.createBufferSource(), gn = ac.createGain(); src.buffer = buf; gn.gain.value = Math.max(0.05, R.vol);
+      src.connect(gn).connect(ac.destination);
+      it.kSrc = src; K.src = src;
+      src.onended = () => { if (K.src === src) K.src = null; lastSpoke = Date.now(); if (speaking !== it) return; speaking = null; setTimeout(pump, it.who === "p" ? 120 : 280); };
+      if (it.on) { try { it.on(); } catch (_) {} }
+      src.start(); heard++; lastSpoke = Date.now();
+    } catch (e) { speaking = null; it.kw = false; it.kbad = true; RQ.unshift(it); K.err = String(e.message || e); return pump(); }
+    const nmw = who2name(it.who, it.g), said = it.cap || it.text;
+    if (!it.cont) {   // the second half of a split line is already on the caption
+      if (it.ev) (it.ev.radio || (it.ev.radio = [])).push(`${nmw}: ${said}`);
+      const cap = isOpen() && ov.querySelector(".rcap"); if (cap) cap.innerHTML = `<b>${esc(nmw)}:</b> ${esc(said)}`;
+      tvCap(nmw, said);
+    }
+    kTick();
+  }
+
+  // ---- Status ----
+  const mb = (n) => (n >= 1e6 ? Math.round(n / 1e6) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB");
+  const mins = (ms) => (ms < 90000 ? "about a minute" : `about ${Math.round(ms / 60000)} minutes`);
+  function kPhase() {
+    if (K.phase === "probe") return "Checking the graphics card…";
+    if (K.phase === "download" && K.total) { const p = Math.min(100, Math.round((K.loaded / K.total) * 100)); return `Loading the voices (downloaded the first time, from storage after that): ${p}%, ${mb(K.loaded)} of ${mb(K.total)}.<div class="kbar"><i style="width:${p}%"></i></div>`; }
+    if (K.phase === "warmup") return "Starting the voices and checking they sound right…";
+    return "Starting the Enhanced voices…";
+  }
+  function kPreText() {
+    const p = K.pre; if (!p || !p.jobs) return "Checking which lines are already prepared…";
+    const pc = p.total ? Math.min(100, Math.round((p.n / p.total) * 100)) : 0, left = p.made ? (p.genMs / p.made) * Math.max(0, p.total - p.n) : 0;
+    return `${p.kind === "setup" ? "Preparing the booth's commentary" : "Preparing commentary for the new voice"}: ${p.n} of ${p.total}${left ? `, ${mins(left)} left` : ""}.${p.explicit ? "" : " (Only while the booth is quiet.)"}<div class="kbar"><i style="width:${pc}%"></i></div>`;
+  }
+  function kStatus() {
+    if (K.st === "failed") return `⚠️ Enhanced voices couldn't start: ${esc(K.err)}. The booth is using the Standard voices. <button class="mini" data-act="kretry">Try again</button>`;
+    if (K.vPend) return "⏳ Voice changed: preparing its commentary in a moment…";
+    if (K.st === "loading") return `⏳ ${!K.pre ? "" : K.pre.kind === "setup" ? "Setting up Enhanced voices. " : "Preparing commentary for the new voice. "}${kPhase()}${K.pre && K.pre.explicit ? ` <button class="mini" data-act="kcancel">${K.pre.kind === "setup" ? "Stop setup" : "Stop"}</button>` : ""}`;
+    if (K.st === "ready") {
+      if (K.slow && TTS) return `🐢 ${esc(K.note)} <button class="mini" data-act="kretry">Try Enhanced again</button>`;
+      const pre = K.pre && K.pre.jobs && (K.pre.explicit || R.on) ? `<br>⏺ ${kPreText()}${K.pre.explicit ? ` <button class="mini" data-act="kcancel">Stop</button>` : ""}` : K.pre ? `<br>⏺ ${kPreText()}` : "";
+      return `✅ Enhanced voices are running on the graphics card${K.made + K.hits ? `: ${K.made + K.hits} lines so far, ${K.hits} from saved clips${K.late ? `, ${K.late} skipped as too late` : ""}` : ""}.${pre}`;
+    }
+    if (!kSetUp()) return `One-time setup: checks the graphics card, downloads the voices (about 330 MB), checks they sound right and prepares the booth's regular commentary, then unloads until it's needed. <button class="mini" data-act="kset">${R.ksetup ? "Continue setup" : "Set up Enhanced voices"}</button>`;
+    return "✅ Set up. The engine loads by itself when the radio goes on or you test the booth, and unloads when neither needs it.";
+  }
+  function kPaint() {
+    if (!isOpen()) return;
+    const el = ov.querySelector(".kstat"); if (el) el.innerHTML = kStatus() + (K.note && !(K.slow && K.st === "ready") ? ` <span class="note">${esc(K.note)}</span>` : "");
+    const u = ov.querySelector(".kuse"); if (u) u.textContent = K.usage ? `Stored in this browser: ${mb(K.usage.total || 0)}${K.usage.clips ? ` (saved lines: ${mb(K.usage.clips)})` : ""}.` : "";
+    if (prep) { const cap = ov.querySelector(".rcap"); if (cap && !cap.querySelector('[data-act="prepskip"]')) cap.innerHTML = `${prep === "test" ? "Preparing Enhanced voices for the booth test." : "Preparing Enhanced voices for your broadcast."}<div class="rrow" style="margin:6px 0 0"><button class="mini" data-act="prepskip">${prep === "test" ? "Test with Standard voices" : "Start with Standard voices"}</button></div>`; }
+  }
+  function kClear() {
+    const go = () => kSend({ t: "clear" });
+    R.engine = "standard"; R.ksetup = null; rsave();
+    if (prep) prepDone();
+    if (K.src) { try { K.src.stop(); } catch (_) {} }
+    K.pre = null; K.want = false; K.op = "clear"; if (K.st !== "failed") K.st = "off";
+    if (K.port) go(); else { K.after = go; kFrame(); }
+    paintRadio();
+  }
+  // Going on the air (or testing) with Enhanced voices waits for the engine to be ready.
+  let prep = "";   // "radio" or "test" while waiting
+  function prepDone() { const p = prep; prep = ""; if (p === "radio") radioGo(); else if (p === "test") testGo(); paintStage(); }
+
   function radioIntro() {
     if (!R.on) return;
     const id = radioGame(); if (!id) return;
@@ -828,7 +1282,7 @@
     g.guest = pool.length ? pick(pool) : null; g.guestIn = false;
     const t = teams(id, "top");
     say("p", `Hello again, everybody. Mack Ramsey here with Dewey Seeds, and welcome to SmallBall Radio. It's the ${t.away} visiting your ${t.home}.`, 3, { maxAge: 30000 });
-    if (R.quips !== "off") say("c", Math.random() < 0.3 ? "SmallBall Radio, back on the air. First time since the frog. Somebody check on Johnny Bosco." : pickFresh("intro", L_COL.intro), 3, { maxAge: 30000 });
+    if (R.quips !== "off") say("c", Math.random() < 0.3 ? BACK_ON_AIR : pickFresh("intro", L_COL.intro), 3, { maxAge: 30000 });
   }
   // Fill the dead air now and then.
   setInterval(() => {
@@ -857,14 +1311,29 @@
     paintStage();
     const box = ov.querySelector(".rpanel"); if (!box || box.hidden) return;
     const en = VO.filter((v) => /^en/i.test(v.lang));
-    const opts = (cur, who) => `<option value="">Automatic${(voiceFor(who) || {}).name ? ` (${esc(voiceFor(who).name)})` : ""}</option>` + en.map((v) => `<option${v.name === cur ? " selected" : ""}>${esc(v.name)}</option>`).join("");
     const seg = (key, vals) => `<span class="seg" data-seg="${key}">${vals.map(([v, l]) => `<button data-v="${v}" class="${R[key] === v ? "on" : ""}">${l}</button>`).join("")}</span>`;
+    // Standard voices (the browser's) and Enhanced voices (Kokoro) are set separately, five characters each.
+    const sv = (ch) => (ch === "p" ? R.pbp : ch === "c" ? R.color : R.gv[ch] || "");
+    const sOpts = (cur, who, gk) => { const a = (voiceFor(who, false, gk) || {}).name || ""; return `<option value="">Automatic${a ? ` (${esc(a)})` : ""}</option>` + en.map((v) => `<option${v.name === cur ? " selected" : ""}>${esc(v.name)}</option>`).join(""); };
+    const eOpts = (cur) => `<option value=""${cur ? "" : " selected"}>Not set — use Standard</option>` + KALL.map(([id, n]) => `<option value="${id}"${cur === id ? " selected" : ""}>${esc(n)}</option>`).join("");
+    const first = (n) => esc(n.split(" ")[0]);
+    const sRows = TTS ? KCHAR.map(([ch, n]) => `<div class="rrow"><span class="lbl">${first(n)}</span><select data-sv="${ch}" aria-label="${esc(n)}: Standard voice">${sOpts(sv(ch), ch === "p" || ch === "c" ? ch : "g", ch)}</select></div>`).join("") : `<p class="note">This browser has no speech voices.</p>`;
+    const eRows = KCHAR.map(([ch, n]) => `<div class="rrow"><span class="lbl">${first(n)}</span><select data-ev="${ch}" aria-label="${esc(n)}: Enhanced voice">${eOpts(R.ev[ch])}</select></div>`).join("");
+    const gpu = kGpu(), checking = K_OK && !gpu, on = kEff();
+    const why = !K_OK ? "this browser is missing something they need (WebAssembly or Web Audio in an extension)" : gpu && !gpu.ok ? gpu.why : "";
     box.innerHTML = `
       <div class="rrow"><b>📻 SmallBall Radio</b><span class="note">Mack calls it, Dewey colors it, a guest drops by.</span></div>
-      ${TTS ? "" : `<p class="note">This browser has no speech voices, so the radio can't talk here.</p>`}
-      <div class="rrow"><span class="lbl">Mack</span><select data-r="pbp">${opts(R.pbp, "p")}</select></div>
-      <div class="rrow"><span class="lbl">Dewey</span><select data-r="color">${opts(R.color, "c")}</select></div>
-      <div class="rrow"><span class="lbl">Guest</span><select data-r="guestVoice">${opts(R.guestVoice, "g")}</select></div>
+      ${TTS ? "" : `<p class="note">This browser has no speech voices${on ? ", so the radio needs the Enhanced voices below to talk here" : ", so the radio can't talk here"}.</p>`}
+      <div class="rrow"><span class="lbl">Voices</span><span class="seg" data-seg="engine"><button data-v="standard" class="${on ? "" : "on"}">Standard</button><button data-v="enhanced" class="${on ? "on" : ""}"${kAvail() && !checking ? "" : " disabled"}>Enhanced${checking ? " (checking…)" : ""}</button></span></div>
+      ${why ? `<p class="note">Enhanced voices aren't available here: ${esc(why)}.${R.engine === "enhanced" ? " The Standard voices are on." : ""} They need a graphics card the browser can use through WebGPU; most computers' built-in graphics qualify, in a recent Chrome or Edge (Firefox on Windows from version 141). ${K_OK ? `<button class="mini" data-act="kcheck">Check again</button>` : ""}</p>` : checking ? `<p class="note">Checking whether this computer's graphics card can run the Enhanced voices (nothing is downloaded)…</p>` : ""}
+      ${on ? `<div class="kbox"><b>Enhanced voices · made on this computer</b>
+        <p class="note kstat" style="opacity:.9"></p>
+        ${eRows}
+        <p class="note">"Not set" uses that character's Standard voice. Setup, or changing a voice, can take a few minutes while the booth's commentary is prepared in the new voice; commentary already prepared is reused. Turning the radio on can take up to a minute while the voices start. Nothing about the game is sent anywhere.${gpu && gpu.ok && gpu.gpu ? ` Graphics card: ${esc(gpu.gpu)}.` : ""}</p>
+        <div class="rrow"><button class="mini" data-act="kclear">Clear Enhanced downloads</button><span class="note kuse"></span></div>
+      </div>
+      <details class="kbox"><summary>Standard voices · the backup, and for anyone not set above</summary>${sRows}</details>` : `<div class="kbox"><b>Standard voices · your browser's own</b>${sRows}
+        ${R.ksetup && K_OK ? `<div class="rrow"><span class="note">Enhanced voices are set up in this browser.</span><button class="mini" data-act="kclear">Clear Enhanced downloads</button></div>` : ""}</div>`}
       <div class="rrow"><span class="lbl">Guests</span>${Object.entries(GUESTS).map(([k, G]) => `<label class="sw"><input type="checkbox" data-g="${k}"${R.guests[k] ? " checked" : ""}> ${esc(G.name.split(" ")[0])}</label>`).join("")}</div>
       <div class="rrow"><span class="lbl">Booth style</span>${seg("style", [["show", "The show"], ["pbp", "Play-by-play"]])}</div>
       <div class="rrow"><span class="lbl">Quips</span>${seg("quips", [["off", "Off"], ["some", "Some"], ["lots", "Lots"]])}</div>
@@ -890,22 +1359,40 @@
         <li><b>Play-by-play style</b> calls more of the game and talks less. <b>Mack</b> is a shameless home-team homer, or play it down the middle.</li>
       </ol></details>
       <p class="note">The players' crowd noise is the Crowd button inside the player.</p>`;
-    paintDiag();
+    paintDiag(); kPaint();
+    if (K_OK && !kGpu() && !K.op && !K.want && ov.classList.contains("open")) kProbe();   // is Enhanced possible here? (a tiny check when the panel opens; nothing downloaded)
   }
   function radioToggle() {
-    if (!TTS) { R.on = false; return; }
-    R.on = !R.on;
-    if (!R.on) hush(); else { loadVoices(); if (live) radioIntro(); }
-    const box = ov.querySelector(".rpanel"); if (box && R.on) box.hidden = false;
-    paintRadio(); paintStage();
+    if (prep === "radio") { prep = ""; paintRadio(); paintStage(); return; }   // stop getting ready: the radio stays off
+    if (R.on) { R.on = false; stdOnly = false; hush(); kHouse(); paintRadio(); paintStage(); return; }   // off: silence now, and the engine unloads
+    stdOnly = false;
+    if (!TTS && !kEff()) return;
+    if (kEff() && K.st !== "ready") {   // Enhanced: get the engine ready first, then go on the air by itself
+      prep = "radio"; kAC(); if (K.st === "failed") K.st = "off"; kStart();
+      const box = ov.querySelector(".rpanel"); if (box) box.hidden = false;
+      paintRadio(); paintStage(); return;
+    }
+    radioGo();
+  }
+  function radioGo() {
+    R.on = true; loadVoices(); if (live) radioIntro();
+    const box = ov.querySelector(".rpanel"); if (box) box.hidden = false;
+    paintRadio(); paintStage(); kTick();
   }
   let testing = 0;
-  const talking = () => !document.getElementById("tk-ov") && (R.on || Date.now() - testing < 25000);
+  const talking = () => !document.getElementById("tk-ov") && (R.on || testActive());
+  // Test the booth: one line from each of the five, in their voices. With Enhanced voices the engine starts first
+  // (if it isn't running) and unloads after the test unless the radio's on.
   function radioTest() {
-    hush(); testing = Date.now(); speechDown = false; fails = 0; BADV.clear(); lastErr = "";
-    say("p", "Testing, one two. Mack Ramsey here. Two and one... swung on, and that ball is outta here!", 3, { maxAge: 30000 }); organ(2);
-    say("c", "And I'm Dewey Seeds. They've asked me to stop eating the microphone foam.", 3, { maxAge: 30000 });
-    say("g", "And I'm the guest. What is... a microphone check?", 3, { maxAge: 30000 });
+    hush(); speechDown = false; fails = 0; BADV.clear(); lastErr = "";
+    if (!R.on) stdOnly = false;
+    if (kEff()) { K.slow = false; K.gens = []; kAC(); }
+    if (kEff() && !stdOnly && K.st !== "ready") { if (!prep) prep = "test"; if (K.st === "failed") K.st = "off"; kStart(); paintRadio(); paintStage(); return; }
+    testGo();
+  }
+  function testGo() {
+    testing = Date.now();
+    TEST_LINES.forEach(([ch, t], i) => { const g = ch === "p" || ch === "c" ? "" : ch; say(g ? "g" : ch, t, 3, { maxAge: 60000, test: true, g }); if (!i) organ(2); });
   }
 
 
@@ -954,11 +1441,32 @@
     if (e.target.closest(".x")) { ov.classList.remove("open"); return; }
     const b = e.target.closest("button"); if (!b) return;
     const seg = b.closest(".seg");
+    if (seg && seg.dataset.seg === "engine") {
+      const was = kEff(); R.engine = b.dataset.v === "enhanced" && kAvail() ? "enhanced" : "standard"; rsave();
+      if (kEff() && !was) {   // picking Enhanced: the one-time setup if it isn't done, else start it if the radio's on
+        if (!kSetUp()) { kAC(); kPreStart("setup"); } else if (R.on) { kAC(); kStart(); }
+      } else if (!kEff() && was) { K.pre = null; if (prep) prepDone(); if (K.st === "failed") K.st = "off"; kStop(); }   // Standard: unload now
+      paintRadio(); return;
+    }
     if (seg && ["quips", "pitches", "style", "updates", "sit", "air", "lean"].includes(seg.dataset.seg)) { R[seg.dataset.seg] = b.dataset.v; rsave(); paintRadio(); return; }
-    if (b.dataset.act === "radio") radioToggle();
-    else if (b.dataset.act === "rtest") radioTest();
+    const act = b.dataset.act;
+    if (act === "kset") { kAC(); if (K.st === "failed") K.st = "off"; kPreStart("setup"); return; }
+    if (act === "kcancel") { if (K.pre) K.pre.explicit = false; if (!R.on && !prep && !testActive()) kStop(); else kPaint(); return; }
+    if (act === "kretry") { K.slow = false; K.gens = []; K.note = ""; if (K.st === "failed") { K.st = "off"; K.err = ""; if (!kSetUp()) { kAC(); kPreStart("setup"); } else if (R.on) { kAC(); kStart(); } } paintRadio(); return; }
+    if (act === "kcheck") { R.kgpu = null; rsave(); if (K.st === "failed") { K.st = "off"; K.err = ""; } kProbe(); paintRadio(); return; }
+    if (act === "kclear") { kClear(); return; }
+    if (act === "prepskip") { stdOnly = true; prepDone(); kHouse(); return; }   // this broadcast (or test) on Standard voices; the setting stays Enhanced
+    if (act === "radio") radioToggle();
+    else if (act === "rtest") radioTest();
   });
-  ov.addEventListener("input", (e) => { const gk = e.target.dataset && e.target.dataset.g; if (gk) { R.guests[gk] = e.target.checked; rsave(); return; } const k = e.target.dataset && e.target.dataset.r; if (!k) return; R[k] = e.target.type === "checkbox" ? e.target.checked : e.target.type === "range" ? Number(e.target.value) : e.target.value; rsave(); if (k === "pbp" || k === "color" || k === "guestVoice") paintRadio(); });
+  ov.addEventListener("input", (e) => {
+    const d = e.target.dataset || {};
+    if (d.g) { R.guests[d.g] = e.target.checked; rsave(); kVoicesChanged(); return; }
+    if (d.sv) { const v = e.target.value; if (d.sv === "p") R.pbp = v; else if (d.sv === "c") R.color = v; else R.gv[d.sv] = v; rsave(); paintRadio(); return; }
+    if (d.ev) { R.ev[d.ev] = e.target.value; rsave(); kVoicesChanged(); paintRadio(); return; }
+    const k = d.r; if (!k) return;
+    R[k] = e.target.type === "checkbox" ? e.target.checked : e.target.type === "range" ? Number(e.target.value) : e.target.value; rsave();
+  });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") ov.classList.remove("open"); });
   paintStage();
 })();
