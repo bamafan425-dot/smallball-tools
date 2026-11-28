@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.27: clean Discord posts: one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -273,7 +273,13 @@ function tag_(p) {
   const id = norm_(p.DiscordID).replace(/\D/g, '');
   return id ? '<@' + id + '>' : '**' + esc_(p.Discord) + '**';
 }
-function who_(p) { return tag_(p) + ' (*' + esc_(p.Club) + '*)'; }
+// The one club line every post uses: @member · Club · ID (the club and the ID open its SmallBall team page).
+const teamUrl_ = (id) => 'https://play.smallball.com/#/team/' + norm_(id);
+function clubLink_(p) { const nm = esc_(p.Club).replace(/[\[\]]/g, ''); return norm_(p.ClubID) ? '[' + nm + '](<' + teamUrl_(p.ClubID) + '>)' : nm; }
+function idLink_(p) { return norm_(p.ClubID) ? '[' + norm_(p.ClubID) + '](<' + teamUrl_(p.ClubID) + '>)' : ''; }
+function line_(p, ping) { if (!p) return 'TBD'; const id = idLink_(p); return (ping ? tag_(p) : '**@' + esc_(p.Discord) + '**') + ' · **' + clubLink_(p) + '**' + (id ? ' · ' + id : ''); }
+function who_(p) { return line_(p, true); }
+function nm_(p) { return '**' + esc_(p ? p.Club : '?') + '**'; }   // the short form for the story under a post's club lines
 
 function parseScore_(v) {
   const m = norm_(v).match(/^(\d+)\D+(\d+)$/);
@@ -860,6 +866,7 @@ function postBook_(content) { return post_(content, 'book'); }
 function ladPost_(content, where) { return isFarm_() && where !== 'book' && where !== 'shop' && !/^🌱/.test(content) ? '🌱 **FARM HILL** · ' + content : content; }
 function post_(content, where) {
   content = ladPost_(content, where);
+  try { if (where !== 'help' && content.indexOf('Hold the Hill Leaderboard') < 0 && content.indexOf('HtH Leaderboard') < 0) { const b = norm_(cfg_().BOARD_LINK) || 'https://slipnsliders.github.io/smallball-tools/hill/'; content += '\n📊 [Live HtH Leaderboard](<' + b + '>)'; } } catch (e) { }
   snapshotBoard_();   // the HtH Leaderboard shows what Discord has been told
   let C;
   try { C = cfg_(); } catch (e) { return; }
@@ -961,7 +968,7 @@ function standingsText_() {
   const reign = currentReign_(readTable_(SHEETS.REIGNS));
   let s = '⛰️ **HOLD THE HILL · Season ' + C.SEASON + '**\n';
   if (ace && reign) {
-    s += '♠️ **The Ace:** ' + who_(ace) + '\n';
+    s += '♠️ **The Ace**\n> ' + line_(ace, false) + '\n';
     s += '> Reign #' + reign.Reign + ' · ' + num_(reign.Defenses) + ' defense(s) · ' + num_(reign.ReignPts) +
       ' reign pts · next defense worth **' + reward_(num_(reign.Defenses) + 1, C) + '**\n';
   } else {
@@ -974,7 +981,7 @@ function standingsText_() {
   s += '\n**Contenders**\n';
   if (!lad.length) s += '*Nobody on the ladder yet.*\n';
   lad.slice(0, C.LADDER_POST_SIZE).forEach(function (p) {
-    s += p.Rank + '. ' + esc_(p.Discord) + ' · *' + esc_(p.Club) + '* (' + num_(p.Wins) + '-' + num_(p.Losses) + ')\n';
+    s += '> #' + p.Rank + ' ' + line_(p, false) + ' · ' + num_(p.Wins) + '-' + num_(p.Losses) + '\n';
   });
   if (lad.length > C.LADDER_POST_SIZE) s += '…and ' + (lad.length - C.LADDER_POST_SIZE) + ' more on the ladder\n';
   return s + linksLine_(C);
@@ -1419,10 +1426,10 @@ function doChallenge_(sub, C) {
   try { if (bookOn_(C)) { const Lc = readTable_(SHEETS.LINES).rows.filter(function (x) { return x.ChallengeID === c.ID; })[0]; betsClosedPost_(c, me, opp, Lc); } } catch (e) { }
   try { potTick_(true); } catch (e) { }
   if (type === 'Title') {
-    post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!** ' + who_(me) + (Number(me.Rank) === 1 ? ', the #1 contender,' : viaBell ? ', from #' + me.Rank + ', answers 🔔 THE BELL and' : ', from #' + me.Rank + ' through the open mound,') + ' is coming for the hill. ' + tag_(opp) +
-      ' holds it.' + (viaBell ? ' 🔔 Bell rules: win by **' + need + '+** to take the hill; a smaller win makes ' + esc_(me.Discord) + ' the **#1 contender**.' : '') + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
+    post_('👑 **' + esc_(me.Discord).toUpperCase() + ' CHARGES THE MOUND!**\n> ⚔️ ' + line_(me, true) + ' · ' + (Number(me.Rank) === 1 ? '#1 contender' : viaBell ? 'from #' + me.Rank + ', answering 🔔 THE BELL' : 'from #' + me.Rank + ', through the open mound') + '\n> ♠️ ' + line_(opp, true) + ' · the Ace\n' +
+      nm_(me) + ' is coming for the hill.' + (viaBell ? ' 🔔 Bell rules: win by **' + need + '+** to take the hill; a smaller win makes ' + esc_(me.Discord) + ' the **#1 contender**.' : '') + itemTxt + '\n🎯 **' + esc_(me.Discord) + ', start a BigLeague game vs ' + clubIdTxt_(opp) + ' (' + esc_(opp.Club) + ') within the hour.** You\'re the visitor. Nothing to report: the Hill finds it.' + ' Deadline ' + ts_(deadline) + '.' + startLine_(me, opp) + lineTxt);
   } else {
-    post_('🥊 ' + who_(me) + ' (#' + me.Rank + ') charges the hill at ' + who_(opp) + ' (#' + opp.Rank + ')! Benches clear. ' +
+    post_('🥊 **New charge** · #' + me.Rank + ' charges #' + opp.Rank + '\n> ⚔️ ' + line_(me, true) + ' · #' + me.Rank + '\n> 🛡️ ' + line_(opp, true) + ' · #' + opp.Rank + '\nBenches clear. ' +
       (ms != null && os != null ? '(' + starTag_(ms) + ' vs ' + starTag_(os) + ') ' : '') +
       (starGap && fullNeed > need ? '🗡️ Giant Killer rule: down ' + starGap + '★, so ' + esc_(me.Discord) + ' needs ' + (need > 1 ? 'only **' + need + '+ runs**' : '**any win**') + ' instead of ' + fullNeed + '+. ' :
         needBefore > 1 ? 'Reaching ' + (Number(me.Rank) - Number(opp.Rank)) + ' spots up, ' + esc_(me.Discord) + ' must win by **' + needBefore + '+ runs** to climb. ' : '') + itemTxt +
@@ -1541,19 +1548,19 @@ function finalize_(ct, c, cr, dr, source) {
     const need = needOf_(c);
     if (chWins && !forfeit && margin < need) {
       outcome = 'Won by ' + margin + ', needed ' + need + '+: no change';
-      headline = '😤 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + ' but needed to win by **' + need + '+** reaching that high. ' +
-        who_(df) + ' keeps **#' + defRank + '**. Nobody moves.';
+      headline = '😤 ' + nm_(ch) + ' beats ' + nm_(df) + ' ' + scoreTxt + ' but needed to win by **' + need + '+** reaching that high. ' +
+        nm_(df) + ' keeps **#' + defRank + '**. Nobody moves.';
     } else if (chWins && Number(ch.Rank) < defRank) {   // another result already moved them past each other
       outcome = 'Won, already above: no change';
-      headline = '📈 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + '. Other results already put ' + who_(ch) + ' above them, so nobody moves.';
+      headline = '📈 ' + nm_(ch) + ' beats ' + nm_(df) + ' ' + scoreTxt + '. Other results already put ' + nm_(ch) + ' above them, so nobody moves.';
     } else if (chWins) {
       insertAt_(lad, ch, defRank);
       outcome = ch.Discord + ' takes #' + defRank;
-      headline = '📈 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + ' and climbs to **#' + defRank + '**.';
+      headline = '📈 ' + nm_(ch) + ' beats ' + nm_(df) + ' ' + scoreTxt + ' and climbs to **#' + defRank + '**.';
     } else {
       dropOne_(lad, ch);
       outcome = df.Discord + ' holds #' + defRank;
-      headline = '🧱 ' + who_(df) + ' holds **#' + defRank + '**, beating ' + who_(ch) + ' ' + scoreTxt + '.';
+      headline = '🧱 ' + nm_(df) + ' holds **#' + defRank + '**, beating ' + nm_(ch) + ' ' + scoreTxt + '.';
     }
     setLadder_(lad);
   } else if (c.Type === 'Title') {
@@ -1565,14 +1572,14 @@ function finalize_(ct, c, cr, dr, source) {
       if (Number(ch.Rank) !== 1) { removeFrom_(lad, ch); insertAt_(lad, ch, 1); }
       setLadder_(lad);
       outcome = 'Bell: won by ' + margin + ', needed ' + tNeed + '+: #1 contender';
-      headline = '🔔 ' + who_(ch) + ' answers the Bell and beats ' + who_(df) + ' ' + scoreTxt + '! Not by **' + tNeed + '+**, so ♠️ ' + who_(df) +
+      headline = '🔔 ' + nm_(ch) + ' answers the Bell and beats ' + nm_(df) + ' ' + scoreTxt + '! Not by **' + tNeed + '+**, so ♠️ ' + nm_(df) +
         ' keeps the hill, but ' + esc_(ch.Discord) + ' jumps to **#1 contender**.';
     } else if (chWins && !forfeit && margin < tNeed) {   // 🥊 Brass Knuckles on the Ace: a win that's too small is a failed charge
       aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = 'Won by ' + margin + ', needed ' + tNeed + '+: the Ace holds';
-      headline = '🥊 ' + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt + ' but needed to win by **' + tNeed + '+** through the Brass Knuckles. ' +
-        '♠️ ' + who_(df) + ' keeps the hill, no points.';
+      headline = '🥊 ' + nm_(ch) + ' beats ' + nm_(df) + ' ' + scoreTxt + ' but needed to win by **' + tNeed + '+** through the Brass Knuckles. ' +
+        '♠️ ' + nm_(df) + ' keeps the hill, no points.';
     } else if (!chWins) {
       const n = num_(reign.Defenses) + 1;
       points = reward_(n, C);
@@ -1586,7 +1593,7 @@ function finalize_(ct, c, cr, dr, source) {
       aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = 'Defense #' + n + ' (+' + points + ')';
-      headline = '♠️ **The Ace holds the hill!** ' + who_(df) + ' beats ' + who_(ch) + ' ' + scoreTxt +
+      headline = '♠️ **The Ace holds the hill!** ' + nm_(df) + ' beats ' + nm_(ch) + ' ' + scoreTxt +
         '. Defense #' + n + ', **+' + points + '** pts (reign total ' + reign.ReignPts + ').';
       if (isBell) {
         const bounty = Number(C.BELL_BOUNTY) || 0, sh = hoursFrom_(now_(), Number(C.BELL_SHIELD_HOURS) || 0);
@@ -1608,7 +1615,7 @@ function finalize_(ct, c, cr, dr, source) {
       setLadder_(lad);
       startReign_(ch, false, C);
       outcome = forfeit ? 'Takes the hill by forfeit' : 'Takes the hill';
-      headline = '👑 **NEW ACE!** ' + who_(ch) + ' takes the hill from ' + who_(df) + ' ' + scoreTxt + '. ' +
+      headline = '👑 **NEW ACE!** ' + nm_(ch) + ' takes the hill from ' + nm_(df) + ' ' + scoreTxt + '. ' +
         esc_(df.Discord) + "'s reign ends at " + num_(reign.Defenses) + ' defense(s), ' + oldPts + ' pts.';
       if (!forfeit && oldPts >= C.REVENGE_THRESHOLD) {
         const dl = hoursFrom_(now_(), C.REVENGE_DECLARE_HOURS);
@@ -1630,15 +1637,15 @@ function finalize_(ct, c, cr, dr, source) {
       setLadder_(lad);
       startReign_(ch, true, C);
       outcome = "Ace's Revenge: reclaims the hill";
-      headline = "🔥 **THE ACE'S REVENGE!** " + who_(ch) + ' beats ' + who_(df) + ' ' + scoreTxt +
+      headline = "🔥 **THE ACE'S REVENGE!** " + nm_(ch) + ' beats ' + nm_(df) + ' ' + scoreTxt +
         ' and takes the hill back. A new reign begins.';
     } else {
       aceLoss_(lad, ch, c, C, extra);
       setLadder_(lad);
       outcome = chWins ? 'Revenge fell short (won by ' + margin + ', needed more than ' + need + ')' : 'Revenge denied';
       headline = chWins
-        ? '😤 ' + who_(ch) + ' wins ' + scoreTxt + ' but needed to win by more than ' + need + '. ' + who_(df) + ' keeps the hill.'
-        : '♠️ ' + who_(df) + ' turns back the revenge, ' + scoreTxt + ', and keeps the hill.';
+        ? '😤 ' + nm_(ch) + ' wins ' + scoreTxt + ' but needed to win by more than ' + need + '. ' + nm_(df) + ' keeps the hill.'
+        : '♠️ ' + nm_(df) + ' turns back the revenge, ' + scoreTxt + ', and keeps the hill.';
     }
     clearRevenge_();
     setCfg_('STATE_LAST_TITLE_ACTIVITY', now_().toISOString());
@@ -1666,7 +1673,10 @@ function finalize_(ct, c, cr, dr, source) {
   try { const pk = potSettle_(c, cr, dr, forfeit); if (pk) extra.push(pk); } catch (e) { log_('system', 'Matchup settle error', String(e)); }
   if (!forfeit) { try { const pb = payPlay_(C, c, W, L, false); if (pb) extra.push(pb); } catch (e) { log_('system', 'Play bucks error', String(e)); } }
   try { payoutPost_(c, cr, dr, forfeit); } catch (e) { }
-  postResult_(c, headline + (extra.length ? '\n' + extra.join('\n') : ''));
+  // Clean top: what it was, the final, then one line per club (winner first), then the story.
+  const top = (c.Type === 'Title' ? '♠️ **Title fight**' : c.Type === 'Revenge' ? "🔥 **The Ace's Revenge**" : '⛰️ **Hill result**') + ' · ' + (forfeit ? 'by forfeit' : 'final **' + Math.max(cr, dr) + '–' + Math.min(cr, dr) + '**') + (norm_(c.GameID) ? ' · game `' + norm_(c.GameID) + '`' : '') +
+    '\n> ✅ ' + line_(W, true) + '\n> ❌ ' + line_(L, true) + '\n';
+  postResult_(c, top + headline + (extra.length ? '\n' + extra.join('\n') : ''));
 }
 
 // Ties happen in SmallBall. HOLD: the defender (or the Ace) keeps the spot, nobody moves, no points.
