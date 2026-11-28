@@ -59,6 +59,9 @@
     + '.perks{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}.perks span{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.45);padding:5px 10px;font-size:14px}.perks b{color:#ffd166}'
     + '.tz.xmas{box-shadow:0 0 40px rgba(226,59,59,.25)}'
     + '@media(prefers-reduced-motion:reduce){.tz.xmas .hype{animation:none}}'
+    + '.rest-clk{display:inline-flex;align-items:center;gap:6px;margin-top:3px;padding:2px 9px;border-radius:999px;background:rgba(200,16,46,.22);border:1px solid rgba(255,120,120,.55);color:#ffd0d0;font:600 12.5px/1.3 Oswald,sans-serif;letter-spacing:.02em;white-space:nowrap}'
+    + '.rest-clk b{font-family:Anton,sans-serif;font-weight:400;font-size:15px;color:#fff;font-variant-numeric:tabular-nums}'
+    + '@media(max-width:600px){.rest-clk .rc-at{display:none}}'
     + '.soon .lede{opacity:.85;max-width:720px}'
     + '.tz{position:relative;margin:20px 0 6px;padding:22px 20px;overflow:hidden;border:2px solid rgba(255,255,255,.15)}'
     + '.tz h3{margin:0;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:clamp(32px,6vw,52px);line-height:1}.tz .kick{letter-spacing:.25em;font-size:12px;opacity:.85}.tz .clk{font-family:Anton,sans-serif;font-size:clamp(24px,4vw,34px);font-variant-numeric:tabular-nums}'
@@ -214,6 +217,19 @@
     document.body.appendChild(w);
   }
   function fabSync(k) { var f = document.getElementById('hof-fab'); if (f) f.className = k === 'hof' ? 'hide' : ''; }
+  /* 🩹 Recovery clocks on the climb: a club that lost a charge at the Ace can't charge again until its rest ends */
+  function restClocks() {
+    var d = D(), lad = d.ladder || [], now = Date.now();
+    document.querySelectorAll('#p-hill .climb .step:not(.ace)').forEach(function (st) {
+      var rk = st.querySelector('.rk'), m = rk && /#(\d+)/.exec(rk.textContent), p = m && lad.filter(function (x) { return +x.rank === +m[1]; })[0];
+      var until = p && p.rest ? Date.parse(p.rest) : 0, el = st.querySelector('.rest-clk');
+      if (!until || until <= now) { if (el) el.remove(); return; }
+      if (!el) { el = document.createElement('span'); el.className = 'rest-clk'; (st.querySelector('.who') || st).appendChild(el); }
+      var left = until - now, h = Math.floor(left / 36e5), mm = Math.floor(left % 36e5 / 6e4), ss = Math.floor(left % 6e4 / 1e3);
+      var txt = '🩹 Recovering · <b>' + (h ? h + ':' + (mm < 10 ? '0' : '') : '') + mm + ':' + (ss < 10 ? '0' : '') + ss + '</b><span class="rc-at"> · charges again ' + new Date(until).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span>';
+      if (el.dataset.h !== txt) { el.innerHTML = txt; el.dataset.h = txt; }
+    });
+  }
   function mount() {
     var nav = document.querySelector('#app .tabs'), app = document.getElementById('app'); if (!nav || document.getElementById('p-hof')) return;
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
@@ -227,7 +243,9 @@
     app.appendChild(p1); app.appendChild(p2); fab(); try { if (localStorage.getItem('hth-s2-seen')) a2.classList.add('seen'); } catch (e) { }
     show((location.hash || '').slice(1)); fabSync((location.hash || '').slice(1));
     window.addEventListener('hashchange', function () { var k = (location.hash || '').slice(1); show(k); fabSync(k); if (k === 'soon') { var s2 = document.getElementById('s2tab'); if (s2) s2.classList.add('seen'); try { localStorage.setItem('hth-s2-seen', '1'); } catch (e) { } } if (k === 'hof') window.scrollTo({ top: document.querySelector('#app .tabs').offsetTop, behavior: RM ? 'auto' : 'smooth' }); });
+    try { restClocks(); } catch (e) { }
     setInterval(function () {
+      try { restClocks(); } catch (e) { }
       var n = Date.now(), d = D(), lk = document.getElementById('hof-lock'), xc = document.getElementById('xc'), xk = document.getElementById('xk');
       if (lk && d.seasonEnd) lk.textContent = cd(Date.parse(d.seasonEnd) - n);
       if (xc) { var tgt = n < TREE_ON ? TREE_ON : BALL; xc.textContent = n < BALL ? cd(tgt - n) : '🎆'; if (xk) xk.textContent = n < TREE_ON ? 'THE TREE LIGHTS UP IN' : n < BALL ? 'BALL DROP IN' : 'HAPPY NEW YEAR'; }
