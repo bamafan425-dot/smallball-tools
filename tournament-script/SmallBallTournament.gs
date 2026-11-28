@@ -2733,3 +2733,5 @@ function countGame_(mid, gid) {
     return '🎯 ' + mid + ': game ' + gid + ' counted and posted.';
   } finally { lock.releaseLock(); }
 }
+// Editor shortcut: one custom post to this tournament's channel (edit the text, then Run).
+function postOne() { withSlot_(null, () => post_('📺 **Winners-bracket semifinal: Terrapin Station vs Flying Lavender Zebras**\nGame `8552`, watch it here: <https://play.smallball.com/training?watch=8552>\nNo scores in chat until it\'s aired! 🤐')); }
