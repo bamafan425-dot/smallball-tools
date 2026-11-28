@@ -98,7 +98,7 @@
     var el = document.createElement('div'); el.id = 'od-intro';
     el.innerHTML = '<canvas></canvas><button class="skip" type="button">Skip ⏭</button>' +
       '<div class="stage"><div class="kick">⚾ SMALLBALL PRESENTS ⚾</div><div class="big">OPENING DAY</div><div class="sub">HOLD THE HILL · A FRESH SEASON</div></div>' +
-      '<div class="card"><div class="l">♠ TAKING THE MOUND</div><div class="n">' + esc(A ? A.name : 'THE HILL IS OPEN') + '</div><div class="c">' + (A ? esc(A.club) + (A.clubId ? ' · #' + esc(A.clubId) : '') + (D().openingDay ? '<br>🏆 Black Friday Brawl champion' : '') : 'First club to claim it plants the flag') + '</div></div>' +
+      '<div class="card"><div class="l">♠ TAKING THE MOUND</div><div class="n">' + esc(A ? A.name : 'THE HILL IS OPEN') + '</div><div class="c">' + (A ? esc(A.club) + (A.clubId ? ' · #' + esc(A.clubId) : '') + (D().openingDay ? '<br>🏆 Starts the season on the mound' : '') : 'First club to claim it plants the flag') + '</div></div>' +
       '<div class="roll"><h3>THE CLIMB · OPENING DAY</h3><div class="climb">' + climb(A, lad) + '</div></div>' +
       '<div class="stage" style="justify-content:flex-end;padding-bottom:12vh"><button class="go" type="button">PLAY BALL! ⚾</button></div>';
     document.body.appendChild(el);
@@ -179,7 +179,7 @@
     var h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4);
     var dr = drops(w);
     var html = '<div class="bunting"></div><div class="ball">⚾</div><div class="hd"><h2>🎉 OPENING DAY</h2><span class="cd">Hold the Hill · a fresh season · the party runs ' + h + 'h ' + m + 'm more</span><button class="rp" type="button" data-odreplay>▶ Replay the intro</button></div><div class="grid">';
-    html += '<div class="box"><h4>♠ On the mound</h4><p>' + (A ? '<b>' + esc(A.name) + '</b> · ' + esc(A.club) + (d.openingDay ? '<br>The Black Friday Brawl champ opens the season as the Ace. ' : '<br>') + 'First club to knock them off writes history.' : 'The hill is open: the first club to claim it plants the flag.') + '</p></div>';
+    html += '<div class="box"><h4>♠ On the mound</h4><p>' + (A ? '<b>' + esc(A.name) + '</b> · ' + esc(A.club) + (d.openingDay ? '<br>Opens the new season as the Ace, straight from the Black Friday Brawl\'s final day. ' : '<br>') + 'First club to knock them off writes history.' : 'The hill is open: the first club to claim it plants the flag.') + '</p></div>';
     html += '<div class="box"><h4>⚾ First pitch</h4><p>' + (f.c ? '<b>' + esc(f.c.ch) + '</b> threw the first charge of the season at <b>' + esc(f.c.df) + '</b> (' + t(Date.parse(f.c.created)) + ').' : 'No charges yet. Who throws the first pitch of the season?') +
       (f.m ? '<br>🏁 First result: <b>' + esc(f.m.w) + '</b> beat <b>' + esc(f.m.l) + '</b> ' + esc(f.m.wr) + '–' + esc(f.m.lr) + '.' : '') + (f.games > 1 ? '<br>' + f.games + ' games played so far today.' : '') + '</p></div>';
     if (dr.length) html += '<div class="box"><h4>🎁 Opening Day extras</h4><div class="drops">' + dr.map(function (x) {
