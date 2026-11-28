@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.34: 🐕 an empty Farm doghouse fills itself with Farm #1; v3.33: 🐕 the Farm Ace is now the Farm Dog (posts, form, board), Farm-only owners show in the Brawl Bucks wallet list; v3.32: recovery after losing at the Ace defaults to 42 minutes (0.7 h); v3.31: Hill games pay Brawl Bucks with no daily limit (PAID_GAMES_PER_DAY 0 = no limit); v3.30: the ⏳ title-shot clock data now reaches the main board; v3.29: ⏳ the open mound counts down to the next title-shot spot (4h 20m a spot by default); v3.28: every Discord post ends with a ━━━ break line; three title-charge items: 💥 Brass Knuckles as a Knockout Punch, 🔁 Mulligan, 💰 Bounty Hunter; v3.27: clean Discord posts (Game found: the two clubs, watch link, when it's over): one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.35: 🎰 sportsbook rework: matchups are moneyline only, 🌙 daily Ace-at-midnight bets, 🎲 daily fun props, ⚾ player props (homers, pitcher Ks) from box scores; v3.34: 🐕 an empty Farm doghouse fills itself with Farm #1; v3.33: 🐕 the Farm Ace is now the Farm Dog (posts, form, board), Farm-only owners show in the Brawl Bucks wallet list; v3.32: recovery after losing at the Ace defaults to 42 minutes (0.7 h); v3.31: Hill games pay Brawl Bucks with no daily limit (PAID_GAMES_PER_DAY 0 = no limit); v3.30: the ⏳ title-shot clock data now reaches the main board; v3.29: ⏳ the open mound counts down to the next title-shot spot (4h 20m a spot by default); v3.28: every Discord post ends with a ━━━ break line; three title-charge items: 💥 Brass Knuckles as a Knockout Punch, 🔁 Mulligan, 💰 Bounty Hunter; v3.27: clean Discord posts (Game found: the two clubs, watch link, when it's over): one @member · Club · ID line per club (club and ID link to the team page), results and charges lead with those lines, standings list the climb the same way, every post carries the leaderboard link; v3.26: 🏁 Fresh start stamps Opening Day, leaves clubs that moved ladders where they went and puts BOTTOM_CLUBS (the commish's own) last; the board shows each player's biggest bet right now; and the board page throws a 24-hour Opening Day party; v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -1839,6 +1839,7 @@ function flushPosts() {
       props.setProperty('FLUSH5_AT', String(t));
       eachLad_(tick_);
       try { bookChoicesTick_(); } catch (err) { log_('system', 'ERROR (book)', String(err && err.stack || err)); }
+      try { dayTick_(); } catch (err) { log_('system', 'ERROR (daily book)', String(err && err.stack || err)); }
       try { wagersTick_(); } catch (err) { log_('system', 'ERROR (wagers)', String(err && err.stack || err)); }
       try { flushLog_(); } catch (err) { }
     }
@@ -2546,7 +2547,8 @@ function onOpen() {
     .addItem('🧪 Test callouts (everyone, ignores the rules)', 'adminNudgeTest')
     .addItem('🧹 Reset for launch (wipe all results)', 'adminResetForLaunch')
     .addItem('🏁 Fresh start (both ladders + Brawl Bucks, tournament champ = Ace)', 'adminFreshStart')
-    .addItem('Update the odds now (matchups and Ace futures)', 'adminRunFutures')
+    .addItem('Update the odds now (matchups, daily book, Ace futures)', 'adminRunFutures')
+    .addItem('🌙 Post today\'s board to the sportsbook', 'adminPostDayBoard')
     .addItem('Post the odds board to the sportsbook channel', 'adminPostOdds')
     .addSeparator()
     .addItem('Close the season now (posts awards)', 'adminCloseSeason')
@@ -2743,6 +2745,7 @@ function refreshFormChoices() {
     try { openLines_().forEach(function (L) { opts = opts.concat(betChoices_(L).map(function (o) { return o.label; })); }); } catch (e) { opts = []; }
     try { const C1 = cfg_(); if (seasonOpen_(C1)) potCurrent_().forEach(function (L) { opts = opts.concat(potChoices_(L).map(function (o) { return o.label; })); }); } catch (e) { }
     try { const C0 = cfg_(); if (seasonOpen_(C0) && !seasonOver_(C0)) opts = opts.concat(futChoices_().map(function (o) { return o.label; })); } catch (e) { }
+    try { const C2 = cfg_(); if (bookOn_(C2) && seasonOpen_(C2) && !seasonOver_(C2)) opts = opts.concat(dayChoices_(dayBook_(), C2).map(function (o) { return o.label; })); } catch (e) { }
     bi.asListItem().setChoiceValues(opts.length ? opts : [NO_LINES]);
   }
 }
@@ -2837,13 +2840,11 @@ function makeLine_(c, ch, df, C) {
 }
 function lineText_(L) {
   const fav = L.Fav === 'away' ? L.Away : L.Home, dog = L.Fav === 'away' ? L.Home : L.Away;
-  return '\n🎰 **The line:** ' + esc_(L.Away) + ' ' + fmtOdds_(L.AwayML) + ' · ' + esc_(L.Home) + ' ' + fmtOdds_(L.HomeML) +
-    ' │ ' + esc_(fav) + ' −1.5 (' + fmtOdds_(L.FavRL) + '), ' + esc_(dog) + ' +1.5 (' + fmtOdds_(L.DogRL) + ')' +
-    ' │ O/U ' + L.Total + ' (' + fmtOdds_(L.OverOdds) + ').' + (new Date(L.Closes) > now_() ? ' Betting closes ' + rel_(L.Closes) + '.' : ' 🔒 Betting is locked: matchup bets made before the charge ride on this game.');
+  return '\n🎰 **The line:** ' + esc_(L.Away) + ' ' + fmtOdds_(L.AwayML) + ' · ' + esc_(L.Home) + ' ' + fmtOdds_(L.HomeML) + '.' + (new Date(L.Closes) > now_() ? ' Betting closes ' + rel_(L.Closes) + '.' : ' 🔒 Betting is locked: matchup bets made before the charge ride on this game.');
 }
 function openLine_(c, ch, df, C) {
   if (!bookOn_(C)) return '';
-  try { const L = makeLine_(c, ch, df, C); refreshFormChoices(); return lineText_(L); }
+  try { const L = makeLine_(c, ch, df, C); const pr = propsOpen_(c, ch, df, C); refreshFormChoices(); return lineText_(L) + pr; }
   catch (e) { log_('system', 'Book line error', String(e)); return ''; }
 }
 
@@ -2852,14 +2853,11 @@ function betChoices_(L) {
   const fav = L.Fav === 'away' ? L.Away : L.Home, dog = L.Fav === 'away' ? L.Home : L.Away;
   const favSide = L.Fav, dogSide = L.Fav === 'away' ? 'home' : 'away';
   const id = L.ChallengeID;
+  // Simple: moneyline only, plus ⚾ player props when SmallBall box scores are connected.
   return [
     { label: id + ' · ' + L.Away + ' to win (' + fmtOdds_(L.AwayML) + ')', market: 'ML', pick: 'away', odds: L.AwayML },
     { label: id + ' · ' + L.Home + ' to win (' + fmtOdds_(L.HomeML) + ')', market: 'ML', pick: 'home', odds: L.HomeML },
-    { label: id + ' · ' + fav + ' −1.5 runs (' + fmtOdds_(L.FavRL) + ')', market: 'RL', pick: favSide, odds: L.FavRL },
-    { label: id + ' · ' + dog + ' +1.5 runs (' + fmtOdds_(L.DogRL) + ')', market: 'RL', pick: dogSide, odds: L.DogRL },
-    { label: id + ' · Over ' + L.Total + ' runs (' + fmtOdds_(L.OverOdds) + ')', market: 'TOTAL', pick: 'over', odds: L.OverOdds },
-    { label: id + ' · Under ' + L.Total + ' runs (' + fmtOdds_(L.UnderOdds) + ')', market: 'TOTAL', pick: 'under', odds: L.UnderOdds },
-  ];
+  ].concat(propsFor_(id).map(function (p) { return { label: id + ' · ' + p.label + ' (' + fmtOdds_(p.odds) + ')', market: 'PROP', pick: p.k, odds: p.odds }; }));
 }
 function openLines_() {
   const ct = challenges_();
@@ -2915,6 +2913,7 @@ function doBet_(sub, C) {
     if (doPotBet_(sub, C, me, label, stake)) return;
     fail_('Those matchup odds have moved since you loaded the form. Reload it and pick again.');
   }
+  if (doDayBet_(sub, C, me, label, stake)) return;
   let pick = null, L = null;
   readTable_(SHEETS.LINES).rows.forEach(function (x) {
     betChoices_(x).forEach(function (o) { if (o.label === label) { pick = o; L = x; } });
@@ -2969,11 +2968,14 @@ function bookBoard_(C) {
   const lines = {}; readTable_(SHEETS.LINES).rows.forEach(function (L) { lines[L.ChallengeID] = L; });
   const desc = function (b) {
     if (b.Market === 'PML') { const ps = {}; players_().rows.forEach(function (p) { ps[lc_(p.Email)] = norm_(p.Discord); }); const m = /^POT:(.+)>(.+)$/.exec(b.ChallengeID) || []; return '🔮 ' + (ps[m[1]] || '?') + ' @ ' + (ps[m[2]] || '?') + ': ' + (b.Pick === 'away' ? ps[m[1]] : ps[m[2]]) + ' wins'; }
+    if (b.Market === 'DACE') { const nm = {}; ownerRows_().rows.forEach(function (p) { nm[lc_(acct_(p.Email))] = norm_(p.Discord); }); return '🌙 ' + (b.Pick === 'field' ? 'Anyone else' : (nm[lc_(b.Pick)] || '?')) + ' is the Ace at midnight'; }
+    if (b.Market === 'DPROP') { const k = String(b.Pick).split(':'), pq = DAY_PROPS.find(function (x) { return x.key === k[0]; }); return '🎲 ' + (pq ? pq.q : k[0]) + ': ' + String(k[1] || '').toUpperCase(); }
     const L = lines[b.ChallengeID]; if (b.Market === 'FUT') return 'Season Ace futures: ' + b.Bettor; if (!L) return b.ChallengeID;
     const side = b.Pick === 'away' ? L.Away : b.Pick === 'home' ? L.Home : '';
     const sign = b.Pick === L.Fav ? '−1.5' : '+1.5';
     if (b.Market === 'PML') { const m = /^POT:(.+)>(.+)$/.exec(b.ChallengeID) || []; return '🔮 ' + (b.Pick === 'away' ? 'challenger' : 'defender') + ' wins'; }
     if (b.Market === 'FUT') return b.Bettor + ' finishes as the Ace';
+    if (b.Market === 'PROP') { const pp = propsFor_(b.ChallengeID).find(function (x) { return x.k === b.Pick; }); return pp ? pp.label : 'Player prop'; }
     return b.Market === 'ML' ? side + ' to win' : b.Market === 'RL' ? side + ' ' + sign : (b.Pick === 'over' ? 'Over ' : 'Under ') + L.Total;
   };
   const br = bankrolls_(C), people = {}, hits = [];
@@ -3003,11 +3005,14 @@ function bookSettle_(c, ar, hr, isVoid) {
     const open = bt.rows.filter(function (b) { return b.ChallengeID === c.ID && b.Status === 'Open'; });
     if (!open.length) return '';
     let best = null;
+    if (!isVoid) try { propsSettle_(c, bt, open); } catch (e) { log_('system', 'Props settle error', String(e)); }
     open.forEach(function (b) {
+      if (b.Market === 'PROP' && b.Status !== 'Open') { if (b.Status === 'Won' && (!best || b.Profit > best.Profit)) best = b; return; }
       const stake = num_(b.Stake);
       let res;
       if (isVoid) res = 'Void';
       else if (b.Market === 'ML') res = ar === hr ? 'Push' : ((ar > hr) === (b.Pick === 'away') ? 'Won' : 'Lost');
+      else if (b.Market === 'PROP') res = 'Void';
       else if (b.Market === 'RL') {
         const favIsPick = L ? b.Pick === L.Fav : true;
         const diff = b.Pick === 'away' ? ar - hr : hr - ar;
@@ -4127,6 +4132,238 @@ function futuresTick_(force) {
   try { snapshotBoard_(); } catch (e) { }
 }
 function futures_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('FUTURES') || 'null'); } catch (e) { return null; } }
+// ───────────────────────────── 🌙 The daily book (resets at midnight Mountain) ─────────────────────────────
+// Simple bets, lots of them: who's the Ace at midnight, plus Yes/No fun props about the day on the Hill.
+// A prop bet only counts games charged AFTER the bet was placed (no betting on a game you're already watching),
+// and the Ace market shuts while a title charge is live. YES bets pay the moment it happens; NO bets at midnight.
+const DAY_PROPS = [
+  { key: 'newace', q: '👑 A new Ace before midnight', prior: 0.45 },
+  { key: 'shutout', q: '🧹 A shutout on the Hill', prior: 0.35 },
+  { key: 'ten', q: '💥 Somebody scores 10+ in a Hill game', prior: 0.4 },
+  { key: 'onerun', q: '🤏 A one-run Hill game', prior: 0.5 },
+  { key: 'knucks', q: '🥊 Brass Knuckles get thrown', prior: 0.3 },
+];
+function dayMidnight_(day) {   // the midnight (Mountain) that ends `day` (yyyy-MM-dd)
+  const p = day.split('-').map(Number), probe = new Date(Date.UTC(p[0], p[1] - 1, p[2] + 1, 12));
+  const z = Utilities.formatDate(probe, 'America/Denver', 'Z'), off = (z[0] === '-' ? 1 : -1) * (Number(z.slice(1, 3)) * 60 + Number(z.slice(3, 5)));
+  return new Date(Date.UTC(p[0], p[1] - 1, p[2] + 1, 0, off));
+}
+function dayStart_(day) { const p = day.split('-').map(Number); return dayMidnight_(Utilities.formatDate(new Date(Date.UTC(p[0], p[1] - 1, p[2] - 1, 12)), 'UTC', 'yyyy-MM-dd')); }
+// Which props hit for games CHARGED in [since, until) with results in by `until`.
+function dayData_() { return { ch: challenges_().rows, m: readTable_(SHEETS.MATCHES).rows, r: readTable_(SHEETS.REIGNS).rows, i: readTable_(SHEETS.ITEMS).rows }; }
+function dayHits_(C, since, until, DD) {
+  DD = DD || dayData_();
+  const season = String(C.SEASON), hit = {}, made = {};
+  DD.ch.forEach(function (c) { made[c.ID] = c.Created ? new Date(c.Created) : null; });
+  DD.m.forEach(function (m) {
+    if (String(m.Season) !== season || m.WinnerRuns === '' || m.WinnerRuns === null) return;
+    const at = made[m.ChallengeID] || new Date(m.Date);
+    if (at < since || at >= until || new Date(m.Date) >= until) return;
+    const w = num_(m.WinnerRuns), l = num_(m.LoserRuns);
+    if (l === 0) hit.shutout = true; if (w >= 10) hit.ten = true; if (w - l === 1) hit.onerun = true;
+  });
+  DD.r.forEach(function (r) { const s = new Date(r.Start); if (String(r.Season) === season && s >= since && s < until) hit.newace = true; });
+  DD.i.forEach(function (x) { const d = new Date(x.Date); if (String(x.Season) === season && x.Item === 'knuckles' && x.Action === 'Used' && d >= since && d < until) hit.knucks = true; });
+  return hit;
+}
+// How often each prop has hit on a full day this season, pulled toward a sensible prior early on.
+function dayRates_(C) {
+  const st = seasonStart_(C) || new Date(now_().getTime() - 86400e3), today = denverDay_(now_()), out = {}, cnt = {};
+  let days = 0; const DD = dayData_();
+  for (let d = denverDay_(st); d < today && days < 60; ) {
+    const h = dayHits_(C, dayStart_(d), dayMidnight_(d), DD); days++;
+    DAY_PROPS.forEach(function (p) { if (h[p.key]) cnt[p.key] = (cnt[p.key] || 0) + 1; });
+    d = denverDay_(new Date(dayMidnight_(d).getTime() + 3600e3));
+  }
+  DAY_PROPS.forEach(function (p) { out[p.key] = ((cnt[p.key] || 0) + 3 * p.prior) / (days + 3); });
+  return out;
+}
+// Share of the day's action still to come: games are spread over 8 AM – midnight.
+function dayLeft_(day) { const end = dayMidnight_(day).getTime(), t = now_().getTime(); return Math.max(0.05, Math.min(1, (end - t) / (16 * 3600e3))); }
+function makeDayBook_(C) {
+  const day = denverDay_(now_()), f = dayLeft_(day), vig = 1 + (Number(C.BOOK_VIG) || 0);
+  const pt = players_(), ace = ace_(pt), lad = ladder_(pt), season = String(C.SEASON);
+  const matches = readTable_(SHEETS.MATCHES).rows.filter(function (m) { return String(m.Season) === season; });
+  const sm = starsMap_();
+  // 🌙 Ace at midnight: title charges per day so far, each contender's chance to take the mound.
+  const titles = matches.filter(function (m) { return /Title|Revenge|Bell/i.test(m.Type); }).length, st = seasonStart_(C);
+  const daysIn = Math.max(1, (now_() - (st || now_())) / 86400e3), lam = (titles + 3 * 3) / (daysIn + 3);
+  const W = [3, 2, 1.5, 1, 0.8, 0.6], cons = [];
+  if (ace) {
+    const H = strength_(ace.Email, matches);
+    lad.slice(0, Math.max(1, Number(C.MOUND_OPEN_MAX) || 5)).forEach(function (p, i) {
+      const A = strength_(p.Email, matches), sa = sm[norm_(p.ClubID)], sh = sm[norm_(ace.ClubID)];
+      const pw = winProb_(A, H, sa == null ? null : sa, sh == null ? null : sh, Math.min(A.g, H.g));
+      cons.push({ p: p, w: (W[i] || 0.5) * pw });
+    });
+  }
+  const tw = cons.reduce(function (a, x) { return a + x.w; }, 0) || 1, wsum = W.slice(0, cons.length).reduce(function (a, b) { return a + b; }, 0) || 1;
+  const pHold = ace ? Math.exp(-lam * f * tw / wsum) : 0, rest = 1 - pHold;
+  const aceRows = [];
+  if (ace) aceRows.push({ email: lc_(ace.Email), name: norm_(ace.Discord), club: norm_(ace.Club), hold: true, pct: pHold });
+  cons.forEach(function (x) { aceRows.push({ email: lc_(x.p.Email), name: norm_(x.p.Discord), club: norm_(x.p.Club), rank: Number(x.p.Rank), pct: rest * 0.9 * x.w / tw }); });
+  if (ace) aceRows.push({ email: 'field', name: 'Anyone else', club: 'the rest of the ladder', pct: rest * 0.1 });
+  aceRows.forEach(function (r) { r.odds = american_(Math.max(0.02, r.pct) * vig); r.pct = Math.round(r.pct * 1000) / 10; });
+  const R = dayRates_(C);
+  const props = DAY_PROPS.map(function (p) { const q = 1 - Math.pow(1 - R[p.key], f); return { key: p.key, q: p.q, pct: Math.round(q * 1000) / 10, yes: american_(q * vig), no: american_((1 - q) * vig) }; });
+  return { day: day, at: now_().toISOString(), ends: dayMidnight_(day).toISOString(), ace: aceRows, props: props };
+}
+function dayBook_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('DAY_BOOK') || 'null'); } catch (e) { return null; } }
+function dayPrevBook_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('DAY_BOOK_PREV') || 'null'); } catch (e) { return null; } }
+function titleLive_() { return challenges_().rows.some(function (c) { return OPEN.indexOf(c.Status) >= 0 && /Title|Revenge|Bell/i.test(c.Type); }); }
+function dayChoices_(B, C) {
+  if (!B) return [];
+  const out = [], dead = dayDecided_(B);
+  if (!titleLive_()) B.ace.forEach(function (r) { out.push({ label: '🌙 TONIGHT · ' + (r.email === 'field' ? 'Anyone else' : r.name) + (r.hold ? ' holds the mound' : '') + ' is the Ace at midnight (' + fmtOdds_(r.odds) + ')', market: 'DACE', pick: r.email, odds: r.odds, name: r.name }); });
+  B.props.forEach(function (p) {
+    if (dead[p.key]) return;
+    out.push({ label: '🎲 TODAY · ' + p.q + ': YES (' + fmtOdds_(p.yes) + ')', market: 'DPROP', pick: p.key + ':yes', odds: p.yes });
+    out.push({ label: '🎲 TODAY · ' + p.q + ': NO (' + fmtOdds_(p.no) + ')', market: 'DPROP', pick: p.key + ':no', odds: p.no });
+  });
+  return out;
+}
+// Props that already hit today: their market closes (YES bets were paid).
+function dayDecided_(B) { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('DAY_DONE_' + B.day) || '{}'); } catch (e) { return {}; } }
+function doDayBet_(sub, C, me, label, stake) {
+  if (!/^(🌙|🎲) /.test(label)) return false;
+  const B = dayBook_(); let o = dayChoices_(B, C).find(function (x) { return x.label === label; });
+  if (!o) { const P = dayPrevBook_(); if (P && B && P.day === B.day) o = dayChoices_(P, C).find(function (x) { return x.label === label; }); }
+  if (!o) fail_(/^🌙/.test(label) && titleLive_() ? 'A title charge is live: the 🌙 Ace-at-midnight bets reopen as soon as it\'s settled.' : 'That one is off the board (it already happened, or the day rolled over). Reload the form and pick again.');
+  lockIfOver_(C);
+  if (o.market === 'DACE' && o.pick === lc_(me.Email)) fail_('No betting on yourself: that\'s what 🤝 head-to-head wagers are for.');
+  if (o.market === 'DPROP' && o.pick === 'newace:yes') { const ace = ace_(players_()); if (ace && lc_(ace.Email) === lc_(me.Email)) fail_('The Ace can\'t bet on a new Ace. Nice try.'); }
+  if (!(stake >= 1)) fail_('Enter a stake of at least 1 Brawl Buck.');
+  const br = bankrolls_(C), have = (lc_(me.Email) in br.bank) ? br.bank[lc_(me.Email)] : br.base;
+  if (stake > have) fail_('You only have ' + have + ' Brawl Bucks available.');
+  const bt = readTable_(SHEETS.BETS);
+  appendObj_(SHEETS.BETS, { BetID: 'B-' + pad_(bt.rows.length + 1), Placed: now_(), Season: C.SEASON, Email: me.Email, Bettor: norm_(me.Discord),
+    ChallengeID: 'DAY:' + B.day, Market: o.market, Pick: o.pick, Odds: o.odds, Stake: stake, Status: 'Open', Profit: '' });
+  log_(sub.email, 'Bet', label + ' x' + stake);
+  if (lc_(C.BOOK_POST_BETS) !== 'false') betAnnounce_(me.Discord, stake, label.replace(/^(🌙|🎲) (TONIGHT|TODAY) · /, '').replace(/ \([−+]\d+\)$/, ''), o.odds, o.market === 'DACE' ? '🌙 Ace at midnight' : '🎲 Daily prop', false);
+  return true;
+}
+function payBet_(bt, b, res) { b.Status = res; b.Profit = res === 'Won' ? profit_(num_(b.Stake), b.Odds) : res === 'Lost' ? -num_(b.Stake) : 0; writeRow_(bt, b); }
+// Hourly and after every result: pay YES props that just hit, settle yesterday at midnight, roll the book.
+function dayTick_(force) {
+  const C = cfg_();
+  if (!bookOn_(C) || pendingQueue_() || !seasonOpen_(C)) return;
+  const sp = PropertiesService.getScriptProperties(), today = denverDay_(now_()), bt = readTable_(SHEETS.BETS);
+  // 1) YES props: each bet looks only at games charged after it was placed.
+  const open = bt.rows.filter(function (b) { return b.Market === 'DPROP' && b.Status === 'Open'; });
+  const DD = dayData_();
+  open.forEach(function (b) {
+    const day = String(b.ChallengeID).slice(4), key = String(b.Pick).split(':')[0], yes = /:yes$/.test(b.Pick);
+    const end = dayMidnight_(day), closed = now_() >= end;
+    const h = dayHits_(C, new Date(b.Placed), end, DD);
+    if (h[key]) payBet_(bt, b, yes ? 'Won' : 'Lost');
+    else if (closed) payBet_(bt, b, yes ? 'Lost' : 'Won');
+  });
+  // mark today's decided props (closes them on the form) and say so once
+  const dk = 'DAY_DONE_' + today, was = (function () { try { return JSON.parse(sp.getProperty(dk) || '{}'); } catch (e) { return {}; } })();
+  const fresh = Object.keys(dayHits_(C, dayStart_(today), dayMidnight_(today), DD)).filter(function (k) { return !was[k]; });
+  fresh.forEach(function (k) { was[k] = 1; }); if (fresh.length) sp.setProperty(dk, JSON.stringify(was));
+  if (fresh.length && lc_(C.BOOK_POST_BETS) !== 'false') {
+    const paid = open.filter(function (b) { return b.Status === 'Won' && /:yes$/.test(b.Pick); });
+    postBook_('🎲 **It happened!** ' + fresh.map(function (k) { const p = DAY_PROPS.find(function (x) { return x.key === k; }); return p ? p.q : k; }).join(' · ') +
+      (paid.length ? '\n💸 YES bets cash: ' + paid.map(function (b) { return '**' + esc_(b.Bettor) + '** +' + b.Profit + ' BB'; }).join(', ') : '') + '\n-# That prop is off the board for the rest of today.');
+  }
+  // 2) 🌙 Ace at midnight for any finished day
+  const aceOpen = bt.rows.filter(function (b) { return b.Market === 'DACE' && b.Status === 'Open'; });
+  const byDay = {}; aceOpen.forEach(function (b) { const d = String(b.ChallengeID).slice(4); if (d < today) (byDay[d] = byDay[d] || []).push(b); });
+  Object.keys(byDay).forEach(function (d) {
+    const mid = dayMidnight_(d), season = String(C.SEASON);
+    const r = readTable_(SHEETS.REIGNS).rows.filter(function (x) { return String(x.Season) === season && new Date(x.Start) < mid && (!x.End || new Date(x.End) >= mid); }).pop();
+    const who = r ? lc_(r.Email) : '', B = byDay[d], book = dayBook_(), names = {};
+    ((book && book.day === d ? book.ace : []) || []).forEach(function (x) { names[x.email] = 1; });
+    let won = 0;
+    B.forEach(function (b) { const hit = b.Pick === who || (b.Pick === 'field' && who && !names[who]); payBet_(bt, b, hit ? 'Won' : 'Lost'); if (hit) won++; });
+    if (lc_(C.BOOK_POST_BETS) !== 'false') postBook_('🌙 **Ace at midnight (' + d + '):** ' + (r ? esc_(r.Discord) + ' (' + esc_(r.Club) + ')' : 'nobody') + '. ' + B.length + ' bet(s), ' + won + ' winner(s).');
+  });
+  // 3) roll or refresh the book
+  const B0 = dayBook_();
+  if (force || !B0 || B0.day !== today || now_() - new Date(B0.at) > 55 * 60e3) {
+    const nb = makeDayBook_(C);
+    if (B0 && B0.day === today) sp.setProperty('DAY_BOOK_PREV', JSON.stringify(B0)); else sp.deleteProperty('DAY_BOOK_PREV');
+    sp.setProperty('DAY_BOOK', JSON.stringify(nb));
+    if ((!B0 || B0.day !== today)) sp.deleteProperty('DAY_POSTED');
+    refreshFormChoices();
+  }
+  // 4) morning board post (first run after 8 AM)
+  const hr = Number(Utilities.formatDate(now_(), 'America/Denver', 'H'));
+  if (hr >= 8 && sp.getProperty('DAY_POSTED') !== today) { sp.setProperty('DAY_POSTED', today); try { postBook_(dayBoardText_(dayBook_())); } catch (e) { } }
+}
+function dayBoardText_(B) {
+  if (!B) return '';
+  const D = dayDecided_(B);
+  return '## 🌙 Today\'s board · ' + Utilities.formatDate(new Date(B.ends.replace(/T.*/, 'T12:00:00Z')), 'America/Denver', 'EEE MMM d') + '\n' +
+    '**Who\'s the Ace at midnight?**\n' + B.ace.map(function (r) { return '> ' + (r.hold ? '♠ ' : r.email === 'field' ? '🎲 ' : '#' + r.rank + ' ') + '**' + esc_(r.name) + '** ' + fmtOdds_(r.odds) + (r.hold ? ' (holds)' : ''); }).join('\n') +
+    '\n**🎲 Fun props (YES / NO)**\n' + B.props.map(function (p) { return '> ' + p.q + ': ' + (D[p.key] ? '✅ already hit' : 'YES ' + fmtOdds_(p.yes) + ' · NO ' + fmtOdds_(p.no)); }).join('\n') +
+    '\n-# Bet on the Master Form. Props only count games charged after your bet. YES pays the moment it happens, NO pays at midnight. Odds move every hour.';
+}
+
+// ───────────────────────────── ⚾ Player props (box scores; needs 🔑 Connect SmallBall) ─────────────────────────────
+// When a charge's line opens: the two best home run bats on each club "to homer" and each pitcher "to strike out
+// N+". Odds from career numbers. Settled from SmallBall's box score; refunded if the box can't be read.
+function sbAuthed_(path) {
+  const sp = PropertiesService.getScriptProperties(), ck = sp.getProperty('SB_COOKIE');
+  if (!ck || sp.getProperty('SB_BAD')) return null;
+  const r = UrlFetchApp.fetch('https://play.smallball.com' + path, { muteHttpExceptions: true, headers: { Accept: 'application/json', Cookie: ck } });
+  const code = r.getResponseCode();
+  if (code === 401 || code === 403) { sp.setProperty('SB_BAD', String(Date.now())); log_('system', 'SmallBall login expired', 'Player props and star checks are off until you reconnect (🔑 Connect SmallBall).'); return null; }
+  return code === 200 ? JSON.parse(r.getContentText()) : null;
+}
+function lineup_(clubId) {
+  const d = sbAuthed_('/teams/' + encodeURIComponent(norm_(clubId).replace(/\D/g, '')) + '/profile'); if (!d || !d.roster) return null;
+  const ro = d.roster, at = function (i) { return ro.find(function (r) { return r.slot === i; }) || ro[i]; };
+  const fp = d.field_pos || [], bo = d.batting_order || [];
+  const bats = bo.map(function (k) { return at(fp[k]); }).filter(Boolean), P = at(fp[0]);
+  return { bats: bats, pitcher: P };
+}
+function propsMake_(c, ch, df, C) {
+  const vig = 1 + (Number(C.BOOK_VIG) || 0), out = [];
+  const A = lineup_(ch.ClubID), H = lineup_(df.ClubID); if (!A || !H) return [];
+  const hrP = function (b) { const k = b.career || {}, ab = num_(k.at_bats), hr = num_(k.home_runs); return ab >= 30 ? 1 - Math.pow(1 - hr / ab, 4.2) : 0; };
+  [[A, ch, 'away'], [H, df, 'home']].forEach(function (x) {
+    x[0].bats.slice().sort(function (a, b) { return hrP(b) - hrP(a); }).slice(0, 2).forEach(function (b) {
+      const p = hrP(b); if (p < 0.05) return;
+      out.push({ k: 'hr:' + b.player_id, side: x[2], label: '⚾ ' + norm_(b.name) + ' (' + norm_(x[1].Club) + ') homers', odds: american_(p * vig) });
+    });
+  });
+  [[A, H, ch, 'away'], [H, A, df, 'home']].forEach(function (x) {
+    const P = x[0].pitcher; if (!P) return;
+    const rate = x[1].bats.reduce(function (s, b) { const k = b.career || {}, ab = num_(k.at_bats); return s + (ab >= 20 ? num_(k.strikeouts) / ab : 0.2); }, 0) / Math.max(1, x[1].bats.length);
+    const mu = rate * 36, N = Math.max(3, Math.floor(mu) + 1);
+    let cdf = 0, t = Math.exp(-mu); for (let i = 0; i < N; i++) { cdf += t; t *= mu / (i + 1); }
+    out.push({ k: 'k' + N + ':' + x[3], side: x[3], label: '🔥 ' + norm_(P.name) + ' (' + norm_(x[2].Club) + ') strikes out ' + N + '+', odds: american_((1 - cdf) * vig) });
+  });
+  return out;
+}
+function propsAll_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('PROPS') || '{}'); } catch (e) { return {}; } }
+function propsFor_(cid) { return propsAll_()[cid] || []; }
+function propsOpen_(c, ch, df, C) {
+  try {
+    const list = propsMake_(c, ch, df, C); if (!list.length) return '';
+    const all = propsAll_(), keep = {}; Object.keys(all).slice(-12).forEach(function (k) { keep[k] = all[k]; }); keep[c.ID] = list;
+    PropertiesService.getScriptProperties().setProperty('PROPS', JSON.stringify(keep));
+    return '\n⚾ **Props:** ' + list.map(function (p) { return p.label.replace(/ \([^)]*\)/, '') + ' ' + fmtOdds_(p.odds); }).join(' · ');
+  } catch (e) { log_('system', 'Props error', String(e)); return ''; }
+}
+function propsSettle_(c, bt, open) {
+  const mine = open.filter(function (b) { return b.Market === 'PROP'; }); if (!mine.length) return 0;
+  let box = null; try { if (norm_(c.GameID)) box = sbAuthed_('/games/' + encodeURIComponent(norm_(c.GameID))); } catch (e) { }
+  const P = box && box.result && box.result.players, RO = box && box.rosters;
+  mine.forEach(function (b) {
+    if (!P || !RO) return payBet_(bt, b, 'Void');
+    const k = String(b.Pick);
+    if (/^hr:/.test(k)) { const s = P[k.slice(3)]; return payBet_(bt, b, s ? (num_(s.hr) >= 1 ? 'Won' : 'Lost') : 'Void'); }
+    const m = /^k(\d+):(away|home)$/.exec(k); if (!m) return payBet_(bt, b, 'Void');
+    const opp = m[2] === 'away' ? 'home' : 'away', ids = (RO[opp] && RO[opp].player_ids) || [];
+    const ks = ids.reduce(function (s, id) { return s + num_((P[id] || {}).k); }, 0);
+    payBet_(bt, b, ks >= Number(m[1]) ? 'Won' : 'Lost');
+  });
+  return mine.length;
+}
+
 function futChoices_() {
   const f = futures_(); if (!f) return [];
   return f.rows.map(function (x) { return { label: '♠️ FUTURES · ' + x.name + ' finishes Season as the Ace (' + fmtOdds_(x.odds) + ')', market: 'FUT', pick: x.email, odds: x.odds, name: x.name }; });
@@ -4142,7 +4379,8 @@ function settleFutures_(C) {
     writeRow_(bt, b);
   });
 }
-function adminRunFutures() { withUi_(function () { futuresTick_(true); potTick_(true); return 'Futures and matchup lines updated.'; }); }
+function adminRunFutures() { withUi_(function () { futuresTick_(true); potTick_(true); dayTick_(true); return 'Futures, the daily book and matchup lines updated.'; }); }
+function adminPostDayBoard() { withUi_(function () { dayTick_(true); postBook_(dayBoardText_(dayBook_())); return 'Today\'s board posted.'; }); }
 
 // Sample data for a preview of the board: open the board URL with ?demo=1 on the end. Made-up clubs; nothing is saved.
 function demoBoard_() {
@@ -4221,7 +4459,7 @@ function snapshotMain_() {
     let pending = []; try { pending = JSON.parse(PropertiesService.getScriptProperties().getProperty('POST_QUEUE') || '[]'); } catch (e) { pending = []; }
     const se = seasonEnd_(C), ss0 = seasonStart_(C);
     let bookOpen = [];
-    try { if (bookOn_(C)) bookOpen = openLines_().map(function (L) { return { id: L.ChallengeID, away: L.Away, home: L.Home, aml: L.AwayML, hml: L.HomeML, fav: L.Fav, frl: L.FavRL, drl: L.DogRL, total: L.Total, ou: L.OverOdds, closes: iso(L.Closes) }; }); } catch (e) { bookOpen = []; }
+    try { if (bookOn_(C)) bookOpen = openLines_().map(function (L) { return { id: L.ChallengeID, away: L.Away, home: L.Home, aml: L.AwayML, hml: L.HomeML, fav: L.Fav, closes: iso(L.Closes), props: propsFor_(L.ChallengeID).map(function (p) { return { l: p.label, o: p.odds }; }) }; }); } catch (e) { bookOpen = []; }
     let rjs = []; try { rjs = JSON.parse(PropertiesService.getScriptProperties().getProperty('REJECTS') || '[]').filter(function (x) { return now_() - new Date(x.at) < 3600e3; }); } catch (e) { rjs = []; }
     const snap = Object.assign({}, prev, { betRule: { base: Number(C.BOOK_BANKROLL) || 1000, pct: pctOf_(C.BET_MAX_PCT, 4.2), flat: flat_(C) }, openingDay: PropertiesService.getScriptProperties().getProperty('OPENING_DAY') || '', rejects: rjs, pot: (bookOn_(C) ? potCurrent_() : []).map(function (L) { return { ch: L.ch, df: L.df, t: L.title, a: L.aml, h: L.hml, cr: L.chRank }; }), formLink: norm_(C.FORM_LINK), prefill: prefillCached_(C), bookOn: bookOn_(C), bookOpen: bookOpen, bell: (function () { const B = bellState_(C); return B.on ? { open: B.open && !B.used, answered: B.open && B.used, until: iso(B.until), soon: B.soon, next: B.soon ? iso(B.next) : '', margin: Number(C.BELL_MARGIN) || 3, shield: iso(B.shield) } : null; })(), moundOpenTo: moundOpenTo_(C), moundNextAt: (function () { try { const a = moundNextAt_(C); return a ? a.toISOString() : ''; } catch (e) { return ''; } })(), moundMax: Number(C.MOUND_OPEN_MAX) || 1, moundFirst: fmtHrs_(hrsOf_(C.MOUND_FIRST_HOURS, 4 + 1 / 3)), moundStep: fmtHrs_(hrsOf_(C.MOUND_STEP_HOURS, 4 + 1 / 3)), reach: Number(C.CHALLENGE_REACH) || 3, daily: dailyTable_(C), season: C.SEASON, seasonStart: ss0 ? ss0.toISOString() : '', seasonEnd: se ? se.toISOString() : '', seasonClosed: !!C.STATE_SEASON_CLOSED, prizes: norm_(C.PRIZES), updated: new Date().toISOString(), charges: open });
     if (!pending.length || !prev.ladder) {   // a result still waiting to air keeps the standings as they were
@@ -4247,7 +4485,7 @@ function snapshotMain_() {
         snap.wagers = wagerOn_(C) ? wagerBoard_(C) : null;
         try { snap.items = itemsOn_(C) ? itemBoard_(C) : null; } catch (e) { snap.items = null; }
         try { snap.streaks = itemsOn_(C) ? streakBoard_(C) : null; } catch (e) { snap.streaks = null; }
-        if (bookOn_(C)) { snap.book = null; const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
+        if (bookOn_(C)) { try { const DB = dayBook_(); snap.day = DB ? Object.assign({}, DB, { done: dayDecided_(DB), live: titleLive_() }) : null; } catch (e) { snap.day = null; } snap.book = null; const fu = futures_(); snap.futures = fu ? { at: fu.at, rows: fu.rows.map(function (x) { return { name: x.name, club: x.club, rank: x.rank, pct: x.pct, odds: x.odds, move: x.move }; }) } : null; }
       } catch (e) { log_('system', 'Awards error', String(e)); }
     }
     try { snap.farm = farmReady_() ? withLad_('farm', farmSnap_) : null; } catch (e) { log_('system', 'Farm board error', String(e)); }
