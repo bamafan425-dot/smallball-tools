@@ -156,7 +156,7 @@ function rules(){
   var w=D.waveMin||60,open=!D.matches;
   function li(a){return '<ul>'+a.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}
   function card(t,a){return '<div class="rcard"><h3>'+t+'</h3>'+li(a)+'</div>'}
-  var h='<div class="sec"><details class="rules"'+(open?' open':'')+'><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
+  var h='<div class="sec"><details class="rules"><summary><h2 class="bb">📜 Rules &amp; how it works</h2><span>tap to show or hide</span></summary>';
   h+='<div class="when">'+(D.signupClose?'<span>📝 Sign-ups close <b>'+t(D.signupClose)+'</b></span>':'')+(D.start?'<span>⚾ Wave 1 opens <b>'+t(D.start)+'</b></span>':'')+'<span>⏱ Each match: <b>'+w+' minutes to play</b></span><span>📺 Results: <b>~25 min after the game</b></span></div>';
   h+='<div class="rgrid">';
   h+=card('✍️ Signing up',[(Number(D.perOwner) > 1 ? 'Up to ' + D.perOwner + ' clubs per owner (one form each).' : 'One club per owner.') + ' <b>BigLeague</b> clubs, any star level.',(D.seeding==='random'?'Seeded by a <b>random draw</b>, reshuffled with every sign-up: similar stars meet first, and one owner’s clubs are kept apart.':D.seeding==='stars'?'Seeded by <b>stars</b>, most first.':'Seeded by <b>sign-up order</b>: first in is the #1 seed.'),'Changing clubs? Send the form again with the same email before sign-ups close. After the draw, your club is locked in.','Already on Hold the Hill? Enter your email and submit; the rest fills in.']);
