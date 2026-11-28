@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SmallBall Club Kit (iPad)
 // @namespace    slipnsliders.smallball.ipad
-// @version      1.42.0
+// @version      1.43.0
 // @description  The full SmallBall Club Kit for iPad Safari: dashboard, stadium records, season games, squad views, box scores, your Hold the Hill card, tournament cards and Rotate Bench. Read-only: it never plays, trains or saves for you. Updates itself.
 // @match        https://play.smallball.com/*
 // @run-at       document-idle
@@ -124,7 +124,7 @@ const SBX_TABLET = true;
 
   // Which clubs get tabs and dashboard cards. Empty means "your first four clubs";
   // pick your own with the ⚙ button next to the tabs.
-  const KIT_VERSION = "1.42.0";   // filled in by the build
+  const KIT_VERSION = "1.43.0";   // filled in by the build
   const DEFAULT_CLUBS = []; // e.g. [3249, 1008, 8897]; empty = your first four clubs
   let PICKED = [];
   const MAX_DEFAULT = 4;
@@ -1212,6 +1212,10 @@ const SBX_TABLET = true;
   // ───────── Club Kit tools: ✨ What's new · 🩺 Health check · 💾 Back up / restore (in the ⚙ settings) ─────────
   // Newest first. Each release adds a short entry here; people see what's new once, right after they update.
   const CHANGELOG = [
+    { v: "1.43.0", d: "Nov 27", items: [
+      "🥊 <b>Hide your cards, peek when you want</b>: every Hill, 🌱 Farm and 🏆 tournament card (bottom right) has a Hide button. Hidden cards stay away until you bring them back; the 🥊, 🌱 and 🏆 buttons below peek at them, and 📌 Keep puts one back for good. A red dot means something changed on a card you hid.",
+      "🏆 The Tournaments button shows how many tournaments you're in.",
+    ] },
     { v: "1.42.0", d: "Nov 27", items: [
       "⭐ <b>Star list rank</b> on your club cards and on every club's page: its place on SmallBall's star list for its star level (NR when it isn't in the top 100). Click it to open the full list with the club picked out.",
       "📋 <b>Asst. Trainer</b>: a TP bar under \"TP left\" on the player card, in the same gold and green as the club page's TP column, and <b>↕ Sort by TP</b> on the board (most left, least left, or the club's order).",
@@ -5243,7 +5247,7 @@ const SBX_TABLET = true;
         else lines.push({ t: "Nobody in reach right now. Win a defense or wait for the ladder to move." });
       }
       lines.push({ t: '<span style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px"><a href="' + esc(form) + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📝 Master Form</a><a href="' + HILL_BOARD + '" target="_blank" rel="noopener" style="color:#facc15;font-weight:700;text-decoration:none">📊 Live Hold the Hill Leaderboard</a></span>' });
-      out.push({ k: "hill:" + me.clubId, hill: true, bell: !!(B && B.open), title: r === 0 ? LBL + (H.isFarm ? " · 🌱 The Farm Ace" : " · ♠ The Ace") : LBL + " · #" + r + " of " + H.ladder.length, sub, lines, url: BURL });
+      out.push({ k: "hill:" + me.clubId, hill: true, farm: !!H.isFarm, bell: !!(B && B.open), title: r === 0 ? LBL + (H.isFarm ? " · 🌱 The Farm Ace" : " · ♠ The Ace") : LBL + " · #" + r + " of " + H.ladder.length, sub, lines, url: BURL });
     });
     return out;
   }
@@ -5286,13 +5290,31 @@ const SBX_TABLET = true;
   // tournament you're in. ▾ on the button folds the cards away; the button then shows how many are waiting.
   const TOURNEY_HOME = "https://slipnsliders.github.io/smallball-tools/tournaments/";
   const LIVE_MIN_KEY = "sbx-live-min";
+  // Cards you put away stay away (this browser) until you bring them back: 🥊 Hill cards, 🌱 Farm cards and
+  // 🏆 tournament cards each have their own button below that peeks at them. A hidden card whose news changed
+  // lights that button up with a red dot.
+  const CARD_HIDE_KEY = "sbx-card-hidden", PEEK_KEY = "sbx-card-peek";
+  const cardGroup = (x) => (x.farm ? "farm" : x.hill ? "hill" : "tour");
+  const cardSig = (x) => JSON.stringify(x.lines);
+  const cardHidden = () => {
+    let h = {}; try { h = JSON.parse(localStorage.getItem(CARD_HIDE_KEY) || "{}"); } catch (_) {}
+    try { const old = JSON.parse(localStorage.getItem("sbx-farm-hidden") || "null"); if (old) { Object.keys(old).forEach((k) => { if (!(k in h)) h[k] = ""; }); localStorage.setItem(CARD_HIDE_KEY, JSON.stringify(h)); localStorage.removeItem("sbx-farm-hidden"); } } catch (_) {}
+    return h;
+  };
+  function setCardHidden(x, hide) { const h = cardHidden(); if (hide) h[x.k] = cardSig(x); else delete h[x.k]; try { localStorage.setItem(CARD_HIDE_KEY, JSON.stringify(h)); } catch (_) {} }
+  const peeks = () => { try { return JSON.parse(sessionStorage.getItem(PEEK_KEY) || "{}"); } catch (_) { return {}; } };
+  function setPeek(g, v) { const p = peeks(); p[g] = v ? 1 : 0; try { sessionStorage.setItem(PEEK_KEY, JSON.stringify(p)); if (v) sessionStorage.setItem(LIVE_MIN_KEY, "0"); } catch (_) {} }
   const liveMin = () => { try { return sessionStorage.getItem(LIVE_MIN_KEY) === "1"; } catch (_) { return false; } };   // open until you tuck them away (this tab remembers)
   function mountLive() {
     if (!on("live")) return;
     let el = document.getElementById("sbx-live");
-    const hidden = liveHidden(), items = LIVE.items.filter((x) => hidden[x.k] !== JSON.stringify(x.lines));
+    const ch = cardHidden(), pk = peeks();
+    const away = { hill: [], farm: [], tour: [] }, news = { hill: false, farm: false, tour: false };
+    LIVE.items.forEach((x) => { if (x.k in ch) { const g = cardGroup(x); away[g].push(x); if (ch[x.k] && ch[x.k] !== cardSig(x)) news[g] = true; } });
+    const items = LIVE.items.filter((x) => !(x.k in ch) || pk[cardGroup(x)]);
+    const tourN = LIVE.items.filter((x) => cardGroup(x) === "tour").length;
     const min = liveMin(), su = LIVE.signups || 0;
-    const key = JSON.stringify(items) + min + su;
+    const key = JSON.stringify(items) + min + su + JSON.stringify(pk) + JSON.stringify(away.hill.length + "/" + away.farm.length + "/" + away.tour.length) + JSON.stringify(news) + tourN;
     if (el && el.isConnected && el.dataset.key === key) return;
     if (!el) {
       el = document.createElement("div"); el.id = "sbx-live";
@@ -5309,15 +5331,21 @@ const SBX_TABLET = true;
       return '<div style="pointer-events:auto;background:' + bg + ';color:#f4efe2;border-radius:14px;padding:11px 12px 11px 14px;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);border-left:5px solid ' + edge + '">' +
         '<div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;letter-spacing:.2px">' + esc(x.title) + "</b>" +
         '<a href="' + esc(x.url) + '" target="_blank" style="color:#facc15;font-size:12px;text-decoration:none;white-space:nowrap">' + (x.hill ? "📊 HtH Leaderboard" : x.scr ? "🔎 Card" : "🗂️ Bracket") + "</a>" +
-        '<button data-x="' + i + '" title="Hide this card until something changes" style="background:rgba(255,255,255,.12);border:0;color:inherit;cursor:pointer;font-size:14px;line-height:1;border-radius:999px;width:24px;height:24px">×</button></div>' +
+        ((x.k in ch) ? '<button data-keep="' + i + '" title="Show this card all the time again" style="background:#14532d;border:0;color:#bbf7d0;cursor:pointer;font:700 11.5px system-ui,sans-serif;border-radius:999px;padding:4px 9px;white-space:nowrap">📌 Keep</button>'
+          : '<button data-hide="' + i + '" title="Put this card away. Bring it back any time from the ' + ({ hill: "🥊 Hill", farm: "🌱 Farm", tour: "🏆 Tournaments" })[cardGroup(x)] + ' button below" style="background:rgba(255,255,255,.12);border:0;color:inherit;cursor:pointer;font:700 11.5px system-ui,sans-serif;border-radius:999px;padding:4px 9px;white-space:nowrap">' + ({ hill: "🥊", farm: "🌱", tour: "🏆" })[cardGroup(x)] + ' Hide</button>') + '</div>' +
         (x.sub ? '<div style="font-size:13px;opacity:.92;margin-top:3px">' + x.sub + "</div>" : "") + ln + "</div>";
     }).join("");
     const fold = items.length ? '<button data-fold title="' + (min ? "Show your Hill and tournament cards" : "Tuck these cards away (the button stays)") + '" style="' + pill + ';position:relative;padding:9px 14px;background:#0b1220;color:#fde68a;border:1px solid #475569">' +
       (min ? "▴ Cards" + '<span title="' + items.length + ' card' + (items.length === 1 ? "" : "s") + ' waiting" style="position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:#dc2626;color:#fff;font:800 12px/22px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #0b1220,0 2px 6px rgba(0,0,0,.5)">' + items.length + "</span>" : "▾ Hide cards") + "</button>" : "";
     const home = '<a data-home href="' + TOURNEY_HOME + '" target="_blank" rel="noopener" title="SmallBall tournaments: brackets, sign-ups, the Hall of Champions" style="' + pill + ';padding:10px 16px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#1c1917">🏆 Tournaments' +
       (su ? '<span style="font:700 11px/1 system-ui,sans-serif;background:#14532d;color:#bbf7d0;border-radius:999px;padding:4px 7px">sign-ups open</span>' : "") + "</a>";
-    el.innerHTML = cards + '<div style="display:flex;justify-content:flex-end;gap:8px">' + fold + home + "</div>";
-    el.querySelectorAll("[data-x]").forEach((b) => { b.onclick = () => { const x = items[Number(b.dataset.x)], h = liveHidden(); h[x.k] = JSON.stringify(x.lines); try { sessionStorage.setItem(LIVE_HIDE_KEY, JSON.stringify(h)); } catch (_) {} mountLive(); }; });
+    const dot = (on) => (on ? '<span title="Something changed on a hidden card" style="position:absolute;top:-4px;right:-4px;width:11px;height:11px;border-radius:999px;background:#dc2626;box-shadow:0 0 0 2px #0b1220"></span>' : "");
+    const peekBtn = (g, ico, name, bg, fg, bd) => away[g].length ? '<button data-peek="' + g + '" title="' + (pk[g] ? "Put the " + name + " cards you hid away again" : "Peek at the " + name + " cards you hid") + '" style="' + pill + ';position:relative;padding:9px 12px;background:' + bg + ';color:' + fg + ';border:1px solid ' + bd + '">' + ico + " " + (pk[g] ? "Hide" : away[g].length) + dot(news[g] && !pk[g]) + "</button>" : "";
+    const tourBadge = tourN ? '<button data-peek="tour" title="' + tourN + " tournament" + (tourN === 1 ? "" : "s") + " you're in" + (away.tour.length ? (pk.tour ? ". Click to put the hidden ones away again" : ". Click to peek at the " + away.tour.length + " you hid") : "") + '" style="' + pill + ';position:relative;padding:9px 11px;background:#7c2d12;color:#fde68a;border:1px solid #f59e0b;cursor:' + (away.tour.length ? "pointer" : "default") + '">🏆 ' + tourN + dot(news.tour && !pk.tour) + "</button>" : "";
+    el.innerHTML = cards + '<div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">' + peekBtn("hill", "🥊", "Hill", "#7a1f2b", "#fecaca", "#ef4444") + peekBtn("farm", "🌱", "Farm", "#14532d", "#bbf7d0", "#22c55e") + fold + tourBadge + home + "</div>";
+    el.querySelectorAll("[data-hide]").forEach((b) => { b.onclick = () => { const x = items[Number(b.dataset.hide)]; setCardHidden(x, true); setPeek(cardGroup(x), false); mountLive(); }; });
+    el.querySelectorAll("[data-keep]").forEach((b) => { b.onclick = () => { setCardHidden(items[Number(b.dataset.keep)], false); mountLive(); }; });
+    el.querySelectorAll("[data-peek]").forEach((b) => { b.onclick = () => { const g = b.dataset.peek; if (!away[g].length) return; setPeek(g, !pk[g]); mountLive(); }; });
     const fb = el.querySelector("[data-fold]"); if (fb) fb.onclick = () => { try { sessionStorage.setItem(LIVE_MIN_KEY, min ? "0" : "1"); } catch (_) {} mountLive(); };
     el.querySelectorAll("code").forEach((c) => { c.style.cssText = "font:700 12px ui-monospace,monospace;background:rgba(250,204,21,.18);color:#fde68a;border-radius:5px;padding:1px 5px"; });
     liveLift();
