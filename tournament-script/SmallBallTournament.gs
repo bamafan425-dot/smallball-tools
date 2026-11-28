@@ -1,5 +1,5 @@
 /**
- * SmallBall Tournament (v2.29: knocked-out clubs are crossed off the club ID list with a 🥊 and their finish (#16 of 23), still-alive clubs first; v2.28: finished games and finished rounds fade back on the bracket page (hover to bring one up); v2.27: 🏁 knocked-out leaderboard: places by how far each club got, total runs breaking ties between clubs out in the same round; v2.26: once the bracket is live, the club ID list moves below the bracket; v2.25: the page's results timing follows POST_DELAY_MINUTES; v2.24: 🎯 Count a game for a match (a game played a little before the match opened, or one the search missed); v2.23: ⏩ Post a found result now (skips the airing wait for one match); v2.22: while the losers bracket's first round waits for the play-ins, the page lists who has dropped so far; v2.21: every tournament post carries the live bracket link (the sign-up link drops off once the bracket is drawn); v2.20: the rules box starts closed; v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
+ * SmallBall Tournament (v2.30: every club named in a Discord post links to its team page in SmallBall; v2.29: knocked-out clubs are crossed off the club ID list with a 🥊 and their finish (#16 of 23), still-alive clubs first; v2.28: finished games and finished rounds fade back on the bracket page (hover to bring one up); v2.27: 🏁 knocked-out leaderboard: places by how far each club got, total runs breaking ties between clubs out in the same round; v2.26: once the bracket is live, the club ID list moves below the bracket; v2.25: the page's results timing follows POST_DELAY_MINUTES; v2.24: 🎯 Count a game for a match (a game played a little before the match opened, or one the search missed); v2.23: ⏩ Post a found result now (skips the airing wait for one match); v2.22: while the losers bracket's first round waits for the play-ins, the page lists who has dropped so far; v2.21: every tournament post carries the live bracket link (the sign-up link drops off once the bracket is drawn); v2.20: the rules box starts closed; v2.19: losers-bracket round 1 is re-paired by stars once the first-round games are done, so the low-star clubs who drop meet each other; v2.18: with byes, the lowest-star clubs play the first-round play-in games and the bigger clubs get the byes; v2.17: the seeding search finishes with seed swaps, so first games really pair similar stars; v2.16: big brackets (16+) draw compact one-line match cards, and first-round byes (and open spots on the preview) fold into a list instead of empty boxes; the bracket page republishes itself when its template changes; v2.15: club stars read the number out of answers like "8*" or "8 stars"; 🔁 Retry sign-ups menu item re-runs chosen form answers; v2.14: seeds also redraw when a club's stars or owner change; the same owner is found by Discord ID, then owner name, then sign-in, so two Google accounts don't hide it; v2.13: random seeding is redrawn with every new sign-up, shown on the preview, and that's the bracket that gets drawn; the page picks up Config changes (prizes...) on the next check; ⏰ sign-up reminder post; v2.12: the champion post names the grand finalists (winners- and losers-bracket champs) and the best low-star club (LOW_STAR_PRIZE); 🎙️ MVC poll menu item posts a Discord poll; v2.11: random seeding pairs similar-star clubs in their first games (and still keeps one owner's clubs apart); v2.10: 🏦 the Prize Vault credits every ticket to its SmallBall owner and club, including ones the vault club bought in the shop; v2.9: random seeding keeps one owner's clubs apart (opposite halves, as late a meeting as the bracket allows); v2.8: 🧪 Mock tournament: plays a whole pretend bracket through the real Discord posts, then 🗑️ deletes them; v2.7: every time says its zone (MT in the Sheet and form, "your time" in Discord, your zone on the pages); MAX_PER_OWNER lets an owner enter more than one club (🛠 Allow two clubs per owner); v2.6: 🏦 Prize Vault: club 1008's ticket tray published hourly for the Prize Vault page, with donors credited automatically, and a 🎁 Donate link on every bracket board; v2.5: ⛳ Scramble matches are 18 holes of match play from the box scores, with birdie/eagle scorecards (🔑 Connect SmallBall box scores; Nassau if they can't be read); v2.4: 📣 announcement menu item, 🔎 matchup cards; v2.3: ⛳ Two Man Scramble format (two-club teams, Nassau scoring) with its own golf-course bracket page; v2.2: the 🆕 New tournament pop-up is back, with run-alongside; v2.1: several tournaments at once in one Sheet, each with its own form, tabs and page; v2.0: Tournament Central: one Sheet runs tournament after tournament (🆕 New tournament), a ✅ Health check, and a Tournaments page; v1.4: the live bracket can live on GitHub Pages; v1.3: sleeps when nothing is due, to save Google run time; v1.2: a bracket preview while sign-ups are open; v1.1: blank-form sign-ups for returning players) · by Slip (slipnsliders) for the SmallBall community
  * A Google Sheet + Form + Apps Script that runs a SmallBall tournament on its own:
  *   sign-ups on a Google Form → a seeded bracket → fixed waves of matches → BigLeague games found on
  *   SmallBall automatically → results posted to Discord once each game has aired (no spoilers) → a live
@@ -263,7 +263,12 @@ function writeRow_(t, r) { t.sh.getRange(r._row, 1, 1, t.head.length).setValues(
 function appendRow_(t, r) { t.sh.appendRow(t.head.map((h) => (r[h] === undefined ? '' : r[h]))); }
 function entrants_() { return readTable_(SHEETS.ENTRANTS, ENTRANT_COLS); }
 const tag_ = (e) => (e && e.Tags ? e.Tags : e && /^\d{15,21}$/.test(norm_(e.DiscordID)) ? '<@' + norm_(e.DiscordID) + '>' : '**' + esc_(e ? e.Discord : '?') + '**');
-const clubTxt_ = (e) => '*' + esc_(e.Club) + '* (club ID `' + norm_(e.ClubID) + '`' + (norm_(e.Stars) !== '' ? ' · ' + norm_(e.Stars) + '★' : '') + ')';
+// Every club named in a Discord post links to its SmallBall team page (<…> keeps Discord from adding a preview).
+const teamUrl_ = (id) => 'https://play.smallball.com/#/team/' + norm_(id);
+const clubLink_ = (name, id) => (norm_(id) ? '[' + String(name).replace(/[\[\]]/g, '\\$&') + '](<' + teamUrl_(id) + '>)' : name);
+const idLink_ = (id) => '[' + norm_(id) + '](<' + teamUrl_(id) + '>)';
+const linkName_ = (E, club) => { const e = E[club]; return e ? clubLink_(esc_(e.Club), club) : 'TBD'; };
+const clubTxt_ = (e) => '*' + clubLink_(esc_(e.Club), e.ClubID) + '* (club ID ' + idLink_(e.ClubID) + (norm_(e.Stars) !== '' ? ' · ' + norm_(e.Stars) + '★' : '') + ')';
 
 // ===================== The form =====================
 // Each form's sign-ups go to its own tournament.
@@ -590,7 +595,7 @@ function entrantMap_() {
   return m;
 }
 const seedOf_ = (T, club) => { const s = T.seeds.find((x) => x.club === club); return s ? s.seed : 99; };
-function nameOf_(E, T, club) { const e = E[club]; return e ? '#' + seedOf_(T, club) + ' ' + tag_(e) + ' (*' + esc_(e.Club) + '*)' : 'TBD'; }
+function nameOf_(E, T, club) { const e = E[club]; return e ? '#' + seedOf_(T, club) + ' ' + tag_(e) + ' (*' + clubLink_(esc_(e.Club), club) + '*)' : 'TBD'; }
 function plainName_(E, club) { const e = E[club]; return e ? norm_(e.Club) : 'TBD'; }
 
 // ===================== SmallBall =====================
@@ -732,7 +737,7 @@ function waves_(T, C) {
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     // The lower seed needs the game (a no-show sends the higher seed on), so the lower seed starts it.
     const ch = seedOf_(T, a) > seedOf_(T, b) ? a : b, df = ch === a ? b : a;
-    return '**' + esc_(m.label) + '** · play by ' + ts_(m.deadline) + ' (' + tsR_(m.deadline) + ')\n> 🥊 ' + nameOf_(E, T, ch) + ' **starts the game** vs club ID `' + df + '`\n> 🛡️ ' + nameOf_(E, T, df) + ' defends · club ID `' + ch + '`' +
+    return '**' + esc_(m.label) + '** · play by ' + ts_(m.deadline) + ' (' + tsR_(m.deadline) + ')\n> 🥊 ' + nameOf_(E, T, ch) + ' **starts the game** vs club ID ' + idLink_(df) + '\n> 🛡️ ' + nameOf_(E, T, df) + ' defends · club ID ' + idLink_(ch) +
       '\n> 👉 [Start the game in SmallBall](<https://play.smallball.com/?sbx_as=' + ch + '#/team/' + df + '>) · check YOUR CLUB is `' + ch + '`, then **Play** (not Exhibition)';
   };
   const head = first ? '## 🔔 Wave 1 is on! First pitch for the ' + esc_(C.TOURNEY_NAME) + '\n'
@@ -768,7 +773,7 @@ function detect_(T, C) {
     m.pend = { gid: String(g.game_id), ra, rb, airs };
     m.used = (m.used || []).concat(String(g.game_id));   // this match's own games (the global list is built fresh each time)
     log_('system', 'Game found', m.id + ' game ' + g.game_id);
-    post_('📡 **Game found** for ' + esc_(m.label) + ': ' + esc_(plainName_(E, a)) + ' vs ' + esc_(plainName_(E, b)) + ' · game `' + g.game_id + '`. The result posts ' + ts_(airs) + ', once it has aired. (No score here: no spoilers.)\n📺 Watch it live: <' + watchUrl_(g.game_id) + '>');
+    post_('📡 **Game found** for ' + esc_(m.label) + ': ' + linkName_(E, a) + ' vs ' + linkName_(E, b) + ' · game `' + g.game_id + '`. The result posts ' + ts_(airs) + ', once it has aired. (No score here: no spoilers.)\n📺 Watch it live: <' + watchUrl_(g.game_id) + '>');
     changed = true;
   }
   return changed;
@@ -830,10 +835,10 @@ function resultText_(T, m, E, C, note) {
   let s = '🏆 **' + esc_(m.label) + '**: ' + nameOf_(E, T, w) + ' beats ' + nameOf_(E, T, l) + (m.score ? ' **' + m.score[0] + '–' + m.score[1] + '**' : '') + (m.gid ? ' · game `' + m.gid + '`' : '') + '.';
   if (note) s += '\n' + note;
   if (m.id === 'GF' && T.matches.find((x) => x.id === 'GF2' && !x.void && !x.winner)) s += '\n🔥 The losers-bracket champ wins the first grand final! **Bracket reset:** one more game decides it all.';
-  else if (out && !champion_(T)) s += '\n💀 ' + esc_(plainName_(E, l)) + ' is out.' ;
-  else if (!out && T.fmt === 'double') s += '\n⬇️ ' + esc_(plainName_(E, l)) + ' drops to the losers bracket.';
+  else if (out && !champion_(T)) s += '\n💀 ' + linkName_(E, l) + ' is out.' ;
+  else if (!out && T.fmt === 'double') s += '\n⬇️ ' + linkName_(E, l) + ' drops to the losers bracket.';
   const next = T.matches.find((x) => !x.winner && !x.void && (sideClub_(T, x.a) === w || sideClub_(T, x.b) === w));
-  if (next && !champion_(T)) s += '\n➡️ ' + esc_(plainName_(E, w)) + ' plays next in the **' + esc_(next.label) + '**, which opens at the next wave.';
+  if (next && !champion_(T)) s += '\n➡️ ' + linkName_(E, w) + ' plays next in the **' + esc_(next.label) + '**, which opens at the next wave.';
   return s + linksLine_(C);
 }
 
@@ -847,7 +852,7 @@ function deadlines_(T, C) {
     const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
     if (lc_(C.NO_SHOW) === 'commish') {
       m.flag = true; changed = true;
-      post_('⏰ **' + esc_(m.label) + '**: no game between ' + esc_(plainName_(E, a)) + ' and ' + esc_(plainName_(E, b)) + ' this wave. The organizer will decide.');
+      post_('⏰ **' + esc_(m.label) + '**: no game between ' + linkName_(E, a) + ' and ' + linkName_(E, b) + ' this wave. The organizer will decide.');
       log_('system', 'No-show (commish)', m.id);
       continue;
     }
@@ -864,12 +869,12 @@ function prizeLines_(T, E, C, champ) {
   const gf = T.matches.find((m) => m.id === 'GF');
   if (T.fmt === 'double' && gf) {
     const a = sideClub_(T, gf.a), b = sideClub_(T, gf.b);
-    if (a > 0 && b > 0) s += '\n🏅 Grand finalists: ' + tag_(E[a]) + ' (*' + esc_(plainName_(E, a)) + '*, winners-bracket champ) and ' + tag_(E[b]) + ' (*' + esc_(plainName_(E, b)) + '*, losers-bracket champ)';
+    if (a > 0 && b > 0) s += '\n🏅 Grand finalists: ' + tag_(E[a]) + ' (*' + linkName_(E, a) + '*, winners-bracket champ) and ' + tag_(E[b]) + ' (*' + linkName_(E, b) + '*, losers-bracket champ)';
   }
   const lim = Number(norm_(C.LOW_STAR_PRIZE));
   if (norm_(C.LOW_STAR_PRIZE) !== '' && lim >= 0) {
     const best = lowStarBest_(T, E, lim, champ);
-    if (best) s += '\n⭐ Best club at ' + lim + '★ and under: ' + tag_(E[best.club]) + ' (*' + esc_(plainName_(E, best.club)) + '*, ' + best.stars + '★) · ' + best.wins + ' win' + (best.wins === 1 ? '' : 's') + (best.last ? ', last played the ' + esc_(best.last) : '');
+    if (best) s += '\n⭐ Best club at ' + lim + '★ and under: ' + tag_(E[best.club]) + ' (*' + linkName_(E, best.club) + '*, ' + best.stars + '★) · ' + best.wins + ' win' + (best.wins === 1 ? '' : 's') + (best.last ? ', last played the ' + esc_(best.last) : '');
   }
   return s;
 }
@@ -945,9 +950,9 @@ function crown_(T, C) {
   const E = entrantMap_(), c = champion_(T); T.done = Date.now();
   const runner = (() => { const f = T.matches.filter((m) => m.bracket === 'F' || m.id === T.final).filter((m) => m.winner && !m.void).pop(); return f ? f.loser : null; })();
   const lossless = lossesOf_(T, c) === 0; T.runner = runner || null;
-  post_('# 👑 ' + esc_(plainName_(E, c)) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' +
+  post_('# 👑 ' + linkName_(E, c) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' +
     tag_(E[c]) + ' (#' + seedOf_(T, c) + ' seed) takes it' + (lossless ? ' without a single loss' : ' the hard way, out of the losers bracket') + '. 🎉' +
-    (runner ? '\n🥈 Runner-up: ' + tag_(E[runner]) + ' (*' + esc_(plainName_(E, runner)) + '*)' : '') +
+    (runner ? '\n🥈 Runner-up: ' + tag_(E[runner]) + ' (*' + linkName_(E, runner) + '*)' : '') +
     prizeLines_(T, E, C, c) +
     (norm_(C.PRIZES) ? '\n🎁 Prizes: ' + esc_(C.PRIZES) : '') + '\nThanks for playing, everybody! 🐶' + linksLine_(C));
   log_('system', 'Champion', String(c));
@@ -1187,7 +1192,7 @@ function adminPostBracket() { withUi_(() => { const T = stateGet_(); if (!T) ret
 function bracketText_(T) {
   const C = cfg_(), E = entrantMap_(), L = ['🗂️ **' + esc_(C.TOURNEY_NAME) + ' · where it stands**'];
   const sec = (title, list) => { if (!list.length) return; L.push('\n**' + title + '**'); list.forEach((m) => { const a = sideClub_(T, m.a), b = sideClub_(T, m.b);
-    L.push((m.winner ? '✅ ' : m.openAt ? '🔴 ' : '▫️ ') + esc_(m.label) + ': ' + (a > 0 ? esc_(plainName_(E, a)) : 'TBD') + ' vs ' + (b > 0 ? esc_(plainName_(E, b)) : 'TBD') + (m.winner > 0 ? ' → **' + esc_(plainName_(E, m.winner)) + '**' + (m.score ? ' ' + m.score.join('–') : '') : '')); }); };
+    L.push((m.winner ? '✅ ' : m.openAt ? '🔴 ' : '▫️ ') + esc_(m.label) + ': ' + (a > 0 ? linkName_(E, a) : 'TBD') + ' vs ' + (b > 0 ? linkName_(E, b) : 'TBD') + (m.winner > 0 ? ' → **' + linkName_(E, m.winner) + '**' + (m.score ? ' ' + m.score.join('–') : '') : '')); }); };
   const real = T.matches.filter((m) => !m.void && !m.bye);
   sec('Winners bracket', real.filter((m) => m.bracket === 'W'));
   sec('Losers bracket', real.filter((m) => m.bracket === 'L'));
@@ -1970,9 +1975,9 @@ function drawScramble_(C, E) {
 function scrLine_(T, m, E) {
   const a = teamOf_(T, sideClub_(T, m.a)), b = teamOf_(T, sideClub_(T, m.b));
   m.games = m.games || SCR_GAMES_.map((g) => { const ca = a.clubs[g.a], cb = b.clubs[g.b]; return { k: g.k, nine: g.nine, a: ca, b: cb, tee: g.tee === 'A' ? ca : cb }; });
-  const who = (c) => tag_(E[c]) + ' (*' + esc_(E[c] ? E[c].Club : c) + '*)';
+  const who = (c) => tag_(E[c]) + ' (*' + clubLink_(esc_(E[c] ? E[c].Club : c), c) + '*)';
   const g = (x) => { const other = x.tee === x.a ? x.b : x.a;
-    return '> • ' + who(x.tee) + ' **tees off** vs ' + esc_(E[other] ? E[other].Club : other) + ' `' + other + '` · 👉 [Start it](<https://play.smallball.com/?sbx_as=' + x.tee + '#/team/' + other + '>)'; };
+    return '> • ' + who(x.tee) + ' **tees off** vs ' + clubLink_(esc_(E[other] ? E[other].Club : other), other) + ' `' + other + '` · 👉 [Start it](<https://play.smallball.com/?sbx_as=' + x.tee + '#/team/' + other + '>)'; };
   const card = boardUrl_(cfg_()) ? ' · 🔎 [Matchup card](<' + boardUrl_(cfg_()) + '#m=' + m.id + '>)' : '';
   return '⛳ **' + esc_(m.label) + '** · all four games by ' + ts_(m.deadline) + ' (' + tsR_(m.deadline) + ')\n> 🏌️ **Team ' + esc_(teamName_(E, a)) + '** vs **Team ' + esc_(teamName_(E, b)) + '**' + card + '\n' +
     '> **Front nine**\n' + m.games.filter((x) => x.nine === 'Front').map(g).join('\n') + '\n> **Back nine**\n' + m.games.filter((x) => x.nine === 'Back').map(g).join('\n');
@@ -1998,7 +2003,7 @@ function scrDetect_(T, C) {
       g.gid = String(hit.game_id); g.ra = Number(aAway ? hit.away_runs : hit.home_runs); g.rb = Number(aAway ? hit.home_runs : hit.away_runs);
       g.airs = Date.parse(hit.finished_at) + Math.max(0, Number(C.POST_DELAY_MINUTES) || 0) * 60000; used[g.gid] = 1;
       log_('system', 'Game found', m.id + ' ' + g.k + ' game ' + g.gid);
-      post_('📡 **' + (g.nine === 'Front' ? 'Front' : 'Back') + ' nine** game found in ' + esc_(m.label) + ': ' + esc_(plainName_(E, g.a)) + ' vs ' + esc_(plainName_(E, g.b)) + ' · game `' + g.gid + '`. Scores post when all four games have aired. (No spoilers.)\n📺 Watch it: <' + watchUrl_(g.gid) + '>');
+      post_('📡 **' + (g.nine === 'Front' ? 'Front' : 'Back') + ' nine** game found in ' + esc_(m.label) + ': ' + linkName_(E, g.a) + ' vs ' + linkName_(E, g.b) + ' · game `' + g.gid + '`. Scores post when all four games have aired. (No spoilers.)\n📺 Watch it: <' + watchUrl_(g.gid) + '>');
       changed = true;
     }
   }
@@ -2089,7 +2094,7 @@ function scrCrown_(T, C) {
   const E = entrantMap_(), c = champion_(T), tm = teamOf_(T, c); T.done = Date.now();
   const f = T.matches.find((m) => m.id === T.final); T.runner = f ? f.loser : null;
   const R = teamOf_(T, T.runner);
-  post_('# 🏆 Team ' + esc_(teamName_(E, tm)) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' + tm.clubs.map((x) => tag_(E[x]) + ' (*' + esc_(E[x] ? E[x].Club : x) + '*)').join(' & ') + ' take the trophy. ⛳🎉' +
+  post_('# 🏆 Team ' + esc_(teamName_(E, tm)) + ' wins the ' + esc_(C.TOURNEY_NAME) + '!\n' + tm.clubs.map((x) => tag_(E[x]) + ' (*' + clubLink_(esc_(E[x] ? E[x].Club : x), x) + '*)').join(' & ') + ' take the trophy. ⛳🎉' +
     (R ? '\n🥈 Runner-up: Team ' + esc_(teamName_(E, R)) : '') + (norm_(C.PRIZES) ? '\n🎁 Prizes: ' + esc_(C.PRIZES) : '') + '\nThanks for playing, everybody! See you next Sunday. 🐶' + linksLine_(C));
   log_('system', 'Champion', String(c));
 }
