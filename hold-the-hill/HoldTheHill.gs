@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -2449,6 +2449,7 @@ function onOpen() {
     .addItem('📣 Send callouts now', 'adminNudgeNow')
     .addItem('🧪 Test callouts (everyone, ignores the rules)', 'adminNudgeTest')
     .addItem('🧹 Reset for launch (wipe all results)', 'adminResetForLaunch')
+    .addItem('🏁 Fresh start (both ladders + Brawl Bucks, tournament champ = Ace)', 'adminFreshStart')
     .addItem('Update the odds now (matchups and Ace futures)', 'adminRunFutures')
     .addItem('Post the odds board to the sportsbook channel', 'adminPostOdds')
     .addSeparator()
@@ -3257,6 +3258,62 @@ function adminResetForLaunch() {
   } finally { lock.releaseLock(); }
 }
 
+
+// ───────────────────────────── 🏁 Fresh start (after a tournament) ─────────────────────────────
+// Both ladders and every wallet start over: all charges, results, reigns, payouts, bets, lines, wagers, items,
+// streaks, votes and the Log are erased; every club goes back to 0-0, ranked by sign-up order (first in = #1).
+// Then the tournament champion's owner is crowned the Ace: their club on the Hill (the champion club itself if
+// it's there, else that owner's first-signed-up Hill club); if they're only on the Farm Hill, they're the Farm Ace.
+function adminFreshStart() {
+  const ui = SpreadsheetApp.getUi();
+  const ans = ui.prompt('🏁 Fresh start',
+    'This erases EVERYTHING on both ladders (⛰️ Hold the Hill and 🌱 Farm Hill): charges, results, reigns, payouts, bets, lines, wagers, items, streaks, votes, every Brawl Bucks wallet and the Log. Every club goes back to 0-0, ranked by sign-up order.\n' +
+    'Kept: who signed up (Players tabs), Stars and Config.\n\nType RESET and the tournament champion\'s club ID (example: RESET 189501). Their owner starts as the Ace if they\'re on the Hill. Just RESET = no Ace.', ui.ButtonSet.OK_CANCEL);
+  const txt = norm_(ans.getResponseText());
+  if (ans.getSelectedButton() !== ui.Button.OK || !/^RESET\b/.test(txt)) { ui.alert('Nothing was changed.'); return; }
+  const champId = (txt.match(/\d{2,}/) || [''])[0];
+  // Who owns the champion club (SmallBall owner name), for matching their Hill club.
+  let champOwner = '';
+  if (champId) { const sp = PropertiesService.getScriptProperties(), ck = sp.getProperty('SB_COOKIE');
+    try { const r = UrlFetchApp.fetch('https://play.smallball.com/teams/' + champId + '/profile', { muteHttpExceptions: true, headers: Object.assign({ Accept: 'application/json' }, ck ? { Cookie: ck } : {}) });
+      if (r.getResponseCode() === 200) champOwner = lc_(JSON.parse(r.getContentText()).owner_nick); } catch (e) { } }
+  const lock = LockService.getScriptLock(); lock.waitLock(30000);
+  let kept = {}, ace = null;
+  try {
+    const ss = SpreadsheetApp.getActive();
+    const wipe = (n) => { const sh = ss.getSheetByName(n); if (!sh) return; const last = sh.getLastRow(); if (last > 1) sh.deleteRows(2, last - 1); };
+    [SHEETS.LINES, SHEETS.BETS, SHEETS.LOG, SHEETS.WAGERS, SHEETS.LEDGER, SHEETS.ITEMS, SHEETS.VOTES, SHEETS.STREAKS].forEach(wipe);
+    const board = ss.getSheetByName(BOARD_TAB); if (board) board.getRange('A1').setValue('{}');
+    LADS_.forEach(function (l) {
+      if (l === 'farm' && !farmReady_()) return;
+      withLad_(l, function () {
+        [SHEETS.CHALLENGES, SHEETS.MATCHES, SHEETS.REIGNS, SHEETS.PAYOUTS].forEach(function (n) { wipe(ladTab_(n)); });
+        const pt = players_();
+        const keep = pt.rows.filter(function (p) { return p.Status !== 'Removed'; }).sort(function (a, b) { return new Date(a.Joined) - new Date(b.Joined); });
+        keep.forEach(function (p, i) { p.Status = 'Active'; p.Rank = i + 1; p.Wins = 0; p.Losses = 0; p.CareerPts = 0; p.Defenses = 0; p.Reigns = 0; p.BestReignPts = 0; writeRow_(pt, p); });
+        Object.keys(DEFAULTS).forEach(function (k) { if (/^STATE_/.test(k)) setCfg_(k, ''); });
+        kept[l || 'hill'] = keep.length;
+        if (!ace && (champId || champOwner)) {
+          const mine = keep.filter(function (p) { return norm_(p.ClubID) === champId || (champOwner && lc_(p.OwnerID) === champOwner); });
+          const pick = mine.find(function (p) { return norm_(p.ClubID) === champId; }) || mine[0];
+          if (pick) ace = { lad: l, email: pick.Email, name: pick.Discord, club: pick.Club };
+        }
+      });
+    });
+    const props = PropertiesService.getScriptProperties();
+    ['NUDGED', 'NUDGE_SLOT', 'POST_QUEUE', 'LOG_QUEUE', 'FUTURES', 'FUT_DAY', 'FUT_POSTED', 'POT_LINES', 'ODDS_AT', 'ODDS_SIG', 'ODDS_DAY', 'BOOK_SIG', 'STARS_DAY', 'HILL_REST', 'FARM_REST', 'BIG_WAGER_OK']
+      .forEach(function (k) { props.deleteProperty(k); });
+    Object.keys(props.getProperties()).forEach(function (k) { if (/^CLIMB_[SF]/.test(k)) props.deleteProperty(k); });
+    LADS_.forEach(function (l) { if (l === 'farm' && !farmReady_()) return; withLad_(l, function () { trackClimb_(players_().rows); }); });
+    log_('commish', 'Fresh start', JSON.stringify(kept) + (champId ? ' · champion club ' + champId : ''));
+  } finally { lock.releaseLock(); }
+  let crowned = '';
+  if (ace) { try { withLad_(ace.lad, function () { crownAce_(ace.email, 'commish'); }); crowned = '\n\n👑 ' + ace.name + ' (' + ace.club + ') starts as the ' + (ace.lad === 'farm' ? '🌱 Farm Ace' : 'Ace') + '.'; } catch (e) { crowned = '\n\nCouldn\'t crown the Ace: ' + (e.message || e); } }
+  else if (champId) crowned = '\n\nThe champion club ' + champId + (champOwner ? ' (owner ' + champOwner + ')' : '') + ' isn\'t on either ladder, so nobody is the Ace yet: crown one from the menu.';
+  try { snapshotBoard_(); } catch (e) { }
+  ui.alert('🏁 Fresh start done. ⛰️ ' + (kept.hill || 0) + ' clubs' + (kept.farm != null ? ', 🌱 ' + kept.farm + ' Farm clubs' : '') + ', ranked by sign-up order, all at 0-0, every wallet at zero.' + crowned +
+    '\n\nNext: check SEASON_START, then run "Update the odds now".');
+}
 
 // ───────────────────────────── 🤝 Head-to-head wagers (Brawl Bucks, player vs player) ─────────────────────────────
 // One player offers a wager on the form (stake up to WAGER_MAX a side; straight up, odds or a run line); the other
