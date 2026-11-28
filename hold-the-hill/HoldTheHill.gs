@@ -1,5 +1,5 @@
 /**
- * ⛰️ HOLD THE HILL — SmallBall ladder (v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
+ * ⛰️ HOLD THE HILL — SmallBall ladder (v3.25: fixes from lithodora's review: a charge names the exact club first (owners with several Farm clubs), moved-down clubs can register back on the Hill after a call-up, Farm-only owners can shop, bet, vote and wager from the shared wallet, and Farm games count toward the daily streak; v3.24: 🏁 Fresh start: one menu item wipes both ladders' results and every Brawl Bucks wallet, re-ranks both by sign-up order, and crowns the tournament champion's owner as the Ace if they're on the Hill; v3.23: Discord times say "(your time)", Mountain times say MT; the Farm Hill is an open ladder, no reach limit, cooldowns, recovery, Bell or margins; v3.22: the Farm Hill is for clubs at 6★ and under (10-star scale), owners can put several young clubs on it, smaller clubs register onto it by themselves, ⬇️ move-down tool; v3.21: 🌱 the Farm Hill, a second ladder on the same engine (shared Brawl Bucks wallet, same Master Form, its own Ace, mound and Bell, call-ups when a club outgrows it); v3.20: 🩹 a failed charge at the Ace drops you to #5 and you recover 2 hours (3 if the Ace wore Brass Knuckles) before you can charge anyone; v3.19: pre-fill link worked out hourly outside the lock; dashboard waits longer for a busy check; v3.18: pre-filled charge links for the Club Kit (⚔️ Charge this club); v3.17: 🎛️ Commish dashboard (Sheet menu: settings in plain words, live status, Ring/Skip/Pause the Bell); v3.16: 🔔 The Bell (a few random one-hour windows a week when anyone can charge the Ace: win by 3+ for the title, less = #1 contender; Ace bounty + 48 h shield); v3.15: faster open mound (#2 can charge the Ace after 8 hours, then one more spot a day, never widening overnight); v3.14: "Master Form" and "Live Hold the Hill Leaderboard" everywhere; v3.13: 🏟️ The Bleacher Vote (players' season award); v3.12: no betting on yourself (wagers are for that), tuned Brawl Bucks pay and item prices, 3 paid Hill games a day, 🛒 shop channel, The Sharp = betting winnings, 🔥 The Grinder award, 250 BB bet ceiling; v3.11: bets capped at 4.2% of your Brawl Bucks, head-to-head wagers 4.2% (10% with the commish's OK); v3.10: 🪜 Ladder Jump+, 🔥 Hill streaks (daily Brawl Bucks for playing, growing every day in a row, milestones), 🌧️ Rain Delay item, +15 charge bonus; v3.9: 🛒 Brawl Bucks items (🥊 Brass Knuckles, 🧽 Margin Eraser, 🪜 Ladder Jump), Brawl Bucks for every Hill game, title charges can need a margin; v3.8: 🥊 Start-the-game links in Discord that open SmallBall on your opponent with your club checked, clickable club IDs on the board; v3.7: a cleaner form with 🥊 Charge the Hill up top, 🤝 head-to-head wagers (straight up, odds or run line, up to 250 BB a side), The Hustler award, commish fines that split a cheater's Brawl Bucks across the league; v3.6: the HtH Leaderboard lives on GitHub Pages (fast, and old board links forward there), tidy Discord links; v3.5: HtH Leaderboard and form links on the big posts, Discord posts that get blocked are retried instead of lost, v3.4: Who can I charge?, v3.3: the Ace on top of the Climb, v3.2.1: sturdier Discord posting, Check SmallBall now, 1-minute checks, Discord ID update, louder rejections, callout test, club IDs everywhere, 📣 callouts fix, rejections posted in Discord, overlapping charges, launch reset, watch links, betting-close wording, everything sportsbook in #sportsbook, preseason matchup lines, #sportsbook channel, 🔮 matchup lines, bet option fix, #hill-log, form link on the board, 🤖 auto-reporting, stars from the form, star-gap odds, scaled upset bonus, ♠️ Ace futures, demo board, 🎰 Hill Sportsbook + My bets, season start date, 1-hour charges, daily Brawl points, open mound, The Bench Clearer Cup)
  * Google Sheets + Google Form + Discord webhook engine
  * Version 1.1
  *
@@ -769,6 +769,20 @@ function aceLoss_(lad, ch, c, C, extra) {
     (until ? ' and is recovering' + (kn ? ' from the 🥊 Brass Knuckles' : '') + ': no charges until ' + ts_(until) + '.' : '.'));
 }
 
+// Owner-level actions (shop, bets, votes, wagers) use the shared wallet, so an owner on either ladder counts.
+// Farm rows are keyed email#clubId: they come back with the plain account email.
+function ownerRows_() {
+  const main = players_().rows.filter(function (p) { return p.Status === 'Active'; });
+  let farm = [];
+  if (farmReady_()) try { farm = withLad_('farm', function () { return players_().rows.filter(function (p) { return p.Status === 'Active'; }); })
+    .map(function (p) { const c = Object.assign({}, p, { Email: acct_(p.Email), _lad: 'farm' }); delete c._row; return c; }); } catch (e) { }
+  return { rows: main.concat(farm) };
+}
+function ownerMe_(email) {
+  const me = ownerRows_().rows.find(function (p) { return lc_(acct_(p.Email)) === lc_(acct_(email)); });
+  if (me) return me;
+  return activeMe_(players_(), email);   // same messages as before (not registered / not active)
+}
 function activeMe_(pt, email) {
   const me = findBy_(pt, email);
   if (!me) fail_('This Google account is not registered yet. Pick "' + ACTIONS.REGISTER + '" first.');
@@ -1310,6 +1324,15 @@ function doRegister_(sub, C) {
   const clubId = norm_(f[Q.CLUB_ID]);
   if (!discord || !owner || !club || !clubId) fail_('Discord username, owner ID, club name and club ID are all required.');
   const ex = findBy_(pt, sub.email);
+  // Back from the Farm (moved down, then called up): reactivate the old Hill row at the bottom of the ladder.
+  if (ex && /moved to farm/i.test(ex.Status)) {
+    ex.Status = 'Active'; ex.Rank = ladder_(pt).length + 1; ex.Discord = discord; ex.OwnerID = owner; ex.Club = club; ex.ClubID = clubId; if (did) ex.DiscordID = did;
+    writeRow_(pt, ex); trackClimb_([ex]);
+    try { setStars_(ex, f[Q.STARS], 'form'); } catch (e) { }
+    log_(sub.email, 'Register (back from the Farm)', discord + ' / ' + club + ' (' + clubId + ') at #' + ex.Rank);
+    post_('📣 ' + who_(ex) + ' is back on the Hill from the 🌱 Farm, starting at **#' + ex.Rank + '**.');
+    refreshFormChoices(); return;
+  }
   if (ex) fail_('This Google account is already registered as ' + ex.Discord + ' (' + ex.Club + '). One club per owner.');
   if (pt.rows.some(function (p) { return lc_(p.Discord) === lc_(discord); })) fail_('The Discord name "' + discord + '" is already registered.');
   if (pt.rows.some(function (p) { return lc_(p.OwnerID) === lc_(owner); })) fail_('SmallBall owner ' + owner + ' already has a declared club. One club per owner.');
@@ -1357,7 +1380,10 @@ function doChallenge_(sub, C) {
     if (revengeOpen) fail_("The Ace's Revenge is pending. Title challenges reopen once it is settled.");
     type = 'Title'; opp = ace;
   } else {
-    opp = pt.rows.find(function (p) { return lc_(p.Discord) === lc_(choice) || lc_(oppLabel_(p)) === lc_(choice) || lc_(choice.split(' · ')[1] || '') === lc_(p.Discord); });
+    // The exact club label first (an owner can have several Farm clubs), then the Discord name, then the old "rank · name" labels.
+    opp = pt.rows.find(function (p) { return lc_(oppLabel_(p)) === lc_(choice); }) ||
+      pt.rows.find(function (p) { return lc_(p.Discord) === lc_(choice); }) ||
+      pt.rows.find(function (p) { return lc_(choice.split(' · ')[1] || '') === lc_(p.Discord); });
     if (!opp || opp.Status !== 'Active') fail_('Opponent "' + choice + '" was not found or is not active.');
     if (opp === me) fail_("You can't challenge yourself.");
     if (opp === ace) fail_('To challenge the Ace, choose the ♠ THE ACE option.');
@@ -1855,9 +1881,9 @@ function buyItem_(C, p, key, isAce) {
 }
 function doShop_(sub, C) {
   if (!itemsOn_(C)) fail_('The Brawl Bucks shop is closed right now.');
-  const pt = players_(), me = activeMe_(pt, sub.email), key = itemKeyOf_(sub.f[Q.ITEM]);
+  const pt = players_(), me = ownerMe_(sub.email), key = itemKeyOf_(sub.f[Q.ITEM]);
   if (!key) fail_('Pick an item to buy.');
-  const ace = ace_(pt), isAce = ace === me;
+  const ace = ace_(pt), isAce = !!ace && lc_(ace.Email) === lc_(me.Email);
   const price = buyItem_(C, me, key, isAce), inv = inventory_(C), n = holds_(inv, me.Email, key);
   log_(sub.email, 'Item bought', key + ' for ' + price);
   post_('🛒 ' + who_(me) + ' buys ' + itemLabel_(key) + ' for **' + price + ' BB**' + (isAce ? ' (Ace price)' : '') + '. Holding ' + n + '.' +
@@ -2026,8 +2052,8 @@ function playedOn_(C, day) {
   const season = String(C.SEASON), out = {};
   readTable_(SHEETS.MATCHES).rows.forEach(function (m) {
     if (String(m.Season) !== season || !m.Date || denverDay_(new Date(m.Date)) !== day) return;
-    out[lc_(m.WinnerEmail)] = true;
-    if (lc_(m.Source) !== 'forfeit') out[lc_(m.LoserEmail)] = true;
+    out[lc_(acct_(m.WinnerEmail))] = true;
+    if (lc_(m.Source) !== 'forfeit') out[lc_(acct_(m.LoserEmail))] = true;
   });
   return out;
 }
@@ -2050,9 +2076,12 @@ function streakDay_() {
   }
 }
 function streakOne_(C, day) {
-  const pt = players_(), ace = ace_(pt), played = playedOn_(C, day), ST = streakTable_(C), inv = inventory_(C);
+  // One streak per owner across both ladders: a Hill game or a Farm game that day both count.
+  const ace = ace_(players_()), played = playedOn_(C, day), ST = streakTable_(C), inv = inventory_(C);
+  if (farmReady_()) try { const fp = withLad_('farm', function () { return playedOn_(cfg_(), day); }); Object.keys(fp).forEach(function (k) { played[k] = true; }); } catch (e) { }
+  const seen = {}, owners = ownerRows_().rows.filter(function (p) { const k = lc_(acct_(p.Email)); if (seen[k]) return false; seen[k] = true; return true; });
   const paid = [], ended = [], saved = [], waiting = [];
-  pt.rows.forEach(function (p) {
+  owners.forEach(function (p) {
     if (p.Status !== 'Active') return;
     const e = lc_(p.Email); let r = ST.by[e];
     if (played[e]) {
@@ -2062,7 +2091,7 @@ function streakOne_(C, day) {
       ledger_(C, p, tot, 'Day played ' + day + ' (🔥 ' + r.Streak + (pay.milestone ? ', milestone' : '') + ')');
       paid.push({ p: p, n: r.Streak, tot: tot, ms: pay.milestone });
     } else if (r && num_(r.Streak) > 0) {
-      if (ace === p) waiting.push({ p: p, n: num_(r.Streak) });
+      if (ace && lc_(ace.Email) === lc_(p.Email)) waiting.push({ p: p, n: num_(r.Streak) });
       else if (holds_(inv, p.Email, 'rain') > 0) { itemRow_(C, p, 'rain', 'Used', '', '', 'Saved a ' + r.Streak + '-day streak on ' + day); saved.push({ p: p, n: num_(r.Streak) }); }
       else { ended.push({ p: p, n: num_(r.Streak) }); r.Streak = 0; }
     }
@@ -2085,7 +2114,7 @@ function writeStreaks_(t) {
   t.rows.forEach(function (r) { if (r._row) writeRow_(t, r); else { appendObj_(SHEETS.STREAKS, r); } });
 }
 function streakBoard_(C) {
-  const ST = streakTable_(C), pt = players_();
+  const ST = streakTable_(C), pt = ownerRows_();
   const list = ST.t.rows.filter(function (r) { const p = findBy_(pt, r.Email); return String(r.Season) === String(C.SEASON) && p && p.Status === 'Active' && (num_(r.Streak) > 0 || num_(r.Best) > 1); })
     .map(function (r) { return { name: norm_(r.Player), n: num_(r.Streak), best: num_(r.Best), last: norm_(r.LastPlayed) }; })
     .sort(function (a, b) { return b.n - a.n || b.best - a.best; }).slice(0, 12);
@@ -2109,14 +2138,14 @@ function voteNote_(C) {
   return 'Votes are in';
 }
 function doVote_(sub, C) {
-  const pt = players_(), me = activeMe_(pt, sub.email), w = voteWindow_(C), t = now_();
+  const pt = players_(), me = ownerMe_(sub.email), w = voteWindow_(C), t = now_();
   if (!w) fail_('The Bleacher Vote opens near the end of the season.');
   if (t < w.open) fail_('The Bleacher Vote opens ' + Utilities.formatDate(w.open, 'America/Denver', 'EEE MMM d') + ' (the last ' + (Number(C.VOTE_DAYS) || 7) + ' days of the season).');
   if (t >= w.close) fail_('The Bleacher Vote is closed for this season.');
   const pick = norm_(sub.f[Q.VOTE]);
   const who = pt.rows.find(function (p) { return p.Status === 'Active' && (lc_(p.Discord) === lc_(pick) || lc_(voteLabel_(p)) === lc_(pick)); });
   if (!who) fail_('Pick a Hill player from the list.');
-  if (who === me) fail_("No voting for yourself. Pick whoever made this season the most fun.");
+  if (who && lc_(acct_(who.Email)) === lc_(acct_(me.Email))) fail_("No voting for yourself. Pick whoever made this season the most fun.");
   appendObj_(SHEETS.VOTES, { Date: t, Season: C.SEASON, Email: me.Email, Voter: me.Discord, Pick: who.Discord, PickEmail: who.Email });
   log_(sub.email, 'Bleacher Vote', 'voted');
   post_('🏟️ ' + esc_(me.Discord) + ' cast a **Bleacher Vote**. Votes stay secret until the season wrap-up.', 'help');
@@ -2811,7 +2840,7 @@ function bankrolls_(C) {
 function doBet_(sub, C) {
   if (!bookOn_(C)) fail_('The sportsbook is closed.');
   const pt = players_();
-  const me = activeMe_(pt, sub.email);
+  const me = ownerMe_(sub.email);
   const label = norm_(sub.f[Q.BET]);
   const stake = Math.floor(Number(norm_(sub.f[Q.STAKE]).replace(/[^\d]/g, '')));
   if (stake >= 1) { const cap = betCap_(C, me.Email); if (stake > cap) fail_('The most you can bet right now is **' + cap + ' BB** (' + pctOf_(C.BET_MAX_PCT, 4.2) + '% of your Brawl Bucks, ' + flat_(C) + ' BB max). Bet that or less.'); }
@@ -3400,7 +3429,7 @@ function doWager_(sub, C) {
   if (!wagerOn_(C)) fail_('Head-to-head wagers are off right now.');
   if (!seasonOpen_(C)) fail_('Wagers open when the season starts.');
   if (seasonOver_(C)) fail_('The season is over: no new wagers.');
-  const pt = players_(), me = activeMe_(pt, sub.email);
+  const pt = ownerRows_(), me = ownerMe_(sub.email);
   if (!norm_(me.ClubID)) fail_('Your club ID is missing from the Hill. Register again with it first.');
   const oppId = norm_(sub.f[Q.W_OPP]).replace(/\D/g, '');
   if (!oppId) fail_("Enter your opponent's club ID (it's next to their name on the HtH Leaderboard).");
@@ -3455,7 +3484,7 @@ function doWager_(sub, C) {
 
 function doWagerReply_(sub, C) {
   if (!wagerOn_(C)) fail_('Head-to-head wagers are off right now.');
-  const pt = players_(), me = activeMe_(pt, sub.email);
+  const pt = ownerRows_(), me = ownerMe_(sub.email);
   const id = wagerId_(sub.f[Q.W_ID]);
   if (!id) fail_('Enter the wager # from the Discord post, like W-0003.');
   const wt = readTable_(SHEETS.WAGERS);
