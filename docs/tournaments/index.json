@@ -1,5 +1,5 @@
 {
- "updated": 1795842266059,
+ "updated": 1795851092359,
  "list": [
   {
    "slug": "sunday-sandlot-scramble",
@@ -32,10 +32,18 @@
    "signupClose": 1795827300000,
    "start": 1795827600000,
    "clubs": 23,
-   "status": "live",
-   "finished": 0,
-   "champ": null,
-   "runner": null
+   "status": "done",
+   "finished": 1795851088528,
+   "champ": {
+    "n": "Ajax Assassins",
+    "o": "N*S",
+    "id": 643394
+   },
+   "runner": {
+    "n": "TBA -XsT-",
+    "o": "ArchHen",
+    "id": 563372
+   }
   }
  ]
 }
