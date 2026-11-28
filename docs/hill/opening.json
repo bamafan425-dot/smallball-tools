@@ -1,0 +1,22 @@
+{
+  "note": "Opening Day for the Hold the Hill board. It runs for 24 hours from the board's openingDay stamp (set by 🏁 Fresh start); start/end here are a fallback. Add drops any time: icon, title, body (or html), and at (ISO time; leave it out to show from the start). Newer drops show first, with a NEW tag for 2 hours.",
+  "start": "",
+  "end": "",
+  "drops": [
+    {
+      "icon": "🎙️",
+      "title": "From the booth",
+      "body": "Fresh season, clean slate: every record is 0-0, every Brawl Bucks wallet starts over, and the ladder is set in sign-up order. Charge early, charge often."
+    },
+    {
+      "icon": "🏆",
+      "title": "The champ gets the ball",
+      "body": "The Black Friday Brawl champion opens the season on the mound as the Ace. Every defense pays more than the last, so the first club to knock them off ends a reign before it gets going."
+    },
+    {
+      "icon": "🌭",
+      "title": "Opening Day concession stand",
+      "body": "Free hot dogs (imaginary), free peanuts (also imaginary), and very real bragging rights for the first club to climb three spots today."
+    }
+  ]
+}
