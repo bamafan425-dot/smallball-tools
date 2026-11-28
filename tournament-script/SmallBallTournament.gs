@@ -2644,3 +2644,30 @@ function postBrawlHype() {
       'Up to ' + Math.max(1, Number(C.MAX_PER_OWNER) || 1) + ' clubs per owner. Last call to grab a spot. 🐶\n🗂️ [Live bracket + sign-up](<https://slipnsliders.github.io/smallball-tools/brawl/>)');
   });
 }
+
+// One-off (Black Friday Brawl): release the losers bracket's first round now instead of waiting for every play-in.
+// Clubs that already dropped are paired low-star with low-star; the play-ins still going feed the leftover slots.
+function lbSendNow() {
+  withSlot_(null, () => {
+    const lock = LockService.getScriptLock(); lock.waitLock(30000);
+    try {
+      const T = stateGet_(), C = cfg_(); if (!T || !T.lbHold) { Logger.log('Nothing held.'); return; }
+      const E = entrantMap_(), st = (c) => (E[c] && norm_(E[c].Stars) !== '' ? Number(E[c].Stars) : 0);
+      const w1 = T.matches.filter((m) => m.bracket === 'W' && m.round === 1);
+      const drop = w1.filter((m) => m.winner && !m.bye && m.loser > 0).map((m) => m.loser).sort((a, b) => st(a) - st(b)).map((c) => ({ club: c }));
+      const pend = w1.filter((m) => !m.winner && !m.void).map((m) => ({ from: m.id, take: 'L' }));
+      const sides = drop.concat(pend), pairs = [];
+      for (let i = 0; i < sides.length; i += 2) pairs.push([sides[i], sides[i + 1] || { club: BYE }]);
+      const L1 = T.matches.filter((m) => m.bracket === 'L' && m.round === 1).sort((a, b) => a.slot - b.slot);
+      const spots = pairs.map((_, i) => Math.floor(i * L1.length / Math.max(1, pairs.length)));
+      L1.forEach((m, i) => { const k = spots.indexOf(i), pr = k >= 0 ? pairs[k] : [{ club: BYE }, { club: BYE }];
+        m.a = pr[0]; m.b = pr[1]; delete m.winner; delete m.loser; delete m.bye; });
+      delete T.lbHold;
+      settle_(T);
+      waves_(T, C);
+      stateSet_(T); snapshot_(T);
+      log_('commish', 'Losers bracket round 1 sent now', pairs.map((p) => p.map((x) => x.club != null ? (x.club > 0 ? plainName_(E, x.club) : 'bye') : 'loser of ' + x.from).join(' v ')).join(' · '));
+      Logger.log(pairs.map((p) => p.map((x) => x.club != null ? (x.club > 0 ? plainName_(E, x.club) + ' ' + st(x.club) + '*' : 'bye') : 'loser of ' + x.from).join(' v ')).join('\n'));
+    } finally { lock.releaseLock(); }
+  });
+}
